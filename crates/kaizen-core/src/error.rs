@@ -40,6 +40,15 @@ pub enum KaizenError {
     #[error("{count} package(s) failed — see output above")]
     InstallerPartialFailure { count: usize, failed: Vec<String> },
 
+    #[error("unsupported dotfiles backend '{backend}' — only 'chezmoi' is supported")]
+    UnsupportedDotfilesBackend { backend: String },
+
+    #[error("cannot determine chezmoi source directory — run 'chezmoi init' first")]
+    ChezmoidataTargetUnknown,
+
+    #[error("failed to serialize chezmoidata: {0}")]
+    TomlSerialize(#[from] toml::ser::Error),
+
     #[error("io error: {0}")]
     Io(#[from] std::io::Error),
 }

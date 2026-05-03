@@ -55,6 +55,15 @@ enum Command {
         dry_run: bool,
     },
 
+    #[command(about = "Write .chezmoidata.toml to the chezmoi source directory")]
+    Apply {
+        #[arg(
+            long,
+            help = "Preview changes without writing files or running chezmoi"
+        )]
+        dry_run: bool,
+    },
+
     #[command(about = "Check system readiness and required tool availability")]
     Doctor,
 }
@@ -74,6 +83,7 @@ fn main() -> Result<()> {
         Command::Plan { json } => commands::plan::run(&engine, &config_path, json)?,
         Command::Install { dry_run } => commands::install::run(&engine, &config_path, dry_run)?,
         Command::Uninstall { dry_run } => commands::uninstall::run(&engine, &config_path, dry_run)?,
+        Command::Apply { dry_run } => commands::apply::run(&engine, &config_path, dry_run)?,
         Command::Doctor => commands::doctor::run(&engine, &config_path)?,
     }
 

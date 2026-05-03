@@ -1,5 +1,6 @@
 use std::path::{Path, PathBuf};
 
+pub mod chezmoi;
 pub mod config;
 pub mod error;
 pub mod feature;
