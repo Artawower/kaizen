@@ -121,15 +121,19 @@ Kaizen is not configurable in the usual sense.
 
 It is improvable.
 
-You cannot freely change keybindings, plugins, applications, or workflow decisions through local Kaizen configuration.
+The distinction is important:
 
-If you believe a shortcut, tool, plugin, or approach should be changed, open a discussion and explain why. The stronger the reasoning and the more people involved, the better the final workflow becomes.
+- *Local private customization* (per-user keybindings, personal tool choices outside of features) is not the goal.
+  Kaizen provides curated defaults that work well, not an infinite option menu.
+
+- *Upstream improvements* (better tools, better defaults, better workflows) are always welcome.
+  If you find a better approach, open a discussion. The stronger the reasoning and the broader the benefit, the better.
 
 Kaizen evolves through shared review, arguments, benchmarks, and real usage.
 
 #+BEGIN_QUOTE
-Local customization creates private islands.
-Public discussion improves the shared workflow.
+Private forks diverge silently.
+Public discussion improves the shared workflow for everyone.
 #+END_QUOTE
 
 * What Kaizen does

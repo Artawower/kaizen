@@ -1,28 +1,42 @@
-#+TITLE: Kaizen: план реализации dependency-layer
+#+TITLE: Kaizen: план реализации workflow orchestrator
 #+LANGUAGE: ru
 #+OPTIONS: toc:3 num:nil
 
 * 1. Цель
 
-~kaizen~ — это *headless dependency orchestrator* для установки пользовательских программ из выбранных пользователем *фич*.
+~kaizen~ — это *headless workflow orchestrator* для переноса и применения opinionated developer workflow между разными пользователями и машинами.
+
+Он управляет не только установкой программ, но и конфигурацией рабочего окружения:
+
+#+BEGIN_SRC text
+- пользовательские фичи
+- программы и зависимости
+- dotfiles
+- editor/window-manager/terminal configs
+- keyboard/layout-specific настройки
+- AI/dev tooling
+- OS-aware варианты конфигурации
+#+END_SRC
 
 Инструмент должен решать задачу:
 
 #+BEGIN_SRC text
 Пользователь выбирает фичи:
-  frontend, go, python, rust, emacs, helix, ai, mac-gui, etc.
+  frontend, go, python, rust, emacs, helix, ai, mac-gui, mac-tiling, etc.
 
 kaizen:
-  1. загружает выбранные фичи
-  2. учитывает текущую ОС
-  3. объединяет программы и installer-specific секции
-  4. строит headless InstallPlan
-  5. передаёт InstallPlan выбранному installer-у
+  1. инициализирует пользовательский config, если его ещё нет
+  2. загружает выбранные фичи
+  3. учитывает текущую ОС
+  4. строит headless WorkflowPlan
+  5. устанавливает программы через выбранный installer
+  6. генерирует/обновляет данные для chezmoi
+  7. применяет dotfiles/configuration через chezmoi
 #+END_SRC
 
 На первом этапе ~kaizen~ *не является package manager* и *не является resolver-ом уровня Nix*. Он не пытается сам идеально понять, что такое ~cargo~, ~node~ или ~emacs~ на каждой ОС. Вместо этого фичи описывают желаемые программы и, при необходимости, installer-specific overrides.
 
-Первый прототип должен быть максимально простым в установке и запуске. Поэтому первый installer — ~upt~.
+Первый dependency installer должен быть максимально простым в установке и запуске. Поэтому первый installer — ~upt~.
 
 Будущие installer-ы:
 
@@ -33,17 +47,23 @@ kaizen:
 - direct providers
 #+END_SRC
 
+Dotfiles/configuration layer в MVP должен опираться на ~chezmoi~.
+
 Главная идея:
 
 #+BEGIN_SRC text
 kaizen не является wrapper-ом над upt.
-kaizen строит InstallPlan.
-upt — только первый способ применить этот план.
+kaizen не является wrapper-ом над chezmoi.
+
+kaizen строит WorkflowPlan.
+
+upt — первый способ установить программы.
+chezmoi — первый способ применить dotfiles/configuration.
 #+END_SRC
 
 * 2. Главный принцип архитектуры
 
-Сначала строится *headless core*, который не зависит от CLI/TUI/GUI и не привязан к конкретному installer-у.
+Сначала строится *headless core*, который не зависит от CLI/TUI/GUI и не привязан к конкретному installer-у или dotfiles backend-у.
 
 #+BEGIN_SRC text
 ┌────────────────────┐
@@ -55,21 +75,41 @@ upt — только первый способ применить этот пл�
 │ kaizen-core        │
 │                    │
 │ config loading     │
+│ init questionnaire │
 │ feature loading    │
 │ OS detection       │
 │ atom filtering     │
 │ merge engine       │
-│ plan generation    │
+│ workflow planning  │
 └─────────┬──────────┘
           │
           ▼
 ┌────────────────────┐
+│ workflow layer     │
+│                    │
+│ dependencies plan  │
+│ dotfiles plan      │
+│ warnings           │
+└───────┬────┬───────┘
+        │    │
+        │    ▼
+        │  ┌────────────────────┐
+        │  │ config layer       │
+        │  │                    │
+        │  │ v0: chezmoi        │
+        │  │   mise.toml.tmpl   │
+        │  │   + mise.lock      │
+        │  │ future: other      │
+        │  └─────────┬──────────┘
+        │            │
+        ▼            ▼
+┌────────────────────┐
 │ installer layer    │
 │                    │
 │ v0: upt            │
+│ (incl. cask/macOS) │
 │ future: metapac    │
 │ future: nix        │
-│ future: brew       │
 └─────────┬──────────┘
           │
           ▼
@@ -82,15 +122,16 @@ upt — только первый способ применить этот пл�
 
 CLI — это только один из интерфейсов. Позже TUI и GUI должны использовать тот же core API.
 
-Core не должен напрямую запускать ~upt~, ~metapac~, ~nix~, ~brew~ или другие внешние команды. Core только строит данные.
+Core не должен напрямую запускать ~upt~, ~metapac~, ~nix~, ~brew~, ~chezmoi~ или другие внешние команды. Core только строит данные и планы.
 
 * 3. Что входит в MVP
 
-MVP должен быть максимально простым.
+MVP должен быть максимально простым, но уже учитывать обе стороны Kaizen: зависимости и конфигурацию.
 
 Входит:
 
 #+BEGIN_SRC text
+- команда init для генерации первичного config.toml
 - пользовательский config с выбранными фичами
 - директория фич
 - table-based feature selection
@@ -98,8 +139,12 @@ MVP должен быть максимально простым.
 - OS-aware загрузка фич
 - merge TOML-файлов
 - сбор [programs].packages
+- сбор [mise.tools] из фич
+- сбор config/chezmoi data из фич
+- headless WorkflowPlan
 - dry-run / plan
 - install через UptInstaller
+- apply через ChezmoiConfigBackend (incl. генерация mise.toml из template)
 - JSON output для будущих TUI/GUI
 #+END_SRC
 
@@ -107,14 +152,18 @@ MVP должен быть максимально простым.
 
 #+BEGIN_SRC text
 - metapac как основной installer
+- MiseInstaller как отдельный crate (mise управляется через chezmoi templates)
 - NixInstaller
-- lockfile
+- kaizen-level lockfile для системных пакетов (upt)
 - state для safe uninstall
 - automatic uninstall
 - provider policy
 - semantic sources database
 - Steel/Scheme provider plugins
+- полноценный TUI/GUI
 #+END_SRC
+
+Lockfile для dev-зависимостей решён на уровне ~mise.lock~ в chezmoi source. Версии системных пакетов (upt) не пинятся в MVP.
 
 ~metapac~ и ~nix~ должны быть предусмотрены архитектурно, но не должны блокировать первый релиз.
 
@@ -122,7 +171,7 @@ MVP должен быть максимально простым.
 
 ** Feature
 
-Фича — это пользовательски понятный набор программ.
+Фича — это пользовательски понятный набор программ и конфигурации.
 
 Примеры:
 
@@ -137,9 +186,22 @@ ai
 mac-gui
 mac-tiling
 linux-desktop
+colemak
+qwerty
 #+END_SRC
 
 Фичи могут пересекаться. Например, ~emacs~ и ~helix~ обе могут требовать ~ripgrep~ и ~fd~. Merge engine должен дедуплицировать зависимости.
+
+Фича может содержать:
+
+#+BEGIN_SRC text
+- programs
+- installer-specific sections
+- dotfiles/config requirements
+- chezmoi data
+- warnings
+- atoms
+#+END_SRC
 
 ** Atom
 
@@ -193,9 +255,26 @@ node → nodejs_22 для nix
 fd   → fd-find для fedora
 #+END_SRC
 
+** Config item
+
+Config item — часть пользовательской конфигурации, которую должен применить Kaizen.
+
+В MVP config item в основном превращается в данные для ~chezmoi~.
+
+Примеры:
+
+#+BEGIN_SRC text
+- enable emacs config
+- enable helix config
+- layout = colemak
+- wm = aerospace
+- keyboard_manager = karabiner
+- ai_tools = true
+#+END_SRC
+
 ** Installer
 
-Installer — стратегия применения ~InstallPlan~.
+Installer — стратегия применения dependency-части ~WorkflowPlan~.
 
 Примеры:
 
@@ -208,6 +287,20 @@ BrewBundleInstaller
 
 Первый installer — ~UptInstaller~.
 
+** Config backend
+
+Config backend — стратегия применения конфигурации и dotfiles.
+
+Примеры:
+
+#+BEGIN_SRC text
+ChezmoiConfigBackend
+future: HomeManagerConfigBackend
+future: DirectConfigBackend
+#+END_SRC
+
+Первый config backend — ~ChezmoiConfigBackend~.
+
 ** Executor
 
 Executor — низкоуровневый слой, который реально запускает внешние команды.
@@ -216,16 +309,17 @@ Executor — низкоуровневый слой, который реальн�
 
 #+BEGIN_SRC text
 upt install git ripgrep fd
+chezmoi apply
 nix profile install .#default
 metapac sync
 brew bundle install --file Brewfile
 #+END_SRC
 
-Installer использует executor. Core не использует executor напрямую.
+Installer/config backend использует executor. Core не использует executor напрямую.
 
 ** InstallPlan
 
-~InstallPlan~ — headless результат работы core.
+~InstallPlan~ — dependency-часть плана.
 
 Он содержит:
 
@@ -238,6 +332,34 @@ Installer использует executor. Core не использует executor
 - warnings
 #+END_SRC
 
+** ConfigPlan
+
+~ConfigPlan~ — configuration/dotfiles-часть плана.
+
+Он содержит:
+
+#+BEGIN_SRC text
+- выбранные фичи
+- layout/user choices
+- chezmoi data
+- config warnings
+- dotfiles source information
+- actions для config backend-а
+#+END_SRC
+
+** WorkflowPlan
+
+~WorkflowPlan~ — общий headless результат работы core.
+
+Он содержит:
+
+#+BEGIN_SRC text
+- InstallPlan
+- ConfigPlan
+- warnings
+- список внешних tools, которые понадобятся
+#+END_SRC
+
 * 5. Структура репозитория
 
 #+BEGIN_SRC text
@@ -247,12 +369,16 @@ kaizen/
       src/
         lib.rs
         config.rs
+        init.rs
         feature.rs
         feature_store.rs
         os.rs
         atoms.rs
         merge.rs
         plan.rs
+        install_plan.rs
+        config_plan.rs
+        workflow_plan.rs
         installer_manifest.rs
         error.rs
 
@@ -265,64 +391,38 @@ kaizen/
         future_metapac.rs
         future_nix.rs
 
+    kaizen-config/
+      src/
+        lib.rs
+        config_backend.rs
+        chezmoi.rs
+        dotfiles.rs
+        executor.rs
+
     kaizen-cli/
       src/
         main.rs
         commands/
+          setup.rs
           doctor.rs
           features.rs
           plan.rs
           install.rs
-          generate.rs
+          apply.rs
+          sync.rs
 
   features/
-    core/
-      common.toml
-      darwin.toml
-      fedora.toml
-      linux.toml
-
-    frontend/
-      common.toml
-      darwin.toml
-      fedora.toml
-      linux.toml
-
-    go/
-      common.toml
-      darwin.toml
-      fedora.toml
-      linux.toml
-
-    python/
-      common.toml
-      darwin.toml
-      fedora.toml
-      linux.toml
-
-    rust/
-      common.toml
-      darwin.toml
-      fedora.toml
-      linux.toml
-
-    emacs/
-      common.toml
-      darwin.toml
-      fedora.toml
-      linux.toml
-
-    helix/
-      common.toml
-      darwin.toml
-      fedora.toml
-      linux.toml
-
-    ai/
-      common.toml
-      darwin.toml
-      fedora.toml
-      linux.toml
+    core.toml
+    frontend.toml
+    go.toml
+    python.toml
+    rust.toml
+    emacs.toml
+    helix.toml
+    ai.toml
+    tiling.toml
+    keyboard.toml
+    terminal.toml
 
   examples/
     config.toml
@@ -331,6 +431,7 @@ kaizen/
     design.org
     feature-format.org
     roadmap.org
+    chezmoi.org
 #+END_SRC
 
 * 6. Пользовательский config
@@ -391,6 +492,51 @@ enabled = true
 disabled_atoms = ["eslint", "prettier"]
 #+END_SRC
 
+** Общие настройки
+
+MVP должен предусмотреть простые пользовательские настройки, которые будут использоваться config layer-ом.
+
+#+BEGIN_SRC toml
+[settings]
+layout = "colemak"
+editor = "emacs"
+window_manager = "aerospace"
+keyboard_manager = "karabiner"
+#+END_SRC
+
+Пример альтернативного варианта:
+
+#+BEGIN_SRC toml
+[settings]
+layout = "qwerty"
+editor = "helix"
+window_manager = "niri"
+keyboard_manager = "xremap"
+#+END_SRC
+
+Эти значения должны попадать в ~ConfigPlan~ и затем в данные для ~chezmoi~.
+
+** Dotfiles настройки
+
+#+BEGIN_SRC toml
+[dotfiles]
+backend = "chezmoi"
+source = "~/.local/share/chezmoi"  # или URL репо: https://github.com/user/dotfiles
+local_source = "~/.local/share/chezmoi"
+#+END_SRC
+
+Для разработки можно использовать локальный source.
+
+Пример текущего локального расположения dotfiles source:
+
+#+BEGIN_SRC text
+~/.local/share/chezmoi/dot_emacs.d
+#+END_SRC
+
+Важно: путь выше является примером текущей структуры dotfiles source. План не должен зависеть жёстко от конкретной локальной машины.
+
+** Дополнительные программы
+
 В будущем config может поддерживать пользовательские дополнительные программы:
 
 #+BEGIN_SRC toml
@@ -426,45 +572,110 @@ enabled = true
 
 [features.emacs]
 enabled = true
+
+[settings]
+layout = "colemak"
+editor = "emacs"
+
+[dotfiles]
+backend = "chezmoi"
+source = "~/.local/share/chezmoi"  # путь к своим dotfiles
 #+END_SRC
 
-* 7. Формат фич
+* 7. Setup command
 
-Фича — это директория с TOML-файлами:
+~kaizen setup~ — единая точка входа. Объединяет генерацию config и интерактивный выбор фич.
+
+** Поведение
 
 #+BEGIN_SRC text
-features/<feature-name>/common.toml
-features/<feature-name>/darwin.toml
-features/<feature-name>/fedora.toml
-features/<feature-name>/linux.toml
+kaizen setup
+  если config существует: открывает интерактив на текущих значениях
+  если config нет:       начинает с пустыми значениями
+
+kaizen setup --all
+  включает все фичи, defaults для settings, пишет config без вопросов
+
+kaizen setup --print
+  печатает сгенерированный config в stdout, ничего не пишет
 #+END_SRC
 
-При загрузке фичи ~kaizen~ должен брать:
+** Интерактивный флоу MVP
+
+Для MVP — interactive CLI prompt. Последовательность шагов:
 
 #+BEGIN_SRC text
-1. common.toml
-2. linux.toml, если target OS является Linux
-3. файл текущей ОС, если он существует
+1. Определить ОС (авто)
+2. Показать список фич с описаниями:
+   [ ] core     — git, ripgrep, fd, fzf, jq
+   [ ] frontend — node, pnpm, TypeScript LSP
+   [ ] go       — Go + gopls
+   [ ] python   — Python + pyright
+   [ ] rust     — Rust toolchain
+   [ ] emacs    — Emacs + dependencies
+   [ ] helix    — Helix editor
+   [ ] ai       — AI coding tools
+   [ ] tiling   — window manager
+   [ ] keyboard — keyboard manager
+   Space = toggle, A = toggle all, Enter = confirm
+3. Задать settings (раскладка, dotfiles source)
+4. Записать ~/.config/kaizen/config.toml
+5. Показать: Next step: kaizen plan
 #+END_SRC
 
-Примеры:
+** Setup API
 
-macOS:
+~setup~ должен быть реализован в headless core, CLI — только адаптер.
+
+#+BEGIN_SRC rust
+pub struct SetupRequest {
+    pub target_os: Option<TargetOs>,
+    pub answers: SetupAnswers,
+    pub all: bool,
+}
+
+pub struct SetupAnswers {
+    pub features: BTreeMap<String, FeatureSelection>,
+    pub settings: UserSettings,
+    pub dotfiles: DotfilesConfig,
+}
+
+pub struct GeneratedUserConfig {
+    pub config: UserConfig,
+    pub rendered_toml: String,
+}
+#+END_SRC
+
+* 8. Формат фич
+
+Фича — это один TOML-файл:
 
 #+BEGIN_SRC text
-features/frontend/common.toml
-features/frontend/darwin.toml
+features/<feature-name>.toml
 #+END_SRC
 
-Fedora:
+ОС-специфика описывается в секциях ~[os.<name>.*]~ внутри того же файла.
+
+При загрузке kaizen делает:
 
 #+BEGIN_SRC text
-features/frontend/common.toml
-features/frontend/linux.toml
-features/frontend/fedora.toml
+1. читает features/<name>.toml
+2. мерджит общие секции
+3. добавляет секции [os.linux.*] если Linux
+4. добавляет секции [os.<current-os>.*]
 #+END_SRC
 
-** Простая фича
+Плюсы единого файла:
+
+#+BEGIN_SRC text
++ все о фиче в одном месте
++ большинство фич маленькие (5-15 строк) — directory был бы избыточным
++ не нужно создавать пустые OS-файлы если различий нет
+- парсер должен понимать [os.X.*]
+- для очень больших OS-различий файл может стать длинным
+#+END_SRC
+
+** Простая dependency-часть фичи
 
 Для первого прототипа основной формат — ~[programs]~.
 
@@ -482,6 +693,48 @@ packages = [
 ~UptInstaller~ передаёт их в ~upt install~.
 
 Будущий ~NixInstaller~ сможет сгенерировать из них Nix package set.
+
+** Chezmoi data (автоматическая)
+
+Feature-файлы не объявляют ~[chezmoi.data]~ явно. Kaizen автоматически
+формирует chezmoi data из включённых фич и settings.
+
+kaizen записывает в ~<dotfiles-source>/.chezmoidata.toml~ (игнорируется git-ом через ~.chezmoiignore~).
+chezmoi автоматически читает этот файл во время apply.
+
+#+BEGIN_SRC toml
+# <dotfiles-source>/.chezmoidata.toml  (генерируется kaizen)
+[features]
+core = true
+frontend = true
+emacs = true
+helix = false
+
+[settings]
+layout = "colemak"
+editor = "emacs"
+window_manager = "aerospace"
+keyboard_manager = "karabiner"
+#+END_SRC
+
+Шаблоны используют данные напрямую без промежуточных files:
+
+#+BEGIN_SRC toml
+# dot_config/helix/config.toml.tmpl
+{{ if eq .settings.layout "colemak" }}
+{{   template "keys-colemak.toml" . }}
+{{ else }}
+{{   template "keys-qwerty.toml" . }}
+{{ end }}
+#+END_SRC
+
+#+BEGIN_SRC toml
+# dot_config/mise.toml.tmpl
+[tools]
+{{- if .features.frontend }}
+"npm:typescript-language-server" = "5.1.3"
+{{- end }}
+#+END_SRC
 
 ** Overrides
 
@@ -546,47 +799,180 @@ enabled = true
 disabled_atoms = ["eslint"]
 #+END_SRC
 
-Тогда packages из ~atoms.eslint~ не попадут в итоговый ~InstallPlan~.
+Тогда packages и config из ~atoms.eslint~ не попадут в итоговый ~WorkflowPlan~.
 
-** Installer-specific sections
+Atom не объявляет chezmoi data явно — kaizen автоматически помещает
+~features.<name> = true~ в ~.chezmoidata.toml~ для всех включённых фич.
 
-Для будущих installer-ов feature-файл может содержать installer-specific секции.
+** Mise tools
 
-Пример для будущего ~MetapacInstaller~:
+Для dev-зависимостей feature-файл использует ~[mise.tools]~.
+Это отдельный tier от ~[programs]~:
 
-#+BEGIN_SRC toml
-[installers.metapac.mise]
-packages = [
-  { name = "node", options = { version = "22" } },
-  { name = "pnpm", options = { version = "latest" } },
-]
-
-[installers.metapac.npm]
-packages = [
-  "typescript-language-server",
-  "vscode-langservers-extracted",
-]
+#+BEGIN_SRC text
+[programs]    → upt  (системные утилиты: ripgrep, fd, git, niri, aerospace и т.д.)
+[mise.tools]  → mise (рантаймы и dev-тулзы: node, go, rust, LSP-серверы)
 #+END_SRC
 
-Пример внутри atom:
+~upt~ умеет ставить в том числе cask на macOS, поэтому GUI-аппы
+(тайлинг, keyboard manager) тоже попадают в ~[programs]~.
+
+Формат ~[mise.tools]~ совпадает с форматом секции ~[tools]~ в ~mise.toml~:
 
 #+BEGIN_SRC toml
-[atoms.node.installers.metapac.mise]
-packages = [
-  { name = "node", options = { version = "22" } },
-]
-
-[atoms.typescript.installers.metapac.npm]
-packages = [
-  "typescript-language-server",
-]
+[mise.tools]
+node = "lts"
+pnpm = "latest"
+"npm:typescript-language-server" = "latest"
 #+END_SRC
 
-Для MVP ~UptInstaller~ может игнорировать installer-specific sections.
+Внутри atom:
 
-* 8. Примеры фич
+#+BEGIN_SRC toml
+[atoms.node.mise.tools]
+node = "lts"
 
-** ~features/core/common.toml~
+[atoms.typescript.mise.tools]
+"npm:typescript-language-server" = "latest"
+#+END_SRC
+
+~[mise.tools]~ попадает в ~ConfigPlan~ (не в ~InstallPlan~) и используется ~ChezmoiConfigBackend~ для
+формирования ~mise.toml.tmpl~.
+
+Для ~kaizen plan~ dev-зависимости отображаются отдельно от системных пакетов.
+
+Mise tools merge engine должен дедуплицировать tool entries (одинаковые name + version = ок,
+одинаковые name + разные version = conflict).
+
+* 9. Chezmoi configuration layer
+
+MVP должен включать отдельный config layer на базе ~chezmoi~.
+
+~chezmoi~ отвечает за:
+
+#+BEGIN_SRC text
+- применение dotfiles
+- шаблонизацию конфигов
+- OS-specific files
+- layout-specific configuration
+- editor/window-manager/keyboard config
+#+END_SRC
+
+~kaizen~ отвечает за:
+
+#+BEGIN_SRC text
+- выбор фич
+- сбор settings
+- сбор [mise.tools] из выбранных фич для ConfigPlan
+- генерацию chezmoi data (фичи + settings + mise tools)
+- запуск chezmoi init/apply через ConfigBackend
+#+END_SRC
+
+** Dotfiles source
+
+~kaizen~ является фреймворком, а не хранилищем дотфайлов. Пользователь
+приносит свой dotfiles source.
+
+~[dotfiles].source~ может быть:
+
+#+BEGIN_SRC text
+source = "~/.local/share/chezmoi"     # локальный chezmoi source
+source = "https://github.com/user/dotfiles"  # URL для chezmoi init
+#+END_SRC
+
+Если source не указан, ~kaizen apply~ работает с уже инициализированным chezmoi.
+
+** ChezmoiConfigBackend
+
+#+BEGIN_SRC rust
+pub trait ConfigBackend {
+    fn id(&self) -> &'static str;
+
+    fn available(&self) -> Result<bool>;
+
+    fn preview(&self, plan: &ConfigPlan) -> Result<ConfigPreview>;
+
+    fn apply(&self, plan: &ConfigPlan) -> Result<ConfigReport>;
+}
+
+pub struct ChezmoiConfigBackend {
+    pub binary: PathBuf,
+}
+#+END_SRC
+
+** MVP команды
+
+#+BEGIN_SRC sh
+kaizen apply
+kaizen apply --config-backend chezmoi
+#+END_SRC
+
+~kaizen apply~ должен:
+
+#+BEGIN_SRC text
+1. build WorkflowPlan
+2. взять ConfigPlan (включая mise_tools из выбранных фич)
+3. записать chezmoi-data.toml (фичи, settings, mise tools за фичу)
+4. проверить наличие chezmoi
+5. при необходимости выполнить chezmoi init
+6. выполнить chezmoi apply
+   → chezmoi рендерит mise.toml.tmpl в mise.toml с нужными тулзами
+7. пользователь запускает mise install (кайзен не запускает его сам)
+#+END_SRC
+
+** Передача data в chezmoi
+
+MVP-механизм:
+
+#+BEGIN_SRC text
+kaizen генерирует ~/.config/kaizen/chezmoi-data.toml
+chezmoi.toml ссылается на этот файл через [data] секцию
+#+END_SRC
+
+Формат генерируемого файла:
+
+#+BEGIN_SRC toml
+# ~/.config/kaizen/chezmoi-data.toml
+[features]
+frontend = true
+go = false
+emacs = true
+
+[settings]
+layout = "colemak"
+editor = "emacs"
+
+[mise_tools]
+# mise tools из включённых фич — передаются как дополнительные data
+#+END_SRC
+
+Дотфайлы используют ~mise.toml.tmpl~, который читает эти данные:
+
+#+BEGIN_SRC toml
+# dot_config/mise.toml.tmpl
+[tools]
+{{- if .features.core }}
+node = "lts"
+pnpm = "10.33.2"
+{{- end }}
+
+{{- if .features.frontend }}
+"npm:typescript-language-server" = "5.1.3"
+"npm:vscode-langservers-extracted" = "4.10.0"
+{{- end }}
+
+{{- if .features.go }}
+"go:golang.org/x/tools/gopls" = "latest"
+{{- end }}
+#+END_SRC
+
+~private_mise.lock~ распространяется через chezmoi как есть. ~mise~ использует его для пинов версий
+только тех тулз, которые объявлены в ~mise.toml~, остальные записи в lock игнорируются.
+То есть выборочность достигается не фильтрацией lock, а содержимым ~mise.toml~.
+
+* 10. Примеры фич
+
+** ~features/core.toml~
 
 #+BEGIN_SRC toml
 [programs]
@@ -598,91 +984,53 @@ packages = [
   "jq",
   "yq",
   "zoxide",
+  "zsh",
 ]
 
 [programs.overrides.fedora]
 fd = "fd-find"
 #+END_SRC
 
-** ~features/frontend/common.toml~
+** ~features/frontend.toml~
 
 #+BEGIN_SRC toml
-[atoms.node.programs]
-packages = ["node"]
+[atoms.node.mise.tools]
+node = "lts"
 
-[atoms.pnpm.programs]
-packages = ["pnpm"]
+[atoms.pnpm.mise.tools]
+pnpm = "latest"
 
-[atoms.typescript.programs]
-packages = [
-  "typescript-language-server",
-  "vscode-langservers-extracted",
-]
+[atoms.typescript.mise.tools]
+"npm:typescript-language-server" = "latest"
+"npm:vscode-langservers-extracted" = "latest"
 
-[atoms.eslint.programs]
-packages = ["eslint_d"]
+[atoms.eslint.mise.tools]
+"npm:eslint_d" = "latest"
 
-[atoms.biome.programs]
-packages = ["biome"]
-
-[atoms.node.installers.metapac.mise]
-packages = [
-  { name = "node", options = { version = "22" } },
-]
-
-[atoms.pnpm.installers.metapac.mise]
-packages = [
-  { name = "pnpm", options = { version = "latest" } },
-]
-
-[atoms.typescript.installers.metapac.npm]
-packages = [
-  "typescript-language-server",
-  "vscode-langservers-extracted",
-]
+[atoms.biome.mise.tools]
+"npm:biome" = "latest"
 #+END_SRC
 
-** ~features/go/common.toml~
+** ~features/go.toml~
 
 #+BEGIN_SRC toml
-[programs]
-packages = [
-  "go",
-  "gopls",
-  "golangci-lint",
-]
-
-[installers.metapac.mise]
-packages = [
-  { name = "go", options = { version = "latest" } },
-]
+[mise.tools]
+go = "latest"
+"go:golang.org/x/tools/gopls" = "latest"
+"go:github.com/golangci/golangci-lint/cmd/golangci-lint" = "latest"
 #+END_SRC
 
-** ~features/rust/common.toml~
+** ~features/rust.toml~
 
 #+BEGIN_SRC toml
-[programs]
-packages = [
-  "rust",
-  "cargo-binstall",
-  "cargo-watch",
-  "cargo-nextest",
-]
-
-[installers.metapac.mise]
-packages = [
-  { name = "rust", options = { version = "stable" } },
-]
-
-[installers.metapac.cargo]
-packages = [
-  "cargo-binstall",
-  "cargo-watch",
-  "cargo-nextest",
-]
+[mise.tools]
+rust = "stable"
+"cargo:cargo-binstall" = "latest"
+"cargo:cargo-watch" = "latest"
+"cargo:cargo-nextest" = "latest"
 #+END_SRC
 
-** ~features/emacs/common.toml~
+** ~features/emacs.toml~
 
 #+BEGIN_SRC toml
 [programs]
@@ -698,7 +1046,7 @@ packages = [
 fd = "fd-find"
 #+END_SRC
 
-** ~features/helix/common.toml~
+** ~features/helix.toml~
 
 #+BEGIN_SRC toml
 [programs]
@@ -713,41 +1061,49 @@ packages = [
 fd = "fd-find"
 #+END_SRC
 
-** ~features/ai/common.toml~
+** ~features/ai.toml~
 
 #+BEGIN_SRC toml
-[programs]
-packages = [
-  "ollama",
-]
+[mise.tools]
+"npm:@anthropic-ai/claude-code" = "latest"
 
-[installers.metapac.npm]
-packages = [
-  "@anthropic-ai/claude-code",
-]
+[os.darwin.programs]
+packages = ["ollama"]
+
+[os.linux.programs]
+packages = ["ollama"]
 #+END_SRC
 
-** ~features/mac-gui/darwin.toml~
+** ~features/tiling.toml~
 
 #+BEGIN_SRC toml
-[programs]
-packages = [
-  "aerospace",
-]
+[os.darwin.programs]
+packages = ["aerospace"]
 
-[installers.metapac.brew-cask]
-packages = [
-  "ghostty",
-  "karabiner-elements",
-]
-
-[installers.metapac.mas]
-packages = [
-  "497799835",
-]
+[os.linux.programs]
+packages = ["niri"]
 #+END_SRC
 
-* 9. InstallPlan
+** ~features/keyboard.toml~
+
+#+BEGIN_SRC toml
+# programs (клавиатурный manager) селектируется из settings.keyboard_manager
+[os.darwin.programs]
+packages = ["karabiner-elements"]
+
+[os.linux.programs]
+packages = ["xremap"]
+#+END_SRC
+
+** ~features/terminal.toml~
+
+#+BEGIN_SRC toml
+# ghostty ставится upt (на darwin upt использует brew cask)
+[programs]
+packages = ["ghostty"]
+#+END_SRC
+
+* 11. WorkflowPlan
 
 Если пользователь выбрал:
 
@@ -761,9 +1117,13 @@ disabled_atoms = ["eslint"]
 
 [features.emacs]
 enabled = true
+
+[settings]
+layout = "colemak"
+editor = "emacs"
 #+END_SRC
 
-На macOS ~kaizen~ должен построить ~InstallPlan~ примерно такого вида:
+На macOS ~kaizen~ должен построить ~WorkflowPlan~ примерно такого вида:
 
 #+BEGIN_SRC text
 selected features:
@@ -774,39 +1134,52 @@ selected features:
 disabled atoms:
   frontend: eslint
 
-programs:
-  git
-  ripgrep
-  fd
-  fzf
-  jq
-  yq
-  zoxide
-  node
-  pnpm
-  typescript-language-server
-  vscode-langservers-extracted
-  biome
-  emacs
-  sqlite
-  imagemagick
-
-installer-specific sections:
-  metapac.mise:
-    node@22
-    pnpm@latest
-  metapac.npm:
+install plan:
+  programs:
+    git
+    ripgrep
+    fd
+    fzf
+    jq
+    yq
+    zoxide
+    node
+    pnpm
     typescript-language-server
     vscode-langservers-extracted
+    biome
+    emacs
+    sqlite
+    imagemagick
+
+config plan:
+  backend:
+    chezmoi
+
+  data:
+    emacs = true
+    layout = "colemak"
+    editor = "emacs"
+
+  mise_tools:
+    node = "lts"
+    pnpm = "latest"
+    "npm:typescript-language-server" = "latest"
+    "npm:vscode-langservers-extracted" = "latest"
+    "npm:biome" = "latest"
+
+  source:
+    https://github.com/user/dotfiles
 #+END_SRC
 
-~UptInstaller~ использует только ~programs~.
+~UptInstaller~ использует только ~install_plan.programs~.
 
-~MetapacInstaller~ в будущем сможет использовать ~installer-specific sections~ и/или сгенерировать metapac manifest.
+~ChezmoiConfigBackend~ использует ~config_plan~: генерирует chezmoi-data.toml
+с feature-флагами и ~mise_tools~, что драйвит ~mise.toml.tmpl~ в dotfiles.
 
 ~NixInstaller~ в будущем сможет использовать ~programs~ + ~programs.overrides.nix~.
 
-* 10. Merge rules
+* 12. Merge rules
 
 Merge engine должен:
 
@@ -816,9 +1189,10 @@ Merge engine должен:
 3. объединять [programs].packages
 4. дедуплицировать programs
 5. сохранять стабильный порядок вывода
-6. объединять installer-specific sections
-7. дедуплицировать package specs внутри installer-specific sections
-8. выдавать конфликт, если один и тот же detailed package указан с разными options
+6. объединять [mise.tools] из всех активных фич/атомов
+7. дедуплицировать mise tools (динаковые name + version = ok, разные version = conflict)
+8. объединять config/chezmoi data
+9. выдавать конфликт, если один и тот же config key получает несовместимые значения
 #+END_SRC
 
 ** Пример дедупликации programs
@@ -872,7 +1246,32 @@ Conflict: package metapac.mise:node requested with different options
   legacy-node/common.toml: version = 20
 #+END_SRC
 
-* 11. Headless core API
+** Пример конфликта settings
+
+Input A (feature default):
+
+#+BEGIN_SRC toml
+# feature file default (future, если features начнут предлагать defaults)
+layout = "colemak"
+#+END_SRC
+
+Input B (user config):
+
+#+BEGIN_SRC toml
+[settings]
+layout = "qwerty"
+#+END_SRC
+
+User config всегда выигрывает. Конфликт возникает только если два feature-файла
+задают несовместимые settings без override пользователя.
+
+Для settings из пользовательского config можно ввести правило:
+
+#+BEGIN_SRC text
+user config has higher priority than feature defaults
+#+END_SRC
+
+* 13. Headless core API
 
 Core должен предоставлять API, который можно использовать из CLI, TUI и GUI.
 
@@ -883,22 +1282,25 @@ pub struct KaizenEngine {
     config_loader: ConfigLoader,
     feature_store: FeatureStore,
     os_detector: OsDetector,
+    init_generator: InitGenerator,
 }
 
 impl KaizenEngine {
     pub fn load_config(&self, path: &Path) -> Result<UserConfig>;
 
+    pub fn init_config(&self, request: InitRequest) -> Result<GeneratedUserConfig>;
+
     pub fn list_features(&self) -> Result<Vec<FeatureInfo>>;
 
-    pub fn build_plan(&self, request: BuildPlanRequest) -> Result<InstallPlan>;
+    pub fn build_workflow_plan(&self, request: BuildWorkflowPlanRequest) -> Result<WorkflowPlan>;
 }
 #+END_SRC
 
-~build_plan~ не должен запускать установку. Он только строит данные.
+~build_workflow_plan~ не должен запускать установку или применять dotfiles. Он только строит данные.
 
-Installer-ы должны жить в отдельном crate/layer и принимать ~InstallPlan~.
+Installer-ы и config backend-ы должны жить в отдельных crates/layers и принимать соответствующие части ~WorkflowPlan~.
 
-* 12. Основные типы
+* 14. Основные типы
 
 #+BEGIN_SRC rust
 #[derive(Debug, Clone, Deserialize)]
@@ -906,10 +1308,32 @@ pub struct UserConfig {
     pub features: BTreeMap<String, FeatureSelection>,
 
     #[serde(default)]
+    pub settings: UserSettings,
+
+    #[serde(default)]
+    pub dotfiles: DotfilesConfig,
+
+    #[serde(default)]
     pub extra_programs: Option<ProgramSection>,
 
     #[serde(default)]
     pub extra_installers: BTreeMap<String, InstallerManifest>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct UserSettings {
+    pub layout: Option<String>,
+    // window_manager и keyboard_manager выводятся автоматически из фич tiling/keyboard + OS
+    // pub window_manager: Option<String>,
+    // pub keyboard_manager: Option<String>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct DotfilesConfig {
+    pub backend: Option<String>,
+    // source необязателен: kaizen находит путь через `chezmoi source-path`
+    // указывается явно только для инициализации chezmoi через URL
+    pub source: Option<String>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -921,17 +1345,10 @@ pub struct FeatureSelection {
 }
 
 #[derive(Debug, Clone)]
-pub struct FeatureInfo {
-    pub name: String,
-    pub path: PathBuf,
-    pub has_common: bool,
-    pub has_os_specific: bool,
-}
-
-#[derive(Debug, Clone)]
-pub struct BuildPlanRequest {
-    pub features: BTreeMap<String, FeatureSelection>,
-    pub os: Option<TargetOs>,
+pub struct WorkflowPlan {
+    pub install_plan: InstallPlan,
+    pub config_plan: ConfigPlan,
+    pub warnings: Vec<PlanWarning>,
 }
 
 #[derive(Debug, Clone)]
@@ -942,6 +1359,15 @@ pub struct InstallPlan {
     pub loaded_files: Vec<PathBuf>,
     pub programs: Vec<ProgramSpec>,
     pub installer_manifests: BTreeMap<String, InstallerManifest>,
+    pub warnings: Vec<PlanWarning>,
+}
+
+#[derive(Debug, Clone)]
+pub struct ConfigPlan {
+    pub backend: String,
+    pub dotfiles_source: Option<String>,
+    pub dotfiles_local_source: Option<PathBuf>,
+    pub chezmoi_data: BTreeMap<String, toml::Value>,
     pub warnings: Vec<PlanWarning>,
 }
 
@@ -998,7 +1424,7 @@ ProgramSpec {
 }
 #+END_SRC
 
-* 13. Installer API
+* 15. Installer API
 
 Installer — это pluggable стратегия применения ~InstallPlan~.
 
@@ -1105,17 +1531,55 @@ nix profile install .#default
 
 NixInstaller в этом проекте должен отвечать только за установку программ. Он не должен в MVP управлять dotfiles, Home Manager modules или системными конфигами.
 
-* 14. CLI как thin adapter
+* 16. Config backend API
 
-CLI не должен содержать бизнес-логику. Он только вызывает core API и installer API.
+Config backend — это pluggable стратегия применения ~ConfigPlan~.
+
+#+BEGIN_SRC rust
+pub trait ConfigBackend {
+    fn id(&self) -> &'static str;
+
+    fn available(&self) -> Result<bool>;
+
+    fn supports(&self, plan: &ConfigPlan) -> bool;
+
+    fn preview(&self, plan: &ConfigPlan) -> Result<ConfigPreview>;
+
+    fn apply(&self, plan: &ConfigPlan) -> Result<ConfigReport>;
+}
+#+END_SRC
+
+Первый backend:
+
+#+BEGIN_SRC rust
+pub struct ChezmoiConfigBackend {
+    pub binary: PathBuf,
+}
+#+END_SRC
+
+Он должен уметь:
+
+#+BEGIN_SRC text
+- проверить наличие chezmoi
+- проверить/инициализировать dotfiles source
+- подготовить chezmoi data
+- выполнить chezmoi apply
+#+END_SRC
+
+* 17. CLI как thin adapter
+
+CLI не должен содержать бизнес-логику. Он только вызывает core API, installer API и config backend API.
 
 Команды MVP:
 
 #+BEGIN_SRC text
+kaizen setup
 kaizen doctor
 kaizen features
 kaizen plan
 kaizen install
+kaizen apply
+kaizen sync
 #+END_SRC
 
 Будущие команды:
@@ -1125,6 +1589,10 @@ kaizen generate --installer metapac
 kaizen generate --installer nix
 kaizen bootstrap --installer metapac
 #+END_SRC
+
+** ~kaizen setup~
+
+Интерактивный выбор фич и settings. Создаёт или обновляет config.toml.
 
 ** ~kaizen doctor~
 
@@ -1139,6 +1607,9 @@ Installers:
   upt: found
   metapac: not found
   nix: found
+
+Config backends:
+  chezmoi: found
 #+END_SRC
 
 ** ~kaizen features~
@@ -1160,7 +1631,7 @@ Available features:
 
 ** ~kaizen plan~
 
-Строит план без установки:
+Строит план без установки и без применения конфигурации:
 
 #+BEGIN_SRC text
 Selected features:
@@ -1168,26 +1639,20 @@ Selected features:
   frontend
   emacs
 
-Loaded files:
-  features/core/common.toml
-  features/core/darwin.toml
-  features/frontend/common.toml
-  features/emacs/common.toml
+Install:
+  programs:
+    git
+    ripgrep
+    fd
+    node
+    pnpm
+    emacs
 
-Programs:
-  git
-  ripgrep
-  fd
-  fzf
-  jq
-  node
-  pnpm
-  typescript-language-server
-  emacs
-
-Installer-specific sections:
-  metapac.mise: 2 packages
-  metapac.npm: 2 packages
+Config:
+  backend: chezmoi
+  data:
+    emacs = true
+    layout = colemak
 #+END_SRC
 
 ** ~kaizen install~
@@ -1207,12 +1672,44 @@ default installer = upt
 Флоу:
 
 #+BEGIN_SRC text
-1. build plan
-2. show preview
+1. build WorkflowPlan
+2. show install preview
 3. run UptInstaller
 #+END_SRC
 
-* 15. JSON output
+** ~kaizen apply~
+
+Применяет config/dotfiles:
+
+#+BEGIN_SRC sh
+kaizen apply --config-backend chezmoi
+#+END_SRC
+
+Флоу:
+
+#+BEGIN_SRC text
+1. build WorkflowPlan
+2. show config preview
+3. run ChezmoiConfigBackend
+#+END_SRC
+
+** ~kaizen sync~
+
+Удобная команда, которая делает оба шага:
+
+#+BEGIN_SRC text
+1. install
+2. apply
+#+END_SRC
+
+MVP может реализовать ~sync~ как последовательный вызов:
+
+#+BEGIN_SRC sh
+kaizen install
+kaizen apply
+#+END_SRC
+
+* 18. JSON output
 
 CLI должен поддерживать ~--json~ для команд:
 
@@ -1220,6 +1717,7 @@ CLI должен поддерживать ~--json~ для команд:
 features
 doctor
 plan
+init --print
 #+END_SRC
 
 Пример:
@@ -1237,26 +1735,30 @@ Output:
   "disabled_atoms": {
     "frontend": ["eslint"]
   },
-  "loaded_files": [
-    "features/core/common.toml",
-    "features/core/darwin.toml",
-    "features/frontend/common.toml",
-    "features/emacs/common.toml"
-  ],
-  "programs": [
-    { "name": "git", "overrides": {} },
-    { "name": "ripgrep", "overrides": {} },
-    { "name": "fd", "overrides": { "fedora": "fd-find" } }
-  ],
-  "installer_manifests": {
-    "metapac": {
-      "sections": {
-        "mise": {
-          "packages": [
-            { "name": "node", "options": { "version": "22" } }
-          ]
+  "install_plan": {
+    "programs": [
+      { "name": "git", "overrides": {} },
+      { "name": "ripgrep", "overrides": {} },
+      { "name": "fd", "overrides": { "fedora": "fd-find" } }
+    ],
+    "installer_manifests": {
+      "metapac": {
+        "sections": {
+          "mise": {
+            "packages": [
+              { "name": "node", "options": { "version": "22" } }
+            ]
+          }
         }
       }
+    }
+  },
+  "config_plan": {
+    "backend": "chezmoi",
+    "dotfiles_source": "https://github.com/user/dotfiles",
+    "chezmoi_data": {
+      "emacs": true,
+      "layout": "colemak"
     }
   },
   "warnings": []
@@ -1265,7 +1767,7 @@ Output:
 
 Это позволит TUI/GUI не парсить человекочитаемый вывод.
 
-* 16. OS detection
+* 19. OS detection
 
 Поддерживаемые target OS в MVP:
 
@@ -1302,7 +1804,7 @@ linux.toml
 fedora.toml
 #+END_SRC
 
-* 17. Ошибки и предупреждения
+* 20. Ошибки и предупреждения
 
 Core должен возвращать structured errors, а не печатать строки напрямую.
 
@@ -1317,6 +1819,9 @@ MergeConflict
 InstallerNotFound
 InstallerUnavailable
 InstallerExecutionFailed
+ConfigBackendNotFound
+ConfigBackendUnavailable
+ConfigBackendExecutionFailed
 UnsupportedFeatureFormat
 #+END_SRC
 
@@ -1354,7 +1859,7 @@ features/legacy/common.toml:
   version = "20"
 #+END_SRC
 
-* 18. Конфликт-детектор
+* 21. Конфликт-детектор
 
 Минимальный conflict detection:
 
@@ -1363,6 +1868,8 @@ features/legacy/common.toml:
 - same installer + same backend + same simple package = dedupe
 - same installer + same backend + same detailed package name + same options = dedupe
 - same installer + same backend + same detailed package name + different options = error
+- same config key + same value = ok
+- same config key + different value = error, unless user settings override feature defaults
 #+END_SRC
 
 Позже можно добавить semantic conflicts:
@@ -1371,53 +1878,55 @@ features/legacy/common.toml:
 - node через upt и node через metapac.mise одновременно
 - rust через upt и rust через metapac.mise одновременно
 - emacs через brew и emacs через nix одновременно
+- emacs config enabled, но emacs feature disabled
 #+END_SRC
 
 Для MVP semantic conflicts можно не делать.
 
-* 19. Почему lock пока не нужен
+* 22. Lockfile: два уровня
 
-На старте ~kaizen~ не обещает воспроизводимость версий.
+** Dev-зависимости (проблема решена)
 
-~UptInstaller~ устанавливает программы через системный package manager, выбранный ~upt~.
+Lockfile для dev-зависимостей уже существует: ~private_mise.lock~ в chezmoi source.
+~mise~ автоматически поддерживает пины версий + checksum-ы для всех тулз.
 
-Actual versions определяются backend-ом:
+Селективность работает за счёт ~mise.toml~: отключенные фичи → тулзы не попадают
+в отрендеренный ~mise.toml~ → ~mise install~ их не устанавливает
+(даже если в lock есть запись).
 
-#+BEGIN_SRC text
-apt/dnf/brew/pacman/etc. → текущие версии из текущих репозиториев
+Мейнтейнер обновляет ~mise.lock~ обычным образом:
+
+#+BEGIN_SRC sh
+mise install  # все фичи включены
+# обновлённый mise.lock коммитится в chezmoi source
 #+END_SRC
 
-Поэтому полноценный lockfile в MVP будет вводить ложное ощущение гарантий.
+** Системные пакеты (upt)
 
-В будущем можно добавить:
-
-#+BEGIN_SRC text
-kaizen.resolution.toml
-#+END_SRC
-
-Он может фиксировать:
+~UptInstaller~ устанавливает тулзы через системный package manager. Версии определяет backend:
 
 #+BEGIN_SRC text
-- выбранные фичи
-- загруженные файлы
-- installer
-- итоговый InstallPlan hash
-- версии, обнаруженные после установки, если возможно
+apt/dnf/brew/pacman/etc. → текущие версии из репозитория
 #+END_SRC
 
-Но это не нужно для первой версии.
+Для системных утилит (ripgrep, fd, git) пиннинг версий не критичен. Для dev-тулз — проблема
+решена через mise.
 
-* 20. Почему state пока не нужен
+В будущем можно добавить ~kaizen.resolution.toml~ для фиксации состояния
+(выбранные фичи, installer, dotfiles revision), но это не нужно для MVP.
 
-State нужен для safe uninstall.
+* 23. Почему state пока не нужен
 
-MVP не должен реализовывать автоматический uninstall, потому что без полноценного ownership tracking легко удалить пользовательские пакеты.
+State нужен для safe uninstall и rollback.
+
+MVP не должен реализовывать автоматический uninstall, потому что без полноценного ownership tracking легко удалить пользовательские пакеты или сломать пользовательскую конфигурацию.
 
 В MVP:
 
 #+BEGIN_SRC text
 - kaizen строит plan
 - kaizen устанавливает программы через installer
+- kaizen применяет config через config backend
 - kaizen не делает automatic uninstall
 #+END_SRC
 
@@ -1427,32 +1936,31 @@ MVP не должен реализовывать автоматический un
 [packages."upt:emacs"]
 existed_before = false
 installed_by_kaizen = true
+
+[configs."chezmoi:dot_emacs_d"]
+managed_by_kaizen = true
+backup = "..."
 #+END_SRC
 
-Но не раньше, чем появится явная команда uninstall.
+Но не раньше, чем появится явная команда uninstall/rollback.
 
-* 21. Будущая поддержка metapac
+* 24. Будущая поддержка metapac
 
-~MetapacInstaller~ нужен, когда ~kaizen~ начнёт устанавливать не только обычные system packages, но и multi-backend зависимости:
+~mise~ через chezmoi уже покрывает большинство случаев (npm, cargo, go, pipx утилиты).
+~MetapacInstaller~ нужен для более экзотичных сценариев:
 
 #+BEGIN_SRC text
-mise
-npm
-cargo
-pipx
-uv
-mas
-brew-cask
-flatpak
-vscode
+mas     (покупки в Mac App Store)
+flatpak (некоторые Linux GUI приложения)
+vscode  (расширения)
 #+END_SRC
 
 ~MetapacInstaller~ должен:
 
 #+BEGIN_SRC text
-1. взять InstallPlan.installer_manifests["metapac"]
-2. сгенерировать ~/.config/metapac/groups/kaizen.generated.toml
-3. вызвать metapac sync
+1. сгенерировать ~/.config/metapac/groups/kaizen.generated.toml
+   из секций [installers.metapac.*] feature-файлов
+2. вызвать metapac sync
 #+END_SRC
 
 Будущий ~kaizen bootstrap --installer metapac~ может делать:
@@ -1469,7 +1977,7 @@ metapac unmanaged > ~/.config/metapac/groups/00-unmanaged.toml
 - явно предупреждать пользователя, что это snapshot существующих пакетов
 #+END_SRC
 
-* 22. Будущая поддержка Nix
+* 25. Будущая поддержка Nix
 
 ~NixInstaller~ должен быть возможен без переделки core.
 
@@ -1534,15 +2042,18 @@ NixInstaller в рамках dependency-layer устанавливает про�
 Он не управляет dotfiles, Home Manager config или nix-darwin system config в MVP.
 #+END_SRC
 
-* 23. Будущая TUI
+* 26. Будущая TUI
 
 TUI должна использовать core API:
 
 #+BEGIN_SRC text
+init_config()
 list_features()
-build_plan()
+build_workflow_plan()
 installer.preview()
 installer.install()
+config_backend.preview()
+config_backend.apply()
 #+END_SRC
 
 TUI-флоу:
@@ -1552,14 +2063,15 @@ TUI-флоу:
 2. пользователь toggles features
 3. показать atoms внутри фичи
 4. пользователь отключает atoms
-5. показать generated plan
-6. сохранить config.toml
-7. выполнить install
+5. выбрать layout/editor/window manager
+6. показать generated plan
+7. сохранить config.toml
+8. выполнить install/apply
 #+END_SRC
 
 TUI не должна знать, как мерджить TOML или как строить plan.
 
-* 24. Будущая GUI
+* 27. Будущая GUI
 
 GUI должна работать аналогично TUI:
 
@@ -1570,27 +2082,32 @@ frontend app → calls headless engine / daemon / CLI JSON API
 Для GUI заранее нужен machine-readable output:
 
 #+BEGIN_SRC sh
+kaizen init --print --json
 kaizen plan --json
 kaizen features --json
 kaizen doctor --json
 #+END_SRC
 
-* 25. Тестирование
+* 28. Тестирование
 
 ** Unit tests
 
 #+BEGIN_SRC text
 - parse user config
+- generate init config
 - discover features
 - load common/os-specific files
 - parse [programs]
 - parse atoms
+- parse [mise.tools] из фич/атомов
 - apply disabled_atoms
 - merge programs
 - dedupe programs
-- merge installer-specific sections
-- detect conflict on different options
-- build InstallPlan
+- merge mise tools
+- merge settings
+- detect conflict on different package options
+- detect conflict on incompatible config values
+- build WorkflowPlan
 #+END_SRC
 
 ** Golden tests
@@ -1599,18 +2116,18 @@ kaizen doctor --json
 
 #+BEGIN_SRC text
 tests/golden/darwin_frontend_emacs/input/config.toml
-tests/golden/darwin_frontend_emacs/expected/plan.json
+tests/golden/darwin_frontend_emacs/expected/workflow_plan.json
 #+END_SRC
 
 Тест:
 
 #+BEGIN_SRC text
-input config + target OS → InstallPlan exactly equals expected JSON
+input config + target OS → WorkflowPlan exactly equals expected JSON
 #+END_SRC
 
 ** Integration tests
 
-Использовать fake ~upt~ binary в PATH.
+Использовать fake ~upt~ и fake ~chezmoi~ binary в PATH.
 
 Проверить:
 
@@ -1618,30 +2135,36 @@ input config + target OS → InstallPlan exactly equals expected JSON
 - kaizen install --installer upt вызывает upt install
 - packages передаются в правильном порядке
 - ошибки upt корректно пробрасываются
+- kaizen apply --config-backend chezmoi вызывает chezmoi apply
+- kaizen init не перезаписывает существующий config без --force
 #+END_SRC
 
-Не запускать настоящий ~upt install~ в CI.
+Не запускать настоящий ~upt install~ или ~chezmoi apply~ в CI.
 
-* 26. Roadmap
+* 29. Roadmap
 
-** Phase 1: headless core + InstallPlan
+** Phase 1: headless core + WorkflowPlan
 
 Deliverables:
 
 #+BEGIN_SRC text
 - kaizen-core crate
 - UserConfig parser
+- InitConfig generator
 - FeatureStore
 - OS detection
 - atoms
 - TOML merge
 - InstallPlan
+- ConfigPlan
+- WorkflowPlan
 #+END_SRC
 
 Success criteria:
 
 #+BEGIN_SRC text
-Core API может загрузить config и построить InstallPlan без CLI.
+Core API может загрузить config и построить WorkflowPlan без CLI.
+Core API может сгенерировать default config через init_config().
 #+END_SRC
 
 ** Phase 2: CLI MVP + UptInstaller
@@ -1650,21 +2173,41 @@ Deliverables:
 
 #+BEGIN_SRC text
 - kaizen-cli crate
+- init
 - doctor
 - features
 - plan
 - install --installer upt
-- --json для doctor/features/plan
+- --json для doctor/features/plan/init --print
 #+END_SRC
 
 Success criteria:
 
 #+BEGIN_SRC text
-kaizen plan показывает список programs.
+kaizen init создаёт config.toml.
+kaizen plan показывает список programs и config data.
 kaizen install вызывает upt install с программами из выбранных фич.
 #+END_SRC
 
-** Phase 3: robustness
+** Phase 3: ChezmoiConfigBackend
+
+Deliverables:
+
+#+BEGIN_SRC text
+- генерация .chezmoidata.toml из enabled features + settings
+- merge [mise.tools] в ConfigPlan
+- ChezmoiConfigBackend
+- kaizen apply
+- fake chezmoi integration tests
+#+END_SRC
+
+Success criteria:
+
+#+BEGIN_SRC text
+kaizen apply подготавливает данные для chezmoi и вызывает chezmoi apply.
+#+END_SRC
+
+** Phase 4: robustness
 
 Deliverables:
 
@@ -1672,6 +2215,7 @@ Deliverables:
 - better errors
 - golden tests
 - fake upt integration tests
+- fake chezmoi integration tests
 - conflict reporting
 - stable output ordering
 #+END_SRC
@@ -1682,13 +2226,16 @@ Success criteria:
 CLI output пригоден для людей, JSON output пригоден для TUI/GUI.
 #+END_SRC
 
-** Phase 4: MetapacInstaller
+** Phase 5: MetapacInstaller (низкий приоритет)
+
+~mise~ через chezmoi уже покрывает большинство dev-сценариев.
+~MetapacInstaller~ актуален для: mas, flatpak, vscode и др.
 
 Deliverables:
 
 #+BEGIN_SRC text
-- parser/merge for [installers.metapac.*]
-- metapac manifest generator
+- формат [installers.metapac.*] в feature-файлах
+- metapac manifest generator из этих секций
 - metapac sync
 - optional metapac bootstrap unmanaged
 #+END_SRC
@@ -1699,7 +2246,7 @@ Success criteria:
 kaizen install --installer metapac генерирует kaizen.generated.toml и вызывает metapac sync.
 #+END_SRC
 
-** Phase 5: NixInstaller
+** Phase 6: NixInstaller
 
 Deliverables:
 
@@ -1716,25 +2263,27 @@ Success criteria:
 kaizen generate --installer nix создаёт валидный flake/buildEnv.
 #+END_SRC
 
-** Phase 6: TUI
+** Phase 7: TUI
 
 Deliverables:
 
 #+BEGIN_SRC text
 - feature selection screen
 - atom toggle screen
+- settings screen
+- dotfiles source screen
 - plan preview
 - save config
-- run install
+- run install/apply
 #+END_SRC
 
 Success criteria:
 
 #+BEGIN_SRC text
-Пользователь может выбрать фичи без редактирования TOML.
+Пользователь может выбрать фичи и настройки без редактирования TOML.
 #+END_SRC
 
-** Phase 7: future advanced features
+** Phase 8: future advanced features
 
 Возможные направления:
 
@@ -1746,19 +2295,22 @@ Success criteria:
 - direct providers без upt/metapac
 - Steel/Scheme provider plugins
 - GUI
+- HomeManagerConfigBackend
 #+END_SRC
 
 Эти элементы не нужны для MVP и не должны блокировать первый релиз.
 
-* 27. Итоговая MVP-команда
+* 30. Итоговая MVP-команда
 
 Желаемый первый UX:
 
 #+BEGIN_SRC sh
+kaizen init
 kaizen doctor
 kaizen features
 kaizen plan
 kaizen install --installer upt
+kaizen apply
 #+END_SRC
 
 Минимальный config:
@@ -1775,24 +2327,36 @@ enabled = true
 
 [features.ai]
 enabled = true
+
+[settings]
+layout = "colemak"
+editor = "emacs"
+
+[dotfiles]
+backend = "chezmoi"
+source = "~/.local/share/chezmoi"  # или URL репо: https://github.com/user/dotfiles
 #+END_SRC
 
 Минимальный результат:
 
 #+BEGIN_SRC text
-kaizen строит InstallPlan из выбранных фич
-и запускает upt install для итогового списка programs.
+kaizen строит WorkflowPlan из выбранных фич,
+запускает upt install для итогового списка programs,
+и применяет dotfiles/configuration через chezmoi.
 #+END_SRC
 
-* 28. Главный критерий успеха
+* 31. Главный критерий успеха
 
 Первая версия успешна, если можно сказать:
 
 #+BEGIN_SRC text
-Я выбрал фичи frontend + emacs + ai,
-получил корректный InstallPlan для моей ОС,
+Я запустил kaizen init,
+выбрал фичи frontend + emacs + ai,
+выбрал layout/editor,
+получил корректный WorkflowPlan для моей ОС,
 увидел plan,
-и одной командой запустил установку программ через upt.
+одной командой установил программы через upt,
+и применил dotfiles через chezmoi.
 #+END_SRC
 
 Без lockfile, без state, без собственного package manager, без сложной policy-системы и без обязательного metapac.
@@ -1800,5 +2364,6 @@ kaizen строит InstallPlan из выбранных фич
 Главный архитектурный критерий:
 
 #+BEGIN_SRC text
-Позже можно добавить MetapacInstaller и NixInstaller без переписывания kaizen-core.
+Позже можно добавить MetapacInstaller, NixInstaller и другие config backends
+без переписывания kaizen-core.
 #+END_SRC
