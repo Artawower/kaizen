@@ -8,13 +8,18 @@ mod selector;
 
 #[derive(Parser)]
 #[command(
-    name    = "kaizen",
-    about   = "Headless workflow orchestrator — manage dotfiles, packages and dev tooling",
+    name = "kaizen",
+    about = "Headless workflow orchestrator — manage dotfiles, packages and dev tooling",
     version,
     arg_required_else_help = true
 )]
 struct Cli {
-    #[arg(long, global = true, env = "KAIZEN_FEATURES_DIR", default_value = "features")]
+    #[arg(
+        long,
+        global = true,
+        env = "KAIZEN_FEATURES_DIR",
+        default_value = "features"
+    )]
     features_dir: std::path::PathBuf,
 
     #[arg(long, global = true)]
@@ -38,6 +43,12 @@ enum Command {
         json: bool,
     },
 
+    #[command(about = "Install system packages from selected features via upt")]
+    Install {
+        #[arg(long, help = "Show what would be run without executing upt")]
+        dry_run: bool,
+    },
+
     #[command(about = "Check system readiness and required tool availability")]
     Doctor,
 }
@@ -47,13 +58,16 @@ fn main() -> Result<()> {
 
     let cli = Cli::parse();
     let engine = kaizen_core::KaizenEngine::new(&cli.features_dir);
-    let config_path = cli.config.unwrap_or_else(kaizen_core::KaizenEngine::default_config_path);
+    let config_path = cli
+        .config
+        .unwrap_or_else(kaizen_core::KaizenEngine::default_config_path);
 
     match cli.command {
-        Command::Setup           => commands::setup::run(&engine, &config_path)?,
-        Command::Features        => commands::features::run(&engine)?,
-        Command::Plan { json }   => commands::plan::run(&engine, &config_path, json)?,
-        Command::Doctor          => commands::doctor::run(&engine, &config_path)?,
+        Command::Setup => commands::setup::run(&engine, &config_path)?,
+        Command::Features => commands::features::run(&engine)?,
+        Command::Plan { json } => commands::plan::run(&engine, &config_path, json)?,
+        Command::Install { dry_run } => commands::install::run(&engine, &config_path, dry_run)?,
+        Command::Doctor => commands::doctor::run(&engine, &config_path)?,
     }
 
     Ok(())

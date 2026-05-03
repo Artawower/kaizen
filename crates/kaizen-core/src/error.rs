@@ -31,6 +31,12 @@ pub enum KaizenError {
     #[error("merge conflict: {0}")]
     MergeConflict(String),
 
+    #[error("installer '{installer}' failed with exit code {code:?}")]
+    InstallerFailed {
+        installer: &'static str,
+        code: Option<i32>,
+    },
+
     #[error("io error: {0}")]
     Io(#[from] std::io::Error),
 }

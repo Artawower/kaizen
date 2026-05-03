@@ -6,12 +6,14 @@ pub mod feature;
 pub mod feature_store;
 pub mod merge;
 pub mod os;
+pub mod installer;
 pub mod plan;
 
 pub use config::{DotfilesConfig, FeatureSelection, UserConfig, UserSettings};
 pub use error::KaizenError;
 pub use feature::FeatureFile;
 pub use feature_store::FeatureStore;
+pub use installer::{Installer, UptInstaller};
 pub use os::TargetOs;
 pub use plan::{ConfigPlan, InstallPlan, WorkflowPlan};
 

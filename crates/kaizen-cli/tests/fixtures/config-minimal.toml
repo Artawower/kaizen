@@ -1,0 +1,11 @@
+[features.core]
+enabled = true
+
+[features.frontend]
+enabled = false
+
+[settings]
+layout = "colemak"
+
+[dotfiles]
+backend = "chezmoi"

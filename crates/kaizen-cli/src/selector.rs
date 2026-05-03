@@ -9,7 +9,6 @@ use crossterm::{
 };
 use owo_colors::OwoColorize;
 
-
 struct TerminalGuard;
 
 impl Drop for TerminalGuard {
@@ -185,7 +184,11 @@ fn render(state: &mut State, stdout: &mut impl Write, prompt: &str) -> io::Resul
     Ok(())
 }
 
-fn event_loop(state: &mut State, stdout: &mut impl Write, prompt: &str) -> Result<Option<Vec<String>>> {
+fn event_loop(
+    state: &mut State,
+    stdout: &mut impl Write,
+    prompt: &str,
+) -> Result<Option<Vec<String>>> {
     render(state, stdout, prompt)?;
     loop {
         let Event::Key(key) = read()? else {
@@ -242,7 +245,11 @@ pub fn multi_select(prompt: &str, items: Vec<Item>) -> Result<Option<Vec<String>
     let result = event_loop(&mut state, &mut stdout, prompt);
 
     if state.lines_drawn > 0 {
-        execute!(stdout, MoveUp(state.lines_drawn as u16), Clear(ClearType::FromCursorDown))?;
+        execute!(
+            stdout,
+            MoveUp(state.lines_drawn as u16),
+            Clear(ClearType::FromCursorDown)
+        )?;
     }
 
     let Some(names) = result? else {

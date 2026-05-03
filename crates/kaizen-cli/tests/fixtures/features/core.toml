@@ -1,0 +1,11 @@
+[meta]
+description = "Core CLI utilities (test fixture)"
+
+[programs]
+packages = ["git", "ripgrep", "fd"]
+
+[programs.overrides.fedora]
+fd = "fd-find"
+
+[programs.overrides.ubuntu]
+fd = "fd-find"
