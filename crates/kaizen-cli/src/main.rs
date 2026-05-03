@@ -49,6 +49,12 @@ enum Command {
         dry_run: bool,
     },
 
+    #[command(about = "Remove selected packages via upt without changing kaizen config")]
+    Uninstall {
+        #[arg(long, help = "Show what would be run without executing upt")]
+        dry_run: bool,
+    },
+
     #[command(about = "Check system readiness and required tool availability")]
     Doctor,
 }
@@ -67,6 +73,7 @@ fn main() -> Result<()> {
         Command::Features => commands::features::run(&engine)?,
         Command::Plan { json } => commands::plan::run(&engine, &config_path, json)?,
         Command::Install { dry_run } => commands::install::run(&engine, &config_path, dry_run)?,
+        Command::Uninstall { dry_run } => commands::uninstall::run(&engine, &config_path, dry_run)?,
         Command::Doctor => commands::doctor::run(&engine, &config_path)?,
     }
 

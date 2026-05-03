@@ -4,16 +4,16 @@ pub mod config;
 pub mod error;
 pub mod feature;
 pub mod feature_store;
+pub mod installer;
 pub mod merge;
 pub mod os;
-pub mod installer;
 pub mod plan;
 
 pub use config::{DotfilesConfig, FeatureSelection, UserConfig, UserSettings};
 pub use error::KaizenError;
 pub use feature::FeatureFile;
 pub use feature_store::FeatureStore;
-pub use installer::{Installer, UptInstaller};
+pub use installer::{Installer, Remover, UptInstaller};
 pub use os::TargetOs;
 pub use plan::{ConfigPlan, InstallPlan, WorkflowPlan};
 
@@ -23,7 +23,9 @@ pub struct KaizenEngine {
 
 impl KaizenEngine {
     pub fn new(features_dir: impl Into<PathBuf>) -> Self {
-        Self { features_dir: features_dir.into() }
+        Self {
+            features_dir: features_dir.into(),
+        }
     }
 
     pub fn load_config(&self, path: &Path) -> Result<UserConfig, KaizenError> {
@@ -48,9 +50,7 @@ impl KaizenEngine {
             .list()?
             .into_iter()
             .map(|name| {
-                let desc = store
-                    .load_optional(&name)?
-                    .and_then(|f| f.meta.description);
+                let desc = store.load_optional(&name)?.and_then(|f| f.meta.description);
                 Ok((name, desc))
             })
             .collect()

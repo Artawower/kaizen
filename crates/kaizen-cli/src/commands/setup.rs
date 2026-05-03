@@ -30,6 +30,7 @@ fn pick_features(features: &[(String, Option<String>)]) -> Result<Option<Vec<Str
         .map(|(name, desc)| selector::Item {
             name: name.clone(),
             desc: desc.clone(),
+            selected: true,
         })
         .collect();
     selector::multi_select("Select features", items)

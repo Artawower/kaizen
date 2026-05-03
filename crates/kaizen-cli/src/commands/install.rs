@@ -42,7 +42,7 @@ fn run_with(
 }
 
 fn execute_install(programs: &[String], dry_run: bool, installer: &dyn Installer) -> Result<()> {
-    let preview = installer.preview(programs);
+    let preview = installer.preview_install(programs);
     println!();
 
     if dry_run {
@@ -103,7 +103,7 @@ mod tests {
             Ok(())
         }
 
-        fn preview(&self, programs: &[String]) -> String {
+        fn preview_install(&self, programs: &[String]) -> String {
             format!("mock install {}", programs.join(" "))
         }
     }

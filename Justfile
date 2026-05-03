@@ -1,5 +1,5 @@
 default:
-    cargo run --bin kaizen -- --help
+    just --choose
 
 run *args:
     cargo run --bin kaizen -- {{args}}

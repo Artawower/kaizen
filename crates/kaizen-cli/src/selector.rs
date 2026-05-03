@@ -21,6 +21,7 @@ impl Drop for TerminalGuard {
 pub struct Item {
     pub name: String,
     pub desc: Option<String>,
+    pub selected: bool,
 }
 
 struct State {
@@ -40,7 +41,13 @@ enum Mode {
 impl State {
     fn new(items: Vec<Item>) -> Self {
         Self {
-            items: items.into_iter().map(|i| (i, true)).collect(),
+            items: items
+                .into_iter()
+                .map(|i| {
+                    let s = i.selected;
+                    (i, s)
+                })
+                .collect(),
             cursor: 0,
             mode: Mode::Normal,
             query: String::new(),
