@@ -11,3 +11,7 @@ Kaizen is a developer's Swiss Army knife for workflow optimization. It curates t
 
 # Core rules
 - Avoid comments. Code should be self-explanatory. If you find yourself writing a comment, consider refactoring the code to make it clearer instead.
+- Avoid `else` statements. Use guard clauses and early returns to simplify control flow and reduce nesting.
+- use `SOLID` principles where applicable, but do not over-engineer. The simplest solution that works is usually best.
+- Follow the DRY (Don't Repeat Yourself) principle. If you find yourself copying and pasting code, consider extracting it into a reusable function or module.
+
