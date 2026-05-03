@@ -9,7 +9,9 @@ pub mod merge;
 pub mod os;
 pub mod plan;
 
-pub use config::{DotfilesConfig, FeatureSelection, UserConfig, UserSettings};
+pub use config::{
+    DotfilesConfig, FeatureSelection, UserConfig, UserSettings, CURRENT_SCHEMA_VERSION,
+};
 pub use error::KaizenError;
 pub use feature::FeatureFile;
 pub use feature_store::FeatureStore;

@@ -5,8 +5,13 @@ use serde::{Deserialize, Serialize};
 
 use crate::KaizenError;
 
+pub const CURRENT_SCHEMA_VERSION: u32 = 1;
+
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct UserConfig {
+    #[serde(default)]
+    pub schema_version: u32,
+
     #[serde(default)]
     pub features: IndexMap<String, FeatureSelection>,
 
@@ -15,6 +20,12 @@ pub struct UserConfig {
 
     #[serde(default)]
     pub dotfiles: DotfilesConfig,
+}
+
+impl UserConfig {
+    pub fn is_schema_outdated(&self) -> bool {
+        self.schema_version < CURRENT_SCHEMA_VERSION
+    }
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]

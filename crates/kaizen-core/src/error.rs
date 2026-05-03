@@ -37,6 +37,9 @@ pub enum KaizenError {
         code: Option<i32>,
     },
 
+    #[error("{count} package(s) failed — see output above")]
+    InstallerPartialFailure { count: usize, failed: Vec<String> },
+
     #[error("io error: {0}")]
     Io(#[from] std::io::Error),
 }

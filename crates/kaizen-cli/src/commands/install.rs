@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use anyhow::Result;
-use kaizen_core::{Installer, KaizenEngine, TargetOs, UptInstaller};
+use kaizen_core::{Installer, KaizenEngine, KaizenError, TargetOs, UptInstaller};
 use owo_colors::OwoColorize;
 
 use crate::{ensure, output};
@@ -30,6 +30,7 @@ fn run_with(
     installer: &dyn Installer,
 ) -> Result<()> {
     let config = engine.load_config(config_path)?;
+    output::warn_if_schema_outdated(&config);
     let plan = engine.build_workflow_plan(&config, target_os)?;
 
     if plan.install_plan.programs.is_empty() {
@@ -54,9 +55,23 @@ fn execute_install(programs: &[String], dry_run: bool, installer: &dyn Installer
 
     println!("  {}  {}", "→".bold(), preview);
     println!();
-    installer.install(programs)?;
-    println!();
-    output::item_ok(&format!("{} package(s) handed to upt", programs.len()));
+    match installer.install(programs) {
+        Ok(()) => {
+            output::item_ok(&format!("{} package(s) installed", programs.len()));
+        }
+        Err(KaizenError::InstallerPartialFailure { failed, .. }) => {
+            let ok = programs.len() - failed.len();
+            if ok > 0 {
+                output::item_ok(&format!("{ok} package(s) installed"));
+            }
+            for pkg in &failed {
+                output::item_warn(&format!(
+                    "{pkg}: failed — check for conflicts or update the feature file"
+                ));
+            }
+        }
+        Err(e) => return Err(e.into()),
+    }
     Ok(())
 }
 

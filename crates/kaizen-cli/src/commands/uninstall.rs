@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use anyhow::Result;
-use kaizen_core::{KaizenEngine, Remover, TargetOs, UptInstaller};
+use kaizen_core::{KaizenEngine, KaizenError, Remover, TargetOs, UptInstaller};
 use owo_colors::OwoColorize;
 
 use crate::{ensure, output, selector};
@@ -31,6 +31,7 @@ fn run_with(
     remover: &dyn Remover,
 ) -> Result<()> {
     let config = engine.load_config(config_path)?;
+    output::warn_if_schema_outdated(&config);
     let plan = engine.build_workflow_plan(&config, target_os)?;
 
     if plan.install_plan.programs.is_empty() {
@@ -78,12 +79,21 @@ fn execute_remove(programs: &[String], dry_run: bool, remover: &dyn Remover) -> 
 
     println!("  {}  {}", "→".bold(), preview);
     println!();
-    remover.remove(programs)?;
-    println!();
-    output::item_ok(&format!(
-        "{} package(s) handed to upt for removal",
-        programs.len()
-    ));
+    match remover.remove(programs) {
+        Ok(()) => {
+            output::item_ok(&format!("{} package(s) removed", programs.len()));
+        }
+        Err(KaizenError::InstallerPartialFailure { failed, .. }) => {
+            let ok = programs.len() - failed.len();
+            if ok > 0 {
+                output::item_ok(&format!("{ok} package(s) removed"));
+            }
+            for pkg in &failed {
+                output::item_warn(&format!("{pkg}: failed — may not be managed by upt"));
+            }
+        }
+        Err(e) => return Err(e.into()),
+    }
     output::item_warn("config unchanged — run kaizen install to re-apply declared packages");
     Ok(())
 }

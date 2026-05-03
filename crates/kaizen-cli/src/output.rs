@@ -1,3 +1,4 @@
+use kaizen_core::UserConfig;
 use owo_colors::OwoColorize;
 use terminal_size::{terminal_size, Width};
 
@@ -35,6 +36,12 @@ pub fn item_warn(text: &str) {
 
 pub fn item_err(text: &str) {
     println!("  {} {}", "✗".red(), text);
+}
+
+pub fn warn_if_schema_outdated(config: &UserConfig) {
+    if config.is_schema_outdated() {
+        item_warn("config schema is outdated — run 'kaizen setup' to migrate");
+    }
 }
 
 pub fn feature_row(name: &str, enabled: bool, disabled_atoms: &[String]) {

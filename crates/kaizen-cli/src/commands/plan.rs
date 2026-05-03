@@ -8,6 +8,7 @@ use crate::output;
 
 pub fn run(engine: &KaizenEngine, config_path: &Path, json: bool) -> Result<()> {
     let config = engine.load_config(config_path)?;
+    output::warn_if_schema_outdated(&config);
     let plan = engine.build_workflow_plan(&config, TargetOs::detect())?;
 
     if json {

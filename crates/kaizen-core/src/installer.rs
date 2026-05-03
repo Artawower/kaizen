@@ -33,19 +33,21 @@ impl Remover for UptInstaller {
 }
 
 fn run_upt(args: &[&str], programs: &[String]) -> Result<(), KaizenError> {
-    if programs.is_empty() {
+    let mut failed: Vec<String> = Vec::new();
+    for program in programs {
+        let status = std::process::Command::new("upt")
+            .args(args)
+            .arg(program)
+            .status()?;
+        if !status.success() {
+            failed.push(program.clone());
+        }
+    }
+    if failed.is_empty() {
         return Ok(());
     }
-    let status = std::process::Command::new("upt")
-        .args(args)
-        .args(programs)
-        .status()?;
-
-    if status.success() {
-        return Ok(());
-    }
-    Err(KaizenError::InstallerFailed {
-        installer: "upt",
-        code: status.code(),
+    Err(KaizenError::InstallerPartialFailure {
+        count: failed.len(),
+        failed,
     })
 }

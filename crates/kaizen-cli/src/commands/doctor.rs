@@ -64,6 +64,7 @@ fn report_config(engine: &KaizenEngine, config_path: &Path) {
 
     match engine.load_config(config_path) {
         Ok(cfg) => {
+            output::warn_if_schema_outdated(&cfg);
             let n = cfg.features.values().filter(|f| f.enabled).count();
             output::kv("  enabled features", &n.to_string());
         }
