@@ -1,0 +1,8 @@
+[meta]
+description = "Python: uv, pyright, basedpyright, httpie"
+
+[mise.tools]
+python         = "latest"
+uv             = "latest"
+"pipx:pyright" = "latest"
+"pipx:httpie"  = "latest"

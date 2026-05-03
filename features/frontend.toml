@@ -1,0 +1,25 @@
+[meta]
+description = "Frontend development: node, pnpm, TypeScript/Vue/Angular LSP"
+
+[atoms.node.mise.tools]
+node = "lts"
+
+[atoms.pnpm.mise.tools]
+pnpm = "latest"
+
+[atoms.typescript.mise.tools]
+"npm:typescript-language-server" = "latest"
+"npm:vscode-langservers-extracted" = "latest"
+
+[atoms.vue.mise.tools]
+"npm:@vue/language-server" = "latest"
+
+[atoms.angular.mise.tools]
+"npm:@angular/language-server" = "latest"
+"npm:@angular/language-service" = "latest"
+
+[atoms.eslint.mise.tools]
+"npm:eslint" = "latest"
+
+[atoms.biome.mise.tools]
+"npm:@biomejs/biome" = "latest"

@@ -1,0 +1,7 @@
+[meta]
+description = "AI coding tools: claude-code, opencode, pi, codex"
+
+[mise.tools]
+"npm:@anthropic-ai/claude-code" = "latest"
+"npm:opencode-ai"               = "latest"
+"npm:@mariozechner/pi-coding-agent" = "latest"

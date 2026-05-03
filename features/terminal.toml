@@ -1,0 +1,5 @@
+[meta]
+description = "Ghostty terminal (upt installs via brew cask on macOS)"
+
+[programs]
+packages = ["ghostty"]

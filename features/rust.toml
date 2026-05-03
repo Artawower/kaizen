@@ -1,0 +1,8 @@
+[meta]
+description = "Rust toolchain + cargo utilities"
+
+[mise.tools]
+rust                   = "stable"
+"cargo:cargo-binstall" = "latest"
+"cargo:cargo-watch"    = "latest"
+"cargo:cargo-nextest"  = "latest"

@@ -1,0 +1,18 @@
+[package]
+name = "kaizen-cli"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "kaizen"
+path = "src/main.rs"
+
+[dependencies]
+kaizen-core = { path = "../kaizen-core" }
+anyhow = { workspace = true }
+clap = { version = "4", features = ["derive", "env"] }
+owo-colors = "4"
+which = "7"
+tracing = { workspace = true }
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+serde_json = "1.0.149"

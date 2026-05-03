@@ -1,0 +1,8 @@
+[meta]
+description = "Emacs + dependencies + dotfiles config"
+
+[programs]
+packages = ["emacs", "sqlite", "imagemagick"]
+
+[programs.overrides.fedora]
+imagemagick = "ImageMagick"

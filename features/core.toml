@@ -1,0 +1,21 @@
+[meta]
+description = "Core CLI utilities"
+
+[programs]
+packages = [
+  "git",
+  "ripgrep",
+  "fd",
+  "fzf",
+  "jq",
+  "yq",
+  "zoxide",
+  "zsh",
+  "starship",
+]
+
+[programs.overrides.fedora]
+fd = "fd-find"
+
+[programs.overrides.ubuntu]
+fd = "fd-find"

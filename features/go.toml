@@ -1,0 +1,7 @@
+[meta]
+description = "Go toolchain + gopls + golangci-lint"
+
+[mise.tools]
+go = "latest"
+"go:golang.org/x/tools/gopls" = "latest"
+"go:github.com/golangci/golangci-lint/cmd/golangci-lint" = "latest"

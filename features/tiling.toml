@@ -1,0 +1,8 @@
+[meta]
+description = "Tiling window manager: aerospace (macOS) / niri (Linux)"
+
+[os.darwin.programs]
+packages = ["aerospace"]
+
+[os.linux.programs]
+packages = ["niri"]

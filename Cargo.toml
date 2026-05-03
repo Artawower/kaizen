@@ -1,0 +1,12 @@
+[workspace]
+members = ["crates/kaizen-core", "crates/kaizen-cli"]
+resolver = "2"
+
+[workspace.dependencies]
+serde = { version = "1", features = ["derive"] }
+toml = "0.8"
+indexmap = { version = "2", features = ["serde"] }
+thiserror = "2"
+anyhow = "1"
+dirs = "5"
+tracing = "0.1"
