@@ -1,3 +1,5 @@
+use os_info::Type;
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum TargetOs {
     Darwin,
@@ -9,33 +11,7 @@ pub enum TargetOs {
 
 impl TargetOs {
     pub fn detect() -> Self {
-        if cfg!(target_os = "macos") {
-            return TargetOs::Darwin;
-        }
-
-        #[cfg(target_os = "linux")]
-        {
-            let content = std::fs::read_to_string("/etc/os-release").unwrap_or_default();
-            return Self::from_os_release(&content);
-        }
-
-        #[allow(unreachable_code)]
-        TargetOs::Unknown(std::env::consts::OS.to_string())
-    }
-
-    pub fn from_os_release(content: &str) -> Self {
-        let id = os_release_field(content, "ID");
-        let id_like: Vec<&str> = os_release_field(content, "ID_LIKE")
-            .split_whitespace()
-            .collect();
-
-        if id == "fedora" || id_like.contains(&"fedora") {
-            return TargetOs::Fedora;
-        }
-        if id == "ubuntu" || id_like.contains(&"ubuntu") {
-            return TargetOs::Ubuntu;
-        }
-        TargetOs::Linux
+        Self::from(os_info::get().os_type())
     }
 
     pub fn section_keys(&self) -> Vec<&'static str> {
@@ -63,13 +39,29 @@ impl TargetOs {
     }
 }
 
-fn os_release_field<'a>(content: &'a str, key: &str) -> &'a str {
-    let prefix = format!("{key}=");
-    content
-        .lines()
-        .find(|l| l.starts_with(&prefix))
-        .map(|l| l[prefix.len()..].trim_matches('"'))
-        .unwrap_or("")
+impl From<os_info::Type> for TargetOs {
+    fn from(t: os_info::Type) -> Self {
+        match t {
+            Type::Macos => TargetOs::Darwin,
+            Type::Fedora => TargetOs::Fedora,
+            Type::Ubuntu => TargetOs::Ubuntu,
+            Type::Windows
+            | Type::FreeBSD
+            | Type::NetBSD
+            | Type::OpenBSD
+            | Type::DragonFly
+            | Type::HardenedBSD
+            | Type::MidnightBSD
+            | Type::Illumos
+            | Type::Android
+            | Type::Ios
+            | Type::Emscripten
+            | Type::Redox
+            | Type::Cygwin
+            | Type::Unknown => TargetOs::Unknown(t.to_string().to_lowercase()),
+            _ => TargetOs::Linux,
+        }
+    }
 }
 
 impl std::fmt::Display for TargetOs {
@@ -83,37 +75,57 @@ mod tests {
     use super::*;
 
     #[test]
-    fn detects_fedora_by_id() {
-        let os = TargetOs::from_os_release("ID=fedora\n");
-        assert_eq!(os, TargetOs::Fedora);
+    fn maps_macos() {
+        assert_eq!(TargetOs::from(Type::Macos), TargetOs::Darwin);
     }
-
     #[test]
-    fn detects_fedora_by_id_like() {
-        let os = TargetOs::from_os_release("ID=nobara\nID_LIKE=fedora\n");
-        assert_eq!(os, TargetOs::Fedora);
+    fn maps_fedora() {
+        assert_eq!(TargetOs::from(Type::Fedora), TargetOs::Fedora);
     }
-
     #[test]
-    fn detects_ubuntu_by_id() {
-        let os = TargetOs::from_os_release("ID=ubuntu\n");
-        assert_eq!(os, TargetOs::Ubuntu);
+    fn maps_ubuntu() {
+        assert_eq!(TargetOs::from(Type::Ubuntu), TargetOs::Ubuntu);
     }
-
     #[test]
-    fn detects_ubuntu_by_id_like() {
-        let os = TargetOs::from_os_release("ID=pop\nID_LIKE=\"ubuntu debian\"\n");
-        assert_eq!(os, TargetOs::Ubuntu);
+    fn maps_arch_to_linux() {
+        assert_eq!(TargetOs::from(Type::Arch), TargetOs::Linux);
     }
-
     #[test]
-    fn falls_back_to_generic_linux() {
-        let os = TargetOs::from_os_release("ID=arch\n");
-        assert_eq!(os, TargetOs::Linux);
+    fn maps_nixos_to_linux() {
+        assert_eq!(TargetOs::from(Type::NixOS), TargetOs::Linux);
     }
-
+    #[test]
+    fn maps_nobara_to_linux() {
+        assert_eq!(TargetOs::from(Type::Nobara), TargetOs::Linux);
+    }
+    #[test]
+    fn maps_alma_to_linux() {
+        assert_eq!(TargetOs::from(Type::AlmaLinux), TargetOs::Linux);
+    }
+    #[test]
+    fn maps_rocky_to_linux() {
+        assert_eq!(TargetOs::from(Type::RockyLinux), TargetOs::Linux);
+    }
+    #[test]
+    fn maps_freebsd_to_unknown() {
+        assert!(matches!(
+            TargetOs::from(Type::FreeBSD),
+            TargetOs::Unknown(_)
+        ));
+    }
+    #[test]
+    fn maps_unknown_to_unknown() {
+        assert!(matches!(
+            TargetOs::from(Type::Unknown),
+            TargetOs::Unknown(_)
+        ));
+    }
     #[test]
     fn fedora_section_keys_include_linux() {
         assert_eq!(TargetOs::Fedora.section_keys(), vec!["linux", "fedora"]);
+    }
+    #[test]
+    fn ubuntu_section_keys_include_linux() {
+        assert_eq!(TargetOs::Ubuntu.section_keys(), vec!["linux", "ubuntu"]);
     }
 }

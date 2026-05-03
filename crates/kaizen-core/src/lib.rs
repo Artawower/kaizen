@@ -21,9 +21,7 @@ pub struct KaizenEngine {
 
 impl KaizenEngine {
     pub fn new(features_dir: impl Into<PathBuf>) -> Self {
-        Self {
-            features_dir: features_dir.into(),
-        }
+        Self { features_dir: features_dir.into() }
     }
 
     pub fn load_config(&self, path: &Path) -> Result<UserConfig, KaizenError> {
@@ -40,6 +38,20 @@ impl KaizenEngine {
 
     pub fn list_features(&self) -> Result<Vec<String>, KaizenError> {
         FeatureStore::new(&self.features_dir).list()
+    }
+
+    pub fn list_features_with_meta(&self) -> Result<Vec<(String, Option<String>)>, KaizenError> {
+        let store = FeatureStore::new(&self.features_dir);
+        store
+            .list()?
+            .into_iter()
+            .map(|name| {
+                let desc = store
+                    .load_optional(&name)?
+                    .and_then(|f| f.meta.description);
+                Ok((name, desc))
+            })
+            .collect()
     }
 
     pub fn build_workflow_plan(

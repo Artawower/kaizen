@@ -1,11 +1,14 @@
 default:
-    just --choose
+    cargo run --bin kaizen -- --help
 
-dev:
-    cargo run
+run *args:
+    cargo run --bin kaizen -- {{args}}
 
 test:
-    cargo test
+    cargo test --workspace
+
+check:
+    cargo clippy --workspace --all-targets -- -D warnings
 
 build:
-    cargo build
+    cargo build --release

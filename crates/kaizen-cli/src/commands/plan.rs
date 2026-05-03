@@ -15,25 +15,11 @@ pub fn run(engine: &KaizenEngine, config_path: &Path, json: bool) -> Result<()> 
         return Ok(());
     }
 
-    output::banner(&plan.target_os);
+    output::page_header(&format!("plan  ·  {}", plan.target_os.dimmed()));
 
     output::header("Features");
     for (name, selection) in &config.features {
-        let marker = if selection.enabled {
-            "●".green().to_string()
-        } else {
-            "○".dimmed().to_string()
-        };
-        if selection.disabled_atoms.is_empty() {
-            println!("  {} {}", marker, name);
-        } else {
-            println!(
-                "  {} {}  {}",
-                marker,
-                name,
-                format!("[{} disabled]", selection.disabled_atoms.join(", ")).dimmed()
-            );
-        }
+        output::feature_row(name, selection.enabled, &selection.disabled_atoms);
     }
 
     if !plan.install_plan.programs.is_empty() {
