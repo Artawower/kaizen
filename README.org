@@ -1,0 +1,282 @@
+#+TITLE: ✨ Kaizen
+:PROPERTIES:
+:ID: kaizen
+:END:
+
+#+HTML: <div align="center">
+#+HTML: <img src="./images/logo.png" width="220" height="220" alt="Kaizen">
+#+HTML: </div>
+
+#+HTML: <p align="center">
+#+HTML: <a href="https://github.com/artawower/kaizen"><img src="https://img.shields.io/badge/GitHub-kaizen-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub"></a>
+#+HTML: <a href="https://wakatime.com/badge/github/Artawower/kaizen"><img src="https://img.shields.io/endpoint?style=for-the-badge&url=https://wakatime.com/badge/github/Artawower/kaizen.json" alt="Wakatime"></a>
+#+HTML: <a href="https://github.com/artawower/kaizen/actions"><img src="https://img.shields.io/github/actions/workflow/status/artawower/kaizen/ci.yml?style=for-the-badge&logo=githubactions&logoColor=white&label=CI" alt="CI"></a>
+#+HTML: </p>
+
+#+HTML: <p align="center">
+#+HTML: <a href="https://www.rust-lang.org/"><img src="https://img.shields.io/badge/Rust-000000?style=for-the-badge&logo=rust&logoColor=white" alt="Rust"></a>
+#+HTML: <a href="https://www.chezmoi.io/"><img src="https://img.shields.io/badge/Chezmoi-Dotfiles-6B46C1?style=for-the-badge" alt="Chezmoi"></a>
+#+HTML: <a href="https://github.com/ripytide/metapac"><img src="https://img.shields.io/badge/Metapac-Packages-2563EB?style=for-the-badge" alt="Metapac"></a>
+#+HTML: <a href="https://github.com/sigoden/upt"><img src="https://img.shields.io/badge/UPT-Installer-10B981?style=for-the-badge" alt="UPT"></a>
+#+HTML: </p>
+
+#+HTML: <p align="center">
+#+HTML: <a href="https://www.paypal.me/darkawower"><img src="https://img.shields.io/badge/PayPal-Donate-00457C?style=for-the-badge&logo=paypal&logoColor=white" alt="PayPal"></a>
+#+HTML: <a href="https://patreon.com/artawower"><img src="https://img.shields.io/badge/Patreon-Support-F96854?style=for-the-badge&logo=patreon&logoColor=white" alt="Patreon"></a>
+#+HTML: </p>
+
+* What is Kaizen?
+
+~Kaizen~ is a developer's Swiss Army knife for workflow optimization.
+
+It curates the gold standard of software, configurations, shortcuts, and development workflows. Instead of forcing every developer to rebuild the same environment from scratch, Kaizen provides a battle-tested, opinionated, keyboard-driven setup that can be transferred between machines and users.
+
+Kaizen is built around one idea:
+
+#+BEGIN_QUOTE
+Do not waste time choosing and wiring tools. Use a proven workflow, improve it collectively, and focus on building.
+#+END_QUOTE
+
+Kaizen manages both sides of a productive development environment:
+
+- applications and development dependencies;
+- dotfiles and configuration presets;
+- keyboard-first workflows;
+- editor, terminal, window-manager, and AI-tooling integrations;
+- feature-based installation for different developer needs.
+
+The project is based on the author's long-running dotfiles workflow and will gradually modularize, improve, and extend it.
+
+* Philosophy
+
+** Functionality over everything
+
+Kaizen optimizes for useful work, not for aesthetics, novelty, or endless configurability.
+
+Every shortcut, plugin, tool, and integration should justify its existence by improving the developer workflow.
+
+** Keyboard-driven by default
+
+Kaizen is designed for keyboard-first usage.
+
+Mouse-driven workflows are not the priority. The goal is to make navigation, editing, window management, search, refactoring, and command execution as fast and consistent as possible.
+
+Different keyboard layouts may be supported, including QWERTY and Colemak-style workflows.
+
+** Opinionated by design
+
+Kaizen is not a toolkit for assembling your own random dotfiles collection.
+
+It is an opinionated workflow. It chooses tools, defaults, shortcuts, and integrations for you.
+
+You can choose which high-level features you want, but Kaizen does not try to expose every internal decision as a local option.
+
+** Focus-preserving workflow
+
+Kaizen is designed to preserve the developer's focus.
+
+The user should not constantly think about /how/ to perform an action, which tool to use, which shortcut to press, or which configuration to copy. Instead, the workflow should let the user think in terms of intent:
+
+#+BEGIN_QUOTE
+What result do I want to get?
+#+END_QUOTE
+
+Muscle memory, consistent keybindings, predictable tools, and curated defaults should bridge the gap between intention and result.
+
+The less attention spent on mechanics, the more attention remains for the actual problem.
+
+** Minimal technology surface
+
+For each task, Kaizen tries to use the smallest reasonable number of tools.
+
+Ideally, one task should have one primary tool.
+
+Examples:
+
+- one primary terminal editor;
+- one primary programmable editor;
+- one primary runtime manager;
+- one primary window-management strategy per platform;
+- one primary way to install dependencies.
+
+This keeps the workflow understandable, transferable, and easier to improve.
+
+** Continuous replacement of tools
+
+Kaizen is a living workflow.
+
+Tools will change over time. If a better, faster, more maintainable, or more functional tool appears, Kaizen may replace the old one.
+
+The goal is not to preserve historical choices. The goal is continuous improvement.
+
+** Open Source first
+
+Kaizen gives priority to open-source software.
+
+Proprietary software may be used only when it provides a meaningful functional advantage that outweighs the benefits of an open alternative.
+
+** Crowd wisdom over private tweaking
+
+Kaizen is not configurable in the usual sense.
+
+It is improvable.
+
+You cannot freely change keybindings, plugins, applications, or workflow decisions through local Kaizen configuration.
+
+If you believe a shortcut, tool, plugin, or approach should be changed, open a discussion and explain why. The stronger the reasoning and the more people involved, the better the final workflow becomes.
+
+Kaizen evolves through shared review, arguments, benchmarks, and real usage.
+
+#+BEGIN_QUOTE
+Local customization creates private islands.
+Public discussion improves the shared workflow.
+#+END_QUOTE
+
+* What Kaizen does
+
+Kaizen helps users install and apply a curated development workflow by selecting high-level features.
+
+Examples of features:
+
+- ~core~
+- ~frontend~
+- ~go~
+- ~python~
+- ~rust~
+- ~emacs~
+- ~helix~
+- ~ai~
+- ~mac-gui~
+- ~mac-tiling~
+- ~linux-desktop~
+
+A feature may install applications, development tools, editor support, language servers, AI tools, keyboard utilities, or platform-specific integrations.
+
+Users interact with Kaizen at the feature level, not at the level of individual packages and plugins.
+
+* What Kaizen does not do
+
+Kaizen is not a generic package manager.
+
+Kaizen is not a dotfiles playground.
+
+Kaizen is not a plugin marketplace.
+
+Kaizen is not designed for infinite local customization.
+
+Kaizen does not aim to expose every keybinding, package, editor plugin, and application choice as a user preference.
+
+If something should change, it should be discussed and improved upstream.
+
+* Install
+
+Installation flow is still evolving.
+
+The intended first user experience is:
+
+#+BEGIN_SRC shell
+kaizen doctor
+kaizen features
+kaizen plan
+kaizen install
+#+END_SRC
+
+During early development, installation may require building from source:
+
+#+BEGIN_SRC shell
+git clone https://github.com/artawower/kaizen
+cd kaizen
+cargo install --path crates/kaizen-cli
+#+END_SRC
+
+After installation, the ~kaizen~ command should be available:
+
+#+BEGIN_SRC shell
+kaizen --help
+#+END_SRC
+
+* Usage
+
+The public CLI is still evolving. For now, the intended command surface is intentionally small:
+
+#+BEGIN_SRC shell
+kaizen doctor
+kaizen features
+kaizen plan
+kaizen install
+kaizen apply
+kaizen update
+kaizen config
+#+END_SRC
+
+- ~kaizen doctor~ checks whether the current system is ready.
+- ~kaizen features~ lists available workflow features.
+- ~kaizen plan~ previews what Kaizen would install or apply.
+- ~kaizen install~ installs selected programs and dependencies.
+- ~kaizen apply~ applies dotfiles and configuration.
+- ~kaizen update~ updates Kaizen-managed definitions.
+- ~kaizen config~ inspects or edits local Kaizen configuration.
+
+* Configuration examples
+
+Kaizen configuration is feature-based.
+
+Users select high-level features instead of manually choosing every package, plugin, shortcut, and config file.
+
+#+BEGIN_SRC toml
+[features.core]
+enabled = true
+
+[features.frontend]
+enabled = true
+
+[features.emacs]
+enabled = true
+
+[features.ai]
+enabled = true
+#+END_SRC
+
+Some features may expose optional atoms that can be disabled:
+
+#+BEGIN_SRC toml
+[features.frontend]
+enabled = true
+disabled_atoms = ["eslint"]
+#+END_SRC
+
+This is intended for disabling optional parts of a curated feature, not for turning Kaizen into a fully custom package manager.
+
+* Connected links
+
+- [[https://github.com/ripytide/metapac][metapac]] — multi-backend package synchronization.
+- [[https://github.com/sigoden/upt][upt]] — simple cross-platform installer interface.
+- [[https://www.chezmoi.io/][chezmoi]] — dotfiles management and templating.
+- [[https://github.com/Artawower/dotfiles][Artawower dotfiles]] — source workflow and inspiration for Kaizen.
+
+* Status
+
+Kaizen is in early design and prototyping stage.
+
+Expect breaking changes.
+
+The current goal is to create a simple, usable prototype first, then evolve it into a complete workflow distribution tool.
+
+* Contribute guide
+
+Any contribution is very much appreciated.
+
+Kaizen evolves through discussion and continuous improvement. If you want to propose a new tool, shortcut, plugin, feature, or replacement, please open a discussion or issue with clear reasoning.
+
+Good proposals should explain:
+
+- what problem is being solved;
+- what current Kaizen choice it replaces or improves;
+- why the new approach is better;
+- what trade-offs it introduces;
+- whether it is open-source;
+- whether it improves the workflow for many users, not only for one private setup.
+
+Please read the [[./CONTRIBUTE.org][style guide]] before contributing to avoid misunderstandings.
+
+I would also appreciate it if you would consider becoming my [[https://www.patreon.com/artawower][patron]].

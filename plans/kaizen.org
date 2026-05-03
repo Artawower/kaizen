@@ -1,0 +1,1804 @@
+#+TITLE: Kaizen: план реализации dependency-layer
+#+LANGUAGE: ru
+#+OPTIONS: toc:3 num:nil
+
+* 1. Цель
+
+~kaizen~ — это *headless dependency orchestrator* для установки пользовательских программ из выбранных пользователем *фич*.
+
+Инструмент должен решать задачу:
+
+#+BEGIN_SRC text
+Пользователь выбирает фичи:
+  frontend, go, python, rust, emacs, helix, ai, mac-gui, etc.
+
+kaizen:
+  1. загружает выбранные фичи
+  2. учитывает текущую ОС
+  3. объединяет программы и installer-specific секции
+  4. строит headless InstallPlan
+  5. передаёт InstallPlan выбранному installer-у
+#+END_SRC
+
+На первом этапе ~kaizen~ *не является package manager* и *не является resolver-ом уровня Nix*. Он не пытается сам идеально понять, что такое ~cargo~, ~node~ или ~emacs~ на каждой ОС. Вместо этого фичи описывают желаемые программы и, при необходимости, installer-specific overrides.
+
+Первый прототип должен быть максимально простым в установке и запуске. Поэтому первый installer — ~upt~.
+
+Будущие installer-ы:
+
+#+BEGIN_SRC text
+- metapac
+- nix
+- brew bundle
+- direct providers
+#+END_SRC
+
+Главная идея:
+
+#+BEGIN_SRC text
+kaizen не является wrapper-ом над upt.
+kaizen строит InstallPlan.
+upt — только первый способ применить этот план.
+#+END_SRC
+
+* 2. Главный принцип архитектуры
+
+Сначала строится *headless core*, который не зависит от CLI/TUI/GUI и не привязан к конкретному installer-у.
+
+#+BEGIN_SRC text
+┌────────────────────┐
+│ CLI / TUI / GUI    │
+└─────────┬──────────┘
+          │
+          ▼
+┌────────────────────┐
+│ kaizen-core        │
+│                    │
+│ config loading     │
+│ feature loading    │
+│ OS detection       │
+│ atom filtering     │
+│ merge engine       │
+│ plan generation    │
+└─────────┬──────────┘
+          │
+          ▼
+┌────────────────────┐
+│ installer layer    │
+│                    │
+│ v0: upt            │
+│ future: metapac    │
+│ future: nix        │
+│ future: brew       │
+└─────────┬──────────┘
+          │
+          ▼
+┌────────────────────┐
+│ executor layer     │
+│                    │
+│ run external tools │
+└────────────────────┘
+#+END_SRC
+
+CLI — это только один из интерфейсов. Позже TUI и GUI должны использовать тот же core API.
+
+Core не должен напрямую запускать ~upt~, ~metapac~, ~nix~, ~brew~ или другие внешние команды. Core только строит данные.
+
+* 3. Что входит в MVP
+
+MVP должен быть максимально простым.
+
+Входит:
+
+#+BEGIN_SRC text
+- пользовательский config с выбранными фичами
+- директория фич
+- table-based feature selection
+- optional disabled_atoms
+- OS-aware загрузка фич
+- merge TOML-файлов
+- сбор [programs].packages
+- dry-run / plan
+- install через UptInstaller
+- JSON output для будущих TUI/GUI
+#+END_SRC
+
+Не входит в MVP:
+
+#+BEGIN_SRC text
+- metapac как основной installer
+- NixInstaller
+- lockfile
+- state для safe uninstall
+- automatic uninstall
+- provider policy
+- semantic sources database
+- Steel/Scheme provider plugins
+#+END_SRC
+
+~metapac~ и ~nix~ должны быть предусмотрены архитектурно, но не должны блокировать первый релиз.
+
+* 4. Термины
+
+** Feature
+
+Фича — это пользовательски понятный набор программ.
+
+Примеры:
+
+#+BEGIN_SRC text
+frontend
+python
+go
+rust
+emacs
+helix
+ai
+mac-gui
+mac-tiling
+linux-desktop
+#+END_SRC
+
+Фичи могут пересекаться. Например, ~emacs~ и ~helix~ обе могут требовать ~ripgrep~ и ~fd~. Merge engine должен дедуплицировать зависимости.
+
+** Atom
+
+Atom — опциональная внутренняя часть фичи, которую можно отключить из пользовательского конфига.
+
+Например, фича ~frontend~ может состоять из атомов:
+
+#+BEGIN_SRC text
+node
+pnpm
+typescript-lsp
+eslint
+biome
+prettier
+#+END_SRC
+
+Пользователь может включить фичу ~frontend~, но отключить atom ~eslint~:
+
+#+BEGIN_SRC toml
+[features.frontend]
+enabled = true
+disabled_atoms = ["eslint"]
+#+END_SRC
+
+** Program
+
+Program — каноническое имя программы, которую пользователь хочет получить.
+
+Примеры:
+
+#+BEGIN_SRC text
+git
+ripgrep
+fd
+fzf
+jq
+helix
+emacs
+node
+python
+go
+rust
+#+END_SRC
+
+На первом этапе program names передаются в ~upt~ почти напрямую.
+
+Позже installer-ы смогут использовать overrides, например:
+
+#+BEGIN_SRC text
+node → nodejs_22 для nix
+fd   → fd-find для fedora
+#+END_SRC
+
+** Installer
+
+Installer — стратегия применения ~InstallPlan~.
+
+Примеры:
+
+#+BEGIN_SRC text
+UptInstaller
+MetapacInstaller
+NixInstaller
+BrewBundleInstaller
+#+END_SRC
+
+Первый installer — ~UptInstaller~.
+
+** Executor
+
+Executor — низкоуровневый слой, который реально запускает внешние команды.
+
+Например:
+
+#+BEGIN_SRC text
+upt install git ripgrep fd
+nix profile install .#default
+metapac sync
+brew bundle install --file Brewfile
+#+END_SRC
+
+Installer использует executor. Core не использует executor напрямую.
+
+** InstallPlan
+
+~InstallPlan~ — headless результат работы core.
+
+Он содержит:
+
+#+BEGIN_SRC text
+- выбранные фичи
+- целевую ОС
+- загруженные feature-файлы
+- итоговый список programs
+- installer-specific sections
+- warnings
+#+END_SRC
+
+* 5. Структура репозитория
+
+#+BEGIN_SRC text
+kaizen/
+  crates/
+    kaizen-core/
+      src/
+        lib.rs
+        config.rs
+        feature.rs
+        feature_store.rs
+        os.rs
+        atoms.rs
+        merge.rs
+        plan.rs
+        installer_manifest.rs
+        error.rs
+
+    kaizen-installers/
+      src/
+        lib.rs
+        installer.rs
+        upt.rs
+        executor.rs
+        future_metapac.rs
+        future_nix.rs
+
+    kaizen-cli/
+      src/
+        main.rs
+        commands/
+          doctor.rs
+          features.rs
+          plan.rs
+          install.rs
+          generate.rs
+
+  features/
+    core/
+      common.toml
+      darwin.toml
+      fedora.toml
+      linux.toml
+
+    frontend/
+      common.toml
+      darwin.toml
+      fedora.toml
+      linux.toml
+
+    go/
+      common.toml
+      darwin.toml
+      fedora.toml
+      linux.toml
+
+    python/
+      common.toml
+      darwin.toml
+      fedora.toml
+      linux.toml
+
+    rust/
+      common.toml
+      darwin.toml
+      fedora.toml
+      linux.toml
+
+    emacs/
+      common.toml
+      darwin.toml
+      fedora.toml
+      linux.toml
+
+    helix/
+      common.toml
+      darwin.toml
+      fedora.toml
+      linux.toml
+
+    ai/
+      common.toml
+      darwin.toml
+      fedora.toml
+      linux.toml
+
+  examples/
+    config.toml
+
+  docs/
+    design.org
+    feature-format.org
+    roadmap.org
+#+END_SRC
+
+* 6. Пользовательский config
+
+Файл:
+
+#+BEGIN_SRC text
+~/.config/kaizen/config.toml
+#+END_SRC
+
+MVP-формат использует таблицы фич, а не массив. Это нужно, чтобы пользователь мог не только включить фичу, но и настроить её: отключить отдельные atoms и позже добавить локальные расширения.
+
+#+BEGIN_SRC toml
+[features.core]
+enabled = true
+
+[features.frontend]
+enabled = true
+disabled_atoms = [
+  "eslint",
+]
+
+[features.go]
+enabled = true
+
+[features.python]
+enabled = false
+
+[features.rust]
+enabled = true
+
+[features.emacs]
+enabled = true
+
+[features.helix]
+enabled = false
+
+[features.ai]
+enabled = true
+#+END_SRC
+
+Минимально валидная фича:
+
+#+BEGIN_SRC toml
+[features.core]
+enabled = true
+#+END_SRC
+
+~enabled~ обязателен. Это уменьшает магию и упрощает TUI/GUI.
+
+~disabled_atoms~ — опциональный список atoms внутри фичи, которые нужно исключить из merge.
+
+Пример:
+
+#+BEGIN_SRC toml
+[features.frontend]
+enabled = true
+disabled_atoms = ["eslint", "prettier"]
+#+END_SRC
+
+В будущем config может поддерживать пользовательские дополнительные программы:
+
+#+BEGIN_SRC toml
+[extra_programs]
+packages = [
+  "watchman",
+  "direnv",
+]
+#+END_SRC
+
+И installer-specific дополнительные пакеты:
+
+#+BEGIN_SRC toml
+[extra_installers.metapac.npm]
+packages = [
+  "@tailwindcss/language-server",
+]
+
+[extra_installers.metapac.brew-cask]
+packages = [
+  "ghostty",
+]
+#+END_SRC
+
+Но для MVP достаточно:
+
+#+BEGIN_SRC toml
+[features.core]
+enabled = true
+
+[features.frontend]
+enabled = true
+
+[features.emacs]
+enabled = true
+#+END_SRC
+
+* 7. Формат фич
+
+Фича — это директория с TOML-файлами:
+
+#+BEGIN_SRC text
+features/<feature-name>/common.toml
+features/<feature-name>/darwin.toml
+features/<feature-name>/fedora.toml
+features/<feature-name>/linux.toml
+#+END_SRC
+
+При загрузке фичи ~kaizen~ должен брать:
+
+#+BEGIN_SRC text
+1. common.toml
+2. linux.toml, если target OS является Linux
+3. файл текущей ОС, если он существует
+#+END_SRC
+
+Примеры:
+
+macOS:
+
+#+BEGIN_SRC text
+features/frontend/common.toml
+features/frontend/darwin.toml
+#+END_SRC
+
+Fedora:
+
+#+BEGIN_SRC text
+features/frontend/common.toml
+features/frontend/linux.toml
+features/frontend/fedora.toml
+#+END_SRC
+
+** Простая фича
+
+Для первого прототипа основной формат — ~[programs]~.
+
+#+BEGIN_SRC toml
+[programs]
+packages = [
+  "git",
+  "ripgrep",
+  "fd",
+]
+#+END_SRC
+
+~[programs].packages~ содержит канонические имена программ.
+
+~UptInstaller~ передаёт их в ~upt install~.
+
+Будущий ~NixInstaller~ сможет сгенерировать из них Nix package set.
+
+** Overrides
+
+Для случаев, когда имя пакета отличается у installer-а или ОС, можно использовать overrides.
+
+#+BEGIN_SRC toml
+[programs]
+packages = [
+  "fd",
+  "node",
+]
+
+[programs.overrides.fedora]
+fd = "fd-find"
+node = "nodejs"
+
+[programs.overrides.nix]
+node = "nodejs_22"
+#+END_SRC
+
+Правила:
+
+#+BEGIN_SRC text
+- если есть override для конкретного installer-а, installer может использовать его
+- если есть override для target OS, installer может использовать его
+- если override отсутствует, используется canonical name
+#+END_SRC
+
+Для MVP overrides можно реализовать минимально или отложить, но формат должен быть совместим с будущим NixInstaller.
+
+** Фича с atoms
+
+Расширенный формат позволяет разделять фичу на atoms.
+
+#+BEGIN_SRC toml
+[atoms.node.programs]
+packages = [
+  "node",
+]
+
+[atoms.pnpm.programs]
+packages = [
+  "pnpm",
+]
+
+[atoms.typescript.programs]
+packages = [
+  "typescript-language-server",
+]
+
+[atoms.eslint.programs]
+packages = [
+  "eslint_d",
+]
+#+END_SRC
+
+Пользователь может отключить atom:
+
+#+BEGIN_SRC toml
+[features.frontend]
+enabled = true
+disabled_atoms = ["eslint"]
+#+END_SRC
+
+Тогда packages из ~atoms.eslint~ не попадут в итоговый ~InstallPlan~.
+
+** Installer-specific sections
+
+Для будущих installer-ов feature-файл может содержать installer-specific секции.
+
+Пример для будущего ~MetapacInstaller~:
+
+#+BEGIN_SRC toml
+[installers.metapac.mise]
+packages = [
+  { name = "node", options = { version = "22" } },
+  { name = "pnpm", options = { version = "latest" } },
+]
+
+[installers.metapac.npm]
+packages = [
+  "typescript-language-server",
+  "vscode-langservers-extracted",
+]
+#+END_SRC
+
+Пример внутри atom:
+
+#+BEGIN_SRC toml
+[atoms.node.installers.metapac.mise]
+packages = [
+  { name = "node", options = { version = "22" } },
+]
+
+[atoms.typescript.installers.metapac.npm]
+packages = [
+  "typescript-language-server",
+]
+#+END_SRC
+
+Для MVP ~UptInstaller~ может игнорировать installer-specific sections.
+
+* 8. Примеры фич
+
+** ~features/core/common.toml~
+
+#+BEGIN_SRC toml
+[programs]
+packages = [
+  "git",
+  "ripgrep",
+  "fd",
+  "fzf",
+  "jq",
+  "yq",
+  "zoxide",
+]
+
+[programs.overrides.fedora]
+fd = "fd-find"
+#+END_SRC
+
+** ~features/frontend/common.toml~
+
+#+BEGIN_SRC toml
+[atoms.node.programs]
+packages = ["node"]
+
+[atoms.pnpm.programs]
+packages = ["pnpm"]
+
+[atoms.typescript.programs]
+packages = [
+  "typescript-language-server",
+  "vscode-langservers-extracted",
+]
+
+[atoms.eslint.programs]
+packages = ["eslint_d"]
+
+[atoms.biome.programs]
+packages = ["biome"]
+
+[atoms.node.installers.metapac.mise]
+packages = [
+  { name = "node", options = { version = "22" } },
+]
+
+[atoms.pnpm.installers.metapac.mise]
+packages = [
+  { name = "pnpm", options = { version = "latest" } },
+]
+
+[atoms.typescript.installers.metapac.npm]
+packages = [
+  "typescript-language-server",
+  "vscode-langservers-extracted",
+]
+#+END_SRC
+
+** ~features/go/common.toml~
+
+#+BEGIN_SRC toml
+[programs]
+packages = [
+  "go",
+  "gopls",
+  "golangci-lint",
+]
+
+[installers.metapac.mise]
+packages = [
+  { name = "go", options = { version = "latest" } },
+]
+#+END_SRC
+
+** ~features/rust/common.toml~
+
+#+BEGIN_SRC toml
+[programs]
+packages = [
+  "rust",
+  "cargo-binstall",
+  "cargo-watch",
+  "cargo-nextest",
+]
+
+[installers.metapac.mise]
+packages = [
+  { name = "rust", options = { version = "stable" } },
+]
+
+[installers.metapac.cargo]
+packages = [
+  "cargo-binstall",
+  "cargo-watch",
+  "cargo-nextest",
+]
+#+END_SRC
+
+** ~features/emacs/common.toml~
+
+#+BEGIN_SRC toml
+[programs]
+packages = [
+  "emacs",
+  "ripgrep",
+  "fd",
+  "sqlite",
+  "imagemagick",
+]
+
+[programs.overrides.fedora]
+fd = "fd-find"
+#+END_SRC
+
+** ~features/helix/common.toml~
+
+#+BEGIN_SRC toml
+[programs]
+packages = [
+  "helix",
+  "ripgrep",
+  "fd",
+  "marksman",
+]
+
+[programs.overrides.fedora]
+fd = "fd-find"
+#+END_SRC
+
+** ~features/ai/common.toml~
+
+#+BEGIN_SRC toml
+[programs]
+packages = [
+  "ollama",
+]
+
+[installers.metapac.npm]
+packages = [
+  "@anthropic-ai/claude-code",
+]
+#+END_SRC
+
+** ~features/mac-gui/darwin.toml~
+
+#+BEGIN_SRC toml
+[programs]
+packages = [
+  "aerospace",
+]
+
+[installers.metapac.brew-cask]
+packages = [
+  "ghostty",
+  "karabiner-elements",
+]
+
+[installers.metapac.mas]
+packages = [
+  "497799835",
+]
+#+END_SRC
+
+* 9. InstallPlan
+
+Если пользователь выбрал:
+
+#+BEGIN_SRC toml
+[features.core]
+enabled = true
+
+[features.frontend]
+enabled = true
+disabled_atoms = ["eslint"]
+
+[features.emacs]
+enabled = true
+#+END_SRC
+
+На macOS ~kaizen~ должен построить ~InstallPlan~ примерно такого вида:
+
+#+BEGIN_SRC text
+selected features:
+  core
+  frontend
+  emacs
+
+disabled atoms:
+  frontend: eslint
+
+programs:
+  git
+  ripgrep
+  fd
+  fzf
+  jq
+  yq
+  zoxide
+  node
+  pnpm
+  typescript-language-server
+  vscode-langservers-extracted
+  biome
+  emacs
+  sqlite
+  imagemagick
+
+installer-specific sections:
+  metapac.mise:
+    node@22
+    pnpm@latest
+  metapac.npm:
+    typescript-language-server
+    vscode-langservers-extracted
+#+END_SRC
+
+~UptInstaller~ использует только ~programs~.
+
+~MetapacInstaller~ в будущем сможет использовать ~installer-specific sections~ и/или сгенерировать metapac manifest.
+
+~NixInstaller~ в будущем сможет использовать ~programs~ + ~programs.overrides.nix~.
+
+* 10. Merge rules
+
+Merge engine должен:
+
+#+BEGIN_SRC text
+1. загружать только enabled фичи
+2. применять disabled_atoms
+3. объединять [programs].packages
+4. дедуплицировать programs
+5. сохранять стабильный порядок вывода
+6. объединять installer-specific sections
+7. дедуплицировать package specs внутри installer-specific sections
+8. выдавать конфликт, если один и тот же detailed package указан с разными options
+#+END_SRC
+
+** Пример дедупликации programs
+
+Input A:
+
+#+BEGIN_SRC toml
+[programs]
+packages = ["ripgrep", "fd"]
+#+END_SRC
+
+Input B:
+
+#+BEGIN_SRC toml
+[programs]
+packages = ["ripgrep", "emacs"]
+#+END_SRC
+
+Output:
+
+#+BEGIN_SRC toml
+[programs]
+packages = ["ripgrep", "fd", "emacs"]
+#+END_SRC
+
+** Пример конфликта detailed package
+
+Input A:
+
+#+BEGIN_SRC toml
+[installers.metapac.mise]
+packages = [
+  { name = "node", options = { version = "20" } },
+]
+#+END_SRC
+
+Input B:
+
+#+BEGIN_SRC toml
+[installers.metapac.mise]
+packages = [
+  { name = "node", options = { version = "22" } },
+]
+#+END_SRC
+
+Output:
+
+#+BEGIN_SRC text
+Conflict: package metapac.mise:node requested with different options
+  frontend/common.toml: version = 22
+  legacy-node/common.toml: version = 20
+#+END_SRC
+
+* 11. Headless core API
+
+Core должен предоставлять API, который можно использовать из CLI, TUI и GUI.
+
+Примерный API:
+
+#+BEGIN_SRC rust
+pub struct KaizenEngine {
+    config_loader: ConfigLoader,
+    feature_store: FeatureStore,
+    os_detector: OsDetector,
+}
+
+impl KaizenEngine {
+    pub fn load_config(&self, path: &Path) -> Result<UserConfig>;
+
+    pub fn list_features(&self) -> Result<Vec<FeatureInfo>>;
+
+    pub fn build_plan(&self, request: BuildPlanRequest) -> Result<InstallPlan>;
+}
+#+END_SRC
+
+~build_plan~ не должен запускать установку. Он только строит данные.
+
+Installer-ы должны жить в отдельном crate/layer и принимать ~InstallPlan~.
+
+* 12. Основные типы
+
+#+BEGIN_SRC rust
+#[derive(Debug, Clone, Deserialize)]
+pub struct UserConfig {
+    pub features: BTreeMap<String, FeatureSelection>,
+
+    #[serde(default)]
+    pub extra_programs: Option<ProgramSection>,
+
+    #[serde(default)]
+    pub extra_installers: BTreeMap<String, InstallerManifest>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct FeatureSelection {
+    pub enabled: bool,
+
+    #[serde(default)]
+    pub disabled_atoms: Vec<String>,
+}
+
+#[derive(Debug, Clone)]
+pub struct FeatureInfo {
+    pub name: String,
+    pub path: PathBuf,
+    pub has_common: bool,
+    pub has_os_specific: bool,
+}
+
+#[derive(Debug, Clone)]
+pub struct BuildPlanRequest {
+    pub features: BTreeMap<String, FeatureSelection>,
+    pub os: Option<TargetOs>,
+}
+
+#[derive(Debug, Clone)]
+pub struct InstallPlan {
+    pub selected_features: Vec<String>,
+    pub disabled_atoms: BTreeMap<String, Vec<String>>,
+    pub target_os: TargetOs,
+    pub loaded_files: Vec<PathBuf>,
+    pub programs: Vec<ProgramSpec>,
+    pub installer_manifests: BTreeMap<String, InstallerManifest>,
+    pub warnings: Vec<PlanWarning>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct ProgramSpec {
+    pub name: String,
+
+    #[serde(default)]
+    pub overrides: BTreeMap<String, String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProgramSection {
+    pub packages: Vec<ProgramSpec>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InstallerManifest {
+    pub sections: BTreeMap<String, BackendSection>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BackendSection {
+    pub packages: Vec<PackageSpec>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(untagged)]
+pub enum PackageSpec {
+    Simple(String),
+    Detailed {
+        name: String,
+        #[serde(default)]
+        options: BTreeMap<String, toml::Value>,
+        #[serde(default)]
+        hooks: BTreeMap<String, toml::Value>,
+    },
+}
+#+END_SRC
+
+Для удобства в TOML можно поддержать короткую запись:
+
+#+BEGIN_SRC toml
+[programs]
+packages = ["git", "ripgrep"]
+#+END_SRC
+
+Она десериализуется в:
+
+#+BEGIN_SRC rust
+ProgramSpec {
+    name: "git".into(),
+    overrides: BTreeMap::new(),
+}
+#+END_SRC
+
+* 13. Installer API
+
+Installer — это pluggable стратегия применения ~InstallPlan~.
+
+#+BEGIN_SRC rust
+pub trait Installer {
+    fn id(&self) -> &'static str;
+
+    fn available(&self) -> Result<bool>;
+
+    fn supports(&self, plan: &InstallPlan) -> bool;
+
+    fn preview(&self, plan: &InstallPlan) -> Result<InstallerPreview>;
+
+    fn install(&self, plan: &InstallPlan) -> Result<InstallReport>;
+}
+#+END_SRC
+
+** UptInstaller
+
+Первый installer.
+
+#+BEGIN_SRC rust
+pub struct UptInstaller {
+    pub binary: PathBuf,
+}
+#+END_SRC
+
+Он использует:
+
+#+BEGIN_SRC text
+InstallPlan.programs
+#+END_SRC
+
+И вызывает:
+
+#+BEGIN_SRC sh
+upt install git ripgrep fd fzf jq
+#+END_SRC
+
+Для target OS он может использовать overrides:
+
+#+BEGIN_SRC text
+program.overrides[target_os]
+program.overrides["upt"]
+program.name
+#+END_SRC
+
+** MetapacInstaller
+
+Будущий installer.
+
+Он использует:
+
+#+BEGIN_SRC text
+InstallPlan.installer_manifests["metapac"]
+#+END_SRC
+
+Генерирует:
+
+#+BEGIN_SRC text
+~/.config/metapac/groups/kaizen.generated.toml
+#+END_SRC
+
+И вызывает:
+
+#+BEGIN_SRC sh
+metapac sync
+#+END_SRC
+
+** NixInstaller
+
+Будущий installer.
+
+Он использует:
+
+#+BEGIN_SRC text
+InstallPlan.programs
+program.overrides["nix"]
+#+END_SRC
+
+Генерирует Nix expression или flake.
+
+Пример:
+
+#+BEGIN_SRC nix
+{ pkgs }:
+
+with pkgs; [
+  git
+  ripgrep
+  fd
+  fzf
+  jq
+  helix
+  emacs
+]
+#+END_SRC
+
+И позже может выполнять:
+
+#+BEGIN_SRC sh
+nix profile install .#default
+#+END_SRC
+
+NixInstaller в этом проекте должен отвечать только за установку программ. Он не должен в MVP управлять dotfiles, Home Manager modules или системными конфигами.
+
+* 14. CLI как thin adapter
+
+CLI не должен содержать бизнес-логику. Он только вызывает core API и installer API.
+
+Команды MVP:
+
+#+BEGIN_SRC text
+kaizen doctor
+kaizen features
+kaizen plan
+kaizen install
+#+END_SRC
+
+Будущие команды:
+
+#+BEGIN_SRC text
+kaizen generate --installer metapac
+kaizen generate --installer nix
+kaizen bootstrap --installer metapac
+#+END_SRC
+
+** ~kaizen doctor~
+
+Показывает окружение:
+
+#+BEGIN_SRC text
+System:
+  OS: darwin
+  Arch: aarch64
+
+Installers:
+  upt: found
+  metapac: not found
+  nix: found
+#+END_SRC
+
+** ~kaizen features~
+
+Показывает доступные фичи:
+
+#+BEGIN_SRC text
+Available features:
+  core
+  frontend
+  go
+  python
+  rust
+  emacs
+  helix
+  ai
+  mac-gui
+#+END_SRC
+
+** ~kaizen plan~
+
+Строит план без установки:
+
+#+BEGIN_SRC text
+Selected features:
+  core
+  frontend
+  emacs
+
+Loaded files:
+  features/core/common.toml
+  features/core/darwin.toml
+  features/frontend/common.toml
+  features/emacs/common.toml
+
+Programs:
+  git
+  ripgrep
+  fd
+  fzf
+  jq
+  node
+  pnpm
+  typescript-language-server
+  emacs
+
+Installer-specific sections:
+  metapac.mise: 2 packages
+  metapac.npm: 2 packages
+#+END_SRC
+
+** ~kaizen install~
+
+Первый вариант:
+
+#+BEGIN_SRC sh
+kaizen install --installer upt
+#+END_SRC
+
+По умолчанию в MVP можно считать:
+
+#+BEGIN_SRC text
+default installer = upt
+#+END_SRC
+
+Флоу:
+
+#+BEGIN_SRC text
+1. build plan
+2. show preview
+3. run UptInstaller
+#+END_SRC
+
+* 15. JSON output
+
+CLI должен поддерживать ~--json~ для команд:
+
+#+BEGIN_SRC text
+features
+doctor
+plan
+#+END_SRC
+
+Пример:
+
+#+BEGIN_SRC sh
+kaizen plan --json
+#+END_SRC
+
+Output:
+
+#+BEGIN_SRC json
+{
+  "target_os": "darwin",
+  "selected_features": ["core", "frontend", "emacs"],
+  "disabled_atoms": {
+    "frontend": ["eslint"]
+  },
+  "loaded_files": [
+    "features/core/common.toml",
+    "features/core/darwin.toml",
+    "features/frontend/common.toml",
+    "features/emacs/common.toml"
+  ],
+  "programs": [
+    { "name": "git", "overrides": {} },
+    { "name": "ripgrep", "overrides": {} },
+    { "name": "fd", "overrides": { "fedora": "fd-find" } }
+  ],
+  "installer_manifests": {
+    "metapac": {
+      "sections": {
+        "mise": {
+          "packages": [
+            { "name": "node", "options": { "version": "22" } }
+          ]
+        }
+      }
+    }
+  },
+  "warnings": []
+}
+#+END_SRC
+
+Это позволит TUI/GUI не парсить человекочитаемый вывод.
+
+* 16. OS detection
+
+Поддерживаемые target OS в MVP:
+
+#+BEGIN_SRC text
+darwin
+fedora
+linux
+#+END_SRC
+
+~linux~ — общий fallback для всех Linux.
+
+Порядок загрузки файлов:
+
+#+BEGIN_SRC text
+common.toml
+linux.toml, если target OS является Linux
+<target-os>.toml
+#+END_SRC
+
+Примеры:
+
+macOS:
+
+#+BEGIN_SRC text
+common.toml
+darwin.toml
+#+END_SRC
+
+Fedora:
+
+#+BEGIN_SRC text
+common.toml
+linux.toml
+fedora.toml
+#+END_SRC
+
+* 17. Ошибки и предупреждения
+
+Core должен возвращать structured errors, а не печатать строки напрямую.
+
+Типы ошибок:
+
+#+BEGIN_SRC text
+ConfigNotFound
+FeatureNotFound
+FeatureFileParseError
+AtomNotFound
+MergeConflict
+InstallerNotFound
+InstallerUnavailable
+InstallerExecutionFailed
+UnsupportedFeatureFormat
+#+END_SRC
+
+Пример ошибки:
+
+#+BEGIN_SRC text
+Feature not found: frontendx
+
+Available similar features:
+  frontend
+#+END_SRC
+
+Пример atom warning/error:
+
+#+BEGIN_SRC text
+Atom not found: frontend.eslinnt
+
+Available atoms:
+  node
+  pnpm
+  typescript
+  eslint
+  biome
+#+END_SRC
+
+Пример merge conflict:
+
+#+BEGIN_SRC text
+Conflict in package metapac.mise:node
+
+features/frontend/common.toml:
+  version = "22"
+
+features/legacy/common.toml:
+  version = "20"
+#+END_SRC
+
+* 18. Конфликт-детектор
+
+Минимальный conflict detection:
+
+#+BEGIN_SRC text
+- same program name = dedupe
+- same installer + same backend + same simple package = dedupe
+- same installer + same backend + same detailed package name + same options = dedupe
+- same installer + same backend + same detailed package name + different options = error
+#+END_SRC
+
+Позже можно добавить semantic conflicts:
+
+#+BEGIN_SRC text
+- node через upt и node через metapac.mise одновременно
+- rust через upt и rust через metapac.mise одновременно
+- emacs через brew и emacs через nix одновременно
+#+END_SRC
+
+Для MVP semantic conflicts можно не делать.
+
+* 19. Почему lock пока не нужен
+
+На старте ~kaizen~ не обещает воспроизводимость версий.
+
+~UptInstaller~ устанавливает программы через системный package manager, выбранный ~upt~.
+
+Actual versions определяются backend-ом:
+
+#+BEGIN_SRC text
+apt/dnf/brew/pacman/etc. → текущие версии из текущих репозиториев
+#+END_SRC
+
+Поэтому полноценный lockfile в MVP будет вводить ложное ощущение гарантий.
+
+В будущем можно добавить:
+
+#+BEGIN_SRC text
+kaizen.resolution.toml
+#+END_SRC
+
+Он может фиксировать:
+
+#+BEGIN_SRC text
+- выбранные фичи
+- загруженные файлы
+- installer
+- итоговый InstallPlan hash
+- версии, обнаруженные после установки, если возможно
+#+END_SRC
+
+Но это не нужно для первой версии.
+
+* 20. Почему state пока не нужен
+
+State нужен для safe uninstall.
+
+MVP не должен реализовывать автоматический uninstall, потому что без полноценного ownership tracking легко удалить пользовательские пакеты.
+
+В MVP:
+
+#+BEGIN_SRC text
+- kaizen строит plan
+- kaizen устанавливает программы через installer
+- kaizen не делает automatic uninstall
+#+END_SRC
+
+Позже можно добавить state:
+
+#+BEGIN_SRC toml
+[packages."upt:emacs"]
+existed_before = false
+installed_by_kaizen = true
+#+END_SRC
+
+Но не раньше, чем появится явная команда uninstall.
+
+* 21. Будущая поддержка metapac
+
+~MetapacInstaller~ нужен, когда ~kaizen~ начнёт устанавливать не только обычные system packages, но и multi-backend зависимости:
+
+#+BEGIN_SRC text
+mise
+npm
+cargo
+pipx
+uv
+mas
+brew-cask
+flatpak
+vscode
+#+END_SRC
+
+~MetapacInstaller~ должен:
+
+#+BEGIN_SRC text
+1. взять InstallPlan.installer_manifests["metapac"]
+2. сгенерировать ~/.config/metapac/groups/kaizen.generated.toml
+3. вызвать metapac sync
+#+END_SRC
+
+Будущий ~kaizen bootstrap --installer metapac~ может делать:
+
+#+BEGIN_SRC sh
+metapac unmanaged > ~/.config/metapac/groups/00-unmanaged.toml
+#+END_SRC
+
+Правила:
+
+#+BEGIN_SRC text
+- не перезаписывать 00-unmanaged.toml, если он уже существует
+- для перезаписи требовать --force
+- явно предупреждать пользователя, что это snapshot существующих пакетов
+#+END_SRC
+
+* 22. Будущая поддержка Nix
+
+~NixInstaller~ должен быть возможен без переделки core.
+
+Он должен использовать тот же ~InstallPlan~:
+
+#+BEGIN_SRC text
+programs + overrides.nix
+#+END_SRC
+
+Пример feature:
+
+#+BEGIN_SRC toml
+[programs]
+packages = [
+  "node",
+  "fd",
+]
+
+[programs.overrides.nix]
+node = "nodejs_22"
+
+[programs.overrides.fedora]
+fd = "fd-find"
+#+END_SRC
+
+~NixInstaller~ может генерировать:
+
+#+BEGIN_SRC nix
+{
+  description = "Kaizen generated environment";
+
+  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+
+  outputs = { nixpkgs, ... }:
+    let
+      system = "aarch64-darwin";
+      pkgs = import nixpkgs { inherit system; };
+    in {
+      packages.${system}.default = pkgs.buildEnv {
+        name = "kaizen-env";
+        paths = with pkgs; [
+          git
+          ripgrep
+          fd
+          nodejs_22
+        ];
+      };
+    };
+}
+#+END_SRC
+
+И применять:
+
+#+BEGIN_SRC sh
+nix profile install .#default
+#+END_SRC
+
+Важно:
+
+#+BEGIN_SRC text
+NixInstaller в рамках dependency-layer устанавливает программы.
+Он не управляет dotfiles, Home Manager config или nix-darwin system config в MVP.
+#+END_SRC
+
+* 23. Будущая TUI
+
+TUI должна использовать core API:
+
+#+BEGIN_SRC text
+list_features()
+build_plan()
+installer.preview()
+installer.install()
+#+END_SRC
+
+TUI-флоу:
+
+#+BEGIN_SRC text
+1. показать список фич
+2. пользователь toggles features
+3. показать atoms внутри фичи
+4. пользователь отключает atoms
+5. показать generated plan
+6. сохранить config.toml
+7. выполнить install
+#+END_SRC
+
+TUI не должна знать, как мерджить TOML или как строить plan.
+
+* 24. Будущая GUI
+
+GUI должна работать аналогично TUI:
+
+#+BEGIN_SRC text
+frontend app → calls headless engine / daemon / CLI JSON API
+#+END_SRC
+
+Для GUI заранее нужен machine-readable output:
+
+#+BEGIN_SRC sh
+kaizen plan --json
+kaizen features --json
+kaizen doctor --json
+#+END_SRC
+
+* 25. Тестирование
+
+** Unit tests
+
+#+BEGIN_SRC text
+- parse user config
+- discover features
+- load common/os-specific files
+- parse [programs]
+- parse atoms
+- apply disabled_atoms
+- merge programs
+- dedupe programs
+- merge installer-specific sections
+- detect conflict on different options
+- build InstallPlan
+#+END_SRC
+
+** Golden tests
+
+Для каждого кейса:
+
+#+BEGIN_SRC text
+tests/golden/darwin_frontend_emacs/input/config.toml
+tests/golden/darwin_frontend_emacs/expected/plan.json
+#+END_SRC
+
+Тест:
+
+#+BEGIN_SRC text
+input config + target OS → InstallPlan exactly equals expected JSON
+#+END_SRC
+
+** Integration tests
+
+Использовать fake ~upt~ binary в PATH.
+
+Проверить:
+
+#+BEGIN_SRC text
+- kaizen install --installer upt вызывает upt install
+- packages передаются в правильном порядке
+- ошибки upt корректно пробрасываются
+#+END_SRC
+
+Не запускать настоящий ~upt install~ в CI.
+
+* 26. Roadmap
+
+** Phase 1: headless core + InstallPlan
+
+Deliverables:
+
+#+BEGIN_SRC text
+- kaizen-core crate
+- UserConfig parser
+- FeatureStore
+- OS detection
+- atoms
+- TOML merge
+- InstallPlan
+#+END_SRC
+
+Success criteria:
+
+#+BEGIN_SRC text
+Core API может загрузить config и построить InstallPlan без CLI.
+#+END_SRC
+
+** Phase 2: CLI MVP + UptInstaller
+
+Deliverables:
+
+#+BEGIN_SRC text
+- kaizen-cli crate
+- doctor
+- features
+- plan
+- install --installer upt
+- --json для doctor/features/plan
+#+END_SRC
+
+Success criteria:
+
+#+BEGIN_SRC text
+kaizen plan показывает список programs.
+kaizen install вызывает upt install с программами из выбранных фич.
+#+END_SRC
+
+** Phase 3: robustness
+
+Deliverables:
+
+#+BEGIN_SRC text
+- better errors
+- golden tests
+- fake upt integration tests
+- conflict reporting
+- stable output ordering
+#+END_SRC
+
+Success criteria:
+
+#+BEGIN_SRC text
+CLI output пригоден для людей, JSON output пригоден для TUI/GUI.
+#+END_SRC
+
+** Phase 4: MetapacInstaller
+
+Deliverables:
+
+#+BEGIN_SRC text
+- parser/merge for [installers.metapac.*]
+- metapac manifest generator
+- metapac sync
+- optional metapac bootstrap unmanaged
+#+END_SRC
+
+Success criteria:
+
+#+BEGIN_SRC text
+kaizen install --installer metapac генерирует kaizen.generated.toml и вызывает metapac sync.
+#+END_SRC
+
+** Phase 5: NixInstaller
+
+Deliverables:
+
+#+BEGIN_SRC text
+- Nix package generator from InstallPlan.programs
+- overrides.nix support
+- generate flake
+- optional nix profile install
+#+END_SRC
+
+Success criteria:
+
+#+BEGIN_SRC text
+kaizen generate --installer nix создаёт валидный flake/buildEnv.
+#+END_SRC
+
+** Phase 6: TUI
+
+Deliverables:
+
+#+BEGIN_SRC text
+- feature selection screen
+- atom toggle screen
+- plan preview
+- save config
+- run install
+#+END_SRC
+
+Success criteria:
+
+#+BEGIN_SRC text
+Пользователь может выбрать фичи без редактирования TOML.
+#+END_SRC
+
+** Phase 7: future advanced features
+
+Возможные направления:
+
+#+BEGIN_SRC text
+- state для safe uninstall
+- resolution snapshot
+- semantic sources
+- provider policy
+- direct providers без upt/metapac
+- Steel/Scheme provider plugins
+- GUI
+#+END_SRC
+
+Эти элементы не нужны для MVP и не должны блокировать первый релиз.
+
+* 27. Итоговая MVP-команда
+
+Желаемый первый UX:
+
+#+BEGIN_SRC sh
+kaizen doctor
+kaizen features
+kaizen plan
+kaizen install --installer upt
+#+END_SRC
+
+Минимальный config:
+
+#+BEGIN_SRC toml
+[features.core]
+enabled = true
+
+[features.frontend]
+enabled = true
+
+[features.emacs]
+enabled = true
+
+[features.ai]
+enabled = true
+#+END_SRC
+
+Минимальный результат:
+
+#+BEGIN_SRC text
+kaizen строит InstallPlan из выбранных фич
+и запускает upt install для итогового списка programs.
+#+END_SRC
+
+* 28. Главный критерий успеха
+
+Первая версия успешна, если можно сказать:
+
+#+BEGIN_SRC text
+Я выбрал фичи frontend + emacs + ai,
+получил корректный InstallPlan для моей ОС,
+увидел plan,
+и одной командой запустил установку программ через upt.
+#+END_SRC
+
+Без lockfile, без state, без собственного package manager, без сложной policy-системы и без обязательного metapac.
+
+Главный архитектурный критерий:
+
+#+BEGIN_SRC text
+Позже можно добавить MetapacInstaller и NixInstaller без переписывания kaizen-core.
+#+END_SRC
