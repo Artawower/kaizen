@@ -1,11 +1,9 @@
 use std::path::Path;
 
+use crate::{output, selector};
 use anyhow::Result;
 use dialoguer::{theme::ColorfulTheme, Confirm, Input, Select};
 use kaizen_core::{KaizenEngine, UserConfig};
-use owo_colors::OwoColorize;
-
-use crate::{output, selector};
 
 pub fn run(engine: &KaizenEngine, config_path: &Path) -> Result<()> {
     output::page_header("setup");
@@ -24,7 +22,7 @@ pub fn run(engine: &KaizenEngine, config_path: &Path) -> Result<()> {
 
     let toml = render_config(&features, &selected, &layout, dotfiles_source.as_deref());
     if write_config(config_path, &toml)? {
-        print_next_steps(config_path);
+        prompt_next_action(engine, config_path)?;
     }
     Ok(())
 }
@@ -120,11 +118,25 @@ fn write_config(path: &Path, content: &str) -> Result<bool> {
     Ok(true)
 }
 
-fn print_next_steps(path: &Path) {
-    output::item_ok(&format!("Config written to {}", path.display()));
+fn prompt_next_action(engine: &KaizenEngine, config_path: &Path) -> Result<()> {
+    output::item_ok(&format!("Config written to {}", config_path.display()));
     println!();
-    println!("  Next steps:");
-    println!("    {}  doctor", "kaizen".bold().green());
-    println!("    {}  plan", "kaizen".bold().green());
+
+    let choices = &[
+        "sync   — install packages + apply dotfiles",
+        "plan   — preview what would happen",
+        "skip   — I'll do it manually",
+    ];
+    let idx = Select::with_theme(&ColorfulTheme::default())
+        .with_prompt("What next?")
+        .items(choices)
+        .default(0)
+        .interact()?;
+
     println!();
+    match idx {
+        0 => super::sync::run(engine, config_path, false),
+        1 => super::plan::run(engine, config_path, false),
+        _ => Ok(()),
+    }
 }

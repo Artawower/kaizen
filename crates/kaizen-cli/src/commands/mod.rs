@@ -4,4 +4,5 @@ pub mod features;
 pub mod install;
 pub mod plan;
 pub mod setup;
+pub mod sync;
 pub mod uninstall;

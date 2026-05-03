@@ -55,6 +55,12 @@ enum Command {
         dry_run: bool,
     },
 
+    #[command(about = "Install packages and apply dotfiles in one step")]
+    Sync {
+        #[arg(long, help = "Preview without executing")]
+        dry_run: bool,
+    },
+
     #[command(about = "Write .chezmoidata.toml to the chezmoi source directory")]
     Apply {
         #[arg(
@@ -83,6 +89,7 @@ fn main() -> Result<()> {
         Command::Plan { json } => commands::plan::run(&engine, &config_path, json)?,
         Command::Install { dry_run } => commands::install::run(&engine, &config_path, dry_run)?,
         Command::Uninstall { dry_run } => commands::uninstall::run(&engine, &config_path, dry_run)?,
+        Command::Sync { dry_run } => commands::sync::run(&engine, &config_path, dry_run)?,
         Command::Apply { dry_run } => commands::apply::run(&engine, &config_path, dry_run)?,
         Command::Doctor => commands::doctor::run(&engine, &config_path)?,
     }
