@@ -47,6 +47,16 @@ pub fn run(engine: &KaizenEngine, config_path: &Path, json: bool) -> Result<()> 
         output::kv("dotfiles source", source);
     }
 
+    if !plan.hook_plan.post_install.is_empty() || !plan.hook_plan.post_apply.is_empty() {
+        output::header("Hooks");
+        for cmd in &plan.hook_plan.post_install {
+            output::kv("post_install", cmd);
+        }
+        for cmd in &plan.hook_plan.post_apply {
+            output::kv("post_apply", cmd);
+        }
+    }
+
     if !plan.warnings.is_empty() {
         output::header("Warnings");
         for w in &plan.warnings {

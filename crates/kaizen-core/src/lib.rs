@@ -5,6 +5,7 @@ pub mod config;
 pub mod error;
 pub mod feature;
 pub mod feature_store;
+pub mod hooks;
 pub mod installer;
 pub mod merge;
 pub mod os;
@@ -16,9 +17,10 @@ pub use config::{
 pub use error::KaizenError;
 pub use feature::FeatureFile;
 pub use feature_store::FeatureStore;
+pub use hooks::{HookRunner, ShellHookRunner};
 pub use installer::{Installer, Remover, UptInstaller};
 pub use os::TargetOs;
-pub use plan::{ConfigPlan, InstallPlan, WorkflowPlan};
+pub use plan::{ConfigPlan, HookPlan, InstallPlan, WorkflowPlan};
 
 pub struct KaizenEngine {
     features_dir: PathBuf,

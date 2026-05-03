@@ -1,8 +1,8 @@
 use indexmap::IndexMap;
 
 use crate::{
-    feature::ProgramSection, ConfigPlan, FeatureStore, InstallPlan, KaizenError, TargetOs,
-    UserConfig, WorkflowPlan,
+    feature::ProgramSection, ConfigPlan, FeatureStore, HookPlan, InstallPlan, KaizenError,
+    TargetOs, UserConfig, WorkflowPlan,
 };
 
 pub fn build_plan(
@@ -14,6 +14,7 @@ pub fn build_plan(
     let mut mise_tools: IndexMap<String, String> = IndexMap::new();
     let mut warnings: Vec<String> = Vec::new();
     let mut selected_features: Vec<String> = Vec::new();
+    let mut hook_plan = HookPlan::default();
 
     for (feature_name, selection) in &config.features {
         if !selection.enabled {
@@ -28,6 +29,13 @@ pub fn build_plan(
         };
 
         selected_features.push(feature_name.clone());
+
+        hook_plan
+            .post_install
+            .extend(feature.hooks.post_install.iter().cloned());
+        hook_plan
+            .post_apply
+            .extend(feature.hooks.post_apply.iter().cloned());
 
         if let Some(ref prog) = feature.programs {
             merge_programs(&mut programs, prog, &target_os);
@@ -68,6 +76,7 @@ pub fn build_plan(
             mise_tools,
         },
         build_config_plan(config),
+        hook_plan,
         warnings,
     ))
 }
@@ -137,8 +146,24 @@ fn build_config_plan(config: &UserConfig) -> ConfigPlan {
 
 #[cfg(test)]
 mod tests {
+    use std::path::PathBuf;
+
     use super::*;
     use crate::feature::ProgramSection;
+
+    fn fixture_path(name: &str) -> PathBuf {
+        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("tests/fixtures")
+            .join(name)
+    }
+
+    fn fixture_config(name: &str) -> UserConfig {
+        crate::config::load(&fixture_path(name)).unwrap()
+    }
+
+    fn fixture_store() -> FeatureStore {
+        FeatureStore::new(fixture_path("features"))
+    }
 
     fn prog(pkgs: &[&str]) -> ProgramSection {
         ProgramSection {
@@ -191,6 +216,42 @@ mod tests {
         };
         merge_programs(&mut out, &sec, &TargetOs::Fedora);
         assert_eq!(out["fd"], "fd-find");
+    }
+
+    #[test]
+    fn hooks_collected_from_enabled_features() {
+        let config = fixture_config("config-hooks.toml");
+        let plan = build_plan(&config, &fixture_store(), TargetOs::Darwin).unwrap();
+        assert!(plan
+            .hook_plan
+            .post_install
+            .contains(&"echo alpha-post-install".to_owned()));
+        assert!(plan
+            .hook_plan
+            .post_install
+            .contains(&"echo beta-post-install".to_owned()));
+        assert!(plan
+            .hook_plan
+            .post_apply
+            .contains(&"echo alpha-post-apply".to_owned()));
+    }
+
+    #[test]
+    fn hooks_not_collected_from_disabled_features() {
+        let config = fixture_config("config-hooks-disabled.toml");
+        let plan = build_plan(&config, &fixture_store(), TargetOs::Darwin).unwrap();
+        assert!(plan
+            .hook_plan
+            .post_install
+            .contains(&"echo alpha-post-install".to_owned()));
+        assert!(!plan
+            .hook_plan
+            .post_install
+            .contains(&"echo beta-post-install".to_owned()));
+        assert!(!plan
+            .hook_plan
+            .post_apply
+            .contains(&"echo beta-post-apply".to_owned()));
     }
 
     #[test]

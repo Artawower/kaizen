@@ -1,7 +1,9 @@
 use std::path::Path;
 
 use anyhow::Result;
-use kaizen_core::{Installer, KaizenEngine, KaizenError, TargetOs, UptInstaller};
+use kaizen_core::{
+    HookRunner, Installer, KaizenEngine, KaizenError, ShellHookRunner, TargetOs, UptInstaller,
+};
 use owo_colors::OwoColorize;
 
 use crate::{ensure, output};
@@ -19,6 +21,7 @@ pub fn run(engine: &KaizenEngine, config_path: &Path, dry_run: bool) -> Result<(
         dry_run,
         TargetOs::detect(),
         &UptInstaller,
+        &ShellHookRunner,
     )
 }
 
@@ -28,6 +31,7 @@ fn run_with(
     dry_run: bool,
     target_os: TargetOs,
     installer: &dyn Installer,
+    hook_runner: &dyn HookRunner,
 ) -> Result<()> {
     let config = engine.load_config(config_path)?;
     output::warn_if_schema_outdated(&config);
@@ -39,10 +43,14 @@ fn run_with(
     }
 
     print_programs(&plan.install_plan.programs);
-    execute_install(&plan.install_plan.programs, dry_run, installer)
+    let all_installed = execute_install(&plan.install_plan.programs, dry_run, installer)?;
+    if all_installed {
+        crate::hooks::run(&plan.hook_plan.post_install, dry_run, hook_runner)?;
+    }
+    Ok(())
 }
 
-fn execute_install(programs: &[String], dry_run: bool, installer: &dyn Installer) -> Result<()> {
+fn execute_install(programs: &[String], dry_run: bool, installer: &dyn Installer) -> Result<bool> {
     let preview = installer.preview_install(programs);
     println!();
 
@@ -50,7 +58,7 @@ fn execute_install(programs: &[String], dry_run: bool, installer: &dyn Installer
         println!("  {}  {}", "→".dimmed(), preview.dimmed());
         println!();
         println!("  Run without --dry-run to apply.");
-        return Ok(());
+        return Ok(true);
     }
 
     println!("  {}  {}", "→".bold(), preview);
@@ -58,6 +66,7 @@ fn execute_install(programs: &[String], dry_run: bool, installer: &dyn Installer
     match installer.install(programs) {
         Ok(()) => {
             output::item_ok(&format!("{} package(s) installed", programs.len()));
+            Ok(true)
         }
         Err(KaizenError::InstallerPartialFailure { failed, .. }) => {
             let ok = programs.len() - failed.len();
@@ -69,10 +78,10 @@ fn execute_install(programs: &[String], dry_run: bool, installer: &dyn Installer
                     "{pkg}: failed — check for conflicts or update the feature file"
                 ));
             }
+            Ok(false)
         }
-        Err(e) => return Err(e.into()),
+        Err(e) => Err(e.into()),
     }
-    Ok(())
 }
 
 fn print_programs(programs: &[String]) {
@@ -88,9 +97,55 @@ mod tests {
     use std::cell::RefCell;
     use std::path::PathBuf;
 
-    use kaizen_core::KaizenError;
+    use kaizen_core::{HookRunner, KaizenError};
 
     use super::*;
+
+    struct NoopHookRunner;
+
+    impl HookRunner for NoopHookRunner {
+        fn run(&self, _commands: &[String]) -> Result<(), KaizenError> {
+            Ok(())
+        }
+    }
+
+    struct RecordingHookRunner {
+        calls: RefCell<Vec<Vec<String>>>,
+    }
+
+    impl RecordingHookRunner {
+        fn new() -> Self {
+            Self {
+                calls: RefCell::new(vec![]),
+            }
+        }
+
+        fn was_called(&self) -> bool {
+            !self.calls.borrow().is_empty()
+        }
+    }
+
+    impl HookRunner for RecordingHookRunner {
+        fn run(&self, commands: &[String]) -> Result<(), KaizenError> {
+            self.calls.borrow_mut().push(commands.to_vec());
+            Ok(())
+        }
+    }
+
+    struct PartiallyFailingInstaller;
+
+    impl Installer for PartiallyFailingInstaller {
+        fn install(&self, programs: &[String]) -> Result<(), KaizenError> {
+            Err(KaizenError::InstallerPartialFailure {
+                count: 1,
+                failed: vec![programs.first().cloned().unwrap_or_default()],
+            })
+        }
+
+        fn preview_install(&self, programs: &[String]) -> String {
+            format!("mock partial-fail {}", programs.join(" "))
+        }
+    }
 
     struct RecordingInstaller {
         calls: RefCell<Vec<Vec<String>>>,
@@ -143,6 +198,7 @@ mod tests {
             true,
             TargetOs::Darwin,
             &recorder,
+            &NoopHookRunner,
         )
         .unwrap();
         assert!(!recorder.was_called());
@@ -158,6 +214,7 @@ mod tests {
             false,
             TargetOs::Darwin,
             &recorder,
+            &NoopHookRunner,
         )
         .unwrap();
         assert!(recorder.was_called());
@@ -173,6 +230,7 @@ mod tests {
             false,
             TargetOs::Darwin,
             &recorder,
+            &NoopHookRunner,
         )
         .unwrap();
         let programs = recorder.last_call().unwrap();
@@ -190,6 +248,7 @@ mod tests {
             false,
             TargetOs::Fedora,
             &recorder,
+            &NoopHookRunner,
         )
         .unwrap();
         let programs = recorder.last_call().unwrap();
@@ -201,5 +260,53 @@ mod tests {
             !programs.contains(&"fd".to_owned()),
             "canonical 'fd' should be replaced"
         );
+    }
+
+    #[test]
+    fn dry_run_does_not_call_hook_runner() {
+        let hook_recorder = RecordingHookRunner::new();
+        let engine = fixture_engine();
+        run_with(
+            &engine,
+            &fixture_path("config-hooks.toml"),
+            true,
+            TargetOs::Darwin,
+            &RecordingInstaller::new(),
+            &hook_recorder,
+        )
+        .unwrap();
+        assert!(!hook_recorder.was_called());
+    }
+
+    #[test]
+    fn hooks_called_after_successful_install() {
+        let hook_recorder = RecordingHookRunner::new();
+        let engine = fixture_engine();
+        run_with(
+            &engine,
+            &fixture_path("config-hooks.toml"),
+            false,
+            TargetOs::Darwin,
+            &RecordingInstaller::new(),
+            &hook_recorder,
+        )
+        .unwrap();
+        assert!(hook_recorder.was_called());
+    }
+
+    #[test]
+    fn partial_install_failure_skips_hooks() {
+        let hook_recorder = RecordingHookRunner::new();
+        let engine = fixture_engine();
+        run_with(
+            &engine,
+            &fixture_path("config-hooks.toml"),
+            false,
+            TargetOs::Darwin,
+            &PartiallyFailingInstaller,
+            &hook_recorder,
+        )
+        .unwrap();
+        assert!(!hook_recorder.was_called());
     }
 }

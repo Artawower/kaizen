@@ -9,6 +9,7 @@ pub struct WorkflowPlan {
     pub selected_features: Vec<String>,
     pub install_plan: InstallPlan,
     pub config_plan: ConfigPlan,
+    pub hook_plan: HookPlan,
     pub warnings: Vec<String>,
 }
 
@@ -16,6 +17,12 @@ pub struct WorkflowPlan {
 pub struct InstallPlan {
     pub programs: Vec<String>,
     pub mise_tools: IndexMap<String, String>,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct HookPlan {
+    pub post_install: Vec<String>,
+    pub post_apply: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -32,6 +39,7 @@ impl WorkflowPlan {
         selected_features: Vec<String>,
         install_plan: InstallPlan,
         config_plan: ConfigPlan,
+        hook_plan: HookPlan,
         warnings: Vec<String>,
     ) -> Self {
         Self {
@@ -39,6 +47,7 @@ impl WorkflowPlan {
             selected_features,
             install_plan,
             config_plan,
+            hook_plan,
             warnings,
         }
     }

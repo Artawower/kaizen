@@ -1,0 +1,8 @@
+[features.alpha]
+enabled = true
+
+[features.beta]
+enabled = true
+
+[dotfiles]
+backend = "chezmoi"

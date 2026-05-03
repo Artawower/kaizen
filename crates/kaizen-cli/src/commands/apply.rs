@@ -1,12 +1,21 @@
 use std::path::Path;
 
 use anyhow::Result;
-use kaizen_core::{KaizenEngine, TargetOs};
+use kaizen_core::{HookRunner, KaizenEngine, ShellHookRunner, TargetOs};
 use owo_colors::OwoColorize;
 
 use crate::{ensure, output};
 
 pub fn run(engine: &KaizenEngine, config_path: &Path, dry_run: bool) -> Result<()> {
+    run_with(engine, config_path, dry_run, &ShellHookRunner)
+}
+
+fn run_with(
+    engine: &KaizenEngine,
+    config_path: &Path,
+    dry_run: bool,
+    hook_runner: &dyn HookRunner,
+) -> Result<()> {
     output::page_header(if dry_run { "apply  (dry-run)" } else { "apply" });
 
     let config = engine.load_config(config_path)?;
@@ -31,7 +40,8 @@ pub fn run(engine: &KaizenEngine, config_path: &Path, dry_run: bool) -> Result<(
             println!("  {}", line.dimmed());
         }
         println!();
-        println!("  Run without --dry-run to write.");
+        println!("  Run without --dry-run to write + apply.");
+        crate::hooks::run(&plan.hook_plan.post_apply, true, hook_runner)?;
         return Ok(());
     }
 
@@ -47,6 +57,19 @@ pub fn run(engine: &KaizenEngine, config_path: &Path, dry_run: bool) -> Result<(
     std::fs::write(&data_path, &content)?;
     output::item_ok(&format!("wrote {}", data_path.display()));
     println!();
-    println!("  Next: {}  apply", "chezmoi".bold().cyan());
-    Ok(())
+
+    output::header("chezmoi apply");
+    let status = std::process::Command::new("chezmoi")
+        .arg("apply")
+        .status()?;
+    if !status.success() {
+        anyhow::bail!(
+            "chezmoi apply failed with exit code {}",
+            status.code().unwrap_or(-1)
+        );
+    }
+    output::item_ok("chezmoi apply done");
+    println!();
+
+    crate::hooks::run(&plan.hook_plan.post_apply, false, hook_runner)
 }

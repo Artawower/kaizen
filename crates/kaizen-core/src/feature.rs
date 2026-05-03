@@ -17,6 +17,18 @@ pub struct FeatureFile {
 
     #[serde(default)]
     pub os: IndexMap<String, OsSection>,
+
+    #[serde(default)]
+    pub hooks: HooksSection,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct HooksSection {
+    #[serde(default)]
+    pub post_install: Vec<String>,
+
+    #[serde(default)]
+    pub post_apply: Vec<String>,
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]

@@ -49,6 +49,9 @@ pub enum KaizenError {
     #[error("failed to serialize chezmoidata: {0}")]
     TomlSerialize(#[from] toml::ser::Error),
 
+    #[error("hook command failed: `{command}` — {reason}")]
+    HookFailed { command: String, reason: String },
+
     #[error("io error: {0}")]
     Io(#[from] std::io::Error),
 }

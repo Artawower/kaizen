@@ -1,0 +1,9 @@
+[meta]
+description = "Feature with hooks (test fixture)"
+
+[programs]
+packages = ["curl"]
+
+[hooks]
+post_install = ["echo post-install-hook"]
+post_apply = ["echo post-apply-hook"]

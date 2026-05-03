@@ -3,6 +3,7 @@ use clap::{Parser, Subcommand};
 
 mod commands;
 mod ensure;
+mod hooks;
 mod output;
 mod selector;
 

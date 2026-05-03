@@ -1,0 +1,9 @@
+[meta]
+description = "Alpha feature"
+
+[programs]
+packages = ["git"]
+
+[hooks]
+post_install = ["echo alpha-post-install"]
+post_apply = ["echo alpha-post-apply"]
