@@ -73,6 +73,55 @@ impl SourcePathState {
     }
 }
 
+pub fn standalone_source_dir() -> Result<Option<PathBuf>, KaizenError> {
+    let out = Command::new("chezmoi").arg("source-path").output()?;
+    if !out.status.success() {
+        return Ok(None);
+    }
+    let path_str = String::from_utf8_lossy(&out.stdout).trim().to_string();
+    if path_str.is_empty() {
+        return Ok(None);
+    }
+    let path = PathBuf::from(path_str);
+    if path.exists() {
+        Ok(Some(path))
+    } else {
+        Ok(None)
+    }
+}
+
+pub fn init_source(url: &str) -> Result<(), KaizenError> {
+    let status = Command::new("chezmoi").args(["init", url]).status()?;
+    if !status.success() {
+        return Err(KaizenError::ChezmoidataInitFailed {
+            url: url.to_owned(),
+            code: status.code(),
+        });
+    }
+    Ok(())
+}
+
+pub fn remotes_match(a: &str, b: &str) -> bool {
+    normalize_remote(a) == normalize_remote(b)
+}
+
+fn normalize_remote(url: &str) -> String {
+    let url = url.trim();
+    let without_scheme = if let Some(rest) = url.strip_prefix("git@") {
+        rest.replacen(':', "/", 1)
+    } else if let Some(rest) = url.strip_prefix("https://") {
+        rest.to_owned()
+    } else if let Some(rest) = url.strip_prefix("http://") {
+        rest.to_owned()
+    } else {
+        url.to_owned()
+    };
+    without_scheme
+        .trim_end_matches(".git")
+        .trim_end_matches('/')
+        .to_lowercase()
+}
+
 pub fn source_path(plan: &ConfigPlan) -> Result<SourcePathState, KaizenError> {
     if plan.backend != "chezmoi" {
         return Err(KaizenError::UnsupportedDotfilesBackend {

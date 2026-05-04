@@ -15,13 +15,8 @@ mod selector;
     arg_required_else_help = true
 )]
 struct Cli {
-    #[arg(
-        long,
-        global = true,
-        env = "KAIZEN_FEATURES_DIR",
-        default_value = "features"
-    )]
-    features_dir: std::path::PathBuf,
+    #[arg(long, global = true, env = "KAIZEN_FEATURES_DIR")]
+    features_dir: Option<std::path::PathBuf>,
 
     #[arg(long, global = true)]
     config: Option<std::path::PathBuf>,
@@ -95,13 +90,19 @@ fn main() -> Result<()> {
     colog::init();
 
     let cli = Cli::parse();
-    let engine = kaizen_core::KaizenEngine::new(&cli.features_dir);
     let config_path = cli
         .config
         .unwrap_or_else(kaizen_core::KaizenEngine::default_config_path);
 
+    if let Command::Setup = cli.command {
+        return commands::setup::run(cli.features_dir.as_deref(), &config_path);
+    }
+
+    let features_dir = kaizen_core::resolve_features_dir(cli.features_dir)?;
+    let engine = kaizen_core::KaizenEngine::new(&features_dir);
+
     match cli.command {
-        Command::Setup => commands::setup::run(&engine, &config_path)?,
+        Command::Setup => unreachable!(),
         Command::Features => commands::features::run(&engine)?,
         Command::Plan { json } => commands::plan::run(&engine, &config_path, json)?,
         Command::Install { dry_run } => commands::install::run(&engine, &config_path, dry_run)?,

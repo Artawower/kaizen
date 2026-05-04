@@ -7,12 +7,14 @@ pub mod feature;
 pub mod feature_store;
 pub mod hooks;
 pub mod installer;
+pub mod manifest;
 pub mod merge;
 pub mod os;
 pub mod plan;
 
 pub use config::{
     DotfilesConfig, FeatureSelection, UserConfig, UserSettings, CURRENT_SCHEMA_VERSION,
+    DEFAULT_DOTFILES_SOURCE,
 };
 pub use error::KaizenError;
 pub use feature::FeatureFile;
@@ -21,6 +23,23 @@ pub use hooks::{HookRunner, ShellHookRunner};
 pub use installer::{Installer, Remover, Updater, UptInstaller};
 pub use os::TargetOs;
 pub use plan::{ConfigPlan, HookPlan, InstallPlan, WorkflowPlan};
+
+pub fn resolve_features_dir(explicit: Option<PathBuf>) -> Result<PathBuf, KaizenError> {
+    if let Some(dir) = explicit {
+        return Ok(dir);
+    }
+    if let Some(source) = chezmoi::standalone_source_dir()? {
+        let kaizen_dir = source.join(manifest::KAIZEN_DIR);
+        let candidate = kaizen_dir.join(manifest::FEATURES_SUBDIR);
+        if candidate.is_dir() {
+            let m = manifest::load(&kaizen_dir)?;
+            manifest::validate(&m)?;
+            return Ok(candidate);
+        }
+        eprintln!("warning: kaizen/features not found in chezmoi source — using built-in features");
+    }
+    Ok(PathBuf::from("features"))
+}
 
 pub struct KaizenEngine {
     features_dir: PathBuf,

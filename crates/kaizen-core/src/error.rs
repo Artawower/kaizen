@@ -52,6 +52,19 @@ pub enum KaizenError {
     #[error("hook command failed: `{command}` — {reason}")]
     HookFailed { command: String, reason: String },
 
+    #[error("chezmoi init {url} failed with exit code {code:?}")]
+    ChezmoidataInitFailed { url: String, code: Option<i32> },
+
+    #[error("failed to parse manifest at {path}: {source}")]
+    ManifestParse {
+        path: PathBuf,
+        #[source]
+        source: toml::de::Error,
+    },
+
+    #[error("manifest schema {found} is newer than supported {supported} — upgrade kaizen")]
+    ManifestSchemaTooNew { found: u32, supported: u32 },
+
     #[error("io error: {0}")]
     Io(#[from] std::io::Error),
 }

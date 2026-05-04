@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 use crate::KaizenError;
 
 pub const CURRENT_SCHEMA_VERSION: u32 = 1;
+pub const DEFAULT_DOTFILES_SOURCE: &str = "https://github.com/Artawower/kaizen-dotfiles";
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct UserConfig {
