@@ -180,6 +180,8 @@ curl -fsSL https://raw.githubusercontent.com/artawower/kaizen/master/install.sh 
 #+END_SRC
 
 The installer currently publishes binaries for macOS only.
+If the default system directory is not writable, it falls back to =~/.local/bin=
+without requiring sudo.
 
 You can also install a specific release or choose a custom destination:
 
