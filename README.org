@@ -176,7 +176,7 @@ If something should change, it should be discussed and improved upstream.
 The simplest installation path currently uses the release installer script:
 
 #+BEGIN_SRC shell
-curl -fsSL https://raw.githubusercontent.com/artawower/kaizen/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/artawower/kaizen/master/install.sh | sh
 #+END_SRC
 
 The installer currently publishes binaries for macOS only.
@@ -184,8 +184,8 @@ The installer currently publishes binaries for macOS only.
 You can also install a specific release or choose a custom destination:
 
 #+BEGIN_SRC shell
-curl -fsSL https://raw.githubusercontent.com/artawower/kaizen/main/install.sh | sh -s -- --tag v0.1.0
-curl -fsSL https://raw.githubusercontent.com/artawower/kaizen/main/install.sh | sh -s -- --to ~/.local/bin
+curl -fsSL https://raw.githubusercontent.com/artawower/kaizen/master/install.sh | sh -s -- --tag v0.1.0
+curl -fsSL https://raw.githubusercontent.com/artawower/kaizen/master/install.sh | sh -s -- --to ~/.local/bin
 #+END_SRC
 
 After installation, the ~kaizen~ command should be available:

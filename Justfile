@@ -13,5 +13,8 @@ check:
 build:
     cargo build --release
 
+release-macos *args:
+    bash scripts/release-macos-local.sh {{args}}
+
 e2e:
     bash tests/e2e/test.sh
