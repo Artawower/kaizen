@@ -9,6 +9,7 @@
 
 #+HTML: <p align="center">
 #+HTML: <a href="https://github.com/artawower/kaizen"><img src="https://img.shields.io/badge/GitHub-kaizen-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub"></a>
+#+HTML: <a href="https://github.com/artawower/kaizen/releases"><img src="https://img.shields.io/github/v/release/artawower/kaizen?style=for-the-badge" alt="Release"></a>
 #+HTML: </p>
 
 #+HTML: <p align="center">
@@ -172,29 +173,33 @@ If something should change, it should be discussed and improved upstream.
 
 * Install
 
-Installation flow is still evolving.
-
-The intended first user experience is:
+The simplest installation path currently uses the release installer script:
 
 #+BEGIN_SRC shell
-kaizen doctor
-kaizen features
-kaizen plan
-kaizen install
+curl -fsSL https://raw.githubusercontent.com/artawower/kaizen/main/install.sh | sh
 #+END_SRC
 
-During early development, installation may require building from source:
+The installer currently publishes binaries for macOS only.
+
+You can also install a specific release or choose a custom destination:
 
 #+BEGIN_SRC shell
-git clone https://github.com/artawower/kaizen
-cd kaizen
-cargo install --path crates/kaizen-cli
+curl -fsSL https://raw.githubusercontent.com/artawower/kaizen/main/install.sh | sh -s -- --tag v0.1.0
+curl -fsSL https://raw.githubusercontent.com/artawower/kaizen/main/install.sh | sh -s -- --to ~/.local/bin
 #+END_SRC
 
 After installation, the ~kaizen~ command should be available:
 
 #+BEGIN_SRC shell
 kaizen --help
+#+END_SRC
+
+If you want to build from source instead:
+
+#+BEGIN_SRC shell
+git clone https://github.com/artawower/kaizen
+cd kaizen
+cargo install --path crates/kaizen-cli
 #+END_SRC
 
 * Usage
