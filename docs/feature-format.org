@@ -1,0 +1,56 @@
+#+title: Feature File Format
+
+Struct: [[../crates/kaizen-core/src/feature.rs][crates/kaizen-core/src/feature.rs]]
+
+Each feature is a =.toml= file in the features directory.
+
+* Sections
+
+** =[meta]=
+| =description= | Human-readable label shown in =kaizen features= |
+
+** =[programs]=
+| =packages=        | List of package names to install/upgrade via =upt=    |
+| =overrides.<os>=  | OS-specific package name overrides (e.g. =fd= → =fd-find=) |
+
+Supported OS keys: =darwin=, =linux=, =ubuntu=, =fedora=, =arch=, =nixos=.
+
+** =[mise.tools]=
+Key-value map of tool → version passed to =mise=.
+
+#+begin_src toml
+[mise.tools]
+node = "lts"
+python = "3.12"
+#+end_src
+
+** =[os.<name>]=
+Override =programs= or =mise.tools= per OS. Same structure as root sections.
+
+#+begin_src toml
+[os.fedora.programs]
+packages = ["fedora-specific-pkg"]
+#+end_src
+
+** =[atoms.<name>]=
+Named sub-groups of packages/tools. Users can disable individual atoms without disabling the whole feature.
+
+#+begin_src toml
+[atoms.lsp.programs]
+packages = ["clangd"]
+#+end_src
+
+Disable in config: =disabled_atoms = ["lsp"]=
+
+** =[hooks]=
+Shell commands executed at specific lifecycle points. Run via =sh -c=. Security is the user's responsibility.
+
+| =post_install= | After =kaizen install=               |
+| =post_apply=   | After =kaizen apply= (chezmoi apply) |
+| =post_update=  | After =kaizen update=                |
+
+#+begin_src toml
+[hooks]
+post_install = ["chezmoi re-add ~/.config/tool/settings.json"]
+post_update  = ["pi update --extensions"]
+#+end_src
