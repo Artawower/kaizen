@@ -1,0 +1,9 @@
+[meta]
+description = "E2E test feature"
+
+[programs]
+packages = ["cowsay"]
+
+[hooks]
+post_install = ["touch /tmp/kaizen-e2e-post-install-fired"]
+post_apply = ["touch /tmp/kaizen-e2e-post-apply-fired"]

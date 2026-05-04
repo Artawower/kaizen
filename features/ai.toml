@@ -1,7 +1,13 @@
 [meta]
-description = "AI coding tools: claude-code, opencode, pi, codex"
+description = "Collection of best AI agents, dependencies, tools, agents and skills"
 
 [mise.tools]
 "npm:@anthropic-ai/claude-code" = "latest"
-"npm:opencode-ai"               = "latest"
 "npm:@mariozechner/pi-coding-agent" = "latest"
+"npm:skills" = "latest"
+"npm:context-mode" = "latest"
+
+
+# Pi dependencies
+"npm:pi-link" = "latest"
+

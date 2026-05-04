@@ -10,3 +10,5 @@ indexmap = { workspace = true }
 thiserror = { workspace = true }
 dirs = { workspace = true }
 os_info = "3.14.0"
+which = "7"
+libc = "0.2"

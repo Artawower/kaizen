@@ -12,3 +12,6 @@ check:
 
 build:
     cargo build --release
+
+e2e:
+    bash tests/e2e/test.sh

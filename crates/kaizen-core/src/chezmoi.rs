@@ -85,7 +85,11 @@ pub fn source_path(plan: &ConfigPlan) -> Result<SourcePathState, KaizenError> {
     if out.status.success() {
         let path = String::from_utf8_lossy(&out.stdout).trim().to_string();
         if !path.is_empty() {
-            return Ok(SourcePathState::Confirmed(PathBuf::from(path)));
+            let path = PathBuf::from(path);
+            if path.exists() {
+                return Ok(SourcePathState::Confirmed(path));
+            }
+            return Ok(SourcePathState::Uninitialized(path));
         }
     }
 

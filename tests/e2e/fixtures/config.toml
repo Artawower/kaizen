@@ -1,0 +1,11 @@
+schema_version = 1
+
+[features.e2e]
+enabled = true
+
+[settings]
+layout = "qwerty"
+
+[dotfiles]
+backend = "chezmoi"
+source = "file:///tmp/kaizen-e2e-dotfiles"
