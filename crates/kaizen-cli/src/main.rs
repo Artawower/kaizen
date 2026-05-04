@@ -73,6 +73,22 @@ enum Command {
 
     #[command(about = "Check system readiness and required tool availability")]
     Doctor,
+
+    #[command(about = "Upgrade packages, mise tools and run post_update hooks")]
+    Update {
+        #[arg(
+            short = 'i',
+            long,
+            help = "Choose which features to update interactively"
+        )]
+        interactive: bool,
+
+        #[arg(long, help = "Preview without making changes")]
+        dry_run: bool,
+
+        #[arg(help = "Feature names to update (default: all enabled)")]
+        features: Vec<String>,
+    },
 }
 
 fn main() -> Result<()> {
@@ -93,6 +109,11 @@ fn main() -> Result<()> {
         Command::Sync { dry_run } => commands::sync::run(&engine, &config_path, dry_run)?,
         Command::Apply { dry_run } => commands::apply::run(&engine, &config_path, dry_run)?,
         Command::Doctor => commands::doctor::run(&engine, &config_path)?,
+        Command::Update {
+            interactive,
+            dry_run,
+            features,
+        } => commands::update::run(&engine, &config_path, dry_run, features, interactive)?,
     }
 
     Ok(())

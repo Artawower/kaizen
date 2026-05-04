@@ -5,6 +5,11 @@ pub trait Installer {
     fn preview_install(&self, programs: &[String]) -> String;
 }
 
+pub trait Updater {
+    fn upgrade(&self, programs: &[String]) -> Result<(), KaizenError>;
+    fn preview_upgrade(&self, programs: &[String]) -> String;
+}
+
 pub trait Remover {
     fn remove(&self, programs: &[String]) -> Result<(), KaizenError>;
     fn preview_remove(&self, programs: &[String]) -> String;
@@ -19,6 +24,16 @@ impl Installer for UptInstaller {
 
     fn preview_install(&self, programs: &[String]) -> String {
         format!("upt install {}", programs.join(" "))
+    }
+}
+
+impl Updater for UptInstaller {
+    fn upgrade(&self, programs: &[String]) -> Result<(), KaizenError> {
+        run_upt(&["upgrade"], programs)
+    }
+
+    fn preview_upgrade(&self, programs: &[String]) -> String {
+        format!("upt upgrade {}", programs.join(" "))
     }
 }
 

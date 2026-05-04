@@ -18,7 +18,7 @@ pub use error::KaizenError;
 pub use feature::FeatureFile;
 pub use feature_store::FeatureStore;
 pub use hooks::{HookRunner, ShellHookRunner};
-pub use installer::{Installer, Remover, UptInstaller};
+pub use installer::{Installer, Remover, Updater, UptInstaller};
 pub use os::TargetOs;
 pub use plan::{ConfigPlan, HookPlan, InstallPlan, WorkflowPlan};
 

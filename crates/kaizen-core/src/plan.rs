@@ -23,6 +23,7 @@ pub struct InstallPlan {
 pub struct HookPlan {
     pub post_install: Vec<String>,
     pub post_apply: Vec<String>,
+    pub post_update: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

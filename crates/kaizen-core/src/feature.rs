@@ -29,6 +29,9 @@ pub struct HooksSection {
 
     #[serde(default)]
     pub post_apply: Vec<String>,
+
+    #[serde(default)]
+    pub post_update: Vec<String>,
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]

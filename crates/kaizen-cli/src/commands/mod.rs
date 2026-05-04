@@ -6,3 +6,4 @@ pub mod plan;
 pub mod setup;
 pub mod sync;
 pub mod uninstall;
+pub mod update;

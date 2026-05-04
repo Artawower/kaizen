@@ -36,6 +36,9 @@ pub fn build_plan(
         hook_plan
             .post_apply
             .extend(feature.hooks.post_apply.iter().cloned());
+        hook_plan
+            .post_update
+            .extend(feature.hooks.post_update.iter().cloned());
 
         if let Some(ref prog) = feature.programs {
             merge_programs(&mut programs, prog, &target_os);
@@ -234,6 +237,10 @@ mod tests {
             .hook_plan
             .post_apply
             .contains(&"echo alpha-post-apply".to_owned()));
+        assert!(plan
+            .hook_plan
+            .post_update
+            .contains(&"echo beta-post-update".to_owned()));
     }
 
     #[test]
@@ -252,6 +259,7 @@ mod tests {
             .hook_plan
             .post_apply
             .contains(&"echo beta-post-apply".to_owned()));
+        assert!(plan.hook_plan.post_update.is_empty());
     }
 
     #[test]
