@@ -10,15 +10,9 @@
 - [x] =kaizen update [-i] [features...]= — upt upgrade + mise upgrade + post_update hooks
 - [x] =kaizen plan/features/doctor=
 - [x] Schema versioning
+- [x] =kaizen apply= — конфликт с существующим chezmoi remote: Cancel / Backup & reinit
 
 * Planned
-
-** apply: обработка конфликта существующего chezmoi
-Если у пользователя уже есть chezmoi с другим remote:
-- Определить текущий git remote chezmoi source dir
-- Сравнить с =dotfiles.source= из конфига
-- Если не совпадает → предложить: Cancel / Backup & reinit
-- Backup = rename source dir в =<dir>.bak.<unix-timestamp>=
 
 ** setup: клонирование dotfiles и выбор источника фич
 Расширить setup flow:

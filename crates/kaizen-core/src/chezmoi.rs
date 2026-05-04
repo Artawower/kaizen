@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use indexmap::IndexMap;
@@ -24,6 +24,29 @@ pub fn generate_chezmoidata(plan: &ConfigPlan) -> Result<String, KaizenError> {
         settings: ChezmoidataSettings { layout },
     };
     Ok(toml::to_string_pretty(&data)?)
+}
+
+pub fn current_remote(source_dir: &Path) -> Result<Option<String>, KaizenError> {
+    let out = Command::new("git")
+        .arg("-C")
+        .arg(source_dir)
+        .args(["remote", "get-url", "origin"])
+        .output()?;
+    if !out.status.success() {
+        return Ok(None);
+    }
+    Ok(Some(String::from_utf8_lossy(&out.stdout).trim().to_owned()))
+}
+
+pub fn backup_source_dir(source_dir: &Path) -> Result<PathBuf, KaizenError> {
+    let ts = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_secs())
+        .unwrap_or(0);
+    let name = source_dir.file_name().unwrap_or_default().to_string_lossy();
+    let backup = source_dir.with_file_name(format!("{name}.bak.{ts}"));
+    std::fs::rename(source_dir, &backup)?;
+    Ok(backup)
 }
 
 pub fn source_path(plan: &ConfigPlan) -> Result<(PathBuf, bool), KaizenError> {
