@@ -1,8 +1,9 @@
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use anyhow::Result;
 use dialoguer::Select;
-use kaizen_core::{HookRunner, KaizenEngine, ShellHookRunner, TargetOs};
+use kaizen_core::chezmoi::SourcePathState;
+use kaizen_core::{ConfigPlan, HookRunner, KaizenEngine, ShellHookRunner, TargetOs};
 use owo_colors::OwoColorize;
 
 use crate::{ensure, hooks, output};
@@ -23,27 +24,15 @@ fn run_with(
     output::warn_if_schema_outdated(&config);
 
     let plan = engine.build_workflow_plan(&config, TargetOs::detect())?;
-    let (source_dir, is_fallback) = kaizen_core::chezmoi::source_path(&plan.config_plan)?;
-    let data_path = source_dir.join(".chezmoidata.toml");
+    let initial_state = kaizen_core::chezmoi::source_path(&plan.config_plan)?;
     let content = kaizen_core::chezmoi::generate_chezmoidata(&plan.config_plan)?;
 
     output::header("Chezmoi data");
-    output::kv("source dir", &source_dir.display().to_string());
-    output::kv("data file", &data_path.display().to_string());
-    println!();
 
     if dry_run {
-        if is_fallback {
-            output::item_warn("chezmoi source dir not confirmed — run 'chezmoi init' first");
-        } else if let Some(configured) = &plan.config_plan.dotfiles_source {
-            if let Some(current) = kaizen_core::chezmoi::current_remote(&source_dir)? {
-                if !remotes_match(&current, configured) {
-                    output::item_warn("remote conflict — would prompt for backup on real run:");
-                    output::kv("  current   ", &current);
-                    output::kv("  configured", configured);
-                }
-            }
-        }
+        output::kv("source dir", &initial_state.path().display().to_string());
+        println!();
+        preview_state(&initial_state, &plan.config_plan.dotfiles_source)?;
         println!("{}", "  --- .chezmoidata.toml ---".dimmed());
         for line in content.lines() {
             println!("  {}", line.dimmed());
@@ -56,21 +45,20 @@ fn run_with(
 
     ensure::require(&[&ensure::CHEZMOI])?;
 
-    if is_fallback {
-        anyhow::bail!("chezmoi source directory not confirmed — run 'chezmoi init' first");
-    }
+    let Some(source_dir) = ensure_chezmoi_ready(
+        &plan.config_plan,
+        initial_state,
+        plan.config_plan.dotfiles_source.as_deref(),
+    )?
+    else {
+        println!("  Cancelled.");
+        return Ok(());
+    };
+    let data_path = source_dir.join(".chezmoidata.toml");
 
-    if let Some(configured) = &plan.config_plan.dotfiles_source {
-        match kaizen_core::chezmoi::current_remote(&source_dir)? {
-            Some(current) if !remotes_match(&current, configured) => {
-                if !resolve_conflict(&source_dir, &current, configured)? {
-                    println!("  Cancelled.");
-                    return Ok(());
-                }
-            }
-            _ => {}
-        }
-    }
+    output::kv("source dir", &source_dir.display().to_string());
+    output::kv("data file", &data_path.display().to_string());
+    println!();
 
     if let Some(parent) = data_path.parent() {
         std::fs::create_dir_all(parent)?;
@@ -93,6 +81,63 @@ fn run_with(
     println!();
 
     hooks::run(&plan.hook_plan.post_apply, false, hook_runner)
+}
+
+fn preview_state(state: &SourcePathState, configured: &Option<String>) -> Result<()> {
+    match (state, configured.as_deref()) {
+        (SourcePathState::Uninitialized(_), Some(src)) => {
+            output::item_warn(&format!(
+                "chezmoi not initialized — would run: chezmoi init {src}"
+            ));
+        }
+        (SourcePathState::Uninitialized(_), None) => {
+            output::item_err("preview only; real run would fail (no dotfiles.source set)");
+        }
+        (SourcePathState::Confirmed(path), Some(configured)) => {
+            if let Some(current) = kaizen_core::chezmoi::current_remote(path)? {
+                if !remotes_match(&current, configured) {
+                    output::item_warn("remote conflict — would prompt for backup on real run:");
+                    output::kv("  current   ", &current);
+                    output::kv("  configured", configured);
+                }
+            }
+        }
+        (SourcePathState::Confirmed(_), None) => {}
+    }
+    Ok(())
+}
+
+fn ensure_chezmoi_ready(
+    config_plan: &ConfigPlan,
+    initial: SourcePathState,
+    configured: Option<&str>,
+) -> Result<Option<PathBuf>> {
+    let source_dir = match initial {
+        SourcePathState::Uninitialized(_) => {
+            let Some(src) = configured else {
+                anyhow::bail!(
+                    "chezmoi not initialized and no dotfiles.source configured — run 'chezmoi init' first or set dotfiles.source"
+                );
+            };
+            output::header("chezmoi init");
+            chezmoi_init(src)?;
+            output::item_ok("chezmoi init done");
+            println!();
+            kaizen_core::chezmoi::source_path(config_plan)?.into_confirmed()?
+        }
+        SourcePathState::Confirmed(path) => {
+            match (configured, kaizen_core::chezmoi::current_remote(&path)?) {
+                (Some(cfg), Some(current)) if !remotes_match(&current, cfg) => {
+                    if !resolve_conflict(&path, &current, cfg)? {
+                        return Ok(None);
+                    }
+                    kaizen_core::chezmoi::source_path(config_plan)?.into_confirmed()?
+                }
+                _ => path,
+            }
+        }
+    };
+    Ok(Some(source_dir))
 }
 
 fn remotes_match(a: &str, b: &str) -> bool {
@@ -143,18 +188,24 @@ fn resolve_conflict(source_dir: &Path, current: &str, configured: &str) -> Resul
     let backup = kaizen_core::chezmoi::backup_source_dir(source_dir)?;
     output::item_ok(&format!("backed up to {}", backup.display()));
 
-    let status = std::process::Command::new("chezmoi")
-        .args(["init", configured])
-        .status()?;
-    if !status.success() {
-        anyhow::bail!(
-            "chezmoi init failed — backup preserved at {}",
-            backup.display()
-        );
-    }
+    chezmoi_init(configured)
+        .map_err(|e| anyhow::anyhow!("{e} — backup preserved at {}", backup.display()))?;
     output::item_ok("chezmoi reinit done");
     println!();
     Ok(true)
+}
+
+fn chezmoi_init(source: &str) -> Result<()> {
+    let status = std::process::Command::new("chezmoi")
+        .args(["init", source])
+        .status()?;
+    if !status.success() {
+        anyhow::bail!(
+            "chezmoi init failed with exit code {}",
+            status.code().unwrap_or(-1)
+        );
+    }
+    Ok(())
 }
 
 #[cfg(test)]

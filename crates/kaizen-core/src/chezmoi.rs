@@ -49,20 +49,43 @@ pub fn backup_source_dir(source_dir: &Path) -> Result<PathBuf, KaizenError> {
     Ok(backup)
 }
 
-pub fn source_path(plan: &ConfigPlan) -> Result<(PathBuf, bool), KaizenError> {
+#[derive(Debug, Clone)]
+pub enum SourcePathState {
+    /// `chezmoi source-path` returned a valid path — chezmoi is initialized.
+    Confirmed(PathBuf),
+    /// `chezmoi source-path` ran but reported no source dir — chezmoi is not initialized.
+    /// Carries the conventional default path where init would place the source.
+    Uninitialized(PathBuf),
+}
+
+impl SourcePathState {
+    pub fn path(&self) -> &Path {
+        match self {
+            SourcePathState::Confirmed(p) | SourcePathState::Uninitialized(p) => p,
+        }
+    }
+
+    pub fn into_confirmed(self) -> Result<PathBuf, KaizenError> {
+        match self {
+            SourcePathState::Confirmed(p) => Ok(p),
+            SourcePathState::Uninitialized(_) => Err(KaizenError::ChezmoidataTargetUnknown),
+        }
+    }
+}
+
+pub fn source_path(plan: &ConfigPlan) -> Result<SourcePathState, KaizenError> {
     if plan.backend != "chezmoi" {
         return Err(KaizenError::UnsupportedDotfilesBackend {
             backend: plan.backend.clone(),
         });
     }
 
-    let output = Command::new("chezmoi").arg("source-path").output();
-    if let Ok(out) = output {
-        if out.status.success() {
-            let path = String::from_utf8_lossy(&out.stdout).trim().to_string();
-            if !path.is_empty() {
-                return Ok((PathBuf::from(path), false));
-            }
+    let out = Command::new("chezmoi").arg("source-path").output()?;
+
+    if out.status.success() {
+        let path = String::from_utf8_lossy(&out.stdout).trim().to_string();
+        if !path.is_empty() {
+            return Ok(SourcePathState::Confirmed(PathBuf::from(path)));
         }
     }
 
@@ -70,7 +93,7 @@ pub fn source_path(plan: &ConfigPlan) -> Result<(PathBuf, bool), KaizenError> {
         .map(|h| h.join(".local/share/chezmoi"))
         .ok_or(KaizenError::ChezmoidataTargetUnknown)?;
 
-    Ok((fallback, true))
+    Ok(SourcePathState::Uninitialized(fallback))
 }
 
 #[cfg(test)]

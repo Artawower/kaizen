@@ -11,6 +11,7 @@
 - [x] =kaizen plan/features/doctor=
 - [x] Schema versioning
 - [x] =kaizen apply= — конфликт с существующим chezmoi remote: Cancel / Backup & reinit
+- [x] =kaizen apply= — авто =chezmoi init <url>= если chezmoi ещё не init-нут и =dotfiles.source= указан
 
 * Planned
 
@@ -23,9 +24,6 @@
 5. Показать picker фич из выбранного источника
 
 FeatureStore должен поддерживать два пути: встроенный и из dotfiles-репо (с приоритетом пользовательского).
-
-** apply: chezmoi init если не init-нут
-Если =dotfiles.source= указан и chezmoi ещё не init-нут → =chezmoi init <url>= перед записью данных.
 
 ** apply: mise trust + mise install после chezmoi apply
 После =chezmoi apply= chezmoi обновил =mise.toml=.
