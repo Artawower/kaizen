@@ -1,5 +1,14 @@
 use std::path::PathBuf;
 
+fn chezmoi_apply_message(code: &Option<i32>, reason: &Option<String>) -> String {
+    match reason {
+        Some(r) => format!(
+            "chezmoi apply failed\n\n{r}\n\nHint: a template references a key missing from .chezmoidata.toml.\nRun 'kaizen setup' or add the missing key manually."
+        ),
+        None => format!("chezmoi apply failed with exit code {code:?}"),
+    }
+}
+
 #[derive(Debug, thiserror::Error)]
 pub enum KaizenError {
     #[error("config not found at {path}")]
@@ -65,8 +74,11 @@ pub enum KaizenError {
     #[error("manifest schema {found} is newer than supported {supported} — upgrade kaizen")]
     ManifestSchemaTooNew { found: u32, supported: u32 },
 
-    #[error("chezmoi apply failed with exit code {code:?}")]
-    ChezmoidataApplyFailed { code: Option<i32> },
+    #[error("{}", chezmoi_apply_message(.code, .reason))]
+    ChezmoidataApplyFailed {
+        code: Option<i32>,
+        reason: Option<String>,
+    },
 
     #[error("command `{cmd}` failed with exit code {code:?}")]
     CommandFailed { cmd: String, code: Option<i32> },

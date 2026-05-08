@@ -40,12 +40,15 @@ pub fn merge_chezmoidata(existing_path: &Path, plan: &ConfigPlan) -> Result<Stri
         toml::map::Map::new()
     };
 
-    table.insert(
-        "layout".to_owned(),
-        toml::Value::String(layout.to_owned()),
-    );
+    table.insert("layout".to_owned(), toml::Value::String(layout.to_owned()));
 
-    let mut features = toml::map::Map::new();
+    // Start with existing feature values so unknown features (e.g. "vcs") are
+    // preserved. Kaizen-managed features are then overlaid on top.
+    let mut features: toml::map::Map<String, toml::Value> = table
+        .get("features")
+        .and_then(|v| v.as_table())
+        .cloned()
+        .unwrap_or_default();
     for (k, v) in &plan.features_data {
         features.insert(k.clone(), toml::Value::Boolean(*v));
     }
@@ -238,6 +241,24 @@ mod tests {
     }
 
     #[test]
+    fn merge_preserves_unknown_feature_keys() {
+        let existing = "layout = \"colemak\"\n\n[features]\ncore = true\nvcs = true\n";
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join(".chezmoidata.toml");
+        std::fs::write(&path, existing).unwrap();
+
+        // kaizen config does not know about 'vcs'
+        let plan = make_plan(&[("core", true), ("frontend", false)], Some("colemak"));
+        let merged = merge_chezmoidata(&path, &plan).unwrap();
+
+        assert!(
+            merged.contains("vcs = true"),
+            "unknown feature 'vcs' must be preserved: {merged}"
+        );
+        assert!(merged.contains("frontend = false"), "kaizen-managed feature must be updated");
+    }
+
+    #[test]
     fn merge_updates_layout_without_touching_rest() {
         let existing = "layout = \"colemak\"\nusername = \"bob\"\n\n[features]\ncore = true\n";
         let dir = tempfile::tempdir().unwrap();
@@ -247,8 +268,14 @@ mod tests {
         let plan = make_plan(&[("core", true)], Some("qwerty"));
         let merged = merge_chezmoidata(&path, &plan).unwrap();
 
-        assert!(merged.contains("layout = \"qwerty\""), "layout must be updated");
-        assert!(merged.contains("username = \"bob\""), "username must be preserved");
+        assert!(
+            merged.contains("layout = \"qwerty\""),
+            "layout must be updated"
+        );
+        assert!(
+            merged.contains("username = \"bob\""),
+            "username must be preserved"
+        );
     }
 
     #[test]

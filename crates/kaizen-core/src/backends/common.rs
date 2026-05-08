@@ -26,10 +26,12 @@ pub fn chezmoi_write_and_apply(
     let content = chezmoi::merge_chezmoidata(&data_path, plan)?;
     std::fs::write(&data_path, &content)?;
 
-    let status = Command::new("chezmoi").arg("apply").status()?;
-    if !status.success() {
+    let output = Command::new("chezmoi").arg("apply").output()?;
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr).trim().to_owned();
         return Err(KaizenError::ChezmoidataApplyFailed {
-            code: status.code(),
+            code: output.status.code(),
+            reason: if stderr.is_empty() { None } else { Some(stderr) },
         });
     }
 
