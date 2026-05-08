@@ -2,6 +2,7 @@ pub mod apply;
 pub mod clean;
 pub mod doctor;
 pub mod features;
+pub mod init;
 pub mod install;
 pub mod plan;
 pub mod setup;

@@ -31,7 +31,11 @@ pub fn chezmoi_write_and_apply(
         let stderr = String::from_utf8_lossy(&output.stderr).trim().to_owned();
         return Err(KaizenError::ChezmoidataApplyFailed {
             code: output.status.code(),
-            reason: if stderr.is_empty() { None } else { Some(stderr) },
+            reason: if stderr.is_empty() {
+                None
+            } else {
+                Some(stderr)
+            },
         });
     }
 

@@ -109,7 +109,8 @@ pub fn standalone_source_dir() -> Result<Option<PathBuf>, KaizenError> {
     if !out.status.success() {
         return Ok(None);
     }
-    let path_str = String::from_utf8_lossy(&out.stdout).trim().to_string();
+    let raw = String::from_utf8_lossy(&out.stdout);
+    let path_str = raw.trim().trim_matches('"').trim();
     if path_str.is_empty() {
         return Ok(None);
     }
@@ -163,7 +164,8 @@ pub fn source_path(plan: &ConfigPlan) -> Result<SourcePathState, KaizenError> {
     let out = Command::new("chezmoi").arg("source-path").output()?;
 
     if out.status.success() {
-        let path = String::from_utf8_lossy(&out.stdout).trim().to_string();
+        let raw = String::from_utf8_lossy(&out.stdout);
+        let path = raw.trim().trim_matches('"').trim();
         if !path.is_empty() {
             let path = PathBuf::from(path);
             if path.exists() {
@@ -233,9 +235,18 @@ mod tests {
         let plan = make_plan(&[("frontend", true)], Some("qwerty"));
         let merged = merge_chezmoidata(&path, &plan).unwrap();
 
-        assert!(merged.contains("username = \"alice\""), "must preserve username");
-        assert!(merged.contains("hostname = \"macbook\""), "must preserve hostname");
-        assert!(merged.contains("default = \"gpt-4\""), "must preserve models");
+        assert!(
+            merged.contains("username = \"alice\""),
+            "must preserve username"
+        );
+        assert!(
+            merged.contains("hostname = \"macbook\""),
+            "must preserve hostname"
+        );
+        assert!(
+            merged.contains("default = \"gpt-4\""),
+            "must preserve models"
+        );
         assert!(merged.contains("frontend = true"), "must update features");
         assert!(merged.contains("layout = \"qwerty\""), "must update layout");
     }
@@ -255,7 +266,10 @@ mod tests {
             merged.contains("vcs = true"),
             "unknown feature 'vcs' must be preserved: {merged}"
         );
-        assert!(merged.contains("frontend = false"), "kaizen-managed feature must be updated");
+        assert!(
+            merged.contains("frontend = false"),
+            "kaizen-managed feature must be updated"
+        );
     }
 
     #[test]
