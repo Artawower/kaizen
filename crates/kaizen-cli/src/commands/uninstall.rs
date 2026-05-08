@@ -15,10 +15,11 @@ pub fn run(_engine: &kaizen_core::KaizenEngine, config_path: &Path, dry_run: boo
     });
 
     let chezmoi_source = kaizen_core::chezmoi::standalone_source_dir().unwrap_or(None);
-    let chezmoi_data = chezmoi_source.as_ref().map(|s| s.join(".chezmoidata.toml"));
+    let managed = kaizen_core::chezmoi::managed_files().unwrap_or_default();
+    let modified = kaizen_core::chezmoi::locally_modified_files().unwrap_or_default();
     let nix_installed = which::which("nix").is_ok();
 
-    print_plan(config_path, chezmoi_source.as_deref(), nix_installed);
+    print_plan(config_path, chezmoi_source.as_deref(), &managed, &modified, nix_installed);
 
     if dry_run {
         println!();
@@ -26,18 +27,36 @@ pub fn run(_engine: &kaizen_core::KaizenEngine, config_path: &Path, dry_run: boo
         return Ok(());
     }
 
+    if !modified.is_empty() {
+        println!();
+        output::item_warn("The following files were modified after kaizen applied them.");
+        output::item_warn("These local changes will be lost:");
+        println!();
+        for f in &modified {
+            println!("  {}  {}", "!".red(), f.display());
+        }
+        println!();
+        let proceed = Confirm::with_theme(&ColorfulTheme::default())
+            .with_prompt("Delete modified files anyway?")
+            .default(false)
+            .interact()?;
+        if !proceed {
+            println!("  Aborted.");
+            return Ok(());
+        }
+    }
+
     let confirmed = Confirm::with_theme(&ColorfulTheme::default())
         .with_prompt("Proceed with uninstall?")
         .default(false)
         .interact()?;
-
     if !confirmed {
         println!("  Aborted.");
         return Ok(());
     }
 
+    remove_dotfiles(&managed)?;
     remove_config(config_path)?;
-    remove_chezmoidata(chezmoi_data.as_deref())?;
     remove_chezmoi_source(chezmoi_source.as_deref())?;
 
     if nix_installed {
@@ -48,7 +67,6 @@ pub fn run(_engine: &kaizen_core::KaizenEngine, config_path: &Path, dry_run: boo
             )
             .default(false)
             .interact()?;
-
         if remove_nix {
             uninstall_nix()?;
         } else {
@@ -57,13 +75,17 @@ pub fn run(_engine: &kaizen_core::KaizenEngine, config_path: &Path, dry_run: boo
     }
 
     println!();
-    output::item_warn("Config files in ~/.config/ remain — they are now plain files, not managed by kaizen.");
-    println!();
     output::item_ok("kaizen uninstalled");
     Ok(())
 }
 
-fn print_plan(config_path: &Path, chezmoi_source: Option<&Path>, nix_installed: bool) {
+fn print_plan(
+    config_path: &Path,
+    chezmoi_source: Option<&Path>,
+    managed: &[std::path::PathBuf],
+    modified: &[std::path::PathBuf],
+    nix_installed: bool,
+) {
     output::header("will remove");
 
     print_entry(config_path);
@@ -73,36 +95,62 @@ fn print_plan(config_path: &Path, chezmoi_source: Option<&Path>, nix_installed: 
         print_entry(source);
     }
 
+    if !managed.is_empty() {
+        println!();
+        output::header(&format!("dotfiles in ~ ({})", managed.len()));
+        for f in managed.iter().take(10) {
+            println!("  {}  {}", "→".dimmed(), f.display().to_string().dimmed());
+        }
+        if managed.len() > 10 {
+            println!("  {}  ... and {} more", "→".dimmed(), managed.len() - 10);
+        }
+    }
+
+    if !modified.is_empty() {
+        println!();
+        println!(
+            "  {}  {} file(s) have local modifications — will warn before deletion",
+            "!".yellow(),
+            modified.len()
+        );
+    }
+
     if nix_installed {
         println!();
         println!("  {}  Nix (will ask for confirmation)", "?".yellow());
     }
-
-    println!();
-    output::item_warn("Config files already applied to ~ will remain as plain files.");
 }
 
 fn print_entry(path: &Path) {
     if path.exists() {
         println!("  {}  {}", "→".dimmed(), path.display().to_string().dimmed());
     } else {
-        println!("  {}  {} (not found)", "·".dimmed(), path.display().to_string().dimmed());
+        println!(
+            "  {}  {} (not found)",
+            "·".dimmed(),
+            path.display().to_string().dimmed()
+        );
     }
+}
+
+fn remove_dotfiles(files: &[std::path::PathBuf]) -> Result<()> {
+    if files.is_empty() {
+        return Ok(());
+    }
+    let report = kaizen_core::chezmoi::remove_files(files, false)?;
+    for f in &report.removed {
+        output::item_ok(&format!("removed {}", f.display()));
+    }
+    if !report.skipped.is_empty() {
+        output::item_warn(&format!("{} file(s) already gone", report.skipped.len()));
+    }
+    Ok(())
 }
 
 fn remove_config(path: &Path) -> Result<()> {
     if path.exists() {
         std::fs::remove_file(path)?;
         output::item_ok(&format!("removed {}", path.display()));
-    }
-    Ok(())
-}
-
-fn remove_chezmoidata(path: Option<&Path>) -> Result<()> {
-    let Some(p) = path else { return Ok(()) };
-    if p.exists() {
-        std::fs::remove_file(p)?;
-        output::item_ok(&format!("removed {}", p.display()));
     }
     Ok(())
 }
@@ -117,26 +165,26 @@ fn remove_chezmoi_source(source: Option<&Path>) -> Result<()> {
 }
 
 fn uninstall_nix() -> Result<()> {
-    // Determinate Systems installer supports clean uninstall via receipt
     let determinate = Path::new("/nix/nix-installer");
-
     let status = if determinate.exists() {
         output::item("running Determinate Systems nix-installer uninstall...");
         Command::new(determinate).arg("uninstall").status()?
     } else {
-        output::item("running official Nix uninstall script...");
+        output::item("running Nix uninstall...");
         Command::new("sh")
             .args([
                 "-c",
-                "curl -sSfL https://install.determinate.systems/nix | sh -s -- uninstall",
+                "/nix/nix-installer uninstall || \
+                 (curl -sSfL https://install.determinate.systems/nix | sh -s -- uninstall)",
             ])
             .status()?
     };
-
     if !status.success() {
-        anyhow::bail!("Nix uninstall failed — remove manually: https://nixos.org/manual/nix/stable/#sect-macos-installation");
+        anyhow::bail!(
+            "Nix uninstall failed — remove manually: \
+             https://nixos.org/manual/nix/stable/#sect-macos-installation"
+        );
     }
-
     output::item_ok("Nix removed");
     Ok(())
 }
@@ -147,24 +195,35 @@ mod tests {
 
     use super::*;
 
-    fn fixture_path(name: &str) -> PathBuf {
-        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("tests/fixtures")
-            .join(name)
-    }
-
     fn fixture_engine() -> kaizen_core::KaizenEngine {
-        kaizen_core::KaizenEngine::new(fixture_path("features"))
+        let features = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("tests/fixtures/features");
+        kaizen_core::KaizenEngine::new(features)
     }
 
-    #[test]
-    fn dry_run_does_not_remove_files() {
+    fn temp_config() -> (tempfile::TempDir, PathBuf) {
         let dir = tempfile::tempdir().unwrap();
         let config = dir.path().join("config.toml");
         std::fs::write(&config, "schema_version = 1\n").unwrap();
+        (dir, config)
+    }
 
+    #[test]
+    fn dry_run_does_not_remove_config() {
+        let (_dir, config) = temp_config();
         run(&fixture_engine(), &config, true).unwrap();
+        assert!(config.exists(), "dry-run must not delete config");
+    }
 
-        assert!(config.exists(), "config must not be removed in dry-run");
+    #[test]
+    fn dry_run_does_not_remove_managed_files() {
+        let dir = tempfile::tempdir().unwrap();
+        let managed_file = dir.path().join("helix_config.toml");
+        std::fs::write(&managed_file, "# helix").unwrap();
+
+        let report = kaizen_core::chezmoi::remove_files(&[managed_file.clone()], true).unwrap();
+
+        assert!(managed_file.exists(), "dry-run must not touch file");
+        assert!(report.removed.contains(&managed_file));
     }
 }

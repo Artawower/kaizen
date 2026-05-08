@@ -6,6 +6,104 @@ use serde::Serialize;
 
 use crate::{ConfigPlan, KaizenError};
 
+// ── Dotfile removal ──────────────────────────────────────────────────────────
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum FileStatus {
+    Modified,
+    Deleted,
+}
+
+#[derive(Debug, Clone)]
+pub struct ModifiedFile {
+    pub path: PathBuf,
+    pub status: FileStatus,
+}
+
+#[derive(Debug, Clone, Default)]
+pub struct RemoveFilesReport {
+    pub removed: Vec<PathBuf>,
+    pub skipped: Vec<PathBuf>,
+}
+
+/// Parse `chezmoi managed --include=files --path-style=absolute` output.
+/// Handles both absolute and HOME-relative paths.
+pub fn parse_managed_files(raw: &str, home: &Path) -> Vec<PathBuf> {
+    raw.lines()
+        .map(str::trim)
+        .filter(|l| !l.is_empty())
+        .map(|l| {
+            let p = Path::new(l);
+            if p.is_absolute() { p.to_path_buf() } else { home.join(l) }
+        })
+        .collect()
+}
+
+/// Parse `chezmoi status` output into locally-modified file list.
+pub fn parse_status_output(raw: &str, home: &Path) -> Vec<ModifiedFile> {
+    raw.lines()
+        .filter_map(|line| {
+            if line.len() < 3 { return None; }
+            let status_char = line.chars().next()?;
+            let path_str = line[3..].trim();
+            let status = match status_char {
+                'M' => FileStatus::Modified,
+                'D' => FileStatus::Deleted,
+                _ => return None,
+            };
+            let path = if Path::new(path_str).is_absolute() {
+                PathBuf::from(path_str)
+            } else {
+                home.join(path_str)
+            };
+            Some(ModifiedFile { path, status })
+        })
+        .collect()
+}
+
+/// List all files deployed by chezmoi into `~`.
+pub fn managed_files() -> Result<Vec<PathBuf>, KaizenError> {
+    let home = dirs::home_dir().ok_or(KaizenError::HomeDirUnavailable)?;
+    let out = Command::new("chezmoi")
+        .args(["managed", "--include=files", "--path-style=absolute"])
+        .output()?;
+    if !out.status.success() {
+        return Ok(vec![]);
+    }
+    Ok(parse_managed_files(&String::from_utf8_lossy(&out.stdout), &home))
+}
+
+/// List files that were modified locally after chezmoi apply.
+pub fn locally_modified_files() -> Result<Vec<PathBuf>, KaizenError> {
+    let home = dirs::home_dir().ok_or(KaizenError::HomeDirUnavailable)?;
+    let out = Command::new("chezmoi").arg("status").output()?;
+    if !out.status.success() {
+        return Ok(vec![]);
+    }
+    Ok(parse_status_output(&String::from_utf8_lossy(&out.stdout), &home)
+        .into_iter()
+        .filter(|f| f.status == FileStatus::Modified)
+        .map(|f| f.path)
+        .collect())
+}
+
+/// Remove files from the filesystem. Skips missing files.
+/// `dry_run = true` collects the plan without touching the disk.
+pub fn remove_files(files: &[PathBuf], dry_run: bool) -> Result<RemoveFilesReport, KaizenError> {
+    let mut report = RemoveFilesReport::default();
+    for file in files {
+        if !file.exists() {
+            report.skipped.push(file.clone());
+            continue;
+        }
+        if !dry_run {
+            std::fs::remove_file(file).map_err(KaizenError::Io)?;
+        }
+        report.removed.push(file.clone());
+    }
+    Ok(report)
+}
+
 #[derive(Serialize)]
 struct ChezmoidataFile<'a> {
     layout: &'a str,
@@ -346,5 +444,116 @@ mod tests {
         let out = "/Users/alice/my dotfiles\n";
         let p = parse_source_path_output(out).unwrap();
         assert_eq!(p.to_str().unwrap(), "/Users/alice/my dotfiles");
+    }
+
+    use std::path::{Path, PathBuf};
+    use super::{parse_managed_files, parse_status_output, remove_files, FileStatus};
+
+    #[test]
+    fn managed_files_absolute_paths() {
+        let home = Path::new("/home/alice");
+        let raw = "/home/alice/.config/helix/config.toml\n/home/alice/.config/zellij/config.kdl\n";
+        let files = parse_managed_files(raw, home);
+        assert_eq!(files.len(), 2);
+        assert_eq!(files[0], PathBuf::from("/home/alice/.config/helix/config.toml"));
+        assert_eq!(files[1], PathBuf::from("/home/alice/.config/zellij/config.kdl"));
+    }
+
+    #[test]
+    fn managed_files_relative_paths_joined_with_home() {
+        let home = Path::new("/home/alice");
+        let raw = ".config/helix/config.toml\n.config/niri/config.kdl\n";
+        let files = parse_managed_files(raw, home);
+        assert_eq!(files[0], PathBuf::from("/home/alice/.config/helix/config.toml"));
+        assert_eq!(files[1], PathBuf::from("/home/alice/.config/niri/config.kdl"));
+    }
+
+    #[test]
+    fn managed_files_empty_output() {
+        let files = parse_managed_files("", Path::new("/home/alice"));
+        assert!(files.is_empty());
+    }
+
+    #[test]
+    fn managed_files_skips_blank_lines() {
+        let raw = "/home/alice/.config/a.toml\n\n   \n/home/alice/.config/b.toml\n";
+        let files = parse_managed_files(raw, Path::new("/home/alice"));
+        assert_eq!(files.len(), 2);
+    }
+
+    #[test]
+    fn status_parses_modified_files() {
+        let home = Path::new("/home/alice");
+        let raw = "M  .config/helix/config.toml\nM  .config/mise.toml\n";
+        let modified = parse_status_output(raw, home);
+        assert_eq!(modified.len(), 2);
+        assert_eq!(modified[0].status, FileStatus::Modified);
+        assert_eq!(modified[0].path, PathBuf::from("/home/alice/.config/helix/config.toml"));
+    }
+
+    #[test]
+    fn status_ignores_non_modified_lines() {
+        let home = Path::new("/home/alice");
+        let raw = "M  .config/helix/config.toml\nA  .config/new.toml\n";
+        let result = parse_status_output(raw, home);
+        // A (added) is not in our set → ignored
+        assert_eq!(result.len(), 1);
+        assert_eq!(result[0].status, FileStatus::Modified);
+    }
+
+    #[test]
+    fn status_empty_output_returns_empty() {
+        let result = parse_status_output("", Path::new("/home/alice"));
+        assert!(result.is_empty());
+    }
+
+    #[test]
+    fn remove_files_dry_run_does_not_delete() {
+        let dir = tempfile::tempdir().unwrap();
+        let file = dir.path().join("helix_config.toml");
+        std::fs::write(&file, "# helix").unwrap();
+
+        let report = remove_files(&[file.clone()], true).unwrap();
+
+        assert!(file.exists(), "dry-run must not delete the file");
+        assert_eq!(report.removed, vec![file]);
+        assert!(report.skipped.is_empty());
+    }
+
+    #[test]
+    fn remove_files_deletes_existing() {
+        let dir = tempfile::tempdir().unwrap();
+        let file = dir.path().join("config.toml");
+        std::fs::write(&file, "data").unwrap();
+
+        let report = remove_files(&[file.clone()], false).unwrap();
+
+        assert!(!file.exists(), "file must be deleted");
+        assert_eq!(report.removed, vec![file]);
+        assert!(report.skipped.is_empty());
+    }
+
+    #[test]
+    fn remove_files_skips_missing() {
+        let dir = tempfile::tempdir().unwrap();
+        let missing = dir.path().join("nonexistent.toml");
+
+        let report = remove_files(&[missing.clone()], false).unwrap();
+
+        assert!(report.removed.is_empty());
+        assert_eq!(report.skipped, vec![missing]);
+    }
+
+    #[test]
+    fn remove_files_mixed_existing_and_missing() {
+        let dir = tempfile::tempdir().unwrap();
+        let exists = dir.path().join("exists.toml");
+        let missing = dir.path().join("missing.toml");
+        std::fs::write(&exists, "data").unwrap();
+
+        let report = remove_files(&[exists.clone(), missing.clone()], false).unwrap();
+
+        assert_eq!(report.removed, vec![exists]);
+        assert_eq!(report.skipped, vec![missing]);
     }
 }
