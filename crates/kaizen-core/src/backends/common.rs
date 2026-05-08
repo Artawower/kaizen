@@ -57,10 +57,7 @@ pub fn mise_install(dry_run: bool) -> Result<(), KaizenError> {
         .unwrap_or_default();
 
     if mise_toml.exists() {
-        let status = Command::new("mise")
-            .arg("trust")
-            .arg(&mise_toml)
-            .status()?;
+        let status = Command::new("mise").arg("trust").arg(&mise_toml).status()?;
         if !status.success() {
             return Err(KaizenError::CommandFailed {
                 cmd: "mise trust".into(),

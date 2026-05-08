@@ -59,13 +59,15 @@ impl TargetOs {
 }
 
 fn detect_linux_pm() -> PackageManagerKind {
-    [("dnf", PackageManagerKind::Dnf),
-     ("apt", PackageManagerKind::Apt),
-     ("pacman", PackageManagerKind::Pacman)]
-        .into_iter()
-        .find(|(bin, _)| which::which(bin).is_ok())
-        .map(|(_, kind)| kind)
-        .unwrap_or(PackageManagerKind::Unknown)
+    [
+        ("dnf", PackageManagerKind::Dnf),
+        ("apt", PackageManagerKind::Apt),
+        ("pacman", PackageManagerKind::Pacman),
+    ]
+    .into_iter()
+    .find(|(bin, _)| which::which(bin).is_ok())
+    .map(|(_, kind)| kind)
+    .unwrap_or(PackageManagerKind::Unknown)
 }
 
 impl From<os_info::Type> for TargetOs {

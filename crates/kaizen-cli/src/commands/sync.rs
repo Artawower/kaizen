@@ -1,18 +1,37 @@
 use std::path::Path;
 
 use anyhow::Result;
-use kaizen_core::KaizenEngine;
+use kaizen_core::{detect_backend, KaizenEngine, SyncOpts, TargetOs};
 
 use crate::output;
 
 pub fn run(engine: &KaizenEngine, config_path: &Path, dry_run: bool) -> Result<()> {
-    super::install::run(engine, config_path, dry_run)?;
-    println!();
-    super::apply::run(engine, config_path, dry_run)?;
+    output::page_header(if dry_run { "sync  (dry-run)" } else { "sync" });
 
-    if !dry_run {
+    let config = engine.load_config(config_path)?;
+    output::warn_if_schema_outdated(&config);
+
+    let os = TargetOs::detect();
+    let plan = engine.build_workflow_plan(&config, os.clone())?;
+    let backend = detect_backend(os);
+
+    output::kv("backend", backend.id());
+    println!();
+
+    if dry_run {
+        let preview = backend.preview(&plan);
+        output::header("steps");
+        for step in &preview.steps {
+            println!("  {:<25} {}", step.label, step.command);
+        }
         println!();
-        output::item_ok("sync complete");
+        println!("  Run without --dry-run to apply.");
+        return Ok(());
     }
+
+    backend.sync(&plan, &SyncOpts { dry_run: false })?;
+
+    println!();
+    output::item_ok("sync complete");
     Ok(())
 }

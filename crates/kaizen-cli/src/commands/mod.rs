@@ -1,4 +1,5 @@
 pub mod apply;
+pub mod clean;
 pub mod doctor;
 pub mod features;
 pub mod install;

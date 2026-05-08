@@ -30,11 +30,7 @@ impl SyncBackend for UptSyncBackend {
         which::which("upt").is_ok()
     }
 
-    fn install(
-        &self,
-        plan: &WorkflowPlan,
-        opts: &SyncOpts,
-    ) -> Result<InstallReport, KaizenError> {
+    fn install(&self, plan: &WorkflowPlan, opts: &SyncOpts) -> Result<InstallReport, KaizenError> {
         let programs = &plan.install_plan.programs;
         if programs.is_empty() {
             return Ok(InstallReport::default());
@@ -65,11 +61,7 @@ impl SyncBackend for UptSyncBackend {
         Ok(())
     }
 
-    fn update(
-        &self,
-        plan: &WorkflowPlan,
-        opts: &UpdateOpts,
-    ) -> Result<UpdateReport, KaizenError> {
+    fn update(&self, plan: &WorkflowPlan, opts: &UpdateOpts) -> Result<UpdateReport, KaizenError> {
         let programs = &plan.install_plan.programs;
         let mut warnings = vec![];
 

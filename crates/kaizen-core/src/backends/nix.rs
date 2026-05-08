@@ -59,11 +59,7 @@ impl SyncBackend for NixSyncBackend {
 
     /// Nix: игнорирует `plan.install_plan.programs`.
     /// Вызывает darwin-rebuild (macOS) + home-manager switch.
-    fn install(
-        &self,
-        _plan: &WorkflowPlan,
-        opts: &SyncOpts,
-    ) -> Result<InstallReport, KaizenError> {
+    fn install(&self, _plan: &WorkflowPlan, opts: &SyncOpts) -> Result<InstallReport, KaizenError> {
         let steps = self.nix_install_steps();
 
         if opts.dry_run {
@@ -95,16 +91,17 @@ impl SyncBackend for NixSyncBackend {
         Ok(())
     }
 
-    fn update(
-        &self,
-        plan: &WorkflowPlan,
-        opts: &UpdateOpts,
-    ) -> Result<UpdateReport, KaizenError> {
+    fn update(&self, plan: &WorkflowPlan, opts: &UpdateOpts) -> Result<UpdateReport, KaizenError> {
         if opts.update_flake {
             run_nix_flake_update(opts.dry_run)?;
         }
 
-        self.sync(plan, &SyncOpts { dry_run: opts.dry_run })?;
+        self.sync(
+            plan,
+            &SyncOpts {
+                dry_run: opts.dry_run,
+            },
+        )?;
 
         let tools: Vec<String> = plan.install_plan.mise_tools.keys().cloned().collect();
         if !tools.is_empty() {

@@ -80,11 +80,7 @@ pub trait SyncBackend: Send + Sync {
     ///   (игнорирует `plan.install_plan.programs` — Nix читает свои модули)
     ///
     /// Ошибка прерывает весь sync.
-    fn install(
-        &self,
-        plan: &WorkflowPlan,
-        opts: &SyncOpts,
-    ) -> Result<InstallReport, KaizenError>;
+    fn install(&self, plan: &WorkflowPlan, opts: &SyncOpts) -> Result<InstallReport, KaizenError>;
 
     /// Шаг 2: применить dotfiles.
     ///
@@ -112,11 +108,7 @@ pub trait SyncBackend: Send + Sync {
     }
 
     /// Обновить пакеты. `opts.update_flake = true` дополнительно обновляет flake.lock.
-    fn update(
-        &self,
-        plan: &WorkflowPlan,
-        opts: &UpdateOpts,
-    ) -> Result<UpdateReport, KaizenError>;
+    fn update(&self, plan: &WorkflowPlan, opts: &UpdateOpts) -> Result<UpdateReport, KaizenError>;
 
     /// Очистить кэши: nix GC, OS package cache, docker.
     fn clean(&self, opts: &CleanOpts) -> Result<CleanReport, KaizenError>;
