@@ -43,9 +43,8 @@ pub fn run(_engine: &kaizen_core::KaizenEngine, config_path: &Path, dry_run: boo
 
     if nix_installed {
         println!();
-        output::item_warn("Nix is installed. Kaizen may or may not have installed it.");
         let remove_nix = Confirm::with_theme(&ColorfulTheme::default())
-            .with_prompt("Remove Nix? (this removes ALL Nix packages and home-manager)")
+            .with_prompt("Remove Nix? This will delete ALL Nix packages and home-manager. Are you sure?")
             .default(false)
             .interact()?;
 
@@ -57,12 +56,8 @@ pub fn run(_engine: &kaizen_core::KaizenEngine, config_path: &Path, dry_run: boo
     }
 
     println!();
-    output::item_warn(
-        "Dotfiles remain applied. To clean up run: chezmoi forget --all",
-    );
-    output::item_warn(
-        "Or remove the dotfiles source: rm -rf ~/.local/share/chezmoi",
-    );
+    output::item_warn("Dotfiles remain applied. To clean up run: chezmoi forget --all");
+    output::item_warn("Or remove the dotfiles source: rm -rf ~/.local/share/chezmoi");
     println!();
     output::item_ok("kaizen uninstalled");
     Ok(())
@@ -71,9 +66,17 @@ pub fn run(_engine: &kaizen_core::KaizenEngine, config_path: &Path, dry_run: boo
 fn print_plan(config_path: &Path, chezmoi_data: Option<&Path>, nix_installed: bool) {
     output::header("will remove");
     if config_path.exists() {
-        println!("  {}  {}", "→".dimmed(), config_path.display().to_string().dimmed());
+        println!(
+            "  {}  {}",
+            "→".dimmed(),
+            config_path.display().to_string().dimmed()
+        );
     } else {
-        println!("  {}  {} (not found)", "·".dimmed(), config_path.display().to_string().dimmed());
+        println!(
+            "  {}  {} (not found)",
+            "·".dimmed(),
+            config_path.display().to_string().dimmed()
+        );
     }
     if let Some(p) = chezmoi_data {
         if p.exists() {
@@ -82,7 +85,7 @@ fn print_plan(config_path: &Path, chezmoi_data: Option<&Path>, nix_installed: bo
     }
     if nix_installed {
         println!();
-        println!("  {}  Nix — will ask", "?".yellow());
+        println!("  {}  Nix (will ask for confirmation)", "?".yellow());
     }
     println!();
     output::item_warn("Dotfiles already applied to ~ will NOT be removed automatically.");
@@ -115,7 +118,10 @@ fn uninstall_nix() -> Result<()> {
     } else {
         output::item("running official Nix uninstall script...");
         Command::new("sh")
-            .args(["-c", "curl -sSfL https://install.determinate.systems/nix | sh -s -- uninstall"])
+            .args([
+                "-c",
+                "curl -sSfL https://install.determinate.systems/nix | sh -s -- uninstall",
+            ])
             .status()?
     };
 
