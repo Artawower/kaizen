@@ -6,7 +6,6 @@ use crate::{
     ConfigPlan, KaizenError, PackageManagerKind, TargetOs,
 };
 
-/// Записывает `.chezmoidata.toml` и запускает `chezmoi apply`.
 pub fn chezmoi_write_and_apply(
     plan: &ConfigPlan,
     dry_run: bool,
@@ -38,7 +37,6 @@ pub fn chezmoi_write_and_apply(
     })
 }
 
-/// `mise install && mise trust ~/.config/mise.toml`
 pub fn mise_install(dry_run: bool) -> Result<(), KaizenError> {
     if dry_run {
         return Ok(());
@@ -53,8 +51,8 @@ pub fn mise_install(dry_run: bool) -> Result<(), KaizenError> {
     }
 
     let mise_toml = dirs::home_dir()
-        .map(|h| h.join(".config/mise.toml"))
-        .unwrap_or_default();
+        .ok_or(KaizenError::HomeDirUnavailable)?
+        .join(".config/mise.toml");
 
     if mise_toml.exists() {
         let status = Command::new("mise").arg("trust").arg(&mise_toml).status()?;
@@ -69,7 +67,6 @@ pub fn mise_install(dry_run: bool) -> Result<(), KaizenError> {
     Ok(())
 }
 
-/// `mise upgrade <tools>`
 pub fn mise_upgrade(tools: &[String], dry_run: bool) -> Result<(), KaizenError> {
     if dry_run {
         return Ok(());
@@ -87,7 +84,6 @@ pub fn mise_upgrade(tools: &[String], dry_run: bool) -> Result<(), KaizenError> 
     Ok(())
 }
 
-/// Очистка OS-кэшей в зависимости от пакетного менеджера.
 pub fn os_cache_clean(os: &TargetOs, dry_run: bool) -> Result<(), KaizenError> {
     let (bin, args): (&str, &[&str]) = match os.package_manager_kind() {
         PackageManagerKind::Brew => ("brew", &["cleanup"]),
@@ -99,7 +95,6 @@ pub fn os_cache_clean(os: &TargetOs, dry_run: bool) -> Result<(), KaizenError> {
     run_optional(bin, args, dry_run)
 }
 
-/// Docker system prune — только если docker доступен.
 pub fn docker_clean(dry_run: bool) -> Result<(), KaizenError> {
     if which::which("docker").is_err() {
         return Ok(());
@@ -112,23 +107,6 @@ pub fn clean_report_from_steps(steps: Vec<String>) -> CleanReport {
         freed_bytes: None,
         steps,
     }
-}
-
-fn run_optional(bin: &str, args: &[&str], dry_run: bool) -> Result<(), KaizenError> {
-    if dry_run {
-        return Ok(());
-    }
-    if which::which(bin).is_err() {
-        return Ok(());
-    }
-    let status = Command::new(bin).args(args).status()?;
-    if !status.success() {
-        return Err(KaizenError::CommandFailed {
-            cmd: format!("{bin} {}", args.join(" ")),
-            code: status.code(),
-        });
-    }
-    Ok(())
 }
 
 pub fn clean_steps(os: &TargetOs, include_nix: bool) -> Vec<String> {
@@ -151,4 +129,21 @@ pub fn clean_steps(os: &TargetOs, include_nix: bool) -> Vec<String> {
         steps.push("docker system prune -f".into());
     }
     steps
+}
+
+fn run_optional(bin: &str, args: &[&str], dry_run: bool) -> Result<(), KaizenError> {
+    if dry_run {
+        return Ok(());
+    }
+    if which::which(bin).is_err() {
+        return Ok(());
+    }
+    let status = Command::new(bin).args(args).status()?;
+    if !status.success() {
+        return Err(KaizenError::CommandFailed {
+            cmd: format!("{bin} {}", args.join(" ")),
+            code: status.code(),
+        });
+    }
+    Ok(())
 }

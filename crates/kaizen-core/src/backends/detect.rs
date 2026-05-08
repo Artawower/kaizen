@@ -3,14 +3,12 @@ use crate::{
     SyncBackend, TargetOs,
 };
 
-/// Определяет подходящий бэкенд для текущей системы.
-///
-/// Приоритет: Nix (home-manager / darwin-rebuild) → upt
-///
-/// CLI и Tauri вызывают эту функцию — конкретный бэкенд скрыт.
+/// Detect the appropriate sync backend for the current system.
+/// Priority: Nix (home-manager / darwin-rebuild) → upt
 pub fn detect_backend(os: TargetOs) -> Box<dyn SyncBackend> {
-    if NixSyncBackend::new(os.clone()).is_available() {
-        return Box::new(NixSyncBackend::new(os));
+    let nix = NixSyncBackend::new(os.clone());
+    if nix.is_available() {
+        return Box::new(nix);
     }
     Box::new(UptSyncBackend::new(os))
 }

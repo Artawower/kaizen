@@ -22,14 +22,9 @@ pub fn run(engine: &KaizenEngine, config_path: &Path, dry_run: bool) -> Result<(
     let opts = SyncOpts { dry_run };
 
     if dry_run {
-        let preview = backend.preview(&plan);
-        let apply_steps: Vec<_> = preview
-            .steps
-            .iter()
-            .filter(|s| s.label.contains("dotfiles") || s.label.contains("mise"))
-            .collect();
+        let preview = backend.apply_preview(&plan);
         output::header("steps");
-        for step in &apply_steps {
+        for step in &preview.steps {
             println!("  {}  {}", "→".dimmed(), step.command.dimmed());
         }
         println!();

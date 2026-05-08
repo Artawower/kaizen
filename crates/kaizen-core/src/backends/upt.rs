@@ -1,5 +1,3 @@
-use std::process::Command;
-
 use crate::{
     backends::common,
     installer::UptInstaller,
@@ -72,10 +70,12 @@ impl SyncBackend for UptSyncBackend {
                     warnings,
                 });
             }
-            if let Err(KaizenError::InstallerPartialFailure { failed, .. }) =
-                UptInstaller.upgrade(programs)
-            {
-                warnings.extend(failed.iter().map(|p| format!("{p}: failed to upgrade")));
+            match UptInstaller.upgrade(programs) {
+                Ok(()) => {}
+                Err(KaizenError::InstallerPartialFailure { failed, .. }) => {
+                    warnings.extend(failed.iter().map(|p| format!("{p}: failed to upgrade")));
+                }
+                Err(e) => return Err(e),
             }
         }
 
@@ -123,20 +123,18 @@ impl SyncBackend for UptSyncBackend {
 
         SyncPreview { steps }
     }
-}
 
-/// Запускает `upt upgrade` для всей ОС (без списка пакетов).
-#[allow(dead_code)]
-pub(crate) fn upt_upgrade_all(dry_run: bool) -> Result<(), KaizenError> {
-    if dry_run {
-        return Ok(());
+    fn apply_preview(&self, _plan: &WorkflowPlan) -> SyncPreview {
+        let mut steps = vec![SyncStep {
+            label: "apply dotfiles".into(),
+            command: "chezmoi apply".into(),
+        }];
+        if which::which("mise").is_ok() {
+            steps.push(SyncStep {
+                label: "install mise tools".into(),
+                command: "mise install".into(),
+            });
+        }
+        SyncPreview { steps }
     }
-    let status = Command::new("upt").args(["upgrade", "-y"]).status()?;
-    if !status.success() {
-        return Err(KaizenError::CommandFailed {
-            cmd: "upt upgrade".into(),
-            code: status.code(),
-        });
-    }
-    Ok(())
 }

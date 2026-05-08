@@ -71,8 +71,8 @@ pub enum KaizenError {
     #[error("command `{cmd}` failed with exit code {code:?}")]
     CommandFailed { cmd: String, code: Option<i32> },
 
-    #[error("nix backend unavailable — neither home-manager nor darwin-rebuild found")]
-    NixBackendUnavailable,
+    #[error("cannot determine home directory — $HOME is not set")]
+    HomeDirUnavailable,
 
     #[error("io error: {0}")]
     Io(#[from] std::io::Error),

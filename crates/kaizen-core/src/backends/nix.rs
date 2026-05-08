@@ -30,7 +30,7 @@ impl NixSyncBackend {
         if self.os == TargetOs::Darwin {
             steps.push("sudo darwin-rebuild switch --flake ~/.config/nix".into());
         }
-        let user = current_user().unwrap_or_else(|_| "user".into());
+        let user = current_user().unwrap_or_else(|_| "<user>".into());
         steps.push(format!(
             "home-manager switch --flake .#{}@{} --impure",
             user,
@@ -49,7 +49,6 @@ impl SyncBackend for NixSyncBackend {
         which::which("home-manager").is_ok() || which::which("darwin-rebuild").is_ok()
     }
 
-    /// Nix: сначала apply (chezmoidata), потом install (home-manager читает его).
     fn sync(&self, plan: &WorkflowPlan, opts: &SyncOpts) -> Result<crate::SyncReport, KaizenError> {
         let apply = self.apply(plan, opts)?;
         let install = self.install(plan, opts)?;
@@ -57,8 +56,6 @@ impl SyncBackend for NixSyncBackend {
         Ok(crate::SyncReport { install, apply })
     }
 
-    /// Nix: игнорирует `plan.install_plan.programs`.
-    /// Вызывает darwin-rebuild (macOS) + home-manager switch.
     fn install(&self, _plan: &WorkflowPlan, opts: &SyncOpts) -> Result<InstallReport, KaizenError> {
         let steps = self.nix_install_steps();
 
@@ -147,9 +144,21 @@ impl SyncBackend for NixSyncBackend {
         let _ = plan;
         SyncPreview { steps }
     }
-}
 
-// ── helpers ───────────────────────────────────────────────────────────────────
+    fn apply_preview(&self, _plan: &WorkflowPlan) -> SyncPreview {
+        let mut steps = vec![SyncStep {
+            label: "apply dotfiles".into(),
+            command: "chezmoi apply".into(),
+        }];
+        if which::which("mise").is_ok() {
+            steps.push(SyncStep {
+                label: "install mise tools".into(),
+                command: "mise install".into(),
+            });
+        }
+        SyncPreview { steps }
+    }
+}
 
 fn current_user() -> Result<String, KaizenError> {
     let out = Command::new("id").arg("-un").output()?;
@@ -170,7 +179,7 @@ fn run_darwin_rebuild() -> Result<(), KaizenError> {
 }
 
 fn run_home_manager(host: &str) -> Result<(), KaizenError> {
-    let user = current_user().unwrap_or_else(|_| "user".into());
+    let user = current_user()?;
     let flake = format!(".#{}@{}", user, host);
     let status = Command::new("home-manager")
         .args(["switch", "--flake", &flake, "--impure"])
@@ -217,6 +226,16 @@ fn run_nix_gc(dry_run: bool) -> Result<(), KaizenError> {
             code: status.code(),
         });
     }
-    let _ = Command::new("nix-store").arg("--optimise").status();
+    let optimise = Command::new("nix-store").arg("--optimise").status();
+    match optimise {
+        Ok(s) if s.success() => {}
+        Ok(s) => {
+            return Err(KaizenError::CommandFailed {
+                cmd: "nix-store --optimise".into(),
+                code: s.code(),
+            });
+        }
+        Err(e) => return Err(KaizenError::Io(e)),
+    }
     Ok(())
 }

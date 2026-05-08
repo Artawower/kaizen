@@ -17,21 +17,18 @@ pub fn run(engine: &KaizenEngine, config_path: &Path, dry_run: bool) -> Result<(
     output::kv("backend", backend.id());
     println!();
 
+    let report = backend.clean(&CleanOpts { dry_run })?;
+
     if dry_run {
-        let preview = backend.preview(&plan);
-        let clean_hint = format!(
-            "nix-collect-garbage --delete-older-than 7d\n  {}  OS cache clean\n  {}  docker system prune -f",
-            "→".dimmed(),
-            "→".dimmed()
-        );
-        println!("  {}  {}", "→".dimmed(), clean_hint.dimmed());
+        output::header("would run");
+        for step in &report.steps {
+            println!("  {}  {}", "→".dimmed(), step.dimmed());
+        }
         println!();
         println!("  Run without --dry-run to clean.");
-        let _ = preview;
+        let _ = plan;
         return Ok(());
     }
-
-    let report = backend.clean(&CleanOpts { dry_run: false })?;
 
     for step in &report.steps {
         output::item_ok(step);

@@ -1,10 +1,12 @@
 use std::path::Path;
 
 use anyhow::Result;
-use kaizen_core::{detect_backend, KaizenEngine, TargetOs, UpdateOpts, UserConfig};
+use kaizen_core::{
+    detect_backend, KaizenEngine, ShellHookRunner, TargetOs, UpdateOpts, UserConfig,
+};
 use owo_colors::OwoColorize;
 
-use crate::{output, selector};
+use crate::{hooks, output, selector};
 
 pub fn run(
     engine: &KaizenEngine,
@@ -71,6 +73,8 @@ pub fn run(
     for w in &report.warnings {
         output::item_warn(w);
     }
+
+    hooks::run(&plan.hook_plan.post_update, dry_run, &ShellHookRunner)?;
 
     println!();
     output::item_ok(&format!("updated {} feature(s)", selected.len()));
