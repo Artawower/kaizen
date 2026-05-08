@@ -104,21 +104,26 @@ impl SourcePathState {
     }
 }
 
+/// Parse the raw stdout of `chezmoi source-path` into a PathBuf.
+/// Handles both quoted and unquoted output, trims whitespace.
+/// Returns None for empty or whitespace-only output.
+pub fn parse_source_path_output(raw: &str) -> Option<PathBuf> {
+    let s = raw.trim().trim_matches('"').trim();
+    if s.is_empty() {
+        return None;
+    }
+    Some(PathBuf::from(s))
+}
+
 pub fn standalone_source_dir() -> Result<Option<PathBuf>, KaizenError> {
     let out = Command::new("chezmoi").arg("source-path").output()?;
     if !out.status.success() {
         return Ok(None);
     }
     let raw = String::from_utf8_lossy(&out.stdout);
-    let path_str = raw.trim().trim_matches('"').trim();
-    if path_str.is_empty() {
-        return Ok(None);
-    }
-    let path = PathBuf::from(path_str);
-    if path.exists() {
-        Ok(Some(path))
-    } else {
-        Ok(None)
+    match parse_source_path_output(&raw) {
+        Some(path) if path.exists() => Ok(Some(path)),
+        _ => Ok(None),
     }
 }
 
@@ -165,9 +170,7 @@ pub fn source_path(plan: &ConfigPlan) -> Result<SourcePathState, KaizenError> {
 
     if out.status.success() {
         let raw = String::from_utf8_lossy(&out.stdout);
-        let path = raw.trim().trim_matches('"').trim();
-        if !path.is_empty() {
-            let path = PathBuf::from(path);
+        if let Some(path) = parse_source_path_output(&raw) {
             if path.exists() {
                 return Ok(SourcePathState::Confirmed(path));
             }
@@ -188,7 +191,7 @@ mod tests {
 
     use crate::{ConfigPlan, UserSettings};
 
-    use super::{generate_chezmoidata, merge_chezmoidata};
+    use super::{generate_chezmoidata, merge_chezmoidata, parse_source_path_output};
 
     fn make_plan(features: &[(&str, bool)], layout: Option<&str>) -> ConfigPlan {
         ConfigPlan {
@@ -315,5 +318,33 @@ mod tests {
             settings: UserSettings { layout: None },
         };
         assert!(super::source_path(&plan).is_err());
+    }
+
+    #[test]
+    fn parse_plain_path() {
+        let out = "/Users/alice/.local/share/chezmoi\n";
+        let p = parse_source_path_output(out).unwrap();
+        assert_eq!(p.to_str().unwrap(), "/Users/alice/.local/share/chezmoi");
+    }
+
+    #[test]
+    fn parse_quoted_path() {
+        let out = "\"/Users/alice/.local/share/chezmoi\"\n";
+        let p = parse_source_path_output(out).unwrap();
+        assert_eq!(p.to_str().unwrap(), "/Users/alice/.local/share/chezmoi");
+    }
+
+    #[test]
+    fn parse_empty_returns_none() {
+        assert!(parse_source_path_output("").is_none());
+        assert!(parse_source_path_output("   \n").is_none());
+        assert!(parse_source_path_output("\"\"").is_none());
+    }
+
+    #[test]
+    fn parse_path_with_spaces_in_name() {
+        let out = "/Users/alice/my dotfiles\n";
+        let p = parse_source_path_output(out).unwrap();
+        assert_eq!(p.to_str().unwrap(), "/Users/alice/my dotfiles");
     }
 }

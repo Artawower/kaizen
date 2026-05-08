@@ -16,7 +16,15 @@ pub fn chezmoi_write_and_apply(
         return Ok(ApplyReport { data_path: None });
     }
 
-    let source_dir = initial.into_confirmed()?;
+    let source_dir = match initial {
+        chezmoi::SourcePathState::Confirmed(p) => p,
+        chezmoi::SourcePathState::Uninitialized(_) => {
+            let url = plan.dotfiles_source.as_deref()
+                .ok_or(KaizenError::ChezmoidataTargetUnknown)?;
+            chezmoi::init_source(url)?;
+            chezmoi::source_path(plan)?.into_confirmed()?
+        }
+    };
     let data_path = source_dir.join(".chezmoidata.toml");
 
     if let Some(parent) = data_path.parent() {
