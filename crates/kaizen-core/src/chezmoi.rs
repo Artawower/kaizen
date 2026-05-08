@@ -8,20 +8,15 @@ use crate::{ConfigPlan, KaizenError};
 
 #[derive(Serialize)]
 struct ChezmoidataFile<'a> {
-    features: &'a IndexMap<String, bool>,
-    settings: ChezmoidataSettings<'a>,
-}
-
-#[derive(Serialize)]
-struct ChezmoidataSettings<'a> {
     layout: &'a str,
+    features: &'a IndexMap<String, bool>,
 }
 
 pub fn generate_chezmoidata(plan: &ConfigPlan) -> Result<String, KaizenError> {
     let layout = plan.settings.layout.as_deref().unwrap_or("qwerty");
     let data = ChezmoidataFile {
+        layout,
         features: &plan.features_data,
-        settings: ChezmoidataSettings { layout },
     };
     Ok(toml::to_string_pretty(&data)?)
 }
