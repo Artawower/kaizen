@@ -188,7 +188,8 @@ fn run_darwin_rebuild() -> Result<(), KaizenError> {
 
 fn run_home_manager(host: &str) -> Result<(), KaizenError> {
     let user = current_user()?;
-    let flake = format!(".#{}@{}", user, host);
+    let nix_dir = nix_config_dir()?;
+    let flake = format!("{}#{}@{}", nix_dir.display(), user, host);
     let status = Command::new("home-manager")
         .args(["switch", "--flake", &flake, "--impure"])
         .status()?;
