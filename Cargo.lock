@@ -486,6 +486,7 @@ dependencies = [
  "libc",
  "os_info",
  "serde",
+ "tempfile",
  "thiserror 2.0.18",
  "toml",
  "which",

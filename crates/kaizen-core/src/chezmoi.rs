@@ -12,6 +12,7 @@ struct ChezmoidataFile<'a> {
     features: &'a IndexMap<String, bool>,
 }
 
+/// Generate chezmoidata content from scratch (used in tests and first-time setup).
 pub fn generate_chezmoidata(plan: &ConfigPlan) -> Result<String, KaizenError> {
     let layout = plan.settings.layout.as_deref().unwrap_or("qwerty");
     let data = ChezmoidataFile {
@@ -19,6 +20,38 @@ pub fn generate_chezmoidata(plan: &ConfigPlan) -> Result<String, KaizenError> {
         features: &plan.features_data,
     };
     Ok(toml::to_string_pretty(&data)?)
+}
+
+/// Merge kaizen-managed keys (layout, features) into an existing chezmoidata file.
+///
+/// Preserves all other keys (username, hostname, email, models, etc.) that
+/// are maintained outside of kaizen. If the file does not exist, behaves
+/// identically to `generate_chezmoidata`.
+pub fn merge_chezmoidata(existing_path: &Path, plan: &ConfigPlan) -> Result<String, KaizenError> {
+    let layout = plan.settings.layout.as_deref().unwrap_or("qwerty");
+
+    let mut table: toml::map::Map<String, toml::Value> = if existing_path.exists() {
+        let raw = std::fs::read_to_string(existing_path)?;
+        match toml::from_str::<toml::Value>(&raw) {
+            Ok(toml::Value::Table(t)) => t,
+            _ => toml::map::Map::new(),
+        }
+    } else {
+        toml::map::Map::new()
+    };
+
+    table.insert(
+        "layout".to_owned(),
+        toml::Value::String(layout.to_owned()),
+    );
+
+    let mut features = toml::map::Map::new();
+    for (k, v) in &plan.features_data {
+        features.insert(k.clone(), toml::Value::Boolean(*v));
+    }
+    table.insert("features".to_owned(), toml::Value::Table(features));
+
+    Ok(toml::to_string_pretty(&toml::Value::Table(table))?)
 }
 
 pub fn current_remote(source_dir: &Path) -> Result<Option<String>, KaizenError> {
@@ -150,7 +183,7 @@ mod tests {
 
     use crate::{ConfigPlan, UserSettings};
 
-    use super::generate_chezmoidata;
+    use super::{generate_chezmoidata, merge_chezmoidata};
 
     fn make_plan(features: &[(&str, bool)], layout: Option<&str>) -> ConfigPlan {
         ConfigPlan {
@@ -185,6 +218,51 @@ mod tests {
         let toml = generate_chezmoidata(&plan).unwrap();
         assert!(!toml.is_empty());
         let _: toml::Value = toml::from_str(&toml).expect("must be valid toml");
+    }
+
+    #[test]
+    fn merge_preserves_unknown_keys() {
+        let existing = "username = \"alice\"\nhostname = \"macbook\"\n\n[models]\ndefault = \"gpt-4\"\n\n[features]\ncore = true\n";
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join(".chezmoidata.toml");
+        std::fs::write(&path, existing).unwrap();
+
+        let plan = make_plan(&[("frontend", true)], Some("qwerty"));
+        let merged = merge_chezmoidata(&path, &plan).unwrap();
+
+        assert!(merged.contains("username = \"alice\""), "must preserve username");
+        assert!(merged.contains("hostname = \"macbook\""), "must preserve hostname");
+        assert!(merged.contains("default = \"gpt-4\""), "must preserve models");
+        assert!(merged.contains("frontend = true"), "must update features");
+        assert!(merged.contains("layout = \"qwerty\""), "must update layout");
+    }
+
+    #[test]
+    fn merge_updates_layout_without_touching_rest() {
+        let existing = "layout = \"colemak\"\nusername = \"bob\"\n\n[features]\ncore = true\n";
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join(".chezmoidata.toml");
+        std::fs::write(&path, existing).unwrap();
+
+        let plan = make_plan(&[("core", true)], Some("qwerty"));
+        let merged = merge_chezmoidata(&path, &plan).unwrap();
+
+        assert!(merged.contains("layout = \"qwerty\""), "layout must be updated");
+        assert!(merged.contains("username = \"bob\""), "username must be preserved");
+    }
+
+    #[test]
+    fn merge_on_nonexistent_file_equals_generate() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("nonexistent.toml");
+
+        let plan = make_plan(&[("core", true)], Some("colemak"));
+        let merged = merge_chezmoidata(&path, &plan).unwrap();
+        let generated = generate_chezmoidata(&plan).unwrap();
+
+        let merged_val: toml::Value = toml::from_str(&merged).unwrap();
+        let gen_val: toml::Value = toml::from_str(&generated).unwrap();
+        assert_eq!(merged_val, gen_val);
     }
 
     #[test]

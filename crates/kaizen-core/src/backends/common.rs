@@ -11,7 +11,6 @@ pub fn chezmoi_write_and_apply(
     dry_run: bool,
 ) -> Result<ApplyReport, KaizenError> {
     let initial = chezmoi::source_path(plan)?;
-    let content = chezmoi::generate_chezmoidata(plan)?;
 
     if dry_run {
         return Ok(ApplyReport { data_path: None });
@@ -23,6 +22,8 @@ pub fn chezmoi_write_and_apply(
     if let Some(parent) = data_path.parent() {
         std::fs::create_dir_all(parent)?;
     }
+
+    let content = chezmoi::merge_chezmoidata(&data_path, plan)?;
     std::fs::write(&data_path, &content)?;
 
     let status = Command::new("chezmoi").arg("apply").status()?;
