@@ -138,3 +138,121 @@ impl SyncBackend for UptSyncBackend {
         SyncPreview { steps }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use std::cell::RefCell;
+
+    use super::*;
+    use crate::{
+        plan::{ConfigPlan, HookPlan, InstallPlan},
+        sync_backend::{CleanOpts, SyncOpts, UpdateOpts},
+        UserSettings,
+    };
+    use indexmap::IndexMap;
+
+    fn empty_plan() -> WorkflowPlan {
+        WorkflowPlan::new(
+            TargetOs::Darwin,
+            vec![],
+            InstallPlan {
+                programs: vec![],
+                mise_tools: IndexMap::new(),
+            },
+            ConfigPlan {
+                backend: "chezmoi".into(),
+                dotfiles_source: None,
+                features_data: IndexMap::new(),
+                settings: UserSettings { layout: None },
+            },
+            HookPlan::default(),
+            vec![],
+        )
+    }
+
+    fn plan_with_programs(programs: &[&str]) -> WorkflowPlan {
+        let mut p = empty_plan();
+        p.install_plan.programs = programs.iter().map(|s| s.to_string()).collect();
+        p
+    }
+
+    #[test]
+    fn install_dry_run_returns_steps_without_calling_upt() {
+        let backend = UptSyncBackend::new(TargetOs::Darwin);
+        let plan = plan_with_programs(&["git", "ripgrep"]);
+        let report = backend.install(&plan, &SyncOpts { dry_run: true }).unwrap();
+        assert!(!report.steps.is_empty());
+        assert!(report.steps[0].contains("git"));
+    }
+
+    #[test]
+    fn install_empty_programs_returns_empty_report() {
+        let backend = UptSyncBackend::new(TargetOs::Darwin);
+        let plan = empty_plan();
+        let report = backend.install(&plan, &SyncOpts { dry_run: true }).unwrap();
+        assert!(report.steps.is_empty());
+    }
+
+    #[test]
+    fn update_dry_run_returns_programs_without_spawning() {
+        let backend = UptSyncBackend::new(TargetOs::Darwin);
+        let plan = plan_with_programs(&["git"]);
+        let report = backend
+            .update(
+                &plan,
+                &UpdateOpts {
+                    dry_run: true,
+                    update_flake: false,
+                },
+            )
+            .unwrap();
+        assert!(report.upgraded.contains(&"git".to_owned()));
+    }
+
+    #[test]
+    fn apply_preview_contains_chezmoi() {
+        let backend = UptSyncBackend::new(TargetOs::Darwin);
+        let plan = empty_plan();
+        let preview = backend.apply_preview(&plan);
+        assert!(
+            preview
+                .steps
+                .iter()
+                .any(|s| s.command.contains("chezmoi apply")),
+            "apply_preview must include chezmoi apply"
+        );
+    }
+
+    #[test]
+    fn apply_preview_does_not_contain_upt() {
+        let backend = UptSyncBackend::new(TargetOs::Darwin);
+        let plan = plan_with_programs(&["git"]);
+        let preview = backend.apply_preview(&plan);
+        assert!(
+            preview.steps.iter().all(|s| !s.command.contains("upt")),
+            "apply_preview must not include upt install"
+        );
+    }
+
+    #[test]
+    fn clean_dry_run_returns_brew_step_on_darwin() {
+        let backend = UptSyncBackend::new(TargetOs::Darwin);
+        let report = backend.clean(&CleanOpts { dry_run: true }).unwrap();
+        assert!(
+            report.steps.iter().any(|s| s.contains("brew")),
+            "darwin clean steps must include brew cleanup, got: {:?}",
+            report.steps
+        );
+    }
+
+    #[test]
+    fn clean_dry_run_returns_dnf_step_on_fedora() {
+        let backend = UptSyncBackend::new(TargetOs::Fedora);
+        let report = backend.clean(&CleanOpts { dry_run: true }).unwrap();
+        assert!(
+            report.steps.iter().any(|s| s.contains("dnf")),
+            "fedora clean steps must include dnf clean, got: {:?}",
+            report.steps
+        );
+    }
+}

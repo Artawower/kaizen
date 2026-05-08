@@ -159,4 +159,36 @@ mod tests {
     fn ubuntu_section_keys_include_linux() {
         assert_eq!(TargetOs::Ubuntu.section_keys(), vec!["linux", "ubuntu"]);
     }
+
+    #[test]
+    fn darwin_package_manager_is_brew() {
+        assert!(matches!(
+            TargetOs::Darwin.package_manager_kind(),
+            PackageManagerKind::Brew
+        ));
+    }
+
+    #[test]
+    fn fedora_package_manager_is_dnf() {
+        assert!(matches!(
+            TargetOs::Fedora.package_manager_kind(),
+            PackageManagerKind::Dnf
+        ));
+    }
+
+    #[test]
+    fn ubuntu_package_manager_is_apt() {
+        assert!(matches!(
+            TargetOs::Ubuntu.package_manager_kind(),
+            PackageManagerKind::Apt
+        ));
+    }
+
+    #[test]
+    fn unknown_os_package_manager_is_unknown() {
+        assert!(matches!(
+            TargetOs::Unknown("freebsd".into()).package_manager_kind(),
+            PackageManagerKind::Unknown
+        ));
+    }
 }

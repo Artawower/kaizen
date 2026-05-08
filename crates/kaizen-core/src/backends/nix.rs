@@ -213,6 +213,123 @@ fn run_nix_flake_update(dry_run: bool) -> Result<(), KaizenError> {
     Ok(())
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{
+        plan::{ConfigPlan, HookPlan, InstallPlan},
+        sync_backend::SyncOpts,
+        UserSettings,
+    };
+    use indexmap::IndexMap;
+
+    fn empty_plan(os: TargetOs) -> WorkflowPlan {
+        WorkflowPlan::new(
+            os,
+            vec![],
+            InstallPlan {
+                programs: vec![],
+                mise_tools: IndexMap::new(),
+            },
+            ConfigPlan {
+                backend: "chezmoi".into(),
+                dotfiles_source: None,
+                features_data: IndexMap::new(),
+                settings: UserSettings { layout: None },
+            },
+            HookPlan::default(),
+            vec![],
+        )
+    }
+
+    #[test]
+    fn flake_host_is_mac_on_darwin() {
+        assert_eq!(NixSyncBackend::new(TargetOs::Darwin).flake_host(), "mac");
+    }
+
+    #[test]
+    fn flake_host_is_linux_on_fedora() {
+        assert_eq!(NixSyncBackend::new(TargetOs::Fedora).flake_host(), "linux");
+    }
+
+    #[test]
+    fn flake_host_is_linux_on_ubuntu() {
+        assert_eq!(NixSyncBackend::new(TargetOs::Ubuntu).flake_host(), "linux");
+    }
+
+    #[test]
+    fn install_dry_run_returns_steps_without_spawning() {
+        let backend = NixSyncBackend::new(TargetOs::Darwin);
+        let plan = empty_plan(TargetOs::Darwin);
+        let report = backend.install(&plan, &SyncOpts { dry_run: true }).unwrap();
+        assert!(!report.steps.is_empty());
+    }
+
+    #[test]
+    fn install_dry_run_darwin_steps_include_darwin_rebuild() {
+        let backend = NixSyncBackend::new(TargetOs::Darwin);
+        let plan = empty_plan(TargetOs::Darwin);
+        let report = backend.install(&plan, &SyncOpts { dry_run: true }).unwrap();
+        assert!(
+            report.steps.iter().any(|s| s.contains("darwin-rebuild")),
+            "darwin steps must include darwin-rebuild, got: {report:?}"
+        );
+    }
+
+    #[test]
+    fn install_dry_run_linux_steps_skip_darwin_rebuild() {
+        let backend = NixSyncBackend::new(TargetOs::Linux);
+        let plan = empty_plan(TargetOs::Linux);
+        let report = backend.install(&plan, &SyncOpts { dry_run: true }).unwrap();
+        assert!(
+            report.steps.iter().all(|s| !s.contains("darwin-rebuild")),
+            "linux steps must not include darwin-rebuild"
+        );
+    }
+
+    #[test]
+    fn apply_preview_contains_chezmoi_apply() {
+        let backend = NixSyncBackend::new(TargetOs::Darwin);
+        let plan = empty_plan(TargetOs::Darwin);
+        let preview = backend.apply_preview(&plan);
+        assert!(
+            preview
+                .steps
+                .iter()
+                .any(|s| s.command.contains("chezmoi apply")),
+            "apply_preview must include chezmoi apply"
+        );
+    }
+
+    #[test]
+    fn apply_preview_does_not_contain_nix_switch() {
+        let backend = NixSyncBackend::new(TargetOs::Darwin);
+        let plan = empty_plan(TargetOs::Darwin);
+        let preview = backend.apply_preview(&plan);
+        assert!(
+            preview
+                .steps
+                .iter()
+                .all(|s| !s.command.contains("home-manager")
+                    && !s.command.contains("darwin-rebuild")),
+            "apply_preview must not include nix switch steps"
+        );
+    }
+
+    #[test]
+    fn clean_dry_run_returns_nix_steps() {
+        let backend = NixSyncBackend::new(TargetOs::Darwin);
+        let report = backend.clean(&CleanOpts { dry_run: true }).unwrap();
+        assert!(
+            report
+                .steps
+                .iter()
+                .any(|s| s.contains("nix-collect-garbage")),
+            "nix clean steps must include nix-collect-garbage"
+        );
+    }
+}
+
 fn run_nix_gc(dry_run: bool) -> Result<(), KaizenError> {
     if dry_run {
         return Ok(());
