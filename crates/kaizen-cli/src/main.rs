@@ -79,7 +79,7 @@ enum Command {
         dry_run: bool,
     },
 
-    /// Remove selected packages via upt.
+    /// Remove packages (upt only). On Nix: disable features and run `kaizen sync`.
     Uninstall {
         #[arg(long, help = "Show what would be run without executing")]
         dry_run: bool,

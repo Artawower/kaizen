@@ -12,6 +12,21 @@ pub fn run(engine: &KaizenEngine, config_path: &Path, dry_run: bool) -> Result<(
     } else {
         "uninstall"
     });
+
+    if which::which("home-manager").is_ok() || which::which("darwin-rebuild").is_ok() {
+        output::item_warn(
+            "Nix detected — packages are managed declaratively.",
+        );
+        println!(
+            "  To remove packages: disable features in your config, then run 'kaizen sync'."
+        );
+        println!();
+        println!("  Example:");
+        println!("    kaizen setup   # deselect features");
+        println!("    kaizen sync    # home-manager removes unlisted packages");
+        return Ok(());
+    }
+
     run_with(
         engine,
         config_path,

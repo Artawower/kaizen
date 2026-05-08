@@ -28,9 +28,7 @@ pub fn run(
 
     if need_setup {
         if config_exists && !chezmoi_ready {
-            output::item_warn(
-                "dotfiles not cloned yet — running setup to initialize chezmoi",
-            );
+            output::item_warn("dotfiles not cloned yet — running setup to initialize chezmoi");
         }
         println!();
         output::page_header("init — setup");
