@@ -65,6 +65,15 @@ pub enum KaizenError {
     #[error("manifest schema {found} is newer than supported {supported} — upgrade kaizen")]
     ManifestSchemaTooNew { found: u32, supported: u32 },
 
+    #[error("chezmoi apply failed with exit code {code:?}")]
+    ChezmoidataApplyFailed { code: Option<i32> },
+
+    #[error("command `{cmd}` failed with exit code {code:?}")]
+    CommandFailed { cmd: String, code: Option<i32> },
+
+    #[error("nix backend unavailable — neither home-manager nor darwin-rebuild found")]
+    NixBackendUnavailable,
+
     #[error("io error: {0}")]
     Io(#[from] std::io::Error),
 }

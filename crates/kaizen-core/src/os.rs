@@ -1,6 +1,15 @@
 use os_info::Type;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
+pub enum PackageManagerKind {
+    Brew,
+    Dnf,
+    Apt,
+    Pacman,
+    Unknown,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum TargetOs {
     Darwin,
     Fedora,
@@ -37,6 +46,26 @@ impl TargetOs {
     pub fn is_linux(&self) -> bool {
         matches!(self, TargetOs::Fedora | TargetOs::Ubuntu | TargetOs::Linux)
     }
+
+    pub fn package_manager_kind(&self) -> PackageManagerKind {
+        match self {
+            TargetOs::Darwin => PackageManagerKind::Brew,
+            TargetOs::Fedora => PackageManagerKind::Dnf,
+            TargetOs::Ubuntu => PackageManagerKind::Apt,
+            TargetOs::Linux => detect_linux_pm(),
+            _ => PackageManagerKind::Unknown,
+        }
+    }
+}
+
+fn detect_linux_pm() -> PackageManagerKind {
+    [("dnf", PackageManagerKind::Dnf),
+     ("apt", PackageManagerKind::Apt),
+     ("pacman", PackageManagerKind::Pacman)]
+        .into_iter()
+        .find(|(bin, _)| which::which(bin).is_ok())
+        .map(|(_, kind)| kind)
+        .unwrap_or(PackageManagerKind::Unknown)
 }
 
 impl From<os_info::Type> for TargetOs {

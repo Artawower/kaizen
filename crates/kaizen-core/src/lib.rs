@@ -1,5 +1,6 @@
 use std::path::{Path, PathBuf};
 
+pub mod backends;
 pub mod chezmoi;
 pub mod config;
 pub mod error;
@@ -11,7 +12,10 @@ pub mod manifest;
 pub mod merge;
 pub mod os;
 pub mod plan;
+pub mod sync_backend;
 
+pub use backends::detect::detect_backend;
+pub use backends::{NixSyncBackend, UptSyncBackend};
 pub use config::{
     DotfilesConfig, FeatureSelection, UserConfig, UserSettings, CURRENT_SCHEMA_VERSION,
     DEFAULT_DOTFILES_SOURCE,
@@ -21,8 +25,12 @@ pub use feature::FeatureFile;
 pub use feature_store::FeatureStore;
 pub use hooks::{HookRunner, ShellHookRunner};
 pub use installer::{Installer, Remover, Updater, UptInstaller};
-pub use os::TargetOs;
+pub use os::{PackageManagerKind, TargetOs};
 pub use plan::{ConfigPlan, HookPlan, InstallPlan, WorkflowPlan};
+pub use sync_backend::{
+    ApplyReport, CleanOpts, CleanReport, InstallReport, SyncBackend, SyncOpts, SyncPreview,
+    SyncReport, SyncStep, UpdateOpts, UpdateReport,
+};
 
 pub fn resolve_features_dir(explicit: Option<PathBuf>) -> Result<PathBuf, KaizenError> {
     if let Some(dir) = explicit {
