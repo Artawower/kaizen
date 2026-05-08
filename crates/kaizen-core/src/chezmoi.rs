@@ -34,7 +34,11 @@ pub fn parse_managed_files(raw: &str, home: &Path) -> Vec<PathBuf> {
         .filter(|l| !l.is_empty())
         .map(|l| {
             let p = Path::new(l);
-            if p.is_absolute() { p.to_path_buf() } else { home.join(l) }
+            if p.is_absolute() {
+                p.to_path_buf()
+            } else {
+                home.join(l)
+            }
         })
         .collect()
 }
@@ -43,7 +47,9 @@ pub fn parse_managed_files(raw: &str, home: &Path) -> Vec<PathBuf> {
 pub fn parse_status_output(raw: &str, home: &Path) -> Vec<ModifiedFile> {
     raw.lines()
         .filter_map(|line| {
-            if line.len() < 3 { return None; }
+            if line.len() < 3 {
+                return None;
+            }
             let status_char = line.chars().next()?;
             let path_str = line[3..].trim();
             let status = match status_char {
@@ -70,7 +76,10 @@ pub fn managed_files() -> Result<Vec<PathBuf>, KaizenError> {
     if !out.status.success() {
         return Ok(vec![]);
     }
-    Ok(parse_managed_files(&String::from_utf8_lossy(&out.stdout), &home))
+    Ok(parse_managed_files(
+        &String::from_utf8_lossy(&out.stdout),
+        &home,
+    ))
 }
 
 /// List files that were modified locally after chezmoi apply.
@@ -80,11 +89,13 @@ pub fn locally_modified_files() -> Result<Vec<PathBuf>, KaizenError> {
     if !out.status.success() {
         return Ok(vec![]);
     }
-    Ok(parse_status_output(&String::from_utf8_lossy(&out.stdout), &home)
-        .into_iter()
-        .filter(|f| f.status == FileStatus::Modified)
-        .map(|f| f.path)
-        .collect())
+    Ok(
+        parse_status_output(&String::from_utf8_lossy(&out.stdout), &home)
+            .into_iter()
+            .filter(|f| f.status == FileStatus::Modified)
+            .map(|f| f.path)
+            .collect(),
+    )
 }
 
 /// Remove files from the filesystem. Skips missing files.
@@ -446,8 +457,8 @@ mod tests {
         assert_eq!(p.to_str().unwrap(), "/Users/alice/my dotfiles");
     }
 
-    use std::path::{Path, PathBuf};
     use super::{parse_managed_files, parse_status_output, remove_files, FileStatus};
+    use std::path::{Path, PathBuf};
 
     #[test]
     fn managed_files_absolute_paths() {
@@ -455,8 +466,14 @@ mod tests {
         let raw = "/home/alice/.config/helix/config.toml\n/home/alice/.config/zellij/config.kdl\n";
         let files = parse_managed_files(raw, home);
         assert_eq!(files.len(), 2);
-        assert_eq!(files[0], PathBuf::from("/home/alice/.config/helix/config.toml"));
-        assert_eq!(files[1], PathBuf::from("/home/alice/.config/zellij/config.kdl"));
+        assert_eq!(
+            files[0],
+            PathBuf::from("/home/alice/.config/helix/config.toml")
+        );
+        assert_eq!(
+            files[1],
+            PathBuf::from("/home/alice/.config/zellij/config.kdl")
+        );
     }
 
     #[test]
@@ -464,8 +481,14 @@ mod tests {
         let home = Path::new("/home/alice");
         let raw = ".config/helix/config.toml\n.config/niri/config.kdl\n";
         let files = parse_managed_files(raw, home);
-        assert_eq!(files[0], PathBuf::from("/home/alice/.config/helix/config.toml"));
-        assert_eq!(files[1], PathBuf::from("/home/alice/.config/niri/config.kdl"));
+        assert_eq!(
+            files[0],
+            PathBuf::from("/home/alice/.config/helix/config.toml")
+        );
+        assert_eq!(
+            files[1],
+            PathBuf::from("/home/alice/.config/niri/config.kdl")
+        );
     }
 
     #[test]
@@ -488,7 +511,10 @@ mod tests {
         let modified = parse_status_output(raw, home);
         assert_eq!(modified.len(), 2);
         assert_eq!(modified[0].status, FileStatus::Modified);
-        assert_eq!(modified[0].path, PathBuf::from("/home/alice/.config/helix/config.toml"));
+        assert_eq!(
+            modified[0].path,
+            PathBuf::from("/home/alice/.config/helix/config.toml")
+        );
     }
 
     #[test]

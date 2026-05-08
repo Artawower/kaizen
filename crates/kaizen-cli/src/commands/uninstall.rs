@@ -19,7 +19,13 @@ pub fn run(_engine: &kaizen_core::KaizenEngine, config_path: &Path, dry_run: boo
     let modified = kaizen_core::chezmoi::locally_modified_files().unwrap_or_default();
     let nix_installed = which::which("nix").is_ok();
 
-    print_plan(config_path, chezmoi_source.as_deref(), &managed, &modified, nix_installed);
+    print_plan(
+        config_path,
+        chezmoi_source.as_deref(),
+        &managed,
+        &modified,
+        nix_installed,
+    );
 
     if dry_run {
         println!();
@@ -123,7 +129,11 @@ fn print_plan(
 
 fn print_entry(path: &Path) {
     if path.exists() {
-        println!("  {}  {}", "→".dimmed(), path.display().to_string().dimmed());
+        println!(
+            "  {}  {}",
+            "→".dimmed(),
+            path.display().to_string().dimmed()
+        );
     } else {
         println!(
             "  {}  {} (not found)",
@@ -196,8 +206,7 @@ mod tests {
     use super::*;
 
     fn fixture_engine() -> kaizen_core::KaizenEngine {
-        let features = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("tests/fixtures/features");
+        let features = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/features");
         kaizen_core::KaizenEngine::new(features)
     }
 

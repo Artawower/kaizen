@@ -1,4 +1,4 @@
-use std::process::Command;
+use std::process::{Command, Stdio};
 
 use crate::{
     chezmoi,
@@ -36,16 +36,30 @@ pub fn chezmoi_write_and_apply(
     let content = chezmoi::merge_chezmoidata(&data_path, plan)?;
     std::fs::write(&data_path, &content)?;
 
-    let output = Command::new("chezmoi").arg("apply").output()?;
-    if !output.status.success() {
-        let stderr = String::from_utf8_lossy(&output.stderr).trim().to_owned();
+    eprintln!("→ chezmoi apply");
+    // stdout/stderr inherited — user sees real-time output.
+    // stderr also piped so we can include it in the error message on failure.
+    let mut child = Command::new("chezmoi")
+        .arg("apply")
+        .stderr(Stdio::piped())
+        .spawn()?;
+    let stderr_bytes = child
+        .stderr
+        .take()
+        .map(|s| {
+            use std::io::Read;
+            let mut buf = Vec::new();
+            let mut s = s;
+            let _ = s.read_to_end(&mut buf);
+            buf
+        })
+        .unwrap_or_default();
+    let status = child.wait()?;
+    if !status.success() {
+        let stderr = String::from_utf8_lossy(&stderr_bytes).trim().to_owned();
         return Err(KaizenError::ChezmoidataApplyFailed {
-            code: output.status.code(),
-            reason: if stderr.is_empty() {
-                None
-            } else {
-                Some(stderr)
-            },
+            code: status.code(),
+            reason: if stderr.is_empty() { None } else { Some(stderr) },
         });
     }
 

@@ -67,8 +67,10 @@ impl SyncBackend for NixSyncBackend {
         }
 
         if self.os == TargetOs::Darwin {
+            eprintln!("→ darwin-rebuild switch");
             run_darwin_rebuild()?;
         }
+        eprintln!("→ home-manager switch");
         run_home_manager(self.flake_host())?;
 
         Ok(InstallReport {
@@ -83,6 +85,7 @@ impl SyncBackend for NixSyncBackend {
 
     fn post_apply(&self, opts: &SyncOpts) -> Result<(), KaizenError> {
         if which::which("mise").is_ok() {
+            eprintln!("→ mise install");
             return common::mise_install(opts.dry_run);
         }
         Ok(())

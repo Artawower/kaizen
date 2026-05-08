@@ -16,6 +16,7 @@ pub mod sync_backend;
 
 pub use backends::detect::detect_backend;
 pub use backends::{NixSyncBackend, UptSyncBackend};
+pub use chezmoi::{ModifiedFile, RemoveFilesReport};
 pub use config::{
     DotfilesConfig, FeatureSelection, UserConfig, UserSettings, CURRENT_SCHEMA_VERSION,
     DEFAULT_DOTFILES_SOURCE,
@@ -31,7 +32,6 @@ pub use sync_backend::{
     ApplyReport, CleanOpts, CleanReport, InstallReport, SyncBackend, SyncOpts, SyncPreview,
     SyncReport, SyncStep, UpdateOpts, UpdateReport,
 };
-pub use chezmoi::{ModifiedFile, RemoveFilesReport};
 
 pub fn resolve_features_dir(explicit: Option<PathBuf>) -> Result<PathBuf, KaizenError> {
     if let Some(dir) = explicit {

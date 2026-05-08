@@ -41,6 +41,7 @@ impl SyncBackend for UptSyncBackend {
             });
         }
 
+        eprintln!("→ upt install");
         UptInstaller.install(programs)?;
         Ok(InstallReport {
             steps: vec![UptInstaller.preview_install(programs)],
