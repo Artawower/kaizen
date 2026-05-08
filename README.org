@@ -15,8 +15,8 @@
 #+HTML: <p align="center">
 #+HTML: <a href="https://www.rust-lang.org/"><img src="https://img.shields.io/badge/Rust-000000?style=for-the-badge&logo=rust&logoColor=white" alt="Rust"></a>
 #+HTML: <a href="https://www.chezmoi.io/"><img src="https://img.shields.io/badge/Chezmoi-Dotfiles-6B46C1?style=for-the-badge" alt="Chezmoi"></a>
-#+HTML: <a href="https://github.com/ripytide/metapac"><img src="https://img.shields.io/badge/Metapac-Packages-2563EB?style=for-the-badge" alt="Metapac"></a>
 #+HTML: <a href="https://github.com/sigoden/upt"><img src="https://img.shields.io/badge/UPT-Installer-10B981?style=for-the-badge" alt="UPT"></a>
+#+HTML: <a href="https://nixos.org/"><img src="https://img.shields.io/badge/Nix-supported-5277C3?style=for-the-badge&logo=nixos&logoColor=white" alt="Nix"></a>
 #+HTML: </p>
 
 #+HTML: <p align="center">
@@ -206,25 +206,37 @@ cargo install --path crates/kaizen-cli
 
 * Usage
 
-The public CLI is still evolving. For now, the intended command surface is intentionally small:
+The primary workflow:
 
 #+BEGIN_SRC shell
-kaizen doctor
-kaizen features
-kaizen plan
-kaizen install
-kaizen apply
-kaizen update
-kaizen config
+kaizen setup    # interactive: pick features, keyboard layout, dotfiles URL
+kaizen sync     # install packages + apply dotfiles (auto-detects Nix or upt)
+kaizen update   # upgrade packages and mise tools
+kaizen clean    # garbage-collect Nix store, OS caches, Docker
 #+END_SRC
 
-- ~kaizen doctor~ checks whether the current system is ready.
-- ~kaizen features~ lists available workflow features.
-- ~kaizen plan~ previews what Kaizen would install or apply.
-- ~kaizen install~ installs selected programs and dependencies.
-- ~kaizen apply~ applies dotfiles and configuration.
-- ~kaizen update~ updates Kaizen-managed definitions.
-- ~kaizen config~ inspects or edits local Kaizen configuration.
+Full command reference:
+
+#+BEGIN_SRC shell
+kaizen setup      # interactively configure kaizen and write config.toml
+kaizen features   # list available workflow features
+kaizen sync       # install + apply dotfiles (Nix or upt, auto-detected)
+kaizen apply      # apply dotfiles via chezmoi + mise install only
+kaizen update     # upgrade packages, flake inputs (--flake) and mise tools
+kaizen clean      # clean Nix store, OS package cache, Docker
+kaizen install    # explicit upt install (advanced)
+kaizen uninstall  # remove packages via upt
+kaizen doctor     # check system readiness and tool availability
+#+END_SRC
+
+- ~kaizen setup~ runs the interactive wizard: picks a dotfiles repository, selects features and keyboard layout, writes =~/.config/kaizen/config.toml=.
+- ~kaizen sync~ is the primary command. It auto-detects the backend:
+  - *Nix* (=home-manager= or =darwin-rebuild= found): writes =.chezmoidata.toml= → =chezmoi apply= → =darwin-rebuild switch= + =home-manager switch= → =mise install=.
+  - *upt* (fallback): =upt install= → =chezmoi apply= → =mise install=.
+- ~kaizen apply~ re-applies dotfiles and runs =mise install= without reinstalling packages.
+- ~kaizen update~ upgrades packages. Pass =--flake= to also run =nix flake update= before switching.
+- ~kaizen clean~ removes old Nix generations, clears OS package caches, and prunes Docker.
+- ~kaizen doctor~ reports which backends are available (Nix, upt, chezmoi, mise).
 
 * Configuration examples
 
@@ -258,9 +270,9 @@ This is intended for disabling optional parts of a curated feature, not for turn
 
 * Connected links
 
-- [[https://github.com/ripytide/metapac][metapac]] — multi-backend package synchronization.
-- [[https://github.com/sigoden/upt][upt]] — simple cross-platform installer interface.
 - [[https://www.chezmoi.io/][chezmoi]] — dotfiles management and templating.
+- [[https://github.com/sigoden/upt][upt]] — unified cross-platform package installer (non-Nix fallback).
+- [[https://nix-community.github.io/home-manager/][Home Manager]] — Nix-based user environment management (primary backend).
 - [[https://github.com/Artawower/dotfiles][Artawower dotfiles]] — source workflow and inspiration for Kaizen.
 
 * Status

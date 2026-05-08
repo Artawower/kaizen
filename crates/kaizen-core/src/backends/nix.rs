@@ -165,9 +165,17 @@ fn current_user() -> Result<String, KaizenError> {
     Ok(String::from_utf8_lossy(&out.stdout).trim().to_owned())
 }
 
+fn nix_config_dir() -> Result<std::path::PathBuf, KaizenError> {
+    Ok(dirs::home_dir()
+        .ok_or(KaizenError::HomeDirUnavailable)?
+        .join(".config/nix"))
+}
+
 fn run_darwin_rebuild() -> Result<(), KaizenError> {
+    let flake = nix_config_dir()?;
     let status = Command::new("sudo")
-        .args(["darwin-rebuild", "switch", "--flake", "~/.config/nix"])
+        .args(["darwin-rebuild", "switch", "--flake"])
+        .arg(&flake)
         .status()?;
     if !status.success() {
         return Err(KaizenError::CommandFailed {

@@ -10,10 +10,14 @@ Each feature is a =.toml= file in the features directory.
 | =description= | Human-readable label shown in =kaizen features= |
 
 ** =[programs]=
-| =packages=        | List of package names to install/upgrade via =upt=    |
-| =overrides.<os>=  | OS-specific package name overrides (e.g. =fd= → =fd-find=) |
+| =packages=        | Package names for the =upt= backend (non-Nix systems) |
+| =overrides.<os>=  | OS-specific name overrides (e.g. =fd= → =fd-find= on Fedora) |
 
 Supported OS keys: =darwin=, =linux=, =ubuntu=, =fedora=, =arch=, =nixos=.
+
+When Nix is available (=home-manager= or =darwin-rebuild= detected), =kaizen sync=
+skips =programs= entirely — packages are managed by Nix modules in the dotfiles
+repository. =programs= is the fallback for non-Nix systems.
 
 ** =[mise.tools]=
 Key-value map of tool → version passed to =mise=.
