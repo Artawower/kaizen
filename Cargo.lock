@@ -472,6 +472,7 @@ dependencies = [
  "log",
  "owo-colors",
  "serde_json",
+ "tempfile",
  "terminal_size",
  "toml",
  "which",

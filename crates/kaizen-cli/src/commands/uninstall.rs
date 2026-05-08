@@ -1,157 +1,137 @@
 use std::path::Path;
+use std::process::Command;
 
 use anyhow::Result;
-use kaizen_core::{KaizenEngine, KaizenError, Remover, TargetOs, UptInstaller};
+use dialoguer::{theme::ColorfulTheme, Confirm};
 use owo_colors::OwoColorize;
 
-use crate::{ensure, output, selector};
+use crate::output;
 
-pub fn run(engine: &KaizenEngine, config_path: &Path, dry_run: bool) -> Result<()> {
+pub fn run(_engine: &kaizen_core::KaizenEngine, config_path: &Path, dry_run: bool) -> Result<()> {
     output::page_header(if dry_run {
         "uninstall  (dry-run)"
     } else {
         "uninstall"
     });
 
-    if which::which("home-manager").is_ok() || which::which("darwin-rebuild").is_ok() {
-        output::item_warn(
-            "Nix detected — packages are managed declaratively.",
-        );
-        println!(
-            "  To remove packages: disable features in your config, then run 'kaizen sync'."
-        );
-        println!();
-        println!("  Example:");
-        println!("    kaizen setup   # deselect features");
-        println!("    kaizen sync    # home-manager removes unlisted packages");
-        return Ok(());
-    }
+    let chezmoi_data = kaizen_core::chezmoi::standalone_source_dir()
+        .unwrap_or(None)
+        .map(|s| s.join(".chezmoidata.toml"));
 
-    run_with(
-        engine,
-        config_path,
-        dry_run,
-        TargetOs::detect(),
-        |items| selector::multi_select("Select programs to remove", items),
-        &UptInstaller,
-    )
-}
+    let nix_installed = which::which("nix").is_ok();
 
-fn run_with(
-    engine: &KaizenEngine,
-    config_path: &Path,
-    dry_run: bool,
-    target_os: TargetOs,
-    choose: impl FnOnce(Vec<selector::Item>) -> Result<Option<Vec<String>>>,
-    remover: &dyn Remover,
-) -> Result<()> {
-    let config = engine.load_config(config_path)?;
-    output::warn_if_schema_outdated(&config);
-    let plan = engine.build_workflow_plan(&config, target_os)?;
-
-    if plan.install_plan.programs.is_empty() {
-        output::item_warn("no programs found — check your config and features dir");
-        return Ok(());
-    }
-
-    let items: Vec<selector::Item> = plan
-        .install_plan
-        .programs
-        .iter()
-        .map(|p| selector::Item {
-            name: p.clone(),
-            desc: None,
-            selected: false,
-        })
-        .collect();
-
-    let Some(chosen) = choose(items)? else {
-        return Ok(());
-    };
-
-    if chosen.is_empty() {
-        output::item_warn("nothing selected — nothing to remove");
-        return Ok(());
-    }
-
-    if !dry_run {
-        ensure::require(&[&ensure::UPT])?;
-    }
-
-    execute_remove(&chosen, dry_run, remover)
-}
-
-fn execute_remove(programs: &[String], dry_run: bool, remover: &dyn Remover) -> Result<()> {
-    let preview = remover.preview_remove(programs);
-    println!();
+    print_plan(config_path, chezmoi_data.as_deref(), nix_installed);
 
     if dry_run {
-        println!("  {}  {}", "→".dimmed(), preview.dimmed());
         println!();
         println!("  Run without --dry-run to apply.");
         return Ok(());
     }
 
-    println!("  {}  {}", "→".bold(), preview);
-    println!();
-    match remover.remove(programs) {
-        Ok(()) => {
-            output::item_ok(&format!("{} package(s) removed", programs.len()));
-        }
-        Err(KaizenError::InstallerPartialFailure { failed, .. }) => {
-            let ok = programs.len() - failed.len();
-            if ok > 0 {
-                output::item_ok(&format!("{ok} package(s) removed"));
-            }
-            for pkg in &failed {
-                output::item_warn(&format!("{pkg}: failed — may not be managed by upt"));
-            }
-        }
-        Err(e) => return Err(e.into()),
+    let confirmed = Confirm::with_theme(&ColorfulTheme::default())
+        .with_prompt("Remove kaizen configuration files?")
+        .default(false)
+        .interact()?;
+
+    if !confirmed {
+        println!("  Aborted.");
+        return Ok(());
     }
-    output::item_warn("config unchanged — run kaizen install to re-apply declared packages");
+
+    remove_config(config_path)?;
+    remove_chezmoidata(chezmoi_data.as_deref())?;
+
+    if nix_installed {
+        println!();
+        output::item_warn("Nix is installed. Kaizen may or may not have installed it.");
+        let remove_nix = Confirm::with_theme(&ColorfulTheme::default())
+            .with_prompt("Remove Nix? (this removes ALL Nix packages and home-manager)")
+            .default(false)
+            .interact()?;
+
+        if remove_nix {
+            uninstall_nix()?;
+        } else {
+            output::item_ok("Nix kept — your packages remain installed");
+        }
+    }
+
+    println!();
+    output::item_warn(
+        "Dotfiles remain applied. To clean up run: chezmoi forget --all",
+    );
+    output::item_warn(
+        "Or remove the dotfiles source: rm -rf ~/.local/share/chezmoi",
+    );
+    println!();
+    output::item_ok("kaizen uninstalled");
+    Ok(())
+}
+
+fn print_plan(config_path: &Path, chezmoi_data: Option<&Path>, nix_installed: bool) {
+    output::header("will remove");
+    if config_path.exists() {
+        println!("  {}  {}", "→".dimmed(), config_path.display().to_string().dimmed());
+    } else {
+        println!("  {}  {} (not found)", "·".dimmed(), config_path.display().to_string().dimmed());
+    }
+    if let Some(p) = chezmoi_data {
+        if p.exists() {
+            println!("  {}  {}", "→".dimmed(), p.display().to_string().dimmed());
+        }
+    }
+    if nix_installed {
+        println!();
+        println!("  {}  Nix — will ask", "?".yellow());
+    }
+    println!();
+    output::item_warn("Dotfiles already applied to ~ will NOT be removed automatically.");
+}
+
+fn remove_config(path: &Path) -> Result<()> {
+    if path.exists() {
+        std::fs::remove_file(path)?;
+        output::item_ok(&format!("removed {}", path.display()));
+    }
+    Ok(())
+}
+
+fn remove_chezmoidata(path: Option<&Path>) -> Result<()> {
+    let Some(p) = path else { return Ok(()) };
+    if p.exists() {
+        std::fs::remove_file(p)?;
+        output::item_ok(&format!("removed {}", p.display()));
+    }
+    Ok(())
+}
+
+fn uninstall_nix() -> Result<()> {
+    // Determinate Systems installer supports clean uninstall via receipt
+    let determinate = Path::new("/nix/nix-installer");
+
+    let status = if determinate.exists() {
+        output::item("running Determinate Systems nix-installer uninstall...");
+        Command::new(determinate).arg("uninstall").status()?
+    } else {
+        output::item("running official Nix uninstall script...");
+        Command::new("sh")
+            .args(["-c", "curl -sSfL https://install.determinate.systems/nix | sh -s -- uninstall"])
+            .status()?
+    };
+
+    if !status.success() {
+        anyhow::bail!("Nix uninstall failed — remove manually: https://nixos.org/manual/nix/stable/#sect-macos-installation");
+    }
+
+    output::item_ok("Nix removed");
     Ok(())
 }
 
 #[cfg(test)]
 mod tests {
-    use std::cell::RefCell;
     use std::path::PathBuf;
 
-    use kaizen_core::KaizenError;
-
     use super::*;
-
-    struct RecordingRemover {
-        calls: RefCell<Vec<Vec<String>>>,
-    }
-
-    impl RecordingRemover {
-        fn new() -> Self {
-            Self {
-                calls: RefCell::new(vec![]),
-            }
-        }
-
-        fn was_called(&self) -> bool {
-            !self.calls.borrow().is_empty()
-        }
-
-        fn last_call(&self) -> Option<Vec<String>> {
-            self.calls.borrow().last().cloned()
-        }
-    }
-
-    impl Remover for RecordingRemover {
-        fn remove(&self, programs: &[String]) -> Result<(), KaizenError> {
-            self.calls.borrow_mut().push(programs.to_vec());
-            Ok(())
-        }
-
-        fn preview_remove(&self, programs: &[String]) -> String {
-            format!("mock remove {}", programs.join(" "))
-        }
-    }
 
     fn fixture_path(name: &str) -> PathBuf {
         PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -159,106 +139,18 @@ mod tests {
             .join(name)
     }
 
-    fn fixture_engine() -> KaizenEngine {
-        KaizenEngine::new(fixture_path("features"))
-    }
-
-    fn choose_all(items: Vec<selector::Item>) -> Result<Option<Vec<String>>> {
-        Ok(Some(items.into_iter().map(|i| i.name).collect()))
-    }
-
-    fn choose_cancel(_items: Vec<selector::Item>) -> Result<Option<Vec<String>>> {
-        Ok(None)
-    }
-
-    fn choose_none(_items: Vec<selector::Item>) -> Result<Option<Vec<String>>> {
-        Ok(Some(vec![]))
-    }
-
-    fn choose_first(items: Vec<selector::Item>) -> Result<Option<Vec<String>>> {
-        Ok(items.into_iter().next().map(|i| vec![i.name]))
+    fn fixture_engine() -> kaizen_core::KaizenEngine {
+        kaizen_core::KaizenEngine::new(fixture_path("features"))
     }
 
     #[test]
-    fn cancel_does_not_call_remover() {
-        let remover = RecordingRemover::new();
-        let engine = fixture_engine();
-        run_with(
-            &engine,
-            &fixture_path("config-minimal.toml"),
-            false,
-            TargetOs::Darwin,
-            choose_cancel,
-            &remover,
-        )
-        .unwrap();
-        assert!(!remover.was_called());
-    }
+    fn dry_run_does_not_remove_files() {
+        let dir = tempfile::tempdir().unwrap();
+        let config = dir.path().join("config.toml");
+        std::fs::write(&config, "schema_version = 1\n").unwrap();
 
-    #[test]
-    fn empty_selection_does_not_call_remover() {
-        let remover = RecordingRemover::new();
-        let engine = fixture_engine();
-        run_with(
-            &engine,
-            &fixture_path("config-minimal.toml"),
-            false,
-            TargetOs::Darwin,
-            choose_none,
-            &remover,
-        )
-        .unwrap();
-        assert!(!remover.was_called());
-    }
+        run(&fixture_engine(), &config, true).unwrap();
 
-    #[test]
-    fn dry_run_does_not_call_remover() {
-        let remover = RecordingRemover::new();
-        let engine = fixture_engine();
-        run_with(
-            &engine,
-            &fixture_path("config-minimal.toml"),
-            true,
-            TargetOs::Darwin,
-            choose_all,
-            &remover,
-        )
-        .unwrap();
-        assert!(!remover.was_called());
-    }
-
-    #[test]
-    fn passes_selected_subset_to_remover() {
-        let remover = RecordingRemover::new();
-        let engine = fixture_engine();
-        run_with(
-            &engine,
-            &fixture_path("config-minimal.toml"),
-            false,
-            TargetOs::Darwin,
-            choose_first,
-            &remover,
-        )
-        .unwrap();
-        let call = remover.last_call().unwrap();
-        assert_eq!(call.len(), 1);
-    }
-
-    #[test]
-    fn all_selected_calls_remover_with_all_programs() {
-        let remover = RecordingRemover::new();
-        let engine = fixture_engine();
-        run_with(
-            &engine,
-            &fixture_path("config-minimal.toml"),
-            false,
-            TargetOs::Darwin,
-            choose_all,
-            &remover,
-        )
-        .unwrap();
-        assert!(remover.was_called());
-        let programs = remover.last_call().unwrap();
-        assert!(programs.contains(&"git".to_owned()));
+        assert!(config.exists(), "config must not be removed in dry-run");
     }
 }
