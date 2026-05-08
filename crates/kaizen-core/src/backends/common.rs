@@ -19,7 +19,9 @@ pub fn chezmoi_write_and_apply(
     let source_dir = match initial {
         chezmoi::SourcePathState::Confirmed(p) => p,
         chezmoi::SourcePathState::Uninitialized(_) => {
-            let url = plan.dotfiles_source.as_deref()
+            let url = plan
+                .dotfiles_source
+                .as_deref()
                 .ok_or(KaizenError::ChezmoidataTargetUnknown)?;
             chezmoi::init_source(url)?;
             chezmoi::source_path(plan)?.into_confirmed()?
