@@ -1,4 +1,4 @@
-use crate::{KaizenError, WorkflowPlan};
+use crate::{progress::ProgressReporter, KaizenError, WorkflowPlan};
 
 #[derive(Debug, Clone, Default)]
 pub struct SyncOpts {
@@ -65,39 +65,48 @@ pub trait SyncBackend: Send + Sync {
     fn is_available(&self) -> bool;
 
     /// Step 1 of sync: install packages.
-    ///
-    /// - `UptSyncBackend`: `upt install <programs>`
-    /// - `NixSyncBackend`: `darwin-rebuild switch` + `home-manager switch`
-    ///   (ignores `plan.install_plan.programs` — Nix reads its own modules)
-    ///
-    /// Error aborts the whole sync.
-    fn install(&self, plan: &WorkflowPlan, opts: &SyncOpts) -> Result<InstallReport, KaizenError>;
+    fn install(
+        &self,
+        plan: &WorkflowPlan,
+        opts: &SyncOpts,
+        reporter: &dyn ProgressReporter,
+    ) -> Result<InstallReport, KaizenError>;
 
     /// Step 2 of sync: apply dotfiles.
-    ///
-    /// Same for all backends: write `.chezmoidata.toml` → `chezmoi apply`.
-    /// Error aborts the whole sync.
-    fn apply(&self, plan: &WorkflowPlan, opts: &SyncOpts) -> Result<ApplyReport, KaizenError>;
+    fn apply(
+        &self,
+        plan: &WorkflowPlan,
+        opts: &SyncOpts,
+        reporter: &dyn ProgressReporter,
+    ) -> Result<ApplyReport, KaizenError>;
 
     /// Step 3 of sync: post-apply tasks.
-    ///
-    /// Same for all backends: `mise install && mise trust ~/.config/mise.toml`.
-    fn post_apply(&self, opts: &SyncOpts) -> Result<(), KaizenError>;
+    fn post_apply(
+        &self,
+        opts: &SyncOpts,
+        reporter: &dyn ProgressReporter,
+    ) -> Result<(), KaizenError>;
 
     /// Full sync with the correct step order for each backend.
-    ///
-    /// Default (upt): install → apply → post_apply
-    /// NixSyncBackend overrides to: apply → install → post_apply
-    /// (chezmoi apply must run first because Nix reads `.chezmoidata.toml`)
-    fn sync(&self, plan: &WorkflowPlan, opts: &SyncOpts) -> Result<SyncReport, KaizenError> {
-        let install = self.install(plan, opts)?;
-        let apply = self.apply(plan, opts)?;
-        self.post_apply(opts)?;
+    fn sync(
+        &self,
+        plan: &WorkflowPlan,
+        opts: &SyncOpts,
+        reporter: &dyn ProgressReporter,
+    ) -> Result<SyncReport, KaizenError> {
+        let install = self.install(plan, opts, reporter)?;
+        let apply = self.apply(plan, opts, reporter)?;
+        self.post_apply(opts, reporter)?;
         Ok(SyncReport { install, apply })
     }
 
-    /// Upgrade packages. `opts.update_flake = true` also runs `nix flake update`.
-    fn update(&self, plan: &WorkflowPlan, opts: &UpdateOpts) -> Result<UpdateReport, KaizenError>;
+    /// Upgrade packages.
+    fn update(
+        &self,
+        plan: &WorkflowPlan,
+        opts: &UpdateOpts,
+        reporter: &dyn ProgressReporter,
+    ) -> Result<UpdateReport, KaizenError>;
 
     /// Clean caches: nix GC, OS package cache, docker.
     fn clean(&self, opts: &CleanOpts) -> Result<CleanReport, KaizenError>;
@@ -106,6 +115,5 @@ pub trait SyncBackend: Send + Sync {
     fn preview(&self, plan: &WorkflowPlan) -> SyncPreview;
 
     /// Preview only the apply + post-apply steps (dotfiles + mise).
-    /// Used by `kaizen apply --dry-run` to avoid showing install steps.
     fn apply_preview(&self, plan: &WorkflowPlan) -> SyncPreview;
 }

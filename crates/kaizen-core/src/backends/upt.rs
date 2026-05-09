@@ -2,6 +2,7 @@ use crate::{
     backends::common,
     installer::UptInstaller,
     installer::{Installer, Updater},
+    progress::ProgressReporter,
     sync_backend::{
         ApplyReport, CleanOpts, CleanReport, InstallReport, SyncOpts, SyncPreview, SyncStep,
         UpdateOpts, UpdateReport,
@@ -28,7 +29,12 @@ impl SyncBackend for UptSyncBackend {
         which::which("upt").is_ok()
     }
 
-    fn install(&self, plan: &WorkflowPlan, opts: &SyncOpts) -> Result<InstallReport, KaizenError> {
+    fn install(
+        &self,
+        plan: &WorkflowPlan,
+        opts: &SyncOpts,
+        reporter: &dyn ProgressReporter,
+    ) -> Result<InstallReport, KaizenError> {
         let programs = &plan.install_plan.programs;
         if programs.is_empty() {
             return Ok(InstallReport::default());
@@ -41,7 +47,7 @@ impl SyncBackend for UptSyncBackend {
             });
         }
 
-        eprintln!("→ upt install");
+        reporter.step("→ upt install");
         UptInstaller.install(programs)?;
         Ok(InstallReport {
             steps: vec![UptInstaller.preview_install(programs)],
@@ -49,18 +55,33 @@ impl SyncBackend for UptSyncBackend {
         })
     }
 
-    fn apply(&self, plan: &WorkflowPlan, opts: &SyncOpts) -> Result<ApplyReport, KaizenError> {
-        common::chezmoi_write_and_apply(&plan.config_plan, opts.dry_run)
+    fn apply(
+        &self,
+        plan: &WorkflowPlan,
+        opts: &SyncOpts,
+        reporter: &dyn ProgressReporter,
+    ) -> Result<ApplyReport, KaizenError> {
+        common::chezmoi_write_and_apply(&plan.config_plan, opts.dry_run, reporter)
     }
 
-    fn post_apply(&self, opts: &SyncOpts) -> Result<(), KaizenError> {
+    fn post_apply(
+        &self,
+        opts: &SyncOpts,
+        reporter: &dyn ProgressReporter,
+    ) -> Result<(), KaizenError> {
         if which::which("mise").is_ok() {
+            reporter.step("→ mise install");
             return common::mise_install(opts.dry_run);
         }
         Ok(())
     }
 
-    fn update(&self, plan: &WorkflowPlan, opts: &UpdateOpts) -> Result<UpdateReport, KaizenError> {
+    fn update(
+        &self,
+        plan: &WorkflowPlan,
+        opts: &UpdateOpts,
+        _reporter: &dyn ProgressReporter,
+    ) -> Result<UpdateReport, KaizenError> {
         let programs = &plan.install_plan.programs;
         let mut warnings = vec![];
 
@@ -142,11 +163,10 @@ impl SyncBackend for UptSyncBackend {
 
 #[cfg(test)]
 mod tests {
-    use std::cell::RefCell;
-
     use super::*;
     use crate::{
         plan::{ConfigPlan, HookPlan, InstallPlan},
+        progress::NoopReporter,
         sync_backend::{CleanOpts, SyncOpts, UpdateOpts},
         UserSettings,
     };
@@ -181,7 +201,9 @@ mod tests {
     fn install_dry_run_returns_steps_without_calling_upt() {
         let backend = UptSyncBackend::new(TargetOs::Darwin);
         let plan = plan_with_programs(&["git", "ripgrep"]);
-        let report = backend.install(&plan, &SyncOpts { dry_run: true }).unwrap();
+        let report = backend
+            .install(&plan, &SyncOpts { dry_run: true }, &NoopReporter)
+            .unwrap();
         assert!(!report.steps.is_empty());
         assert!(report.steps[0].contains("git"));
     }
@@ -190,7 +212,9 @@ mod tests {
     fn install_empty_programs_returns_empty_report() {
         let backend = UptSyncBackend::new(TargetOs::Darwin);
         let plan = empty_plan();
-        let report = backend.install(&plan, &SyncOpts { dry_run: true }).unwrap();
+        let report = backend
+            .install(&plan, &SyncOpts { dry_run: true }, &NoopReporter)
+            .unwrap();
         assert!(report.steps.is_empty());
     }
 
@@ -205,6 +229,7 @@ mod tests {
                     dry_run: true,
                     update_flake: false,
                 },
+                &NoopReporter,
             )
             .unwrap();
         assert!(report.upgraded.contains(&"git".to_owned()));

@@ -1,6 +1,7 @@
 use crate::{
     backends::common,
     process,
+    progress::ProgressReporter,
     sync_backend::{
         ApplyReport, CleanOpts, CleanReport, InstallReport, SyncOpts, SyncPreview, SyncStep,
         UpdateOpts, UpdateReport,
@@ -48,14 +49,24 @@ impl SyncBackend for NixSyncBackend {
         which::which("home-manager").is_ok() || which::which("darwin-rebuild").is_ok()
     }
 
-    fn sync(&self, plan: &WorkflowPlan, opts: &SyncOpts) -> Result<crate::SyncReport, KaizenError> {
-        let apply = self.apply(plan, opts)?;
-        let install = self.install(plan, opts)?;
-        self.post_apply(opts)?;
+    fn sync(
+        &self,
+        plan: &WorkflowPlan,
+        opts: &SyncOpts,
+        reporter: &dyn ProgressReporter,
+    ) -> Result<crate::SyncReport, KaizenError> {
+        let apply = self.apply(plan, opts, reporter)?;
+        let install = self.install(plan, opts, reporter)?;
+        self.post_apply(opts, reporter)?;
         Ok(crate::SyncReport { install, apply })
     }
 
-    fn install(&self, _plan: &WorkflowPlan, opts: &SyncOpts) -> Result<InstallReport, KaizenError> {
+    fn install(
+        &self,
+        _plan: &WorkflowPlan,
+        opts: &SyncOpts,
+        reporter: &dyn ProgressReporter,
+    ) -> Result<InstallReport, KaizenError> {
         let steps = self.nix_install_steps();
 
         if opts.dry_run {
@@ -66,10 +77,10 @@ impl SyncBackend for NixSyncBackend {
         }
 
         if self.os == TargetOs::Darwin {
-            eprintln!("→ darwin-rebuild switch");
+            reporter.step("→ darwin-rebuild switch");
             run_darwin_rebuild()?;
         }
-        eprintln!("→ home-manager switch");
+        reporter.step("→ home-manager switch");
         run_home_manager(self.flake_host())?;
 
         Ok(InstallReport {
@@ -78,19 +89,33 @@ impl SyncBackend for NixSyncBackend {
         })
     }
 
-    fn apply(&self, plan: &WorkflowPlan, opts: &SyncOpts) -> Result<ApplyReport, KaizenError> {
-        common::chezmoi_write_and_apply(&plan.config_plan, opts.dry_run)
+    fn apply(
+        &self,
+        plan: &WorkflowPlan,
+        opts: &SyncOpts,
+        reporter: &dyn ProgressReporter,
+    ) -> Result<ApplyReport, KaizenError> {
+        common::chezmoi_write_and_apply(&plan.config_plan, opts.dry_run, reporter)
     }
 
-    fn post_apply(&self, opts: &SyncOpts) -> Result<(), KaizenError> {
+    fn post_apply(
+        &self,
+        opts: &SyncOpts,
+        reporter: &dyn ProgressReporter,
+    ) -> Result<(), KaizenError> {
         if which::which("mise").is_ok() {
-            eprintln!("→ mise install");
+            reporter.step("→ mise install");
             return common::mise_install(opts.dry_run);
         }
         Ok(())
     }
 
-    fn update(&self, plan: &WorkflowPlan, opts: &UpdateOpts) -> Result<UpdateReport, KaizenError> {
+    fn update(
+        &self,
+        plan: &WorkflowPlan,
+        opts: &UpdateOpts,
+        reporter: &dyn ProgressReporter,
+    ) -> Result<UpdateReport, KaizenError> {
         if opts.update_flake {
             run_nix_flake_update(opts.dry_run)?;
         }
@@ -100,6 +125,7 @@ impl SyncBackend for NixSyncBackend {
             &SyncOpts {
                 dry_run: opts.dry_run,
             },
+            reporter,
         )?;
 
         let tools: Vec<String> = plan.install_plan.mise_tools.keys().cloned().collect();
@@ -200,6 +226,7 @@ mod tests {
     use super::*;
     use crate::{
         plan::{ConfigPlan, HookPlan, InstallPlan},
+        progress::NoopReporter,
         sync_backend::SyncOpts,
         UserSettings,
     };
@@ -243,7 +270,9 @@ mod tests {
     fn install_dry_run_returns_steps_without_spawning() {
         let backend = NixSyncBackend::new(TargetOs::Darwin);
         let plan = empty_plan(TargetOs::Darwin);
-        let report = backend.install(&plan, &SyncOpts { dry_run: true }).unwrap();
+        let report = backend
+            .install(&plan, &SyncOpts { dry_run: true }, &NoopReporter)
+            .unwrap();
         assert!(!report.steps.is_empty());
     }
 
@@ -251,7 +280,9 @@ mod tests {
     fn install_dry_run_darwin_steps_include_darwin_rebuild() {
         let backend = NixSyncBackend::new(TargetOs::Darwin);
         let plan = empty_plan(TargetOs::Darwin);
-        let report = backend.install(&plan, &SyncOpts { dry_run: true }).unwrap();
+        let report = backend
+            .install(&plan, &SyncOpts { dry_run: true }, &NoopReporter)
+            .unwrap();
         assert!(
             report.steps.iter().any(|s| s.contains("darwin-rebuild")),
             "darwin steps must include darwin-rebuild, got: {report:?}"
@@ -262,7 +293,9 @@ mod tests {
     fn install_dry_run_linux_steps_skip_darwin_rebuild() {
         let backend = NixSyncBackend::new(TargetOs::Linux);
         let plan = empty_plan(TargetOs::Linux);
-        let report = backend.install(&plan, &SyncOpts { dry_run: true }).unwrap();
+        let report = backend
+            .install(&plan, &SyncOpts { dry_run: true }, &NoopReporter)
+            .unwrap();
         assert!(
             report.steps.iter().all(|s| !s.contains("darwin-rebuild")),
             "linux steps must not include darwin-rebuild"

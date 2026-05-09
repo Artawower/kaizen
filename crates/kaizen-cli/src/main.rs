@@ -5,7 +5,10 @@ mod commands;
 mod ensure;
 mod hooks;
 mod output;
+mod reporter;
 mod selector;
+
+use reporter::StderrReporter;
 
 #[derive(Parser)]
 #[command(
@@ -97,13 +100,15 @@ fn main() -> Result<()> {
         .config
         .unwrap_or_else(kaizen_core::KaizenEngine::default_config_path);
 
+    let reporter = StderrReporter;
+
     if matches!(cli.command, Command::Setup | Command::Init { .. }) {
         let features_dir_path = cli.features_dir.clone();
         let features_dir_opt = features_dir_path.as_deref();
         return match cli.command {
             Command::Setup => commands::setup::run(features_dir_opt, &config_path),
             Command::Init { dry_run } => {
-                let features_dir = kaizen_core::resolve_features_dir(cli.features_dir)?;
+                let features_dir = kaizen_core::resolve_features_dir(cli.features_dir, &reporter)?;
                 let engine = kaizen_core::KaizenEngine::new(&features_dir);
                 commands::init::run(&engine, features_dir_opt, &config_path, dry_run)
             }
@@ -111,7 +116,7 @@ fn main() -> Result<()> {
         };
     }
 
-    let features_dir = kaizen_core::resolve_features_dir(cli.features_dir)?;
+    let features_dir = kaizen_core::resolve_features_dir(cli.features_dir, &reporter)?;
     let engine = kaizen_core::KaizenEngine::new(&features_dir);
 
     match cli.command {

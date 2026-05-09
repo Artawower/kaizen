@@ -59,8 +59,8 @@ mod tests {
     use std::sync::atomic::{AtomicBool, Ordering};
 
     use kaizen_core::{
-        ApplyReport, CleanOpts, CleanReport, InstallReport, KaizenEngine, SyncBackend, SyncOpts,
-        SyncPreview, SyncReport, UpdateOpts, UpdateReport, WorkflowPlan,
+        ApplyReport, CleanOpts, CleanReport, InstallReport, KaizenEngine, ProgressReporter,
+        SyncBackend, SyncOpts, SyncPreview, SyncReport, UpdateOpts, UpdateReport, WorkflowPlan,
     };
 
     use super::run_with;
@@ -91,6 +91,7 @@ mod tests {
             &self,
             _: &WorkflowPlan,
             _: &SyncOpts,
+            _: &dyn ProgressReporter,
         ) -> Result<InstallReport, kaizen_core::KaizenError> {
             Ok(InstallReport::default())
         }
@@ -98,16 +99,22 @@ mod tests {
             &self,
             _: &WorkflowPlan,
             _: &SyncOpts,
+            _: &dyn ProgressReporter,
         ) -> Result<ApplyReport, kaizen_core::KaizenError> {
             Ok(ApplyReport::default())
         }
-        fn post_apply(&self, _: &SyncOpts) -> Result<(), kaizen_core::KaizenError> {
+        fn post_apply(
+            &self,
+            _: &SyncOpts,
+            _: &dyn ProgressReporter,
+        ) -> Result<(), kaizen_core::KaizenError> {
             Ok(())
         }
         fn sync(
             &self,
             _: &WorkflowPlan,
             _: &SyncOpts,
+            _: &dyn ProgressReporter,
         ) -> Result<SyncReport, kaizen_core::KaizenError> {
             Ok(SyncReport::default())
         }
@@ -115,6 +122,7 @@ mod tests {
             &self,
             _: &WorkflowPlan,
             _: &UpdateOpts,
+            _: &dyn ProgressReporter,
         ) -> Result<UpdateReport, kaizen_core::KaizenError> {
             Ok(UpdateReport::default())
         }

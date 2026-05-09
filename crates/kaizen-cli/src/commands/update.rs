@@ -7,7 +7,7 @@ use kaizen_core::{
 };
 use owo_colors::OwoColorize;
 
-use crate::{hooks, output, selector};
+use crate::{hooks, output, reporter::StderrReporter, selector};
 
 pub fn run(
     engine: &KaizenEngine,
@@ -92,6 +92,7 @@ fn run_with(
             dry_run,
             update_flake,
         },
+        &StderrReporter,
     )?;
 
     for w in &report.warnings {
@@ -144,7 +145,8 @@ mod tests {
 
     use kaizen_core::{
         ApplyReport, CleanOpts, CleanReport, HookRunner, InstallReport, KaizenEngine, KaizenError,
-        SyncBackend, SyncOpts, SyncPreview, SyncReport, UpdateOpts, UpdateReport, WorkflowPlan,
+        ProgressReporter, SyncBackend, SyncOpts, SyncPreview, SyncReport, UpdateOpts, UpdateReport,
+        WorkflowPlan,
     };
 
     use super::run_with;
@@ -168,19 +170,39 @@ mod tests {
         fn is_available(&self) -> bool {
             true
         }
-        fn install(&self, _: &WorkflowPlan, _: &SyncOpts) -> Result<InstallReport, KaizenError> {
+        fn install(
+            &self,
+            _: &WorkflowPlan,
+            _: &SyncOpts,
+            _: &dyn ProgressReporter,
+        ) -> Result<InstallReport, KaizenError> {
             Ok(InstallReport::default())
         }
-        fn apply(&self, _: &WorkflowPlan, _: &SyncOpts) -> Result<ApplyReport, KaizenError> {
+        fn apply(
+            &self,
+            _: &WorkflowPlan,
+            _: &SyncOpts,
+            _: &dyn ProgressReporter,
+        ) -> Result<ApplyReport, KaizenError> {
             Ok(ApplyReport::default())
         }
-        fn post_apply(&self, _: &SyncOpts) -> Result<(), KaizenError> {
+        fn post_apply(&self, _: &SyncOpts, _: &dyn ProgressReporter) -> Result<(), KaizenError> {
             Ok(())
         }
-        fn sync(&self, _: &WorkflowPlan, _: &SyncOpts) -> Result<SyncReport, KaizenError> {
+        fn sync(
+            &self,
+            _: &WorkflowPlan,
+            _: &SyncOpts,
+            _: &dyn ProgressReporter,
+        ) -> Result<SyncReport, KaizenError> {
             Ok(SyncReport::default())
         }
-        fn update(&self, _: &WorkflowPlan, _: &UpdateOpts) -> Result<UpdateReport, KaizenError> {
+        fn update(
+            &self,
+            _: &WorkflowPlan,
+            _: &UpdateOpts,
+            _: &dyn ProgressReporter,
+        ) -> Result<UpdateReport, KaizenError> {
             self.update_called.store(true, Ordering::Relaxed);
             Ok(UpdateReport::default())
         }

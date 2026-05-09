@@ -4,7 +4,7 @@ use anyhow::Result;
 use kaizen_core::{detect_backend, KaizenEngine, SyncBackend, SyncOpts, TargetOs};
 use owo_colors::OwoColorize;
 
-use crate::output;
+use crate::{output, reporter::StderrReporter};
 
 pub fn run(engine: &KaizenEngine, config_path: &Path, dry_run: bool) -> Result<()> {
     let os = TargetOs::detect();
@@ -42,13 +42,14 @@ fn run_with(
         return Ok(());
     }
 
-    let report = backend.apply(&plan, &opts)?;
+    let reporter = StderrReporter;
+    let report = backend.apply(&plan, &opts, &reporter)?;
     if let Some(path) = &report.data_path {
         output::item_ok(&format!("wrote {}", path.display()));
     }
     output::item_ok("chezmoi apply done");
 
-    backend.post_apply(&opts)?;
+    backend.post_apply(&opts, &reporter)?;
     output::item_ok("mise install done");
 
     println!();
@@ -62,8 +63,9 @@ mod tests {
     use std::sync::atomic::{AtomicBool, Ordering};
 
     use kaizen_core::{
-        ApplyReport, CleanOpts, CleanReport, InstallReport, KaizenEngine, SyncBackend, SyncOpts,
-        SyncPreview, SyncReport, SyncStep, UpdateOpts, UpdateReport, WorkflowPlan,
+        ApplyReport, CleanOpts, CleanReport, InstallReport, KaizenEngine, ProgressReporter,
+        SyncBackend, SyncOpts, SyncPreview, SyncReport, SyncStep, UpdateOpts, UpdateReport,
+        WorkflowPlan,
     };
 
     use super::run_with;
@@ -94,6 +96,7 @@ mod tests {
             &self,
             _: &WorkflowPlan,
             _: &SyncOpts,
+            _: &dyn ProgressReporter,
         ) -> Result<InstallReport, kaizen_core::KaizenError> {
             Ok(InstallReport::default())
         }
@@ -102,12 +105,17 @@ mod tests {
             &self,
             _: &WorkflowPlan,
             _: &SyncOpts,
+            _: &dyn ProgressReporter,
         ) -> Result<ApplyReport, kaizen_core::KaizenError> {
             self.apply_called.store(true, Ordering::Relaxed);
             Ok(ApplyReport::default())
         }
 
-        fn post_apply(&self, _: &SyncOpts) -> Result<(), kaizen_core::KaizenError> {
+        fn post_apply(
+            &self,
+            _: &SyncOpts,
+            _: &dyn ProgressReporter,
+        ) -> Result<(), kaizen_core::KaizenError> {
             self.post_apply_called.store(true, Ordering::Relaxed);
             Ok(())
         }
@@ -116,6 +124,7 @@ mod tests {
             &self,
             _: &WorkflowPlan,
             _: &SyncOpts,
+            _: &dyn ProgressReporter,
         ) -> Result<SyncReport, kaizen_core::KaizenError> {
             Ok(SyncReport::default())
         }
@@ -123,6 +132,7 @@ mod tests {
             &self,
             _: &WorkflowPlan,
             _: &UpdateOpts,
+            _: &dyn ProgressReporter,
         ) -> Result<UpdateReport, kaizen_core::KaizenError> {
             Ok(UpdateReport::default())
         }

@@ -13,6 +13,7 @@ pub mod merge;
 pub mod os;
 pub mod plan;
 pub mod process;
+pub mod progress;
 pub mod sync_backend;
 
 pub use backends::detect::detect_backend;
@@ -29,12 +30,16 @@ pub use hooks::{HookRunner, ShellHookRunner};
 pub use installer::{Installer, Remover, Updater, UptInstaller};
 pub use os::{PackageManagerKind, TargetOs};
 pub use plan::{ConfigPlan, HookPlan, InstallPlan, WorkflowPlan};
+pub use progress::{NoopReporter, ProgressReporter};
 pub use sync_backend::{
     ApplyReport, CleanOpts, CleanReport, InstallReport, SyncBackend, SyncOpts, SyncPreview,
     SyncReport, SyncStep, UpdateOpts, UpdateReport,
 };
 
-pub fn resolve_features_dir(explicit: Option<PathBuf>) -> Result<PathBuf, KaizenError> {
+pub fn resolve_features_dir(
+    explicit: Option<PathBuf>,
+    reporter: &dyn ProgressReporter,
+) -> Result<PathBuf, KaizenError> {
     if let Some(dir) = explicit {
         return Ok(dir);
     }
@@ -46,7 +51,7 @@ pub fn resolve_features_dir(explicit: Option<PathBuf>) -> Result<PathBuf, Kaizen
             manifest::validate(&m)?;
             return Ok(candidate);
         }
-        eprintln!("warning: kaizen/features not found in chezmoi source — using built-in features");
+        reporter.warn("kaizen/features not found in chezmoi source — using built-in features");
     }
     Ok(PathBuf::from("features"))
 }

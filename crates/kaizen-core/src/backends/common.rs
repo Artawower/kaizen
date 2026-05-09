@@ -1,7 +1,9 @@
+use std::process::Command;
 use std::process::Stdio;
 
 use crate::{
     chezmoi, process,
+    progress::ProgressReporter,
     sync_backend::{ApplyReport, CleanReport},
     ConfigPlan, KaizenError, PackageManagerKind, TargetOs,
 };
@@ -9,6 +11,7 @@ use crate::{
 pub fn chezmoi_write_and_apply(
     plan: &ConfigPlan,
     dry_run: bool,
+    reporter: &dyn ProgressReporter,
 ) -> Result<ApplyReport, KaizenError> {
     let initial = chezmoi::source_path(plan)?;
 
@@ -36,9 +39,7 @@ pub fn chezmoi_write_and_apply(
     let content = chezmoi::merge_chezmoidata(&data_path, plan)?;
     std::fs::write(&data_path, &content)?;
 
-    eprintln!("→ chezmoi apply");
-    // stdout/stderr inherited — user sees real-time output.
-    // stderr also piped so we can include it in the error message on failure.
+    reporter.step("→ chezmoi apply");
     let mut child = Command::new("chezmoi")
         .arg("apply")
         .stderr(Stdio::piped())
