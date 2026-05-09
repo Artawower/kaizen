@@ -15,6 +15,7 @@ pub mod feature_store;
 pub mod hooks;
 pub mod installer;
 pub mod manifest;
+pub mod paths;
 pub mod merge;
 pub mod os;
 pub mod plan;
@@ -40,6 +41,7 @@ pub use container::{ContainerCleaner, NoopContainerCleaner};
 pub use executor::{NoopExecutor, ProcessCommand, ProcessExecutor, ProcessOutput};
 pub use fs::{FileSystem, StdFileSystem};
 pub use runtime::Runtime;
+pub use paths::{PathProvider, StdPathProvider};
 pub use progress::{NoopReporter, ProgressReporter};
 pub use toolchain::{DevToolsManager, NoopDevTools, ToolStep};
 pub use setup::{
@@ -88,8 +90,7 @@ impl KaizenEngine {
     }
 
     pub fn default_config_path() -> PathBuf {
-        dirs::config_dir()
-            .or_else(|| dirs::home_dir().map(|p| p.join(".config")))
+        StdPathProvider.config_dir()
             .unwrap_or_else(|| PathBuf::from(".config"))
             .join("kaizen")
             .join("config.toml")

@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use kaizen_core::{NixSyncBackend, Runtime, StdFileSystem, SyncBackend, TargetOs, UptSyncBackend};
+use kaizen_core::{NixSyncBackend, Runtime, StdFileSystem, StdPathProvider, SyncBackend, TargetOs, UptSyncBackend};
 
 use crate::{
     chezmoi::StdChezmoiClient, docker::DockerCleaner, executor::StdProcessExecutor,
@@ -16,6 +16,7 @@ pub fn detect_backend(os: TargetOs) -> Box<dyn SyncBackend> {
         Arc::new(StdProcessExecutor),
         Arc::new(StdFileSystem),
         Arc::new(StdChezmoiClient),
+        Arc::new(StdPathProvider),
     );
 
     if nix_available() {

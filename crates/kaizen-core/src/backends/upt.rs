@@ -235,6 +235,7 @@ mod tests {
                 std::sync::Arc::new(NoopExecutor),
                 std::sync::Arc::new(crate::StdFileSystem),
                 std::sync::Arc::new(NoopChezmoiClient),
+                std::sync::Arc::new(crate::StdPathProvider),
             ),
             Box::new(MockInstaller),
             Box::new(NoopDevTools),

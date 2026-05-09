@@ -51,7 +51,7 @@ impl NixSyncBackend {
     }
 
     fn nix_config_dir(&self) -> Result<std::path::PathBuf, KaizenError> {
-        Ok(dirs::home_dir()
+        Ok(self.runtime.paths.home_dir()
             .ok_or(KaizenError::HomeDirUnavailable)?
             .join(".config/nix"))
     }
@@ -298,6 +298,7 @@ mod tests {
                 Arc::new(NoopExecutor),
                 Arc::new(crate::StdFileSystem),
                 Arc::new(crate::NoopChezmoiClient),
+                Arc::new(crate::StdPathProvider),
             ),
             Box::new(NoopDevTools),
             Box::new(NoopContainerCleaner),
