@@ -1,4 +1,10 @@
-use kaizen_core::{container::ContainerCleaner, process, KaizenError};
+use kaizen_core::{
+    container::ContainerCleaner,
+    executor::{ProcessCommand, ProcessExecutor},
+    KaizenError,
+};
+
+use crate::executor::StdProcessExecutor;
 
 /// Concrete Docker-based container cleaner.
 ///
@@ -17,6 +23,7 @@ impl ContainerCleaner for DockerCleaner {
         if which::which("docker").is_err() || dry_run {
             return Ok(());
         }
-        process::run_cmd("docker", &["system", "prune", "-f"])
+        StdProcessExecutor.execute(ProcessCommand::run("docker", ["system", "prune", "-f"]))?;
+        Ok(())
     }
 }

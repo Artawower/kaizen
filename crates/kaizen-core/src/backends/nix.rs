@@ -241,7 +241,7 @@ impl CleanBackend for NixSyncBackend {
         let steps = common::clean_steps(&self.os, true, self.container.as_ref());
         if !opts.dry_run {
             self.run_nix_gc(false)?;
-            common::os_cache_clean(&self.os, false)?;
+            common::os_cache_clean(&self.os, false, self.runtime.executor.as_ref())?;
             self.container.clean(false)?;
         }
         Ok(common::clean_report_from_steps(steps))

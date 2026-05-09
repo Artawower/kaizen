@@ -2,8 +2,8 @@ use crate::{
     chezmoi::{self, merge_chezmoidata_with},
     chezmoi_client::ChezmoiClient,
     container::ContainerCleaner,
+    executor::{ProcessCommand, ProcessExecutor},
     fs::FileSystem,
-    process,
     progress::ProgressReporter,
     sync_backend::{ApplyReport, CleanReport},
     ConfigPlan, KaizenError, PackageManagerKind, TargetOs,
@@ -51,7 +51,11 @@ pub fn chezmoi_write_and_apply(
     })
 }
 
-pub fn os_cache_clean(os: &TargetOs, dry_run: bool) -> Result<(), KaizenError> {
+pub fn os_cache_clean(
+    os: &TargetOs,
+    dry_run: bool,
+    executor: &dyn ProcessExecutor,
+) -> Result<(), KaizenError> {
     let (bin, args): (&str, &[&str]) = match os.package_manager_kind() {
         PackageManagerKind::Brew => ("brew", &["cleanup"]),
         PackageManagerKind::Dnf => ("dnf", &["clean", "all"]),
@@ -59,7 +63,7 @@ pub fn os_cache_clean(os: &TargetOs, dry_run: bool) -> Result<(), KaizenError> {
         PackageManagerKind::Pacman => ("paccache", &["-r"]),
         PackageManagerKind::Unknown => return Ok(()),
     };
-    run_optional(bin, args, dry_run)
+    run_if_available(bin, args, dry_run, executor)
 }
 
 pub fn clean_report_from_steps(steps: Vec<String>) -> CleanReport {
@@ -95,13 +99,20 @@ pub fn clean_steps(
     steps
 }
 
-fn run_optional(bin: &str, args: &[&str], dry_run: bool) -> Result<(), KaizenError> {
-    if dry_run {
+/// Run `bin args` if the binary is on PATH, skipping when `dry_run`.
+fn run_if_available(
+    bin: &str,
+    args: &[&str],
+    dry_run: bool,
+    executor: &dyn ProcessExecutor,
+) -> Result<(), KaizenError> {
+    if dry_run || which::which(bin).is_err() {
         return Ok(());
     }
-    process::run_cmd_if_available(bin, args)
+    executor.execute(ProcessCommand::run(bin, args.iter().copied()))?;
+    Ok(())
 }
 
-// Keep `chezmoi` in scope for tests that use it
+// Keep chezmoi in scope (used by merge_chezmoidata_with)
 #[allow(unused_imports)]
 use chezmoi as _;

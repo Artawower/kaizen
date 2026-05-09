@@ -1,8 +1,10 @@
 use kaizen_core::{
-    process,
+    executor::{ProcessCommand, ProcessExecutor},
     toolchain::{DevToolsManager, ToolStep},
     KaizenError,
 };
+
+use crate::executor::StdProcessExecutor;
 
 /// Concrete mise-based dev toolchain manager.
 ///
@@ -24,13 +26,13 @@ impl DevToolsManager for MiseToolchain {
         if which::which("mise").is_err() || dry_run {
             return Ok(());
         }
-        process::run_cmd("mise", &["install"])?;
+        StdProcessExecutor.execute(ProcessCommand::run("mise", ["install"]))?;
         let mise_toml = dirs::home_dir()
             .ok_or(KaizenError::HomeDirUnavailable)?
             .join(".config/mise.toml");
         if mise_toml.exists() {
             let toml_str = mise_toml.to_string_lossy().into_owned();
-            process::run_cmd("mise", &["trust", &toml_str])?;
+            StdProcessExecutor.execute(ProcessCommand::run("mise", ["trust", &toml_str]))?;
         }
         Ok(())
     }
@@ -42,6 +44,7 @@ impl DevToolsManager for MiseToolchain {
         let tool_refs: Vec<&str> = tools.iter().map(String::as_str).collect();
         let mut args = vec!["upgrade"];
         args.extend_from_slice(&tool_refs);
-        process::run_cmd("mise", &args)
+        StdProcessExecutor.execute(ProcessCommand::run("mise", args))?;
+        Ok(())
     }
 }

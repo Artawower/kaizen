@@ -18,7 +18,6 @@ pub mod manifest;
 pub mod merge;
 pub mod os;
 pub mod plan;
-pub mod process;
 pub mod progress;
 pub mod setup;
 pub mod sync_backend;

@@ -157,7 +157,7 @@ impl CleanBackend for UptSyncBackend {
     fn clean(&self, opts: &CleanOpts) -> Result<CleanReport, KaizenError> {
         let steps = common::clean_steps(&self.os, false, self.container.as_ref());
         if !opts.dry_run {
-            common::os_cache_clean(&self.os, false)?;
+            common::os_cache_clean(&self.os, false, self.runtime.executor.as_ref())?;
             self.container.clean(false)?;
         }
         Ok(common::clean_report_from_steps(steps))
