@@ -5,7 +5,7 @@ import sys
 import os
 
 LAYOUTS   = ["colemak", "qwerty"]
-DATA_FILE = os.path.expanduser("~/.local/share/chezmoi/.chezmoidata.toml")
+DATA_FILE = os.path.expanduser("~/.config/kaizen/data.toml")
 
 def pick_layout():
     if len(sys.argv) > 1:

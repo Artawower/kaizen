@@ -1,5 +1,7 @@
+use std::path::PathBuf;
+
 use crate::{
-    chezmoi::merge_chezmoidata_with,
+    chezmoi::merge_kaizen_data_with,
     chezmoi_client::ChezmoiClient,
     container::ContainerCleaner,
     executor::{ProcessCommand, ProcessExecutor},
@@ -16,33 +18,25 @@ pub fn chezmoi_write_and_apply(
     reporter: &dyn ProgressReporter,
     client: &dyn ChezmoiClient,
     fs: &dyn FileSystem,
+    paths: &dyn PathProvider,
 ) -> Result<ApplyReport, KaizenError> {
     if dry_run {
         return Ok(ApplyReport { data_path: None });
     }
 
-    let source_dir = match client.source_path()? {
-        Some(p) => p,
-        None => {
-            let url = plan
-                .dotfiles_source
-                .as_deref()
-                .ok_or(KaizenError::ChezmoidataTargetUnknown)?;
-            client.init_source(url)?;
-            client
-                .source_path()?
-                .ok_or(KaizenError::ChezmoidataTargetUnknown)?
-        }
-    };
-
-    let data_path = source_dir.join(".chezmoidata.toml");
-
-    if let Some(parent) = data_path.parent() {
-        fs.create_dir_all(parent)?;
+    // Ensure chezmoi source is initialized (clone dotfiles repo if needed).
+    if client.source_path()?.is_none() {
+        let url = plan
+            .dotfiles_source
+            .as_deref()
+            .ok_or(KaizenError::ChezmoidataTargetUnknown)?;
+        client.init_source(url)?;
     }
 
-    let content = merge_chezmoidata_with(&data_path, plan, fs)?;
-    fs.write(&data_path, content.as_bytes())?;
+    // Write features data to the single canonical location.
+    // chezmoi templates read from here via `include | fromToml`;
+    // Nix reads from here too — no duplication, no path coupling.
+    let data_path = write_kaizen_data(plan, paths, fs)?;
 
     reporter.step("→ chezmoi apply");
     client.apply()?;
@@ -50,6 +44,23 @@ pub fn chezmoi_write_and_apply(
     Ok(ApplyReport {
         data_path: Some(data_path),
     })
+}
+
+/// Write features data to `~/.config/kaizen/data.toml` — the single source of truth.
+///
+/// Merges with any existing content so unknown keys (e.g. user-added data) are preserved.
+fn write_kaizen_data(
+    plan: &ConfigPlan,
+    paths: &dyn PathProvider,
+    fs: &dyn FileSystem,
+) -> Result<PathBuf, KaizenError> {
+    let config_dir = paths.config_dir().ok_or(KaizenError::HomeDirUnavailable)?;
+    let kaizen_dir = config_dir.join("kaizen");
+    let data_path = kaizen_dir.join("data.toml");
+    fs.create_dir_all(&kaizen_dir)?;
+    let content = merge_kaizen_data_with(&data_path, plan, fs)?;
+    fs.write(&data_path, content.as_bytes())?;
+    Ok(data_path)
 }
 
 pub fn os_cache_clean(

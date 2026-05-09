@@ -3,7 +3,7 @@ use std::path::PathBuf;
 fn chezmoi_apply_message(code: &Option<i32>, reason: &Option<String>) -> String {
     match reason {
         Some(r) => format!(
-            "chezmoi apply failed\n\n{r}\n\nHint: a template references a key missing from .chezmoidata.toml.\nRun 'kaizen configure' or add the missing key manually."
+            "chezmoi apply failed\n\n{r}\n\nHint: a template references a missing key — run 'kaizen configure' or check ~/.config/kaizen/data.toml.\nRun 'kaizen configure' or add the missing key manually."
         ),
         None => format!("chezmoi apply failed with exit code {code:?}"),
     }
@@ -55,7 +55,7 @@ pub enum KaizenError {
     #[error("cannot determine chezmoi source directory — run 'chezmoi init' first")]
     ChezmoidataTargetUnknown,
 
-    #[error("failed to serialize chezmoidata: {0}")]
+    #[error("failed to serialize kaizen data: {0}")]
     TomlSerialize(#[from] toml::ser::Error),
 
     #[error("hook command failed: `{command}` — {reason}")]

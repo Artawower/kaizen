@@ -79,7 +79,7 @@ pub fn parse_source_path_output(raw: &str) -> Option<PathBuf> {
     Some(PathBuf::from(s))
 }
 
-// ── Pure chezmoidata generation and merge ────────────────────────────────────
+// ── Pure kaizen data generation and merge ────────────────────────────────────
 
 #[derive(Serialize)]
 struct ChezmoidataFile<'a> {
@@ -87,8 +87,8 @@ struct ChezmoidataFile<'a> {
     features: &'a IndexMap<String, bool>,
 }
 
-/// Generate chezmoidata content from scratch (used in tests and first-time setup).
-pub fn generate_chezmoidata(plan: &ConfigPlan) -> Result<String, KaizenError> {
+/// Generate kaizen data content from scratch (used in tests and first-time setup).
+pub fn generate_kaizen_data(plan: &ConfigPlan) -> Result<String, KaizenError> {
     let layout = plan.settings.layout.as_deref().unwrap_or("qwerty");
     let data = ChezmoidataFile {
         layout,
@@ -97,12 +97,12 @@ pub fn generate_chezmoidata(plan: &ConfigPlan) -> Result<String, KaizenError> {
     Ok(toml::to_string_pretty(&data)?)
 }
 
-/// Merge kaizen-managed keys into an existing chezmoidata using an injected FileSystem.
+/// Merge kaizen-managed keys into existing kaizen data using an injected FileSystem.
 ///
 /// Preserves all other keys (username, hostname, email, models, etc.) that
 /// are maintained outside of kaizen. If the file does not exist, behaves
-/// identically to `generate_chezmoidata`.
-pub fn merge_chezmoidata_with(
+/// identically to `generate_kaizen_data`.
+pub fn merge_kaizen_data_with(
     existing_path: &Path,
     plan: &ConfigPlan,
     fs: &dyn crate::FileSystem,
@@ -168,7 +168,7 @@ mod tests {
     use crate::{fs::mem::MemFileSystem, ConfigPlan, UserSettings};
 
     use super::{
-        generate_chezmoidata, merge_chezmoidata_with, parse_managed_files,
+        generate_kaizen_data, merge_kaizen_data_with, parse_managed_files,
         parse_source_path_output, parse_status_output, FileStatus,
     };
 
@@ -188,7 +188,7 @@ mod tests {
     #[test]
     fn generates_features_and_layout() {
         let plan = make_plan(&[("core", true), ("emacs", false)], Some("colemak"));
-        let toml = generate_chezmoidata(&plan).unwrap();
+        let toml = generate_kaizen_data(&plan).unwrap();
         assert!(toml.contains("core = true"));
         assert!(toml.contains("emacs = false"));
         assert!(toml.contains("layout = \"colemak\""));
@@ -197,14 +197,14 @@ mod tests {
     #[test]
     fn defaults_layout_to_qwerty_when_unset() {
         let plan = make_plan(&[], None);
-        let toml = generate_chezmoidata(&plan).unwrap();
+        let toml = generate_kaizen_data(&plan).unwrap();
         assert!(toml.contains("layout = \"qwerty\""));
     }
 
     #[test]
     fn empty_features_produces_valid_toml() {
         let plan = make_plan(&[], Some("colemak"));
-        let toml = generate_chezmoidata(&plan).unwrap();
+        let toml = generate_kaizen_data(&plan).unwrap();
         let _: toml::Value = toml::from_str(&toml).expect("must be valid toml");
     }
 
@@ -218,13 +218,13 @@ mod tests {
 
     #[test]
     fn merge_preserves_unknown_keys() {
-        let path = PathBuf::from("/tmp/.chezmoidata.toml");
+        let path = PathBuf::from("/tmp/kaizen-data.toml");
         let fs = mem_fs_with(
             &path,
             "username = \"alice\"\nhostname = \"macbook\"\n\n[models]\ndefault = \"gpt-4\"\n\n[features]\ncore = true\n",
         );
         let plan = make_plan(&[("frontend", true)], Some("qwerty"));
-        let merged = merge_chezmoidata_with(&path, &plan, &fs).unwrap();
+        let merged = merge_kaizen_data_with(&path, &plan, &fs).unwrap();
         assert!(merged.contains("username = \"alice\""));
         assert!(merged.contains("hostname = \"macbook\""));
         assert!(merged.contains("default = \"gpt-4\""));
@@ -234,13 +234,13 @@ mod tests {
 
     #[test]
     fn merge_preserves_unknown_feature_keys() {
-        let path = PathBuf::from("/tmp/.chezmoidata.toml");
+        let path = PathBuf::from("/tmp/kaizen-data.toml");
         let fs = mem_fs_with(
             &path,
             "layout = \"colemak\"\n\n[features]\ncore = true\nvcs = true\n",
         );
         let plan = make_plan(&[("core", true), ("frontend", false)], Some("colemak"));
-        let merged = merge_chezmoidata_with(&path, &plan, &fs).unwrap();
+        let merged = merge_kaizen_data_with(&path, &plan, &fs).unwrap();
         assert!(
             merged.contains("vcs = true"),
             "vcs must be preserved: {merged}"
@@ -250,13 +250,13 @@ mod tests {
 
     #[test]
     fn merge_updates_layout_without_touching_rest() {
-        let path = PathBuf::from("/tmp/.chezmoidata.toml");
+        let path = PathBuf::from("/tmp/kaizen-data.toml");
         let fs = mem_fs_with(
             &path,
             "layout = \"colemak\"\nusername = \"bob\"\n\n[features]\ncore = true\n",
         );
         let plan = make_plan(&[("core", true)], Some("qwerty"));
-        let merged = merge_chezmoidata_with(&path, &plan, &fs).unwrap();
+        let merged = merge_kaizen_data_with(&path, &plan, &fs).unwrap();
         assert!(merged.contains("layout = \"qwerty\""));
         assert!(merged.contains("username = \"bob\""));
     }
@@ -266,8 +266,8 @@ mod tests {
         let path = PathBuf::from("/tmp/nonexistent.toml");
         let fs = MemFileSystem::new(); // file not added → doesn't exist
         let plan = make_plan(&[("core", true)], Some("colemak"));
-        let merged = merge_chezmoidata_with(&path, &plan, &fs).unwrap();
-        let generated = generate_chezmoidata(&plan).unwrap();
+        let merged = merge_kaizen_data_with(&path, &plan, &fs).unwrap();
+        let generated = generate_kaizen_data(&plan).unwrap();
         let merged_val: toml::Value = toml::from_str(&merged).unwrap();
         let gen_val: toml::Value = toml::from_str(&generated).unwrap();
         assert_eq!(merged_val, gen_val);

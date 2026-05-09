@@ -19,7 +19,7 @@ Subsequent runs: ~30s with Docker layer cache.
 - `kaizen plan` — prints feature plan
 - `kaizen install --dry-run` — lists packages without running upt
 - `kaizen install` — actually installs `cowsay` via apt; verifies binary on PATH and `post_install` hook fired
-- `kaizen apply` — auto `chezmoi init` from local git repo, writes `.chezmoidata.toml`, runs `chezmoi apply`, verifies template rendered with feature flag and `post_apply` hook fired
+- `kaizen apply` — auto `chezmoi init` from local git repo, writes `~/.config/kaizen/data.toml`, runs `chezmoi apply`, verifies template rendered with feature flag and `post_apply` hook fired
 - `kaizen update --dry-run e2e` — targeted update by feature name
 
 ## Why Linux only

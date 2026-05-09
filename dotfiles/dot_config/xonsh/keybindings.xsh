@@ -17,7 +17,7 @@ def _detect_layout():
             return "qwerty"
 
     paths = [
-        os.path.expanduser("~/.local/share/chezmoi/.chezmoidata.toml"),
+        os.path.expanduser("~/.config/kaizen/data.toml"),
         os.path.expanduser("~/.config/chezmoi/chezmoi.toml"),
     ]
     for path in paths:

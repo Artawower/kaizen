@@ -1,7 +1,14 @@
 { user, ... }:
 
 let
-  data = builtins.fromTOML (builtins.readFile "${builtins.getEnv "HOME"}/.local/share/chezmoi/dotfiles/.chezmoidata.toml");
+  dataPath = "${builtins.getEnv "HOME"}/.config/kaizen/data.toml";
+  data = if builtins.pathExists dataPath
+    then builtins.fromTOML (builtins.readFile dataPath)
+    else { layout = "qwerty"; features = {
+        core = false; vcs = false; terminal = false; emacs = false;
+        keyboard = false; frontend = false; go = false; python = false;
+        rust = false; ai = false; tiling = false;
+      }; };
 in
 
 {

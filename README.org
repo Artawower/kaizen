@@ -252,7 +252,7 @@ kaizen doctor     # check system readiness and tool availability
 - ~kaizen install~ is the entry point for a fresh machine. Runs ~kaizen configure~ if no config or dotfiles are found, then ~kaizen sync~.
 - ~kaizen configure~ runs the interactive wizard: picks a dotfiles repository, selects features and keyboard layout, writes =~/.config/kaizen/config.toml=.
 - ~kaizen sync~ is the primary day-to-day command. It auto-detects the backend:
-  - *Nix* (=home-manager= or =darwin-rebuild= found): writes =.chezmoidata.toml= → =chezmoi apply= → =darwin-rebuild switch= + =home-manager switch= → =mise install=.
+  - *Nix* (=home-manager= or =darwin-rebuild= found): writes =~/.config/kaizen/data.toml= → =chezmoi apply= → =darwin-rebuild switch= + =home-manager switch= → =mise install=.
   - *upt* (fallback): =upt install= → =chezmoi apply= → =mise install=.
 - ~kaizen apply~ re-applies dotfiles and runs =mise install= without touching system packages.
 - ~kaizen update~ upgrades packages. Pass =--flake= to also run =nix flake update= before switching.

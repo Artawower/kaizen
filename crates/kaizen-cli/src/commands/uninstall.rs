@@ -100,7 +100,6 @@ fn print_plan(
     print_entry(config_path);
 
     if let Some(source) = chezmoi_source {
-        print_entry(&source.join(".chezmoidata.toml"));
         print_entry(source);
     }
 

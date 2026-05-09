@@ -1,3 +1,8 @@
+{{- $dataPath := joinPath .chezmoi.homeDir ".config" "kaizen" "data.toml" -}}
+{{- $f := dict -}}
+{{- if stat $dataPath -}}
+{{-   $f = (include $dataPath | fromToml).features -}}
+{{- end -}}
 [tools]
 node = "lts"
 pnpm = "10.33.2"
@@ -5,13 +10,13 @@ pnpm = "10.33.2"
 "npm:@tobilu/qmd" = "2.1.0"
 "npm:bun" = "latest"
 
-{{ if .features.vcs -}}
+{{ if $f.vcs -}}
 "cargo:gitu"   = "latest"
 "npm:git-trim" = "0.2.1"
 {{ end -}}
 
 
-{{ if or .features.terminal .features.emacs -}}
+{{ if or $f.terminal $f.emacs -}}
 "npm:typescript-language-server"      = "latest"
 "npm:vscode-langservers-extracted"    = "4.10.0"
 "npm:yaml-language-server"            = "latest"
@@ -22,13 +27,13 @@ pnpm = "10.33.2"
 "npm:lua-fmt"        = "2.6.0"
 {{ end -}}
 
-{{ if .features.emacs -}}
+{{ if $f.emacs -}}
 "npm:orgnote-cli" = "0.12.4"
 "npm:@mermaid-js/mermaid-cli"   = "11.14.0"
 "pipx:rassumfrassum"            = "latest"
 {{ end -}}
 
-{{ if .features.frontend -}}
+{{ if $f.frontend -}}
 "npm:typescript"                = "6.0.3"
 "npm:prettier"                  = "3.8.3"
 "npm:@angular/cli"              = "21.2.10"
@@ -46,17 +51,17 @@ pnpm = "10.33.2"
 "npm:yalc"                      = "1.0.0-pre.53"
 {{ end -}}
 
-{{ if .features.go -}}
+{{ if $f.go -}}
 "go:golang.org/x/tools/gopls" = "latest"
 {{ end -}}
 
-{{ if .features.python -}}
+{{ if $f.python -}}
 "pipx:basedpyright" = "latest"
 "pipx:ty"           = "latest"
 "pipx:httpie"       = "latest"
 {{ end -}}
 
-{{ if .features.ai -}}
+{{ if $f.ai -}}
 "npm:@earendil-works/pi-coding-agent" = "0.74.0"
 "npm:opencode-ai"                   = "1.14.41"
 "npm:skills"                        = "1.5.5"

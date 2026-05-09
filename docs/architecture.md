@@ -77,7 +77,7 @@ flowchart LR
     NIX -- no --> UPTBE["UptSyncBackend\ninstall → apply → post_apply"]
 ```
 
-Step order differs: Nix runs `chezmoi apply` first so `.chezmoidata.toml` exists when `home-manager switch` reads it.
+Step order differs: Nix runs `chezmoi apply` first so `~/.config/kaizen/data.toml` is written before `home-manager switch` reads it.
 
 ## SyncBackend Trait Hierarchy
 

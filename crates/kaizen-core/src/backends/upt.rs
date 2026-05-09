@@ -97,6 +97,7 @@ impl ApplyBackend for UptSyncBackend {
             reporter,
             self.runtime.chezmoi.as_ref(),
             self.runtime.fs.as_ref(),
+            self.runtime.paths.as_ref(),
         )
     }
 
