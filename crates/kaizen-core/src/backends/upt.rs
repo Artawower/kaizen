@@ -1,6 +1,6 @@
 use crate::{
     backends::common,
-    installer::{Installer, PackageInstaller, Updater},
+    installer::PackageInstaller,
     progress::ProgressReporter,
     sync_backend::{
         ApplyBackend, ApplyReport, CleanBackend, CleanOpts, CleanReport, InstallBackend,
@@ -178,6 +178,7 @@ impl PreviewBackend for UptSyncBackend {
 mod tests {
     use super::*;
     use crate::{
+        installer::{Installer, Updater},
         plan::{ConfigPlan, HookPlan, InstallPlan},
         progress::NoopReporter,
         sync_backend::{CleanOpts, SyncOpts, UpdateOpts},

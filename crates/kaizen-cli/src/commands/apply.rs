@@ -108,11 +108,7 @@ mod tests {
     }
 
     impl PostApplyBackend for SpyApplyBackend {
-        fn post_apply(
-            &self,
-            _: &SyncOpts,
-            _: &dyn ProgressReporter,
-        ) -> Result<(), KaizenError> {
+        fn post_apply(&self, _: &SyncOpts, _: &dyn ProgressReporter) -> Result<(), KaizenError> {
             self.post_apply_called.store(true, Ordering::Relaxed);
             Ok(())
         }

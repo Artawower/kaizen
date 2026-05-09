@@ -1,13 +1,13 @@
 use std::path::Path;
 
 use anyhow::Result;
-use kaizen_core::{
-    HookRunner, KaizenEngine, TargetOs, UpdateBackend,
-    UpdateOpts, UserConfig,
-};
+use kaizen_core::{HookRunner, KaizenEngine, TargetOs, UpdateBackend, UpdateOpts, UserConfig};
 use owo_colors::OwoColorize;
 
-use crate::{backend::detect_backend, hooks, hooks::ShellHookRunner, output, reporter::StderrReporter, selector};
+use crate::{
+    backend::detect_backend, hooks, hooks::ShellHookRunner, output, reporter::StderrReporter,
+    selector,
+};
 
 pub fn run(
     engine: &KaizenEngine,
@@ -32,6 +32,7 @@ pub fn run(
     )
 }
 
+#[allow(clippy::too_many_arguments)]
 fn run_with(
     engine: &KaizenEngine,
     config_path: &Path,

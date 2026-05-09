@@ -55,9 +55,9 @@ mod tests {
 
     use kaizen_core::{
         ApplyBackend, ApplyReport, CleanBackend, CleanOpts, CleanReport, InstallBackend,
-        InstallReport, KaizenEngine, KaizenError, PostApplyBackend, PreviewBackend, ProgressReporter,
-        SyncBackend, SyncOpts, SyncPreview, SyncReport, UpdateBackend, UpdateOpts, UpdateReport,
-        WorkflowPlan,
+        InstallReport, KaizenEngine, KaizenError, PostApplyBackend, PreviewBackend,
+        ProgressReporter, SyncBackend, SyncOpts, SyncPreview, SyncReport, UpdateBackend,
+        UpdateOpts, UpdateReport, WorkflowPlan,
     };
 
     use super::run_with;
@@ -104,11 +104,7 @@ mod tests {
     }
 
     impl PostApplyBackend for RecordingSyncBackend {
-        fn post_apply(
-            &self,
-            _: &SyncOpts,
-            _: &dyn ProgressReporter,
-        ) -> Result<(), KaizenError> {
+        fn post_apply(&self, _: &SyncOpts, _: &dyn ProgressReporter) -> Result<(), KaizenError> {
             Ok(())
         }
     }

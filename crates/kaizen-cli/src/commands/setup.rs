@@ -1,9 +1,13 @@
 use std::path::{Path, PathBuf};
 
-use crate::{output, selector};
 use anyhow::{Context, Result};
 use dialoguer::{theme::ColorfulTheme, Confirm, Input, Select};
-use kaizen_core::{KaizenEngine, UserConfig};
+use kaizen_core::{
+    render_config, resolve_features_dir_from_source, BootstrapStatus, ChezmoiBootstrapper,
+    KaizenEngine, UserConfig,
+};
+
+use crate::{output, selector};
 
 pub fn run(explicit_features_dir: Option<&Path>, config_path: &Path) -> Result<()> {
     output::page_header("setup");
@@ -17,7 +21,7 @@ pub fn run(explicit_features_dir: Option<&Path>, config_path: &Path) -> Result<(
     let dotfiles_url = pick_dotfiles_url(existing.as_ref())?;
     let source_dir = bootstrap_chezmoi(&dotfiles_url)?;
 
-    let features_dir = resolve_features_dir(explicit_features_dir, &source_dir);
+    let features_dir = resolve_features_dir_from_source(explicit_features_dir, &source_dir);
     let engine = KaizenEngine::new(&features_dir);
 
     let features = engine.list_features_with_meta()?;
@@ -45,80 +49,44 @@ fn pick_dotfiles_url(existing: Option<&UserConfig>) -> Result<String> {
 }
 
 fn bootstrap_chezmoi(url: &str) -> Result<PathBuf> {
-    let existing = kaizen_core::chezmoi::standalone_source_dir()?;
-
-    if let Some(ref source) = existing {
-        let remote = kaizen_core::chezmoi::current_remote(source)?;
-        if remote
-            .as_deref()
-            .map(|r| kaizen_core::chezmoi::remotes_match(r, url))
-            .unwrap_or(false)
-        {
+    let bootstrapper = ChezmoiBootstrapper;
+    match bootstrapper.check(url)? {
+        BootstrapStatus::AlreadyUpToDate(source) => {
             output::item_ok("chezmoi already initialized with matching remote");
-            return Ok(source.clone());
+            Ok(source)
         }
-        let prompt = match &remote {
-            Some(r) => format!("chezmoi source uses {r:?} \u{2014} replace with {url:?}?"),
-            None => {
-                format!("chezmoi source exists without a remote \u{2014} replace with {url:?}?")
+        BootstrapStatus::Conflict {
+            source,
+            current_remote,
+        } => {
+            let prompt = match &current_remote {
+                Some(r) => format!("chezmoi source uses {r:?} — replace with {url:?}?"),
+                None => {
+                    format!("chezmoi source exists without a remote — replace with {url:?}?")
+                }
+            };
+            let confirmed = Confirm::with_theme(&ColorfulTheme::default())
+                .with_prompt(prompt)
+                .default(false)
+                .interact()?;
+            if !confirmed {
+                anyhow::bail!("setup cancelled — existing chezmoi source unchanged");
             }
-        };
-        let confirmed = Confirm::with_theme(&ColorfulTheme::default())
-            .with_prompt(prompt)
-            .default(false)
-            .interact()?;
-        if !confirmed {
-            anyhow::bail!("setup cancelled \u{2014} existing chezmoi source unchanged");
+            output::item("cloning dotfiles via chezmoi init…");
+            let (new_source, backup) = bootstrapper
+                .backup_and_reinit(url, &source)
+                .context("chezmoi init failed")?;
+            output::item_warn(&format!(
+                "backed up existing source to {}",
+                backup.display()
+            ));
+            Ok(new_source)
+        }
+        BootstrapStatus::InitRequired => {
+            output::item("cloning dotfiles via chezmoi init…");
+            bootstrapper.init(url).context("chezmoi init failed")
         }
     }
-
-    let backup: Option<(PathBuf, PathBuf)> = match &existing {
-        Some(source) => {
-            let b = kaizen_core::chezmoi::backup_source_dir(source)?;
-            output::item_warn(&format!("backed up existing source to {}", b.display()));
-            Some((source.clone(), b))
-        }
-        None => None,
-    };
-
-    output::item("cloning dotfiles via chezmoi init\u{2026}");
-    if let Err(e) = kaizen_core::chezmoi::init_source(url) {
-        if let Some((ref source, ref b)) = backup {
-            output::item_warn("init failed \u{2014} restoring backup\u{2026}");
-            let _ = std::fs::rename(b, source);
-        }
-        return Err(e.into());
-    }
-
-    let new_source = kaizen_core::chezmoi::standalone_source_dir()?
-        .context("chezmoi init succeeded but source-path not found")?;
-
-    let kaizen_dir = new_source.join(kaizen_core::manifest::KAIZEN_DIR);
-    let manifest_result = kaizen_core::manifest::load(&kaizen_dir)
-        .and_then(|m| kaizen_core::manifest::validate(&m).map(|_| ()));
-    if let Err(e) = manifest_result {
-        if let Some((ref source, ref b)) = backup {
-            output::item_warn("manifest invalid \u{2014} restoring previous source\u{2026}");
-            let _ = std::fs::remove_dir_all(&new_source);
-            let _ = std::fs::rename(b, source);
-        }
-        return Err(e.into());
-    }
-
-    Ok(new_source)
-}
-
-fn resolve_features_dir(explicit: Option<&Path>, source_dir: &Path) -> PathBuf {
-    if let Some(dir) = explicit {
-        return dir.to_owned();
-    }
-    let candidate = source_dir
-        .join(kaizen_core::manifest::KAIZEN_DIR)
-        .join(kaizen_core::manifest::FEATURES_SUBDIR);
-    if candidate.is_dir() {
-        return candidate;
-    }
-    PathBuf::from("features")
 }
 
 fn pick_features(
@@ -155,38 +123,10 @@ fn pick_layout(existing: Option<&UserConfig>) -> Result<String> {
     Ok(layouts[idx].to_owned())
 }
 
-fn render_config(
-    all_features: &[(String, Option<String>)],
-    selected: &[String],
-    layout: &str,
-    dotfiles_source: &str,
-) -> String {
-    let mut out = String::new();
-    out.push_str(&format!(
-        "schema_version = {}\n\n",
-        kaizen_core::CURRENT_SCHEMA_VERSION
-    ));
-    for (name, _) in all_features {
-        let enabled = selected.contains(name);
-        out.push_str(&format!("[features.{name}]\nenabled = {enabled}\n\n"));
-    }
-    out.push_str(&format!("[settings]\nlayout = {}\n\n", toml_string(layout)));
-    out.push_str("[dotfiles]\nbackend = \"chezmoi\"\n");
-    out.push_str(&format!("source = {}\n", toml_string(dotfiles_source)));
-    out
-}
-
-fn toml_string(s: &str) -> String {
-    toml::Value::String(s.to_owned()).to_string()
-}
-
 fn write_config(path: &Path, content: &str) -> Result<bool> {
     if path.exists() {
         let overwrite = Confirm::with_theme(&ColorfulTheme::default())
-            .with_prompt(format!(
-                "{} already exists \u{2014} overwrite?",
-                path.display()
-            ))
+            .with_prompt(format!("{} already exists — overwrite?", path.display()))
             .default(false)
             .interact()?;
         if !overwrite {
@@ -206,9 +146,9 @@ fn prompt_next_action(engine: &KaizenEngine, config_path: &Path) -> Result<()> {
     println!();
 
     let choices = &[
-        "sync   \u{2014} install packages + apply dotfiles",
-        "plan   \u{2014} preview what would happen",
-        "skip   \u{2014} I'll do it manually",
+        "sync   — install packages + apply dotfiles",
+        "plan   — preview what would happen",
+        "skip   — I'll do it manually",
     ];
     let idx = Select::with_theme(&ColorfulTheme::default())
         .with_prompt("What next?")

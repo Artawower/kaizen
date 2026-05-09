@@ -14,6 +14,7 @@ pub mod os;
 pub mod plan;
 pub mod process;
 pub mod progress;
+pub mod setup;
 pub mod sync_backend;
 
 pub use backends::{NixSyncBackend, UptSyncBackend};
@@ -30,6 +31,9 @@ pub use installer::{Installer, PackageInstaller, Remover, Updater};
 pub use os::{PackageManagerKind, TargetOs};
 pub use plan::{ConfigPlan, HookPlan, InstallPlan, WorkflowPlan};
 pub use progress::{NoopReporter, ProgressReporter};
+pub use setup::{
+    render_config, resolve_features_dir_from_source, BootstrapStatus, ChezmoiBootstrapper,
+};
 pub use sync_backend::{
     ApplyBackend, ApplyReport, CleanBackend, CleanOpts, CleanReport, InstallBackend, InstallReport,
     PostApplyBackend, PreviewBackend, SyncBackend, SyncOpts, SyncPreview, SyncReport, SyncStep,

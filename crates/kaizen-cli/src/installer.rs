@@ -38,6 +38,7 @@ impl Remover for UptInstaller {
     }
 }
 
+#[allow(clippy::result_large_err)]
 fn run_upt(args: &[&str], programs: &[String]) -> Result<(), KaizenError> {
     let mut failed = Vec::new();
     let mut last_code = None;
@@ -70,12 +71,14 @@ fn run_upt(args: &[&str], programs: &[String]) -> Result<(), KaizenError> {
     })
 }
 
+#[allow(clippy::result_large_err)]
 fn build_upt_command(args: &[&str], program: &str) -> Result<Command, KaizenError> {
     let mut command = base_upt_command()?;
     command.args(args).arg("-y").arg(program);
     Ok(command)
 }
 
+#[allow(clippy::result_large_err)]
 fn base_upt_command() -> Result<Command, KaizenError> {
     if !should_use_sudo() {
         return Ok(Command::new("upt"));
