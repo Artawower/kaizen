@@ -49,7 +49,7 @@ fn pick_dotfiles_url(existing: Option<&UserConfig>) -> Result<String> {
 }
 
 fn bootstrap_chezmoi(url: &str) -> Result<PathBuf> {
-    let bootstrapper = ChezmoiBootstrapper::new(Box::new(crate::chezmoi::StdChezmoiClient));
+    let bootstrapper = ChezmoiBootstrapper::new(Box::new(crate::chezmoi::StdChezmoiClient), Box::new(kaizen_core::StdFileSystem));
     match bootstrapper.check(url)? {
         BootstrapStatus::AlreadyUpToDate(source) => {
             output::item_ok("chezmoi already initialized with matching remote");

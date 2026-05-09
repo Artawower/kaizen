@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use crate::{
     chezmoi_client::ChezmoiClient, executor::ProcessExecutor, fs::FileSystem,
-    paths::PathProvider,
+    os::PackageManagerKind, paths::PathProvider,
 };
 
 /// Shared runtime context injected into backends.
@@ -14,6 +14,8 @@ pub struct Runtime {
     pub fs: Arc<dyn FileSystem>,
     pub chezmoi: Arc<dyn ChezmoiClient>,
     pub paths: Arc<dyn PathProvider>,
+    /// Package manager for the current OS — detected by CLI (requires `which`).
+    pub pm: PackageManagerKind,
 }
 
 impl Runtime {
@@ -22,12 +24,14 @@ impl Runtime {
         fs: Arc<dyn FileSystem>,
         chezmoi: Arc<dyn ChezmoiClient>,
         paths: Arc<dyn PathProvider>,
+        pm: PackageManagerKind,
     ) -> Self {
         Self {
             executor,
             fs,
             chezmoi,
             paths,
+            pm,
         }
     }
 }

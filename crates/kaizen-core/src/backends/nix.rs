@@ -238,10 +238,10 @@ impl UpdateBackend for NixSyncBackend {
 
 impl CleanBackend for NixSyncBackend {
     fn clean(&self, opts: &CleanOpts) -> Result<CleanReport, KaizenError> {
-        let steps = common::clean_steps(&self.os, true, self.container.as_ref());
+        let steps = common::clean_steps(&self.runtime.pm, true, self.container.as_ref());
         if !opts.dry_run {
             self.run_nix_gc(false)?;
-            common::os_cache_clean(&self.os, false, self.runtime.executor.as_ref())?;
+            common::os_cache_clean(&self.runtime.pm, false, self.runtime.executor.as_ref(), self.runtime.paths.as_ref())?;
             self.container.clean(false)?;
         }
         Ok(common::clean_report_from_steps(steps))
@@ -292,6 +292,7 @@ mod tests {
     use indexmap::IndexMap;
 
     fn mock_backend(os: TargetOs) -> NixSyncBackend {
+        let pm = os.package_manager_kind();
         NixSyncBackend::new(
             os,
             Runtime::new(
@@ -299,6 +300,7 @@ mod tests {
                 Arc::new(crate::StdFileSystem),
                 Arc::new(crate::NoopChezmoiClient),
                 Arc::new(crate::StdPathProvider),
+                pm,
             ),
             Box::new(NoopDevTools),
             Box::new(NoopContainerCleaner),

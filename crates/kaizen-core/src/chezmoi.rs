@@ -240,10 +240,16 @@ mod tests {
     #[test]
     fn merge_preserves_unknown_feature_keys() {
         let path = PathBuf::from("/tmp/.chezmoidata.toml");
-        let fs = mem_fs_with(&path, "layout = \"colemak\"\n\n[features]\ncore = true\nvcs = true\n");
+        let fs = mem_fs_with(
+            &path,
+            "layout = \"colemak\"\n\n[features]\ncore = true\nvcs = true\n",
+        );
         let plan = make_plan(&[("core", true), ("frontend", false)], Some("colemak"));
         let merged = merge_chezmoidata_with(&path, &plan, &fs).unwrap();
-        assert!(merged.contains("vcs = true"), "vcs must be preserved: {merged}");
+        assert!(
+            merged.contains("vcs = true"),
+            "vcs must be preserved: {merged}"
+        );
         assert!(merged.contains("frontend = false"));
     }
 
@@ -305,8 +311,14 @@ mod tests {
         let raw = "/home/alice/.config/helix/config.toml\n/home/alice/.config/zellij/config.kdl\n";
         let files = parse_managed_files(raw, home);
         assert_eq!(files.len(), 2);
-        assert_eq!(files[0], PathBuf::from("/home/alice/.config/helix/config.toml"));
-        assert_eq!(files[1], PathBuf::from("/home/alice/.config/zellij/config.kdl"));
+        assert_eq!(
+            files[0],
+            PathBuf::from("/home/alice/.config/helix/config.toml")
+        );
+        assert_eq!(
+            files[1],
+            PathBuf::from("/home/alice/.config/zellij/config.kdl")
+        );
     }
 
     #[test]
@@ -314,8 +326,14 @@ mod tests {
         let home = Path::new("/home/alice");
         let raw = ".config/helix/config.toml\n.config/niri/config.kdl\n";
         let files = parse_managed_files(raw, home);
-        assert_eq!(files[0], PathBuf::from("/home/alice/.config/helix/config.toml"));
-        assert_eq!(files[1], PathBuf::from("/home/alice/.config/niri/config.kdl"));
+        assert_eq!(
+            files[0],
+            PathBuf::from("/home/alice/.config/helix/config.toml")
+        );
+        assert_eq!(
+            files[1],
+            PathBuf::from("/home/alice/.config/niri/config.kdl")
+        );
     }
 
     #[test]
@@ -336,7 +354,10 @@ mod tests {
         let modified = parse_status_output(raw, home);
         assert_eq!(modified.len(), 2);
         assert_eq!(modified[0].status, FileStatus::Modified);
-        assert_eq!(modified[0].path, PathBuf::from("/home/alice/.config/helix/config.toml"));
+        assert_eq!(
+            modified[0].path,
+            PathBuf::from("/home/alice/.config/helix/config.toml")
+        );
     }
 
     #[test]
@@ -380,5 +401,4 @@ mod tests {
             "git@github.com:other/dots.git"
         ));
     }
-
 }

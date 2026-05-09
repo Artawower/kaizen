@@ -4,9 +4,10 @@ use crate::{
     container::ContainerCleaner,
     executor::{ProcessCommand, ProcessExecutor},
     fs::FileSystem,
+    paths::PathProvider,
     progress::ProgressReporter,
     sync_backend::{ApplyReport, CleanReport},
-    ConfigPlan, KaizenError, PackageManagerKind, TargetOs,
+    ConfigPlan, KaizenError, PackageManagerKind,
 };
 
 pub fn chezmoi_write_and_apply(
@@ -52,18 +53,19 @@ pub fn chezmoi_write_and_apply(
 }
 
 pub fn os_cache_clean(
-    os: &TargetOs,
+    pm: &PackageManagerKind,
     dry_run: bool,
     executor: &dyn ProcessExecutor,
+    paths: &dyn PathProvider,
 ) -> Result<(), KaizenError> {
-    let (bin, args): (&str, &[&str]) = match os.package_manager_kind() {
+    let (bin, args): (&str, &[&str]) = match pm {
         PackageManagerKind::Brew => ("brew", &["cleanup"]),
         PackageManagerKind::Dnf => ("dnf", &["clean", "all"]),
         PackageManagerKind::Apt => ("apt-get", &["clean"]),
         PackageManagerKind::Pacman => ("paccache", &["-r"]),
         PackageManagerKind::Unknown => return Ok(()),
     };
-    run_if_available(bin, args, dry_run, executor)
+    run_if_available(bin, args, dry_run, executor, paths)
 }
 
 pub fn clean_report_from_steps(steps: Vec<String>) -> CleanReport {
@@ -74,7 +76,7 @@ pub fn clean_report_from_steps(steps: Vec<String>) -> CleanReport {
 }
 
 pub fn clean_steps(
-    os: &TargetOs,
+    pm: &PackageManagerKind,
     include_nix: bool,
     container: &dyn ContainerCleaner,
 ) -> Vec<String> {
@@ -83,7 +85,7 @@ pub fn clean_steps(
         steps.push("nix-collect-garbage --delete-older-than 7d".into());
         steps.push("nix-store --optimise".into());
     }
-    let pm_cmd = match os.package_manager_kind() {
+    let pm_cmd = match pm {
         PackageManagerKind::Brew => Some("brew cleanup"),
         PackageManagerKind::Dnf => Some("dnf clean all"),
         PackageManagerKind::Apt => Some("apt-get clean"),
@@ -105,8 +107,9 @@ fn run_if_available(
     args: &[&str],
     dry_run: bool,
     executor: &dyn ProcessExecutor,
+    paths: &dyn PathProvider,
 ) -> Result<(), KaizenError> {
-    if dry_run || which::which(bin).is_err() {
+    if dry_run || !paths.is_tool_available(bin) {
         return Ok(());
     }
     executor.execute(ProcessCommand::run(bin, args.iter().copied()))?;

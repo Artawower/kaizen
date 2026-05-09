@@ -14,7 +14,6 @@ use crate::{
 };
 
 pub struct UptSyncBackend {
-    os: TargetOs,
     runtime: Runtime,
     installer: Box<dyn PackageInstaller>,
     dev_tools: Box<dyn DevToolsManager>,
@@ -23,14 +22,13 @@ pub struct UptSyncBackend {
 
 impl UptSyncBackend {
     pub fn new(
-        os: TargetOs,
+        _os: TargetOs,
         runtime: Runtime,
         installer: Box<dyn PackageInstaller>,
         dev_tools: Box<dyn DevToolsManager>,
         container: Box<dyn ContainerCleaner>,
     ) -> Self {
         Self {
-            os,
             runtime,
             installer,
             dev_tools,
@@ -155,9 +153,9 @@ impl UpdateBackend for UptSyncBackend {
 
 impl CleanBackend for UptSyncBackend {
     fn clean(&self, opts: &CleanOpts) -> Result<CleanReport, KaizenError> {
-        let steps = common::clean_steps(&self.os, false, self.container.as_ref());
+        let steps = common::clean_steps(&self.runtime.pm, false, self.container.as_ref());
         if !opts.dry_run {
-            common::os_cache_clean(&self.os, false, self.runtime.executor.as_ref())?;
+            common::os_cache_clean(&self.runtime.pm, false, self.runtime.executor.as_ref(), self.runtime.paths.as_ref())?;
             self.container.clean(false)?;
         }
         Ok(common::clean_report_from_steps(steps))
@@ -229,6 +227,7 @@ mod tests {
     }
 
     fn mock_backend(os: TargetOs) -> UptSyncBackend {
+        let pm = os.package_manager_kind();
         UptSyncBackend::new(
             os,
             Runtime::new(
@@ -236,6 +235,7 @@ mod tests {
                 std::sync::Arc::new(crate::StdFileSystem),
                 std::sync::Arc::new(NoopChezmoiClient),
                 std::sync::Arc::new(crate::StdPathProvider),
+                pm,
             ),
             Box::new(MockInstaller),
             Box::new(NoopDevTools),

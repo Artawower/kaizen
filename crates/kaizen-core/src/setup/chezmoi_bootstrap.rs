@@ -1,6 +1,6 @@
 use std::path::{Path, PathBuf};
 
-use crate::{chezmoi, chezmoi_client::ChezmoiClient, manifest, KaizenError};
+use crate::{chezmoi, chezmoi_client::ChezmoiClient, fs::FileSystem, manifest, KaizenError};
 
 /// Outcome of inspecting the current chezmoi source state before bootstrapping.
 pub enum BootstrapStatus {
@@ -21,11 +21,12 @@ pub enum BootstrapStatus {
 /// CLI is responsible for prompting the user before calling destructive operations.
 pub struct ChezmoiBootstrapper {
     client: Box<dyn ChezmoiClient>,
+    fs: Box<dyn FileSystem>,
 }
 
 impl ChezmoiBootstrapper {
-    pub fn new(client: Box<dyn ChezmoiClient>) -> Self {
-        Self { client }
+    pub fn new(client: Box<dyn ChezmoiClient>, fs: Box<dyn FileSystem>) -> Self {
+        Self { client, fs }
     }
 
     /// Inspect the current chezmoi source against `url` and return the action required.
@@ -59,7 +60,7 @@ impl ChezmoiBootstrapper {
     ) -> Result<(PathBuf, PathBuf), KaizenError> {
         let backup = self.client.backup_source_dir(existing)?;
         if let Err(e) = self.init_and_validate(url) {
-            let _ = std::fs::rename(&backup, existing);
+            let _ = self.fs.rename(&backup, existing);
             return Err(e);
         }
         let new_source = self

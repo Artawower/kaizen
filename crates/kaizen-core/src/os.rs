@@ -47,28 +47,19 @@ impl TargetOs {
         matches!(self, TargetOs::Fedora | TargetOs::Ubuntu | TargetOs::Linux)
     }
 
+    /// Returns the package manager for well-known OS variants.
+    /// For generic `TargetOs::Linux`, returns `Unknown` — detection requires
+    /// `which` and belongs in the CLI layer (see `kaizen_cli::backend::detect_pm`).
     pub fn package_manager_kind(&self) -> PackageManagerKind {
         match self {
             TargetOs::Darwin => PackageManagerKind::Brew,
             TargetOs::Fedora => PackageManagerKind::Dnf,
             TargetOs::Ubuntu => PackageManagerKind::Apt,
-            TargetOs::Linux => detect_linux_pm(),
-            _ => PackageManagerKind::Unknown,
+            TargetOs::Linux | TargetOs::Unknown(_) => PackageManagerKind::Unknown,
         }
     }
 }
 
-fn detect_linux_pm() -> PackageManagerKind {
-    [
-        ("dnf", PackageManagerKind::Dnf),
-        ("apt", PackageManagerKind::Apt),
-        ("pacman", PackageManagerKind::Pacman),
-    ]
-    .into_iter()
-    .find(|(bin, _)| which::which(bin).is_ok())
-    .map(|(_, kind)| kind)
-    .unwrap_or(PackageManagerKind::Unknown)
-}
 
 impl From<os_info::Type> for TargetOs {
     fn from(t: os_info::Type) -> Self {
