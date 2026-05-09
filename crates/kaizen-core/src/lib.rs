@@ -73,6 +73,13 @@ pub fn resolve_features_dir(
         }
         reporter.warn("kaizen/features not found in chezmoi source — using built-in features");
     }
+    // Monorepo dev layout: running kaizen from the repo root.
+    let monorepo_candidate = PathBuf::from("dotfiles")
+        .join(manifest::KAIZEN_DIR)
+        .join(manifest::FEATURES_SUBDIR);
+    if fs.is_dir(&monorepo_candidate) {
+        return Ok(monorepo_candidate);
+    }
     Ok(PathBuf::from("features"))
 }
 
@@ -225,5 +232,19 @@ mod tests {
             reporter.warnings(),
             vec!["kaizen/features not found in chezmoi source — using built-in features"]
         );
+    }
+
+    #[test]
+    fn resolve_features_dir_uses_monorepo_layout_when_no_chezmoi_source() {
+        let fs = MemFileSystem::new();
+        let monorepo_features = PathBuf::from("dotfiles")
+            .join(manifest::KAIZEN_DIR)
+            .join(manifest::FEATURES_SUBDIR);
+        fs.add_dir(&monorepo_features);
+
+        let result =
+            resolve_features_dir(None, &NoopReporter, &SourceClient { source: None }, &fs).unwrap();
+
+        assert_eq!(result, monorepo_features);
     }
 }
