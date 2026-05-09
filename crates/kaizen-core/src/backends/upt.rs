@@ -133,7 +133,7 @@ impl UpdateBackend for UptSyncBackend {
             }
         }
 
-        let tools: Vec<String> = plan.install_plan.mise_tools.keys().cloned().collect();
+        let tools: Vec<String> = plan.install_plan.dev_tools.keys().cloned().collect();
         self.dev_tools.upgrade(&tools, opts.dry_run)?;
 
         Ok(UpdateReport {
@@ -230,7 +230,7 @@ mod tests {
             vec![],
             InstallPlan {
                 programs: vec![],
-                mise_tools: IndexMap::new(),
+                dev_tools: IndexMap::new(),
             },
             ConfigPlan {
                 backend: "chezmoi".into(),

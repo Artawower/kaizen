@@ -11,7 +11,7 @@ pub fn build_plan(
     target_os: TargetOs,
 ) -> Result<WorkflowPlan, KaizenError> {
     let mut programs: IndexMap<String, String> = IndexMap::new();
-    let mut mise_tools: IndexMap<String, String> = IndexMap::new();
+    let mut dev_tools: IndexMap<String, String> = IndexMap::new();
     let mut warnings: Vec<String> = Vec::new();
     let mut selected_features: Vec<String> = Vec::new();
     let mut hook_plan = HookPlan::default();
@@ -44,7 +44,7 @@ pub fn build_plan(
             merge_programs(&mut programs, prog, &target_os);
         }
         if let Some(ref mise) = feature.mise {
-            merge_mise(&mut mise_tools, &mise.tools, feature_name, &mut warnings);
+            merge_mise(&mut dev_tools, &mise.tools, feature_name, &mut warnings);
         }
 
         for os_key in target_os.section_keys() {
@@ -53,7 +53,7 @@ pub fn build_plan(
                     merge_programs(&mut programs, prog, &target_os);
                 }
                 if let Some(ref mise) = os_section.mise {
-                    merge_mise(&mut mise_tools, &mise.tools, feature_name, &mut warnings);
+                    merge_mise(&mut dev_tools, &mise.tools, feature_name, &mut warnings);
                 }
             }
         }
@@ -66,7 +66,7 @@ pub fn build_plan(
                 merge_programs(&mut programs, prog, &target_os);
             }
             if let Some(ref mise) = atom.mise {
-                merge_mise(&mut mise_tools, &mise.tools, feature_name, &mut warnings);
+                merge_mise(&mut dev_tools, &mise.tools, feature_name, &mut warnings);
             }
         }
     }
@@ -76,7 +76,7 @@ pub fn build_plan(
         selected_features,
         InstallPlan {
             programs: programs.into_values().collect(),
-            mise_tools,
+            dev_tools,
         },
         build_config_plan(config),
         hook_plan,

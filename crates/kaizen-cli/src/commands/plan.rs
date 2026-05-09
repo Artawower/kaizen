@@ -31,9 +31,9 @@ pub fn run(engine: &KaizenEngine, config_path: &Path, json: bool) -> Result<()> 
         }
     }
 
-    if !plan.install_plan.mise_tools.is_empty() {
+    if !plan.install_plan.dev_tools.is_empty() {
         output::header("Dev tools via mise");
-        for (name, version) in &plan.install_plan.mise_tools {
+        for (name, version) in &plan.install_plan.dev_tools {
             output::kv(name, version);
         }
     }

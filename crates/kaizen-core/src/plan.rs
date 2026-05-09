@@ -16,7 +16,8 @@ pub struct WorkflowPlan {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct InstallPlan {
     pub programs: Vec<String>,
-    pub mise_tools: IndexMap<String, String>,
+    /// Dev toolchain tools (sourced from `[mise.tools]` in feature files).
+    pub dev_tools: IndexMap<String, String>,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
