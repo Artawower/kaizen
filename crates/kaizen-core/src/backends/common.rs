@@ -1,5 +1,5 @@
 use crate::{
-    chezmoi::{self, merge_chezmoidata_with},
+    chezmoi::merge_chezmoidata_with,
     chezmoi_client::ChezmoiClient,
     container::ContainerCleaner,
     executor::{ProcessCommand, ProcessExecutor},
@@ -115,7 +115,3 @@ fn run_if_available(
     executor.execute(ProcessCommand::run(bin, args.iter().copied()))?;
     Ok(())
 }
-
-// Keep chezmoi in scope (used by merge_chezmoidata_with)
-#[allow(unused_imports)]
-use chezmoi as _;
