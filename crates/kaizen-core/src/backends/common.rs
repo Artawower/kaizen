@@ -1,7 +1,7 @@
-use std::process::{Command, Stdio};
+use std::process::Stdio;
 
 use crate::{
-    chezmoi,
+    chezmoi, process,
     sync_backend::{ApplyReport, CleanReport},
     ConfigPlan, KaizenError, PackageManagerKind, TargetOs,
 };
@@ -59,7 +59,11 @@ pub fn chezmoi_write_and_apply(
         let stderr = String::from_utf8_lossy(&stderr_bytes).trim().to_owned();
         return Err(KaizenError::ChezmoidataApplyFailed {
             code: status.code(),
-            reason: if stderr.is_empty() { None } else { Some(stderr) },
+            reason: if stderr.is_empty() {
+                None
+            } else {
+                Some(stderr)
+            },
         });
     }
 
@@ -72,29 +76,14 @@ pub fn mise_install(dry_run: bool) -> Result<(), KaizenError> {
     if dry_run {
         return Ok(());
     }
-
-    let status = Command::new("mise").arg("install").status()?;
-    if !status.success() {
-        return Err(KaizenError::CommandFailed {
-            cmd: "mise install".into(),
-            code: status.code(),
-        });
-    }
-
+    process::run_cmd("mise", &["install"])?;
     let mise_toml = dirs::home_dir()
         .ok_or(KaizenError::HomeDirUnavailable)?
         .join(".config/mise.toml");
-
     if mise_toml.exists() {
-        let status = Command::new("mise").arg("trust").arg(&mise_toml).status()?;
-        if !status.success() {
-            return Err(KaizenError::CommandFailed {
-                cmd: "mise trust".into(),
-                code: status.code(),
-            });
-        }
+        let toml_str = mise_toml.to_string_lossy().into_owned();
+        process::run_cmd("mise", &["trust", &toml_str])?;
     }
-
     Ok(())
 }
 
@@ -102,17 +91,10 @@ pub fn mise_upgrade(tools: &[String], dry_run: bool) -> Result<(), KaizenError> 
     if dry_run {
         return Ok(());
     }
-    let mut cmd = Command::new("mise");
-    cmd.arg("upgrade");
-    cmd.args(tools);
-    let status = cmd.status()?;
-    if !status.success() {
-        return Err(KaizenError::CommandFailed {
-            cmd: "mise upgrade".into(),
-            code: status.code(),
-        });
-    }
-    Ok(())
+    let tool_refs: Vec<&str> = tools.iter().map(String::as_str).collect();
+    let mut args = vec!["upgrade"];
+    args.extend_from_slice(&tool_refs);
+    process::run_cmd("mise", &args)
 }
 
 pub fn os_cache_clean(os: &TargetOs, dry_run: bool) -> Result<(), KaizenError> {
@@ -166,15 +148,5 @@ fn run_optional(bin: &str, args: &[&str], dry_run: bool) -> Result<(), KaizenErr
     if dry_run {
         return Ok(());
     }
-    if which::which(bin).is_err() {
-        return Ok(());
-    }
-    let status = Command::new(bin).args(args).status()?;
-    if !status.success() {
-        return Err(KaizenError::CommandFailed {
-            cmd: format!("{bin} {}", args.join(" ")),
-            code: status.code(),
-        });
-    }
-    Ok(())
+    process::run_cmd_if_available(bin, args)
 }

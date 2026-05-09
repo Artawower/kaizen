@@ -12,6 +12,7 @@ pub mod manifest;
 pub mod merge;
 pub mod os;
 pub mod plan;
+pub mod process;
 pub mod sync_backend;
 
 pub use backends::detect::detect_backend;

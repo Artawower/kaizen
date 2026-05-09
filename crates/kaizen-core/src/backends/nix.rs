@@ -1,7 +1,6 @@
-use std::process::Command;
-
 use crate::{
     backends::common,
+    process,
     sync_backend::{
         ApplyReport, CleanOpts, CleanReport, InstallReport, SyncOpts, SyncPreview, SyncStep,
         UpdateOpts, UpdateReport,
@@ -164,8 +163,7 @@ impl SyncBackend for NixSyncBackend {
 }
 
 fn current_user() -> Result<String, KaizenError> {
-    let out = Command::new("id").arg("-un").output()?;
-    Ok(String::from_utf8_lossy(&out.stdout).trim().to_owned())
+    process::run_cmd_output("id", &["-un"])
 }
 
 fn nix_config_dir() -> Result<std::path::PathBuf, KaizenError> {
@@ -175,34 +173,15 @@ fn nix_config_dir() -> Result<std::path::PathBuf, KaizenError> {
 }
 
 fn run_darwin_rebuild() -> Result<(), KaizenError> {
-    let flake = nix_config_dir()?;
-    let status = Command::new("sudo")
-        .args(["darwin-rebuild", "switch", "--flake"])
-        .arg(&flake)
-        .status()?;
-    if !status.success() {
-        return Err(KaizenError::CommandFailed {
-            cmd: "darwin-rebuild switch".into(),
-            code: status.code(),
-        });
-    }
-    Ok(())
+    let flake = nix_config_dir()?.to_string_lossy().into_owned();
+    process::run_cmd_sudo("darwin-rebuild", &["switch", "--flake", &flake])
 }
 
 fn run_home_manager(host: &str) -> Result<(), KaizenError> {
     let user = current_user()?;
     let nix_dir = nix_config_dir()?;
     let flake = format!("{}#{}@{}", nix_dir.display(), user, host);
-    let status = Command::new("home-manager")
-        .args(["switch", "--flake", &flake, "--impure"])
-        .status()?;
-    if !status.success() {
-        return Err(KaizenError::CommandFailed {
-            cmd: "home-manager switch".into(),
-            code: status.code(),
-        });
-    }
-    Ok(())
+    process::run_cmd("home-manager", &["switch", "--flake", &flake, "--impure"])
 }
 
 fn run_nix_flake_update(dry_run: bool) -> Result<(), KaizenError> {
@@ -210,19 +189,10 @@ fn run_nix_flake_update(dry_run: bool) -> Result<(), KaizenError> {
         return Ok(());
     }
     let nix_dir = dirs::home_dir()
-        .map(|h| h.join(".config/nix"))
-        .unwrap_or_default();
-    let status = Command::new("nix")
-        .args(["flake", "update", "--flake"])
-        .arg(&nix_dir)
-        .status()?;
-    if !status.success() {
-        return Err(KaizenError::CommandFailed {
-            cmd: "nix flake update".into(),
-            code: status.code(),
-        });
-    }
-    Ok(())
+        .ok_or(KaizenError::HomeDirUnavailable)?
+        .join(".config/nix");
+    let flake_str = nix_dir.to_string_lossy().into_owned();
+    process::run_cmd("nix", &["flake", "update", "--flake", &flake_str])
 }
 
 #[cfg(test)]
@@ -346,25 +316,6 @@ fn run_nix_gc(dry_run: bool) -> Result<(), KaizenError> {
     if dry_run {
         return Ok(());
     }
-    let status = Command::new("nix-collect-garbage")
-        .args(["--delete-older-than", "7d"])
-        .status()?;
-    if !status.success() {
-        return Err(KaizenError::CommandFailed {
-            cmd: "nix-collect-garbage".into(),
-            code: status.code(),
-        });
-    }
-    let optimise = Command::new("nix-store").arg("--optimise").status();
-    match optimise {
-        Ok(s) if s.success() => {}
-        Ok(s) => {
-            return Err(KaizenError::CommandFailed {
-                cmd: "nix-store --optimise".into(),
-                code: s.code(),
-            });
-        }
-        Err(e) => return Err(KaizenError::Io(e)),
-    }
-    Ok(())
+    process::run_cmd("nix-collect-garbage", &["--delete-older-than", "7d"])?;
+    process::run_cmd("nix-store", &["--optimise"])
 }
