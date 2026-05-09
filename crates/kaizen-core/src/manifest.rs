@@ -18,10 +18,6 @@ fn default_version() -> u32 {
     1
 }
 
-pub fn load(kaizen_dir: &Path) -> Result<KaizenManifest, KaizenError> {
-    load_with(kaizen_dir, &crate::StdFileSystem)
-}
-
 pub fn load_with(
     kaizen_dir: &Path,
     fs: &dyn crate::FileSystem,

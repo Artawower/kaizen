@@ -149,10 +149,54 @@ fn build_config_plan(config: &UserConfig) -> ConfigPlan {
 
 #[cfg(test)]
 mod tests {
-    use std::path::PathBuf;
+    use std::path::{Path, PathBuf};
+    use std::sync::Arc;
 
     use super::*;
-    use crate::feature::ProgramSection;
+    use crate::{feature::ProgramSection, FileSystem, KaizenError};
+
+    struct DiskFileSystem;
+
+    impl FileSystem for DiskFileSystem {
+        fn read_to_string(&self, path: &Path) -> Result<String, KaizenError> {
+            std::fs::read_to_string(path).map_err(KaizenError::Io)
+        }
+
+        fn read_dir_paths(&self, path: &Path) -> Result<Vec<PathBuf>, KaizenError> {
+            let entries = std::fs::read_dir(path).map_err(KaizenError::Io)?;
+            entries
+                .map(|e| e.map(|e| e.path()).map_err(KaizenError::Io))
+                .collect()
+        }
+
+        fn exists(&self, path: &Path) -> bool {
+            path.exists()
+        }
+
+        fn is_dir(&self, path: &Path) -> bool {
+            path.is_dir()
+        }
+
+        fn write(&self, path: &Path, content: &[u8]) -> Result<(), KaizenError> {
+            std::fs::write(path, content).map_err(KaizenError::Io)
+        }
+
+        fn create_dir_all(&self, path: &Path) -> Result<(), KaizenError> {
+            std::fs::create_dir_all(path).map_err(KaizenError::Io)
+        }
+
+        fn rename(&self, from: &Path, to: &Path) -> Result<(), KaizenError> {
+            std::fs::rename(from, to).map_err(KaizenError::Io)
+        }
+
+        fn remove_file(&self, path: &Path) -> Result<(), KaizenError> {
+            std::fs::remove_file(path).map_err(KaizenError::Io)
+        }
+
+        fn remove_dir_all(&self, path: &Path) -> Result<(), KaizenError> {
+            std::fs::remove_dir_all(path).map_err(KaizenError::Io)
+        }
+    }
 
     fn fixture_path(name: &str) -> PathBuf {
         PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -161,11 +205,11 @@ mod tests {
     }
 
     fn fixture_config(name: &str) -> UserConfig {
-        crate::config::load(&fixture_path(name)).unwrap()
+        crate::config::load_with(&fixture_path(name), &DiskFileSystem).unwrap()
     }
 
     fn fixture_store() -> FeatureStore {
-        FeatureStore::new(fixture_path("features"))
+        FeatureStore::new(fixture_path("features"), Arc::new(DiskFileSystem))
     }
 
     fn prog(pkgs: &[&str]) -> ProgramSection {

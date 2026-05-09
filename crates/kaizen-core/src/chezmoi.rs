@@ -97,11 +97,6 @@ pub fn generate_chezmoidata(plan: &ConfigPlan) -> Result<String, KaizenError> {
     Ok(toml::to_string_pretty(&data)?)
 }
 
-/// Merge kaizen-managed keys into an existing chezmoidata file (using real filesystem).
-pub fn merge_chezmoidata(existing_path: &Path, plan: &ConfigPlan) -> Result<String, KaizenError> {
-    merge_chezmoidata_with(existing_path, plan, &crate::StdFileSystem)
-}
-
 /// Merge kaizen-managed keys into an existing chezmoidata using an injected FileSystem.
 ///
 /// Preserves all other keys (username, hostname, email, models, etc.) that

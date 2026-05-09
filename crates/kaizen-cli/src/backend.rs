@@ -1,10 +1,13 @@
 use std::sync::Arc;
 
-use kaizen_core::{NixSyncBackend, PackageManagerKind, Runtime, StdFileSystem, StdPathProvider, SyncBackend, TargetOs, UptSyncBackend};
+use kaizen_core::{
+    NixSyncBackend, PackageManagerKind, Runtime, SyncBackend, TargetOs, UptSyncBackend,
+};
 
 use crate::{
     chezmoi::StdChezmoiClient, docker::DockerCleaner, executor::StdProcessExecutor,
-    installer::UptInstaller, mise::MiseToolchain,
+    filesystem::StdFileSystem, installer::UptInstaller, mise::MiseToolchain,
+    paths::StdPathProvider,
 };
 
 /// Detect the appropriate sync backend for the current system.

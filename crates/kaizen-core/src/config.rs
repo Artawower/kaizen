@@ -48,10 +48,6 @@ pub struct DotfilesConfig {
     pub source: Option<String>,
 }
 
-pub fn load(path: &Path) -> Result<UserConfig, KaizenError> {
-    load_with(path, &crate::StdFileSystem)
-}
-
 pub fn load_with(path: &Path, fs: &dyn crate::FileSystem) -> Result<UserConfig, KaizenError> {
     if !fs.exists(path) {
         return Err(KaizenError::ConfigNotFound {

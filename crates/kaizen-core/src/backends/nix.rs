@@ -51,7 +51,10 @@ impl NixSyncBackend {
     }
 
     fn nix_config_dir(&self) -> Result<std::path::PathBuf, KaizenError> {
-        Ok(self.runtime.paths.home_dir()
+        Ok(self
+            .runtime
+            .paths
+            .home_dir()
             .ok_or(KaizenError::HomeDirUnavailable)?
             .join(".config/nix"))
     }
@@ -241,7 +244,12 @@ impl CleanBackend for NixSyncBackend {
         let steps = common::clean_steps(&self.runtime.pm, true, self.container.as_ref());
         if !opts.dry_run {
             self.run_nix_gc(false)?;
-            common::os_cache_clean(&self.runtime.pm, false, self.runtime.executor.as_ref(), self.runtime.paths.as_ref())?;
+            common::os_cache_clean(
+                &self.runtime.pm,
+                false,
+                self.runtime.executor.as_ref(),
+                self.runtime.paths.as_ref(),
+            )?;
             self.container.clean(false)?;
         }
         Ok(common::clean_report_from_steps(steps))
@@ -282,6 +290,8 @@ mod tests {
     use crate::{
         container::NoopContainerCleaner,
         executor::NoopExecutor,
+        fs::mem::MemFileSystem,
+        paths::test::TestPathProvider,
         plan::{ConfigPlan, HookPlan, InstallPlan},
         progress::NoopReporter,
         runtime::Runtime,
@@ -297,9 +307,9 @@ mod tests {
             os,
             Runtime::new(
                 Arc::new(NoopExecutor),
-                Arc::new(crate::StdFileSystem),
+                Arc::new(MemFileSystem::new()),
                 Arc::new(crate::NoopChezmoiClient),
-                Arc::new(crate::StdPathProvider),
+                Arc::new(TestPathProvider::default()),
                 pm,
             ),
             Box::new(NoopDevTools),

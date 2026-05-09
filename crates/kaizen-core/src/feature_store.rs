@@ -1,7 +1,7 @@
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
-use crate::{FeatureFile, FileSystem, KaizenError, StdFileSystem};
+use crate::{FeatureFile, FileSystem, KaizenError};
 
 pub struct FeatureStore {
     dir: PathBuf,
@@ -9,14 +9,7 @@ pub struct FeatureStore {
 }
 
 impl FeatureStore {
-    pub fn new(dir: impl Into<PathBuf>) -> Self {
-        Self {
-            dir: dir.into(),
-            fs: Arc::new(StdFileSystem),
-        }
-    }
-
-    pub fn with_fs(dir: impl Into<PathBuf>, fs: Arc<dyn FileSystem>) -> Self {
+    pub fn new(dir: impl Into<PathBuf>, fs: Arc<dyn FileSystem>) -> Self {
         Self {
             dir: dir.into(),
             fs,
@@ -107,12 +100,12 @@ mod tests {
         for (name, content) in files {
             fs.add_file(dir.join(format!("{name}.toml")), content.as_bytes());
         }
-        FeatureStore::with_fs(dir, Arc::new(fs))
+        FeatureStore::new(dir, Arc::new(fs))
     }
 
     #[test]
     fn rejects_path_traversal() {
-        let store = FeatureStore::new(PathBuf::from("/tmp"));
+        let store = FeatureStore::new(PathBuf::from("/tmp"), Arc::new(MemFileSystem::new()));
         assert!(matches!(
             store.load("../evil").unwrap_err(),
             KaizenError::InvalidFeatureName { .. }
@@ -121,7 +114,7 @@ mod tests {
 
     #[test]
     fn rejects_nested_path() {
-        let store = FeatureStore::new(PathBuf::from("/tmp"));
+        let store = FeatureStore::new(PathBuf::from("/tmp"), Arc::new(MemFileSystem::new()));
         assert!(matches!(
             store.load("nested/evil").unwrap_err(),
             KaizenError::InvalidFeatureName { .. }
@@ -130,7 +123,7 @@ mod tests {
 
     #[test]
     fn rejects_empty_name() {
-        let store = FeatureStore::new(PathBuf::from("/tmp"));
+        let store = FeatureStore::new(PathBuf::from("/tmp"), Arc::new(MemFileSystem::new()));
         assert!(matches!(
             store.load("").unwrap_err(),
             KaizenError::InvalidFeatureName { .. }
@@ -139,7 +132,10 @@ mod tests {
 
     #[test]
     fn reports_missing_directory() {
-        let store = FeatureStore::new(PathBuf::from("/nonexistent-kaizen-dir"));
+        let store = FeatureStore::new(
+            PathBuf::from("/nonexistent-kaizen-dir"),
+            Arc::new(MemFileSystem::new()),
+        );
         assert!(matches!(
             store.list().unwrap_err(),
             KaizenError::FeaturesDirNotFound { .. }

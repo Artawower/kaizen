@@ -2,10 +2,6 @@ use std::path::{Path, PathBuf};
 
 use crate::KaizenError;
 
-/// Port for filesystem access.
-///
-/// Concrete implementations: `StdFileSystem` (production), `MemFileSystem` (tests).
-/// Loaders expose `_with(path, fs)` variants so callers can inject in tests.
 pub trait FileSystem: Send + Sync {
     fn read_to_string(&self, path: &Path) -> Result<String, KaizenError>;
     fn read_dir_paths(&self, path: &Path) -> Result<Vec<PathBuf>, KaizenError>;
@@ -18,77 +14,50 @@ pub trait FileSystem: Send + Sync {
     fn remove_dir_all(&self, path: &Path) -> Result<(), KaizenError>;
 }
 
-/// Standard filesystem implementation backed by `std::fs`.
-pub struct StdFileSystem;
-
-impl FileSystem for StdFileSystem {
-    fn read_to_string(&self, path: &Path) -> Result<String, KaizenError> {
-        std::fs::read_to_string(path).map_err(KaizenError::Io)
-    }
-
-    fn read_dir_paths(&self, path: &Path) -> Result<Vec<PathBuf>, KaizenError> {
-        let entries = std::fs::read_dir(path).map_err(KaizenError::Io)?;
-        entries
-            .map(|e| e.map(|e| e.path()).map_err(KaizenError::Io))
-            .collect()
-    }
-
-    fn exists(&self, path: &Path) -> bool {
-        path.exists()
-    }
-
-    fn is_dir(&self, path: &Path) -> bool {
-        path.is_dir()
-    }
-
-    fn write(&self, path: &Path, content: &[u8]) -> Result<(), KaizenError> {
-        std::fs::write(path, content).map_err(KaizenError::Io)
-    }
-
-    fn create_dir_all(&self, path: &Path) -> Result<(), KaizenError> {
-        std::fs::create_dir_all(path).map_err(KaizenError::Io)
-    }
-
-    fn rename(&self, from: &Path, to: &Path) -> Result<(), KaizenError> {
-        std::fs::rename(from, to).map_err(KaizenError::Io)
-    }
-
-    fn remove_file(&self, path: &Path) -> Result<(), KaizenError> {
-        std::fs::remove_file(path).map_err(KaizenError::Io)
-    }
-
-    fn remove_dir_all(&self, path: &Path) -> Result<(), KaizenError> {
-        std::fs::remove_dir_all(path).map_err(KaizenError::Io)
-    }
-}
-
 #[cfg(test)]
 pub mod mem {
     use std::{
-        collections::HashMap,
+        collections::{HashMap, HashSet},
         path::{Path, PathBuf},
         sync::Mutex,
     };
 
     use super::*;
 
-    /// In-memory filesystem for unit tests. No disk I/O.
     pub struct MemFileSystem {
         files: Mutex<HashMap<PathBuf, Vec<u8>>>,
+        dirs: Mutex<HashSet<PathBuf>>,
     }
 
     impl MemFileSystem {
         pub fn new() -> Self {
             Self {
                 files: Mutex::new(HashMap::new()),
+                dirs: Mutex::new(HashSet::new()),
             }
         }
 
         pub fn add_file(&self, path: impl Into<PathBuf>, content: impl Into<Vec<u8>>) {
-            self.files
-                .lock()
-                .unwrap()
-                .insert(path.into(), content.into());
+            let path = path.into();
+            if let Some(parent) = path.parent() {
+                self.add_dir(parent);
+            }
+            self.files.lock().unwrap().insert(path, content.into());
+        }
+
+        pub fn add_dir(&self, path: impl Into<PathBuf>) {
+            let path = path.into();
+            let mut current = PathBuf::new();
+            for component in path.components() {
+                current.push(component.as_os_str());
+                self.dirs.lock().unwrap().insert(current.clone());
+            }
+        }
+    }
+
+    impl Default for MemFileSystem {
+        fn default() -> Self {
+            Self::new()
         }
     }
 
@@ -107,6 +76,12 @@ pub mod mem {
         }
 
         fn read_dir_paths(&self, path: &Path) -> Result<Vec<PathBuf>, KaizenError> {
+            if !self.is_dir(path) {
+                return Err(KaizenError::Io(std::io::Error::new(
+                    std::io::ErrorKind::NotFound,
+                    path.display().to_string(),
+                )));
+            }
             let files = self.files.lock().unwrap();
             let mut paths: Vec<PathBuf> = files
                 .keys()
@@ -119,14 +94,17 @@ pub mod mem {
 
         fn exists(&self, path: &Path) -> bool {
             self.files.lock().unwrap().contains_key(path)
+                || self.dirs.lock().unwrap().contains(path)
         }
 
         fn is_dir(&self, path: &Path) -> bool {
-            let files = self.files.lock().unwrap();
-            files.keys().any(|p| p.parent() == Some(path))
+            self.dirs.lock().unwrap().contains(path)
         }
 
         fn write(&self, path: &Path, content: &[u8]) -> Result<(), KaizenError> {
+            if let Some(parent) = path.parent() {
+                self.add_dir(parent);
+            }
             self.files
                 .lock()
                 .unwrap()
@@ -134,7 +112,8 @@ pub mod mem {
             Ok(())
         }
 
-        fn create_dir_all(&self, _path: &Path) -> Result<(), KaizenError> {
+        fn create_dir_all(&self, path: &Path) -> Result<(), KaizenError> {
+            self.add_dir(path);
             Ok(())
         }
 
@@ -170,6 +149,7 @@ pub mod mem {
             for p in to_remove {
                 files.remove(&p);
             }
+            self.dirs.lock().unwrap().retain(|p| !p.starts_with(path));
             Ok(())
         }
     }

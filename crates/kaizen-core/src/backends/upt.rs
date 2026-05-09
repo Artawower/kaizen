@@ -3,12 +3,12 @@ use crate::{
     container::ContainerCleaner,
     installer::PackageInstaller,
     progress::ProgressReporter,
+    runtime::Runtime,
     sync_backend::{
         ApplyBackend, ApplyReport, CleanBackend, CleanOpts, CleanReport, InstallBackend,
         InstallReport, PostApplyBackend, PreviewBackend, SyncOpts, SyncPreview, SyncStep,
         UpdateBackend, UpdateOpts, UpdateReport,
     },
-    runtime::Runtime,
     toolchain::DevToolsManager,
     KaizenError, SyncBackend, TargetOs, WorkflowPlan,
 };
@@ -155,7 +155,12 @@ impl CleanBackend for UptSyncBackend {
     fn clean(&self, opts: &CleanOpts) -> Result<CleanReport, KaizenError> {
         let steps = common::clean_steps(&self.runtime.pm, false, self.container.as_ref());
         if !opts.dry_run {
-            common::os_cache_clean(&self.runtime.pm, false, self.runtime.executor.as_ref(), self.runtime.paths.as_ref())?;
+            common::os_cache_clean(
+                &self.runtime.pm,
+                false,
+                self.runtime.executor.as_ref(),
+                self.runtime.paths.as_ref(),
+            )?;
             self.container.clean(false)?;
         }
         Ok(common::clean_report_from_steps(steps))
@@ -196,10 +201,12 @@ mod tests {
         chezmoi_client::NoopChezmoiClient,
         container::NoopContainerCleaner,
         executor::NoopExecutor,
+        fs::mem::MemFileSystem,
         installer::{Installer, Updater},
-        runtime::Runtime,
+        paths::test::TestPathProvider,
         plan::{ConfigPlan, HookPlan, InstallPlan},
         progress::NoopReporter,
+        runtime::Runtime,
         sync_backend::{CleanOpts, SyncOpts, UpdateOpts},
         toolchain::NoopDevTools,
         UserSettings,
@@ -232,9 +239,9 @@ mod tests {
             os,
             Runtime::new(
                 std::sync::Arc::new(NoopExecutor),
-                std::sync::Arc::new(crate::StdFileSystem),
+                std::sync::Arc::new(MemFileSystem::new()),
                 std::sync::Arc::new(NoopChezmoiClient),
-                std::sync::Arc::new(crate::StdPathProvider),
+                std::sync::Arc::new(TestPathProvider::default()),
                 pm,
             ),
             Box::new(MockInstaller),

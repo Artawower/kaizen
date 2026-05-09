@@ -85,20 +85,24 @@ impl ChezmoiBootstrapper {
             .source_path()?
             .ok_or(KaizenError::ChezmoidataTargetUnknown)?;
         let kaizen_dir = source.join(manifest::KAIZEN_DIR);
-        let m = manifest::load(&kaizen_dir)?;
+        let m = manifest::load_with(&kaizen_dir, self.fs.as_ref())?;
         manifest::validate(&m)
     }
 }
 
 /// Resolve the features directory from an already-known chezmoi `source_dir`.
-pub fn resolve_features_dir_from_source(explicit: Option<&Path>, source_dir: &Path) -> PathBuf {
+pub fn resolve_features_dir_from_source(
+    explicit: Option<&Path>,
+    source_dir: &Path,
+    fs: &dyn FileSystem,
+) -> PathBuf {
     if let Some(dir) = explicit {
         return dir.to_owned();
     }
     let candidate = source_dir
         .join(manifest::KAIZEN_DIR)
         .join(manifest::FEATURES_SUBDIR);
-    if candidate.is_dir() {
+    if fs.is_dir(&candidate) {
         return candidate;
     }
     PathBuf::from("features")
@@ -107,33 +111,33 @@ pub fn resolve_features_dir_from_source(explicit: Option<&Path>, source_dir: &Pa
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::fs;
-    use tempfile::TempDir;
+    use crate::fs::mem::MemFileSystem;
 
     #[test]
     fn resolve_explicit_dir_is_returned_unchanged() {
-        let dir = TempDir::new().unwrap();
-        let explicit = dir.path().to_owned();
-        let result = resolve_features_dir_from_source(Some(&explicit), Path::new("/irrelevant"));
+        let fs = MemFileSystem::new();
+        let explicit = PathBuf::from("/explicit");
+        let result =
+            resolve_features_dir_from_source(Some(&explicit), Path::new("/irrelevant"), &fs);
         assert_eq!(result, explicit);
     }
 
     #[test]
     fn resolve_kaizen_features_subdir_when_it_exists() {
-        let dir = TempDir::new().unwrap();
-        let features = dir
-            .path()
+        let fs = MemFileSystem::new();
+        let source = PathBuf::from("/source");
+        let features = source
             .join(manifest::KAIZEN_DIR)
             .join(manifest::FEATURES_SUBDIR);
-        fs::create_dir_all(&features).unwrap();
-        let result = resolve_features_dir_from_source(None, dir.path());
+        fs.add_dir(&features);
+        let result = resolve_features_dir_from_source(None, &source, &fs);
         assert_eq!(result, features);
     }
 
     #[test]
     fn resolve_falls_back_to_builtin_when_no_kaizen_dir() {
-        let dir = TempDir::new().unwrap();
-        let result = resolve_features_dir_from_source(None, dir.path());
+        let fs = MemFileSystem::new();
+        let result = resolve_features_dir_from_source(None, Path::new("/source"), &fs);
         assert_eq!(result, PathBuf::from("features"));
     }
 }

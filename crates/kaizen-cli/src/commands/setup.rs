@@ -7,13 +7,16 @@ use kaizen_core::{
     KaizenEngine, UserConfig,
 };
 
-use crate::{output, selector};
+use std::sync::Arc;
+
+use crate::{filesystem::StdFileSystem, output, selector};
 
 pub fn run(explicit_features_dir: Option<&Path>, config_path: &Path) -> Result<()> {
     output::page_header("setup");
 
+    let fs = Arc::new(StdFileSystem);
     let existing = if config_path.exists() {
-        kaizen_core::config::load(config_path).ok()
+        kaizen_core::config::load_with(config_path, fs.as_ref()).ok()
     } else {
         None
     };
@@ -21,8 +24,9 @@ pub fn run(explicit_features_dir: Option<&Path>, config_path: &Path) -> Result<(
     let dotfiles_url = pick_dotfiles_url(existing.as_ref())?;
     let source_dir = bootstrap_chezmoi(&dotfiles_url)?;
 
-    let features_dir = resolve_features_dir_from_source(explicit_features_dir, &source_dir);
-    let engine = KaizenEngine::new(&features_dir);
+    let features_dir =
+        resolve_features_dir_from_source(explicit_features_dir, &source_dir, fs.as_ref());
+    let engine = KaizenEngine::new(&features_dir, fs);
 
     let features = engine.list_features_with_meta()?;
     let Some(selected) = pick_features(&features, existing.as_ref())? else {
@@ -49,7 +53,10 @@ fn pick_dotfiles_url(existing: Option<&UserConfig>) -> Result<String> {
 }
 
 fn bootstrap_chezmoi(url: &str) -> Result<PathBuf> {
-    let bootstrapper = ChezmoiBootstrapper::new(Box::new(crate::chezmoi::StdChezmoiClient), Box::new(kaizen_core::StdFileSystem));
+    let bootstrapper = ChezmoiBootstrapper::new(
+        Box::new(crate::chezmoi::StdChezmoiClient),
+        Box::new(StdFileSystem),
+    );
     match bootstrapper.check(url)? {
         BootstrapStatus::AlreadyUpToDate(source) => {
             output::item_ok("chezmoi already initialized with matching remote");

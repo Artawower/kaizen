@@ -205,7 +205,10 @@ mod tests {
     }
 
     fn fixture_engine() -> KaizenEngine {
-        KaizenEngine::new(fixture_path("features"))
+        KaizenEngine::new(
+            fixture_path("features"),
+            std::sync::Arc::new(crate::filesystem::StdFileSystem),
+        )
     }
 
     fn run(

@@ -211,7 +211,10 @@ mod tests {
 
     fn fixture_engine() -> kaizen_core::KaizenEngine {
         let features = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/features");
-        kaizen_core::KaizenEngine::new(features)
+        kaizen_core::KaizenEngine::new(
+            features,
+            std::sync::Arc::new(crate::filesystem::StdFileSystem),
+        )
     }
 
     fn temp_config() -> (tempfile::TempDir, PathBuf) {
@@ -234,7 +237,9 @@ mod tests {
         let managed_file = dir.path().join("helix_config.toml");
         std::fs::write(&managed_file, "# helix").unwrap();
 
-        let report = crate::chezmoi::StdChezmoiClient.remove_files(&[managed_file.clone()], true).unwrap();
+        let report = crate::chezmoi::StdChezmoiClient
+            .remove_files(&[managed_file.clone()], true)
+            .unwrap();
 
         assert!(managed_file.exists(), "dry-run must not touch file");
         assert!(report.removed.contains(&managed_file));

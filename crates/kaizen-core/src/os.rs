@@ -60,7 +60,6 @@ impl TargetOs {
     }
 }
 
-
 impl From<os_info::Type> for TargetOs {
     fn from(t: os_info::Type) -> Self {
         match t {

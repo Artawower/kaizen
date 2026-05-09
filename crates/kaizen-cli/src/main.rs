@@ -2,19 +2,25 @@ use anyhow::Result;
 use clap::{Parser, Subcommand};
 
 mod backend;
-mod commands;
-mod ensure;
-mod hooks;
 mod chezmoi;
+mod commands;
 mod docker;
+mod ensure;
 mod executor;
+mod filesystem;
+mod hooks;
 mod installer;
 mod mise;
 mod output;
+mod paths;
 mod reporter;
 mod selector;
 
+use std::sync::Arc;
+
 use chezmoi::StdChezmoiClient;
+use filesystem::StdFileSystem;
+use paths::StdPathProvider;
 use reporter::StderrReporter;
 
 #[derive(Parser)]
@@ -105,7 +111,7 @@ fn main() -> Result<()> {
     let cli = Cli::parse();
     let config_path = cli
         .config
-        .unwrap_or_else(kaizen_core::KaizenEngine::default_config_path);
+        .unwrap_or_else(|| kaizen_core::KaizenEngine::default_config_path(&StdPathProvider));
 
     let reporter = StderrReporter;
 
@@ -115,16 +121,26 @@ fn main() -> Result<()> {
         return match cli.command {
             Command::Setup => commands::setup::run(features_dir_opt, &config_path),
             Command::Init { dry_run } => {
-                let features_dir = kaizen_core::resolve_features_dir(cli.features_dir, &reporter, &StdChezmoiClient)?;
-                let engine = kaizen_core::KaizenEngine::new(&features_dir);
+                let features_dir = kaizen_core::resolve_features_dir(
+                    cli.features_dir,
+                    &reporter,
+                    &StdChezmoiClient,
+                    &StdFileSystem,
+                )?;
+                let engine = kaizen_core::KaizenEngine::new(&features_dir, Arc::new(StdFileSystem));
                 commands::init::run(&engine, features_dir_opt, &config_path, dry_run)
             }
             _ => unreachable!(),
         };
     }
 
-    let features_dir = kaizen_core::resolve_features_dir(cli.features_dir, &reporter, &StdChezmoiClient)?;
-    let engine = kaizen_core::KaizenEngine::new(&features_dir);
+    let features_dir = kaizen_core::resolve_features_dir(
+        cli.features_dir,
+        &reporter,
+        &StdChezmoiClient,
+        &StdFileSystem,
+    )?;
+    let engine = kaizen_core::KaizenEngine::new(&features_dir, Arc::new(StdFileSystem));
 
     match cli.command {
         Command::Setup | Command::Init { .. } => unreachable!(),
