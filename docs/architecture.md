@@ -7,7 +7,7 @@ Kaizen is a headless workflow orchestrator: manages dotfiles, packages, and dev 
 ```mermaid
 graph TD
     subgraph CLI["kaizen-cli"]
-        CMD["Commands<br/>sync · apply · update<br/>clean · install · doctor"]
+        CMD["Commands<br/>install · configure · sync · apply<br/>update · clean · uninstall · doctor"]
         ROOT["Composition Root<br/>detect_backend()<br/>main.rs"]
         ADAPTERS["Concrete Adapters<br/>StdProcessExecutor · StdFileSystem<br/>StdChezmoiClient · StdPathProvider<br/>UptInstaller · MiseToolchain · DockerCleaner"]
     end
@@ -110,15 +110,14 @@ Each CLI command depends only on the narrowest sub-trait it needs.
 
 ## Command → Sub-trait Mapping
 
-| Command   | Depends on                                 |
-| --------- | ------------------------------------------ |
-| `sync`    | `SyncBackend` (full)                       |
-| `apply`   | `ApplyBackend + PostApplyBackend`          |
-| `update`  | `UpdateBackend`                            |
-| `clean`   | `CleanBackend`                             |
-| `install` | `&dyn Installer` (direct, not SyncBackend) |
-
-`install` bypasses backend abstraction and calls `UptInstaller` directly via `&dyn Installer`. It is intentionally Nix-unaware and emits a warning when Nix is detected.
+| Command     | Depends on                           |
+| ----------- | ------------------------------------ |
+| `sync`      | `SyncBackend` (full)                 |
+| `apply`     | `ApplyBackend + PostApplyBackend`    |
+| `update`    | `UpdateBackend`                      |
+| `clean`     | `CleanBackend`                       |
+| `install`   | CLI orchestration (configure → sync) |
+| `configure` | `ChezmoiBootstrapper` + wizard       |
 
 ## WorkflowPlan
 
@@ -131,7 +130,7 @@ WorkflowPlan
 
 ## Setup Flow
 
-`kaizen init` / `kaizen setup` use `ChezmoiBootstrapper` (in core) for source-dir inspection, backup, and rollback — isolated from the main sync pipeline.
+`kaizen install` / `kaizen configure` use `ChezmoiBootstrapper` (in core) for source-dir inspection, backup, and rollback — isolated from the main sync pipeline.
 
 ## Testing
 

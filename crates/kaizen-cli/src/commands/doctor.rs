@@ -70,7 +70,7 @@ fn report_config(engine: &KaizenEngine, config_path: &Path) {
 
     if !config_path.exists() {
         output::item_err(&format!(
-            "{} not found  (run: kaizen setup)",
+            "{} not found  (run: kaizen install)",
             config_path.display()
         ));
         return;

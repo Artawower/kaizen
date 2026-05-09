@@ -3,7 +3,7 @@ use std::path::PathBuf;
 fn chezmoi_apply_message(code: &Option<i32>, reason: &Option<String>) -> String {
     match reason {
         Some(r) => format!(
-            "chezmoi apply failed\n\n{r}\n\nHint: a template references a key missing from .chezmoidata.toml.\nRun 'kaizen setup' or add the missing key manually."
+            "chezmoi apply failed\n\n{r}\n\nHint: a template references a key missing from .chezmoidata.toml.\nRun 'kaizen configure' or add the missing key manually."
         ),
         None => format!("chezmoi apply failed with exit code {code:?}"),
     }

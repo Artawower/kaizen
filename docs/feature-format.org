@@ -49,7 +49,7 @@ Disable in config: =disabled_atoms = ["lsp"]=
 ** =[hooks]=
 Shell commands executed at specific lifecycle points. Run via =sh -c=. Security is the user's responsibility.
 
-| =post_install= | After =kaizen install=               |
+| =post_install= | After =kaizen sync= (install phase)  |
 | =post_apply=   | After =kaizen apply= (chezmoi apply) |
 | =post_update=  | After =kaizen update=                |
 

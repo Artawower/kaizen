@@ -43,14 +43,14 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Command {
-    /// First-time setup: run wizard then sync. Skips wizard if config already exists.
-    Init {
+    /// First-time machine install: configure if needed, then sync.
+    Install {
         #[arg(long, help = "Preview sync without executing")]
         dry_run: bool,
     },
 
-    /// Interactively configure kaizen and write config.toml.
-    Setup,
+    /// Interactively configure kaizen: pick features, dotfiles URL, keyboard layout.
+    Configure,
 
     /// List available workflow features.
     Features,
@@ -88,14 +88,7 @@ enum Command {
         dry_run: bool,
     },
 
-    /// Explicitly install packages via upt (non-Nix systems only).
-    /// On Nix systems use `kaizen sync` instead.
-    Install {
-        #[arg(long, help = "Show what would be run without executing")]
-        dry_run: bool,
-    },
-
-    /// Remove packages (upt only). On Nix: disable features and run `kaizen sync`.
+    /// Remove Kaizen-managed dotfiles, config, chezmoi source, and optionally Nix.
     Uninstall {
         #[arg(long, help = "Show what would be run without executing")]
         dry_run: bool,
@@ -103,6 +96,11 @@ enum Command {
 
     /// Check system readiness and tool availability.
     Doctor,
+
+    /// Upgrade tool versions and re-add lock/config files to the chezmoi source.
+    /// Maintainer command: bumps mise + nix flake inputs, then re-adds locks to chezmoi.
+    #[command(hide = true)]
+    Bump,
 }
 
 fn main() -> Result<()> {
@@ -115,12 +113,12 @@ fn main() -> Result<()> {
 
     let reporter = StderrReporter;
 
-    if matches!(cli.command, Command::Setup | Command::Init { .. }) {
+    if matches!(cli.command, Command::Configure | Command::Install { .. }) {
         let features_dir_path = cli.features_dir.clone();
         let features_dir_opt = features_dir_path.as_deref();
         return match cli.command {
-            Command::Setup => commands::setup::run(features_dir_opt, &config_path),
-            Command::Init { dry_run } => {
+            Command::Configure => commands::configure::run(features_dir_opt, &config_path),
+            Command::Install { dry_run } => {
                 let features_dir = kaizen_core::resolve_features_dir(
                     cli.features_dir,
                     &reporter,
@@ -128,7 +126,7 @@ fn main() -> Result<()> {
                     &StdFileSystem,
                 )?;
                 let engine = kaizen_core::KaizenEngine::new(&features_dir, Arc::new(StdFileSystem));
-                commands::init::run(&engine, features_dir_opt, &config_path, dry_run)
+                commands::install::run(&engine, features_dir_opt, &config_path, dry_run)
             }
             _ => unreachable!(),
         };
@@ -143,7 +141,7 @@ fn main() -> Result<()> {
     let engine = kaizen_core::KaizenEngine::new(&features_dir, Arc::new(StdFileSystem));
 
     match cli.command {
-        Command::Setup | Command::Init { .. } => unreachable!(),
+        Command::Configure | Command::Install { .. } => unreachable!(),
         Command::Features => commands::features::run(&engine)?,
         Command::Sync { dry_run } => commands::sync::run(&engine, &config_path, dry_run)?,
         Command::Apply { dry_run } => commands::apply::run(&engine, &config_path, dry_run)?,
@@ -154,23 +152,12 @@ fn main() -> Result<()> {
             features,
         } => commands::update::run(&engine, &config_path, dry_run, flake, features, interactive)?,
         Command::Clean { dry_run } => commands::clean::run(&engine, &config_path, dry_run)?,
-        Command::Install { dry_run } => {
-            warn_if_nix_available();
-            commands::install::run(&engine, &config_path, dry_run)?;
-        }
         Command::Uninstall { dry_run } => {
             commands::uninstall::run(&engine, &config_path, dry_run)?;
         }
         Command::Doctor => commands::doctor::run(&engine, &config_path)?,
+        Command::Bump => commands::bump::run()?,
     }
 
     Ok(())
-}
-
-fn warn_if_nix_available() {
-    if which::which("home-manager").is_ok() || which::which("darwin-rebuild").is_ok() {
-        eprintln!(
-            "warning: Nix detected — 'kaizen install' uses upt and will not update Nix packages.\n         Use 'kaizen sync' instead."
-        );
-    }
 }

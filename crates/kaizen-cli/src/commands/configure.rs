@@ -12,7 +12,7 @@ use std::sync::Arc;
 use crate::{filesystem::StdFileSystem, output, selector};
 
 pub fn run(explicit_features_dir: Option<&Path>, config_path: &Path) -> Result<()> {
-    output::page_header("setup");
+    output::page_header("configure");
 
     let fs = Arc::new(StdFileSystem);
     let existing = if config_path.exists() {
@@ -77,7 +77,7 @@ fn bootstrap_chezmoi(url: &str) -> Result<PathBuf> {
                 .default(false)
                 .interact()?;
             if !confirmed {
-                anyhow::bail!("setup cancelled — existing chezmoi source unchanged");
+                anyhow::bail!("configure cancelled — existing chezmoi source unchanged");
             }
             output::item("cloning dotfiles via chezmoi init…");
             let (new_source, backup) = bootstrapper

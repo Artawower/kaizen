@@ -209,31 +209,32 @@ cargo install --path crates/kaizen-cli
 The primary workflow:
 
 #+BEGIN_SRC shell
-kaizen setup    # interactive: pick features, keyboard layout, dotfiles URL
-kaizen sync     # install packages + apply dotfiles (auto-detects Nix or upt)
-kaizen update   # upgrade packages and mise tools
+kaizen install  # first-time machine setup: configure if needed, then sync
+kaizen sync     # apply config: packages + dotfiles + dev tools (Nix or upt)
+kaizen update   # upgrade packages, flake inputs and mise tools
 kaizen clean    # garbage-collect Nix store, OS caches, Docker
 #+END_SRC
 
 Full command reference:
 
 #+BEGIN_SRC shell
-kaizen setup      # interactively configure kaizen and write config.toml
+kaizen install    # first-time machine install: configure if needed, then sync
+kaizen configure  # interactively pick features, dotfiles URL, keyboard layout
 kaizen features   # list available workflow features
-kaizen sync       # install + apply dotfiles (Nix or upt, auto-detected)
-kaizen apply      # apply dotfiles via chezmoi + mise install only
+kaizen sync       # reconcile system to config (packages + dotfiles + mise)
+kaizen apply      # apply dotfiles + mise only, without package manager
 kaizen update     # upgrade packages, flake inputs (--flake) and mise tools
 kaizen clean      # clean Nix store, OS package cache, Docker
-kaizen install    # explicit upt install (advanced)
-kaizen uninstall  # remove packages via upt
+kaizen uninstall  # remove Kaizen-managed dotfiles, config, chezmoi source
 kaizen doctor     # check system readiness and tool availability
 #+END_SRC
 
-- ~kaizen setup~ runs the interactive wizard: picks a dotfiles repository, selects features and keyboard layout, writes =~/.config/kaizen/config.toml=.
-- ~kaizen sync~ is the primary command. It auto-detects the backend:
+- ~kaizen install~ is the entry point for a fresh machine. Runs ~kaizen configure~ if no config or dotfiles are found, then ~kaizen sync~.
+- ~kaizen configure~ runs the interactive wizard: picks a dotfiles repository, selects features and keyboard layout, writes =~/.config/kaizen/config.toml=.
+- ~kaizen sync~ is the primary day-to-day command. It auto-detects the backend:
   - *Nix* (=home-manager= or =darwin-rebuild= found): writes =.chezmoidata.toml= → =chezmoi apply= → =darwin-rebuild switch= + =home-manager switch= → =mise install=.
   - *upt* (fallback): =upt install= → =chezmoi apply= → =mise install=.
-- ~kaizen apply~ re-applies dotfiles and runs =mise install= without reinstalling packages.
+- ~kaizen apply~ re-applies dotfiles and runs =mise install= without touching system packages.
 - ~kaizen update~ upgrades packages. Pass =--flake= to also run =nix flake update= before switching.
 - ~kaizen clean~ removes old Nix generations, clears OS package caches, and prunes Docker.
 - ~kaizen doctor~ reports which backends are available (Nix, upt, chezmoi, mise).

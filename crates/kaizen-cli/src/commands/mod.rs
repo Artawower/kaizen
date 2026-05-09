@@ -1,11 +1,11 @@
 pub mod apply;
+pub mod bump;
 pub mod clean;
+pub mod configure;
 pub mod doctor;
 pub mod features;
-pub mod init;
 pub mod install;
 pub mod plan;
-pub mod setup;
 pub mod sync;
 pub mod uninstall;
 pub mod update;
