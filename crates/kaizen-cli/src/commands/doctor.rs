@@ -19,6 +19,7 @@ pub fn run(engine: &KaizenEngine, config_path: &Path) -> Result<()> {
         report_tool(tool);
     }
 
+    report_nix_tools();
     report_config(engine, config_path);
 
     output::header("Features");
@@ -32,6 +33,21 @@ pub fn run(engine: &KaizenEngine, config_path: &Path) -> Result<()> {
 
     println!();
     Ok(())
+}
+
+fn report_nix_tools() {
+    let any_nix = ensure::NIX_TOOLS
+        .iter()
+        .any(|t| which::which(t.name).is_ok());
+
+    if !any_nix {
+        return;
+    }
+
+    output::header("Nix");
+    for tool in ensure::NIX_TOOLS {
+        report_tool(tool);
+    }
 }
 
 fn report_tool(tool: &Tool) {
