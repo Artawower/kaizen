@@ -3,8 +3,9 @@ use crate::{
     process,
     progress::ProgressReporter,
     sync_backend::{
-        ApplyReport, CleanOpts, CleanReport, InstallReport, SyncOpts, SyncPreview, SyncStep,
-        UpdateOpts, UpdateReport,
+        ApplyBackend, ApplyReport, CleanBackend, CleanOpts, CleanReport, InstallBackend,
+        InstallReport, PostApplyBackend, PreviewBackend, SyncOpts, SyncPreview, SyncStep,
+        UpdateBackend, UpdateOpts, UpdateReport,
     },
     KaizenError, SyncBackend, TargetOs, WorkflowPlan,
 };
@@ -52,7 +53,7 @@ impl SyncBackend for NixSyncBackend {
     fn sync(
         &self,
         plan: &WorkflowPlan,
-        opts: &SyncOpts,
+        opts: &crate::SyncOpts,
         reporter: &dyn ProgressReporter,
     ) -> Result<crate::SyncReport, KaizenError> {
         let apply = self.apply(plan, opts, reporter)?;
@@ -60,7 +61,9 @@ impl SyncBackend for NixSyncBackend {
         self.post_apply(opts, reporter)?;
         Ok(crate::SyncReport { install, apply })
     }
+}
 
+impl InstallBackend for NixSyncBackend {
     fn install(
         &self,
         _plan: &WorkflowPlan,
@@ -88,16 +91,9 @@ impl SyncBackend for NixSyncBackend {
             warnings: vec![],
         })
     }
+}
 
-    fn apply(
-        &self,
-        plan: &WorkflowPlan,
-        opts: &SyncOpts,
-        reporter: &dyn ProgressReporter,
-    ) -> Result<ApplyReport, KaizenError> {
-        common::chezmoi_write_and_apply(&plan.config_plan, opts.dry_run, reporter)
-    }
-
+impl PostApplyBackend for NixSyncBackend {
     fn post_apply(
         &self,
         opts: &SyncOpts,
@@ -109,7 +105,34 @@ impl SyncBackend for NixSyncBackend {
         }
         Ok(())
     }
+}
 
+impl ApplyBackend for NixSyncBackend {
+    fn apply(
+        &self,
+        plan: &WorkflowPlan,
+        opts: &SyncOpts,
+        reporter: &dyn ProgressReporter,
+    ) -> Result<ApplyReport, KaizenError> {
+        common::chezmoi_write_and_apply(&plan.config_plan, opts.dry_run, reporter)
+    }
+
+    fn apply_preview(&self, _plan: &WorkflowPlan) -> SyncPreview {
+        let mut steps = vec![SyncStep {
+            label: "apply dotfiles".into(),
+            command: "chezmoi apply".into(),
+        }];
+        if which::which("mise").is_ok() {
+            steps.push(SyncStep {
+                label: "install mise tools".into(),
+                command: "mise install".into(),
+            });
+        }
+        SyncPreview { steps }
+    }
+}
+
+impl UpdateBackend for NixSyncBackend {
     fn update(
         &self,
         plan: &WorkflowPlan,
@@ -138,7 +161,9 @@ impl SyncBackend for NixSyncBackend {
             warnings: vec![],
         })
     }
+}
 
+impl CleanBackend for NixSyncBackend {
     fn clean(&self, opts: &CleanOpts) -> Result<CleanReport, KaizenError> {
         let steps = common::clean_steps(&self.os, true);
         if !opts.dry_run {
@@ -148,7 +173,9 @@ impl SyncBackend for NixSyncBackend {
         }
         Ok(common::clean_report_from_steps(steps))
     }
+}
 
+impl PreviewBackend for NixSyncBackend {
     fn preview(&self, plan: &WorkflowPlan) -> SyncPreview {
         let mut steps = vec![SyncStep {
             label: "apply dotfiles".into(),
@@ -170,20 +197,6 @@ impl SyncBackend for NixSyncBackend {
         }
 
         let _ = plan;
-        SyncPreview { steps }
-    }
-
-    fn apply_preview(&self, _plan: &WorkflowPlan) -> SyncPreview {
-        let mut steps = vec![SyncStep {
-            label: "apply dotfiles".into(),
-            command: "chezmoi apply".into(),
-        }];
-        if which::which("mise").is_ok() {
-            steps.push(SyncStep {
-                label: "install mise tools".into(),
-                command: "mise install".into(),
-            });
-        }
         SyncPreview { steps }
     }
 }
@@ -219,6 +232,14 @@ fn run_nix_flake_update(dry_run: bool) -> Result<(), KaizenError> {
         .join(".config/nix");
     let flake_str = nix_dir.to_string_lossy().into_owned();
     process::run_cmd("nix", &["flake", "update", "--flake", &flake_str])
+}
+
+fn run_nix_gc(dry_run: bool) -> Result<(), KaizenError> {
+    if dry_run {
+        return Ok(());
+    }
+    process::run_cmd("nix-collect-garbage", &["--delete-older-than", "7d"])?;
+    process::run_cmd("nix-store", &["--optimise"])
 }
 
 #[cfg(test)]
@@ -343,12 +364,4 @@ mod tests {
             "nix clean steps must include nix-collect-garbage"
         );
     }
-}
-
-fn run_nix_gc(dry_run: bool) -> Result<(), KaizenError> {
-    if dry_run {
-        return Ok(());
-    }
-    process::run_cmd("nix-collect-garbage", &["--delete-older-than", "7d"])?;
-    process::run_cmd("nix-store", &["--optimise"])
 }

@@ -4,8 +4,9 @@ use crate::{
     installer::{Installer, Updater},
     progress::ProgressReporter,
     sync_backend::{
-        ApplyReport, CleanOpts, CleanReport, InstallReport, SyncOpts, SyncPreview, SyncStep,
-        UpdateOpts, UpdateReport,
+        ApplyBackend, ApplyReport, CleanBackend, CleanOpts, CleanReport, InstallBackend,
+        InstallReport, PostApplyBackend, PreviewBackend, SyncOpts, SyncPreview, SyncStep,
+        UpdateBackend, UpdateOpts, UpdateReport,
     },
     KaizenError, SyncBackend, TargetOs, WorkflowPlan,
 };
@@ -28,7 +29,9 @@ impl SyncBackend for UptSyncBackend {
     fn is_available(&self) -> bool {
         which::which("upt").is_ok()
     }
+}
 
+impl InstallBackend for UptSyncBackend {
     fn install(
         &self,
         plan: &WorkflowPlan,
@@ -54,16 +57,9 @@ impl SyncBackend for UptSyncBackend {
             warnings: vec![],
         })
     }
+}
 
-    fn apply(
-        &self,
-        plan: &WorkflowPlan,
-        opts: &SyncOpts,
-        reporter: &dyn ProgressReporter,
-    ) -> Result<ApplyReport, KaizenError> {
-        common::chezmoi_write_and_apply(&plan.config_plan, opts.dry_run, reporter)
-    }
-
+impl PostApplyBackend for UptSyncBackend {
     fn post_apply(
         &self,
         opts: &SyncOpts,
@@ -75,7 +71,34 @@ impl SyncBackend for UptSyncBackend {
         }
         Ok(())
     }
+}
 
+impl ApplyBackend for UptSyncBackend {
+    fn apply(
+        &self,
+        plan: &WorkflowPlan,
+        opts: &SyncOpts,
+        reporter: &dyn ProgressReporter,
+    ) -> Result<ApplyReport, KaizenError> {
+        common::chezmoi_write_and_apply(&plan.config_plan, opts.dry_run, reporter)
+    }
+
+    fn apply_preview(&self, _plan: &WorkflowPlan) -> SyncPreview {
+        let mut steps = vec![SyncStep {
+            label: "apply dotfiles".into(),
+            command: "chezmoi apply".into(),
+        }];
+        if which::which("mise").is_ok() {
+            steps.push(SyncStep {
+                label: "install mise tools".into(),
+                command: "mise install".into(),
+            });
+        }
+        SyncPreview { steps }
+    }
+}
+
+impl UpdateBackend for UptSyncBackend {
     fn update(
         &self,
         plan: &WorkflowPlan,
@@ -111,7 +134,9 @@ impl SyncBackend for UptSyncBackend {
             warnings,
         })
     }
+}
 
+impl CleanBackend for UptSyncBackend {
     fn clean(&self, opts: &CleanOpts) -> Result<CleanReport, KaizenError> {
         let steps = common::clean_steps(&self.os, false);
         if !opts.dry_run {
@@ -120,7 +145,9 @@ impl SyncBackend for UptSyncBackend {
         }
         Ok(common::clean_report_from_steps(steps))
     }
+}
 
+impl PreviewBackend for UptSyncBackend {
     fn preview(&self, plan: &WorkflowPlan) -> SyncPreview {
         let mut steps = vec![];
 
@@ -143,20 +170,6 @@ impl SyncBackend for UptSyncBackend {
             });
         }
 
-        SyncPreview { steps }
-    }
-
-    fn apply_preview(&self, _plan: &WorkflowPlan) -> SyncPreview {
-        let mut steps = vec![SyncStep {
-            label: "apply dotfiles".into(),
-            command: "chezmoi apply".into(),
-        }];
-        if which::which("mise").is_ok() {
-            steps.push(SyncStep {
-                label: "install mise tools".into(),
-                command: "mise install".into(),
-            });
-        }
         SyncPreview { steps }
     }
 }

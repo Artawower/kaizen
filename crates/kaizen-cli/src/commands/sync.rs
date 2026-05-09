@@ -52,8 +52,10 @@ mod tests {
     use std::sync::atomic::{AtomicBool, Ordering};
 
     use kaizen_core::{
-        ApplyReport, CleanOpts, CleanReport, InstallReport, KaizenEngine, ProgressReporter,
-        SyncBackend, SyncOpts, SyncPreview, SyncReport, UpdateOpts, UpdateReport, WorkflowPlan,
+        ApplyBackend, ApplyReport, CleanBackend, CleanOpts, CleanReport, InstallBackend,
+        InstallReport, KaizenEngine, KaizenError, PostApplyBackend, PreviewBackend, ProgressReporter,
+        SyncBackend, SyncOpts, SyncPreview, SyncReport, UpdateBackend, UpdateOpts, UpdateReport,
+        WorkflowPlan,
     };
 
     use super::run_with;
@@ -77,56 +79,71 @@ mod tests {
         fn is_available(&self) -> bool {
             true
         }
-
-        fn install(
-            &self,
-            _: &WorkflowPlan,
-            _: &SyncOpts,
-            _: &dyn ProgressReporter,
-        ) -> Result<InstallReport, kaizen_core::KaizenError> {
-            Ok(InstallReport::default())
-        }
-        fn apply(
-            &self,
-            _: &WorkflowPlan,
-            _: &SyncOpts,
-            _: &dyn ProgressReporter,
-        ) -> Result<ApplyReport, kaizen_core::KaizenError> {
-            Ok(ApplyReport::default())
-        }
-        fn post_apply(
-            &self,
-            _: &SyncOpts,
-            _: &dyn ProgressReporter,
-        ) -> Result<(), kaizen_core::KaizenError> {
-            Ok(())
-        }
-
         fn sync(
             &self,
             _: &WorkflowPlan,
             _: &SyncOpts,
             _: &dyn ProgressReporter,
-        ) -> Result<SyncReport, kaizen_core::KaizenError> {
+        ) -> Result<SyncReport, KaizenError> {
             self.sync_called.store(true, Ordering::Relaxed);
             Ok(SyncReport::default())
         }
+    }
 
+    impl InstallBackend for RecordingSyncBackend {
+        fn install(
+            &self,
+            _: &WorkflowPlan,
+            _: &SyncOpts,
+            _: &dyn ProgressReporter,
+        ) -> Result<InstallReport, KaizenError> {
+            Ok(InstallReport::default())
+        }
+    }
+
+    impl PostApplyBackend for RecordingSyncBackend {
+        fn post_apply(
+            &self,
+            _: &SyncOpts,
+            _: &dyn ProgressReporter,
+        ) -> Result<(), KaizenError> {
+            Ok(())
+        }
+    }
+
+    impl ApplyBackend for RecordingSyncBackend {
+        fn apply(
+            &self,
+            _: &WorkflowPlan,
+            _: &SyncOpts,
+            _: &dyn ProgressReporter,
+        ) -> Result<ApplyReport, KaizenError> {
+            Ok(ApplyReport::default())
+        }
+        fn apply_preview(&self, _: &WorkflowPlan) -> SyncPreview {
+            SyncPreview::default()
+        }
+    }
+
+    impl UpdateBackend for RecordingSyncBackend {
         fn update(
             &self,
             _: &WorkflowPlan,
             _: &UpdateOpts,
             _: &dyn ProgressReporter,
-        ) -> Result<UpdateReport, kaizen_core::KaizenError> {
+        ) -> Result<UpdateReport, KaizenError> {
             Ok(UpdateReport::default())
         }
-        fn clean(&self, _: &CleanOpts) -> Result<CleanReport, kaizen_core::KaizenError> {
+    }
+
+    impl CleanBackend for RecordingSyncBackend {
+        fn clean(&self, _: &CleanOpts) -> Result<CleanReport, KaizenError> {
             Ok(CleanReport::default())
         }
+    }
+
+    impl PreviewBackend for RecordingSyncBackend {
         fn preview(&self, _: &WorkflowPlan) -> SyncPreview {
-            SyncPreview::default()
-        }
-        fn apply_preview(&self, _: &WorkflowPlan) -> SyncPreview {
             SyncPreview::default()
         }
     }

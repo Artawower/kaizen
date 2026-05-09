@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use anyhow::Result;
-use kaizen_core::{detect_backend, CleanOpts, KaizenEngine, SyncBackend, TargetOs};
+use kaizen_core::{detect_backend, CleanBackend, CleanOpts, KaizenEngine, TargetOs};
 use owo_colors::OwoColorize;
 
 use crate::output;
@@ -9,14 +9,15 @@ use crate::output;
 pub fn run(engine: &KaizenEngine, config_path: &Path, dry_run: bool) -> Result<()> {
     let os = TargetOs::detect();
     let backend = detect_backend(os);
-    run_with(engine, config_path, dry_run, backend.as_ref())
+    run_with(engine, config_path, dry_run, backend.id(), backend.as_ref())
 }
 
 fn run_with(
     engine: &KaizenEngine,
     config_path: &Path,
     dry_run: bool,
-    backend: &dyn SyncBackend,
+    backend_id: &str,
+    backend: &dyn CleanBackend,
 ) -> Result<()> {
     output::page_header(if dry_run { "clean  (dry-run)" } else { "clean" });
 
@@ -24,7 +25,7 @@ fn run_with(
     let os = TargetOs::detect();
     let plan = engine.build_workflow_plan(&config, os)?;
 
-    output::kv("backend", backend.id());
+    output::kv("backend", backend_id);
     println!();
 
     let report = backend.clean(&CleanOpts { dry_run })?;
@@ -58,10 +59,7 @@ mod tests {
     use std::path::PathBuf;
     use std::sync::atomic::{AtomicBool, Ordering};
 
-    use kaizen_core::{
-        ApplyReport, CleanOpts, CleanReport, InstallReport, KaizenEngine, ProgressReporter,
-        SyncBackend, SyncOpts, SyncPreview, SyncReport, UpdateOpts, UpdateReport, WorkflowPlan,
-    };
+    use kaizen_core::{CleanBackend, CleanOpts, CleanReport, KaizenEngine, KaizenError};
 
     use super::run_with;
 
@@ -79,68 +77,14 @@ mod tests {
         }
     }
 
-    impl SyncBackend for SpyCleanBackend {
-        fn id(&self) -> &'static str {
-            "mock"
-        }
-        fn is_available(&self) -> bool {
-            true
-        }
-
-        fn install(
-            &self,
-            _: &WorkflowPlan,
-            _: &SyncOpts,
-            _: &dyn ProgressReporter,
-        ) -> Result<InstallReport, kaizen_core::KaizenError> {
-            Ok(InstallReport::default())
-        }
-        fn apply(
-            &self,
-            _: &WorkflowPlan,
-            _: &SyncOpts,
-            _: &dyn ProgressReporter,
-        ) -> Result<ApplyReport, kaizen_core::KaizenError> {
-            Ok(ApplyReport::default())
-        }
-        fn post_apply(
-            &self,
-            _: &SyncOpts,
-            _: &dyn ProgressReporter,
-        ) -> Result<(), kaizen_core::KaizenError> {
-            Ok(())
-        }
-        fn sync(
-            &self,
-            _: &WorkflowPlan,
-            _: &SyncOpts,
-            _: &dyn ProgressReporter,
-        ) -> Result<SyncReport, kaizen_core::KaizenError> {
-            Ok(SyncReport::default())
-        }
-        fn update(
-            &self,
-            _: &WorkflowPlan,
-            _: &UpdateOpts,
-            _: &dyn ProgressReporter,
-        ) -> Result<UpdateReport, kaizen_core::KaizenError> {
-            Ok(UpdateReport::default())
-        }
-
-        fn clean(&self, opts: &CleanOpts) -> Result<CleanReport, kaizen_core::KaizenError> {
+    impl CleanBackend for SpyCleanBackend {
+        fn clean(&self, opts: &CleanOpts) -> Result<CleanReport, KaizenError> {
             self.clean_called.store(true, Ordering::Relaxed);
             self.last_dry_run.store(opts.dry_run, Ordering::Relaxed);
             Ok(CleanReport {
                 freed_bytes: None,
                 steps: vec!["mock clean step".into()],
             })
-        }
-
-        fn preview(&self, _: &WorkflowPlan) -> SyncPreview {
-            SyncPreview::default()
-        }
-        fn apply_preview(&self, _: &WorkflowPlan) -> SyncPreview {
-            SyncPreview::default()
         }
     }
 
@@ -162,6 +106,7 @@ mod tests {
             &engine,
             &fixture_path("config-minimal.toml"),
             true,
+            "mock",
             &backend,
         )
         .unwrap();
@@ -177,6 +122,7 @@ mod tests {
             &engine,
             &fixture_path("config-minimal.toml"),
             false,
+            "mock",
             &backend,
         )
         .unwrap();

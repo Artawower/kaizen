@@ -32,8 +32,9 @@ pub use os::{PackageManagerKind, TargetOs};
 pub use plan::{ConfigPlan, HookPlan, InstallPlan, WorkflowPlan};
 pub use progress::{NoopReporter, ProgressReporter};
 pub use sync_backend::{
-    ApplyReport, CleanOpts, CleanReport, InstallReport, SyncBackend, SyncOpts, SyncPreview,
-    SyncReport, SyncStep, UpdateOpts, UpdateReport,
+    ApplyBackend, ApplyReport, CleanBackend, CleanOpts, CleanReport, InstallBackend, InstallReport,
+    PostApplyBackend, PreviewBackend, SyncBackend, SyncOpts, SyncPreview, SyncReport, SyncStep,
+    UpdateBackend, UpdateOpts, UpdateReport,
 };
 
 pub fn resolve_features_dir(

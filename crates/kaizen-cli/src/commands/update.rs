@@ -2,8 +2,8 @@ use std::path::Path;
 
 use anyhow::Result;
 use kaizen_core::{
-    detect_backend, HookRunner, KaizenEngine, ShellHookRunner, SyncBackend, TargetOs, UpdateOpts,
-    UserConfig,
+    detect_backend, HookRunner, KaizenEngine, ShellHookRunner, TargetOs, UpdateBackend,
+    UpdateOpts, UserConfig,
 };
 use owo_colors::OwoColorize;
 
@@ -26,6 +26,7 @@ pub fn run(
         update_flake,
         features,
         interactive,
+        backend.id(),
         backend.as_ref(),
         &ShellHookRunner,
     )
@@ -38,7 +39,8 @@ fn run_with(
     update_flake: bool,
     features: Vec<String>,
     interactive: bool,
-    backend: &dyn SyncBackend,
+    backend_id: &str,
+    backend: &dyn UpdateBackend,
     hook_runner: &dyn HookRunner,
 ) -> Result<()> {
     output::page_header(if dry_run {
@@ -69,7 +71,7 @@ fn run_with(
     let os = TargetOs::detect();
     let plan = engine.build_workflow_plan(&filtered, os)?;
 
-    output::kv("backend", backend.id());
+    output::kv("backend", backend_id);
     if update_flake {
         output::kv("flake update", "yes");
     }
@@ -144,9 +146,8 @@ mod tests {
     use std::sync::atomic::{AtomicBool, Ordering};
 
     use kaizen_core::{
-        ApplyReport, CleanOpts, CleanReport, HookRunner, InstallReport, KaizenEngine, KaizenError,
-        ProgressReporter, SyncBackend, SyncOpts, SyncPreview, SyncReport, UpdateOpts, UpdateReport,
-        WorkflowPlan,
+        HookRunner, KaizenEngine, KaizenError, ProgressReporter, UpdateBackend, UpdateOpts,
+        UpdateReport, WorkflowPlan,
     };
 
     use super::run_with;
@@ -163,40 +164,7 @@ mod tests {
         }
     }
 
-    impl SyncBackend for RecordingBackend {
-        fn id(&self) -> &'static str {
-            "mock"
-        }
-        fn is_available(&self) -> bool {
-            true
-        }
-        fn install(
-            &self,
-            _: &WorkflowPlan,
-            _: &SyncOpts,
-            _: &dyn ProgressReporter,
-        ) -> Result<InstallReport, KaizenError> {
-            Ok(InstallReport::default())
-        }
-        fn apply(
-            &self,
-            _: &WorkflowPlan,
-            _: &SyncOpts,
-            _: &dyn ProgressReporter,
-        ) -> Result<ApplyReport, KaizenError> {
-            Ok(ApplyReport::default())
-        }
-        fn post_apply(&self, _: &SyncOpts, _: &dyn ProgressReporter) -> Result<(), KaizenError> {
-            Ok(())
-        }
-        fn sync(
-            &self,
-            _: &WorkflowPlan,
-            _: &SyncOpts,
-            _: &dyn ProgressReporter,
-        ) -> Result<SyncReport, KaizenError> {
-            Ok(SyncReport::default())
-        }
+    impl UpdateBackend for RecordingBackend {
         fn update(
             &self,
             _: &WorkflowPlan,
@@ -205,15 +173,6 @@ mod tests {
         ) -> Result<UpdateReport, KaizenError> {
             self.update_called.store(true, Ordering::Relaxed);
             Ok(UpdateReport::default())
-        }
-        fn clean(&self, _: &CleanOpts) -> Result<CleanReport, KaizenError> {
-            Ok(CleanReport::default())
-        }
-        fn preview(&self, _: &WorkflowPlan) -> SyncPreview {
-            SyncPreview::default()
-        }
-        fn apply_preview(&self, _: &WorkflowPlan) -> SyncPreview {
-            SyncPreview::default()
         }
     }
 
@@ -252,7 +211,7 @@ mod tests {
     fn run(
         engine: &KaizenEngine,
         dry_run: bool,
-        backend: &dyn SyncBackend,
+        backend: &dyn UpdateBackend,
         hooks: &dyn HookRunner,
     ) -> anyhow::Result<()> {
         run_with(
@@ -262,6 +221,7 @@ mod tests {
             false,
             vec![],
             false,
+            "mock",
             backend,
             hooks,
         )

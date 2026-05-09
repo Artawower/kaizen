@@ -57,22 +57,27 @@ pub struct SyncPreview {
     pub steps: Vec<SyncStep>,
 }
 
-/// Full workflow lifecycle abstraction: install + apply + post-apply + update + clean.
-///
-/// CLI and Tauri both call `detect_backend()` and never depend on a concrete type.
-pub trait SyncBackend: Send + Sync {
-    fn id(&self) -> &'static str;
-    fn is_available(&self) -> bool;
-
-    /// Step 1 of sync: install packages.
+/// Install packages via the native package manager.
+pub trait InstallBackend: Send + Sync {
     fn install(
         &self,
         plan: &WorkflowPlan,
         opts: &SyncOpts,
         reporter: &dyn ProgressReporter,
     ) -> Result<InstallReport, KaizenError>;
+}
 
-    /// Step 2 of sync: apply dotfiles.
+/// Post-apply housekeeping: run `mise install` etc.
+pub trait PostApplyBackend: Send + Sync {
+    fn post_apply(
+        &self,
+        opts: &SyncOpts,
+        reporter: &dyn ProgressReporter,
+    ) -> Result<(), KaizenError>;
+}
+
+/// Apply dotfiles via chezmoi and produce a preview of apply steps.
+pub trait ApplyBackend: Send + Sync {
     fn apply(
         &self,
         plan: &WorkflowPlan,
@@ -80,14 +85,41 @@ pub trait SyncBackend: Send + Sync {
         reporter: &dyn ProgressReporter,
     ) -> Result<ApplyReport, KaizenError>;
 
-    /// Step 3 of sync: post-apply tasks.
-    fn post_apply(
-        &self,
-        opts: &SyncOpts,
-        reporter: &dyn ProgressReporter,
-    ) -> Result<(), KaizenError>;
+    fn apply_preview(&self, plan: &WorkflowPlan) -> SyncPreview;
+}
 
-    /// Full sync with the correct step order for each backend.
+/// Upgrade packages and mise tools.
+pub trait UpdateBackend: Send + Sync {
+    fn update(
+        &self,
+        plan: &WorkflowPlan,
+        opts: &UpdateOpts,
+        reporter: &dyn ProgressReporter,
+    ) -> Result<UpdateReport, KaizenError>;
+}
+
+/// Clean caches: Nix GC, OS package cache, Docker.
+pub trait CleanBackend: Send + Sync {
+    fn clean(&self, opts: &CleanOpts) -> Result<CleanReport, KaizenError>;
+}
+
+/// Preview install + apply + post-apply steps without executing.
+pub trait PreviewBackend: Send + Sync {
+    fn preview(&self, plan: &WorkflowPlan) -> SyncPreview;
+}
+
+/// Composed backend: install + apply + post-apply + update + clean + preview.
+///
+/// CLI and Tauri call `detect_backend()` and always receive a `Box<dyn SyncBackend>`.
+/// Individual commands depend only on the narrower sub-trait they actually need.
+pub trait SyncBackend:
+    InstallBackend + ApplyBackend + PostApplyBackend + UpdateBackend + CleanBackend + PreviewBackend
+{
+    fn id(&self) -> &'static str;
+    fn is_available(&self) -> bool;
+
+    /// Default: install → apply → post_apply.
+    /// NixSyncBackend overrides to: apply → install → post_apply.
     fn sync(
         &self,
         plan: &WorkflowPlan,
@@ -99,21 +131,4 @@ pub trait SyncBackend: Send + Sync {
         self.post_apply(opts, reporter)?;
         Ok(SyncReport { install, apply })
     }
-
-    /// Upgrade packages.
-    fn update(
-        &self,
-        plan: &WorkflowPlan,
-        opts: &UpdateOpts,
-        reporter: &dyn ProgressReporter,
-    ) -> Result<UpdateReport, KaizenError>;
-
-    /// Clean caches: nix GC, OS package cache, docker.
-    fn clean(&self, opts: &CleanOpts) -> Result<CleanReport, KaizenError>;
-
-    /// Preview steps without executing (for dry-run and future `kaizen plan`).
-    fn preview(&self, plan: &WorkflowPlan) -> SyncPreview;
-
-    /// Preview only the apply + post-apply steps (dotfiles + mise).
-    fn apply_preview(&self, plan: &WorkflowPlan) -> SyncPreview;
 }
