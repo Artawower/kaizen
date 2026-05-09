@@ -238,7 +238,7 @@ mod tests {
         std::fs::write(&managed_file, "# helix").unwrap();
 
         let report = crate::chezmoi::StdChezmoiClient
-            .remove_files(&[managed_file.clone()], true)
+            .remove_files(std::slice::from_ref(&managed_file), true)
             .unwrap();
 
         assert!(managed_file.exists(), "dry-run must not touch file");

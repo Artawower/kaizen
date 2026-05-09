@@ -68,6 +68,13 @@ pub struct RecordingExecutor {
 }
 
 #[cfg(test)]
+impl Default for RecordingExecutor {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+#[cfg(test)]
 impl RecordingExecutor {
     pub fn new() -> Self {
         Self {

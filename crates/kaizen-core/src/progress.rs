@@ -17,6 +17,13 @@ pub struct RecordingReporter {
 }
 
 #[cfg(test)]
+impl Default for RecordingReporter {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+#[cfg(test)]
 impl RecordingReporter {
     pub fn new() -> Self {
         Self {
