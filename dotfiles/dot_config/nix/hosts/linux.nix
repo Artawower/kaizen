@@ -1,7 +1,7 @@
 { inputs, pkgs, user, ... }:
 
 let
-  data = builtins.fromTOML (builtins.readFile "${builtins.getEnv "HOME"}/.local/share/chezmoi/.chezmoidata.toml");
+  data = builtins.fromTOML (builtins.readFile "${builtins.getEnv "HOME"}/.local/share/chezmoi/dotfiles/.chezmoidata.toml");
 in
 
 {
