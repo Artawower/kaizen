@@ -5,6 +5,7 @@ mod backend;
 mod commands;
 mod ensure;
 mod hooks;
+mod chezmoi;
 mod docker;
 mod executor;
 mod installer;

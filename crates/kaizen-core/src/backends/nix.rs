@@ -58,9 +58,9 @@ impl NixSyncBackend {
 
     fn run_darwin_rebuild(&self) -> Result<(), KaizenError> {
         let flake = self.nix_config_dir()?.to_string_lossy().into_owned();
-        self.runtime.executor.execute(
-            ProcessCommand::run("darwin-rebuild", ["switch", "--flake", &flake]).sudo(),
-        )?;
+        self.runtime
+            .executor
+            .execute(ProcessCommand::run("darwin-rebuild", ["switch", "--flake", &flake]).sudo())?;
         Ok(())
     }
 
@@ -185,7 +185,13 @@ impl ApplyBackend for NixSyncBackend {
         opts: &SyncOpts,
         reporter: &dyn ProgressReporter,
     ) -> Result<ApplyReport, KaizenError> {
-        common::chezmoi_write_and_apply(&plan.config_plan, opts.dry_run, reporter)
+        common::chezmoi_write_and_apply(
+            &plan.config_plan,
+            opts.dry_run,
+            reporter,
+            self.runtime.chezmoi.as_ref(),
+            self.runtime.fs.as_ref(),
+        )
     }
 
     fn apply_preview(&self, _plan: &WorkflowPlan) -> SyncPreview {
@@ -288,7 +294,11 @@ mod tests {
     fn mock_backend(os: TargetOs) -> NixSyncBackend {
         NixSyncBackend::new(
             os,
-            Runtime::new(Arc::new(NoopExecutor), Arc::new(crate::StdFileSystem)),
+            Runtime::new(
+                Arc::new(NoopExecutor),
+                Arc::new(crate::StdFileSystem),
+                Arc::new(crate::NoopChezmoiClient),
+            ),
             Box::new(NoopDevTools),
             Box::new(NoopContainerCleaner),
         )

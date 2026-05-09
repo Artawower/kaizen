@@ -85,7 +85,10 @@ pub mod mem {
         }
 
         pub fn add_file(&self, path: impl Into<PathBuf>, content: impl Into<Vec<u8>>) {
-            self.files.lock().unwrap().insert(path.into(), content.into());
+            self.files
+                .lock()
+                .unwrap()
+                .insert(path.into(), content.into());
         }
     }
 
@@ -95,10 +98,12 @@ pub mod mem {
             files
                 .get(path)
                 .map(|b| String::from_utf8_lossy(b).into_owned())
-                .ok_or_else(|| KaizenError::Io(std::io::Error::new(
-                    std::io::ErrorKind::NotFound,
-                    path.display().to_string(),
-                )))
+                .ok_or_else(|| {
+                    KaizenError::Io(std::io::Error::new(
+                        std::io::ErrorKind::NotFound,
+                        path.display().to_string(),
+                    ))
+                })
         }
 
         fn read_dir_paths(&self, path: &Path) -> Result<Vec<PathBuf>, KaizenError> {
@@ -122,7 +127,10 @@ pub mod mem {
         }
 
         fn write(&self, path: &Path, content: &[u8]) -> Result<(), KaizenError> {
-            self.files.lock().unwrap().insert(path.to_owned(), content.to_vec());
+            self.files
+                .lock()
+                .unwrap()
+                .insert(path.to_owned(), content.to_vec());
             Ok(())
         }
 
@@ -132,25 +140,36 @@ pub mod mem {
 
         fn rename(&self, from: &Path, to: &Path) -> Result<(), KaizenError> {
             let mut files = self.files.lock().unwrap();
-            let content = files.remove(from).ok_or_else(|| KaizenError::Io(
-                std::io::Error::new(std::io::ErrorKind::NotFound, from.display().to_string()),
-            ))?;
+            let content = files.remove(from).ok_or_else(|| {
+                KaizenError::Io(std::io::Error::new(
+                    std::io::ErrorKind::NotFound,
+                    from.display().to_string(),
+                ))
+            })?;
             files.insert(to.to_owned(), content);
             Ok(())
         }
 
         fn remove_file(&self, path: &Path) -> Result<(), KaizenError> {
             let removed = self.files.lock().unwrap().remove(path);
-            removed.map(|_| ()).ok_or_else(|| KaizenError::Io(std::io::Error::new(
-                std::io::ErrorKind::NotFound,
-                path.display().to_string(),
-            )))
+            removed.map(|_| ()).ok_or_else(|| {
+                KaizenError::Io(std::io::Error::new(
+                    std::io::ErrorKind::NotFound,
+                    path.display().to_string(),
+                ))
+            })
         }
 
         fn remove_dir_all(&self, path: &Path) -> Result<(), KaizenError> {
             let mut files = self.files.lock().unwrap();
-            let to_remove: Vec<_> = files.keys().filter(|p| p.starts_with(path)).cloned().collect();
-            for p in to_remove { files.remove(&p); }
+            let to_remove: Vec<_> = files
+                .keys()
+                .filter(|p| p.starts_with(path))
+                .cloned()
+                .collect();
+            for p in to_remove {
+                files.remove(&p);
+            }
             Ok(())
         }
     }

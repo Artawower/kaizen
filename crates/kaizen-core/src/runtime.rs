@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::{executor::ProcessExecutor, fs::FileSystem};
+use crate::{chezmoi_client::ChezmoiClient, executor::ProcessExecutor, fs::FileSystem};
 
 /// Shared runtime context injected into backends.
 ///
@@ -9,10 +9,19 @@ use crate::{executor::ProcessExecutor, fs::FileSystem};
 pub struct Runtime {
     pub executor: Arc<dyn ProcessExecutor>,
     pub fs: Arc<dyn FileSystem>,
+    pub chezmoi: Arc<dyn ChezmoiClient>,
 }
 
 impl Runtime {
-    pub fn new(executor: Arc<dyn ProcessExecutor>, fs: Arc<dyn FileSystem>) -> Self {
-        Self { executor, fs }
+    pub fn new(
+        executor: Arc<dyn ProcessExecutor>,
+        fs: Arc<dyn FileSystem>,
+        chezmoi: Arc<dyn ChezmoiClient>,
+    ) -> Self {
+        Self {
+            executor,
+            fs,
+            chezmoi,
+        }
     }
 }

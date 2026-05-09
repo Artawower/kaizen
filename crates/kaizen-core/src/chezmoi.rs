@@ -136,11 +136,21 @@ pub fn generate_chezmoidata(plan: &ConfigPlan) -> Result<String, KaizenError> {
 /// Preserves all other keys (username, hostname, email, models, etc.) that
 /// are maintained outside of kaizen. If the file does not exist, behaves
 /// identically to `generate_chezmoidata`.
+/// Merge kaizen-managed keys into an existing chezmoidata using real filesystem.
 pub fn merge_chezmoidata(existing_path: &Path, plan: &ConfigPlan) -> Result<String, KaizenError> {
+    merge_chezmoidata_with(existing_path, plan, &crate::StdFileSystem)
+}
+
+/// Merge kaizen-managed keys into an existing chezmoidata using an injected FileSystem.
+pub fn merge_chezmoidata_with(
+    existing_path: &Path,
+    plan: &ConfigPlan,
+    fs: &dyn crate::FileSystem,
+) -> Result<String, KaizenError> {
     let layout = plan.settings.layout.as_deref().unwrap_or("qwerty");
 
-    let mut table: toml::map::Map<String, toml::Value> = if existing_path.exists() {
-        let raw = std::fs::read_to_string(existing_path)?;
+    let mut table: toml::map::Map<String, toml::Value> = if fs.exists(existing_path) {
+        let raw = fs.read_to_string(existing_path)?;
         match toml::from_str::<toml::Value>(&raw) {
             Ok(toml::Value::Table(t)) => t,
             _ => toml::map::Map::new(),

@@ -1,6 +1,6 @@
 use std::path::{Path, PathBuf};
 
-use crate::{chezmoi, manifest, KaizenError};
+use crate::{chezmoi, chezmoi_client::ChezmoiClient, manifest, KaizenError};
 
 /// Outcome of inspecting the current chezmoi source state before bootstrapping.
 pub enum BootstrapStatus {
@@ -17,19 +17,23 @@ pub enum BootstrapStatus {
 
 /// Orchestrates chezmoi source initialisation, backup, and rollback.
 ///
-/// Holds no mutable state; construct with `ChezmoiBootstrapper::default()`.
+/// Receives a `ChezmoiClient` so core logic can be tested without spawning real processes.
 /// CLI is responsible for prompting the user before calling destructive operations.
-#[derive(Default)]
-pub struct ChezmoiBootstrapper;
+pub struct ChezmoiBootstrapper {
+    client: Box<dyn ChezmoiClient>,
+}
 
 impl ChezmoiBootstrapper {
+    pub fn new(client: Box<dyn ChezmoiClient>) -> Self {
+        Self { client }
+    }
+
     /// Inspect the current chezmoi source against `url` and return the action required.
     pub fn check(&self, url: &str) -> Result<BootstrapStatus, KaizenError> {
-        let existing = chezmoi::standalone_source_dir()?;
-        match existing {
+        match self.client.source_path()? {
             None => Ok(BootstrapStatus::InitRequired),
             Some(source) => {
-                let remote = chezmoi::current_remote(&source)?;
+                let remote = self.client.current_remote(&source)?;
                 if remote
                     .as_deref()
                     .map(|r| chezmoi::remotes_match(r, url))
@@ -53,27 +57,32 @@ impl ChezmoiBootstrapper {
         url: &str,
         existing: &Path,
     ) -> Result<(PathBuf, PathBuf), KaizenError> {
-        let backup = chezmoi::backup_source_dir(existing)?;
+        let backup = self.client.backup_source_dir(existing)?;
         if let Err(e) = self.init_and_validate(url) {
             let _ = std::fs::rename(&backup, existing);
             return Err(e);
         }
-        let new_source =
-            chezmoi::standalone_source_dir()?.ok_or(KaizenError::ChezmoidataTargetUnknown)?;
+        let new_source = self
+            .client
+            .source_path()?
+            .ok_or(KaizenError::ChezmoidataTargetUnknown)?;
         Ok((new_source, backup))
     }
 
     /// Run `chezmoi init` and validate the resulting source manifest.
-    /// Cleans up on validation failure.
     pub fn init(&self, url: &str) -> Result<PathBuf, KaizenError> {
         self.init_and_validate(url)?;
-        chezmoi::standalone_source_dir()?.ok_or(KaizenError::ChezmoidataTargetUnknown)
+        self.client
+            .source_path()?
+            .ok_or(KaizenError::ChezmoidataTargetUnknown)
     }
 
     fn init_and_validate(&self, url: &str) -> Result<(), KaizenError> {
-        chezmoi::init_source(url)?;
-        let source =
-            chezmoi::standalone_source_dir()?.ok_or(KaizenError::ChezmoidataTargetUnknown)?;
+        self.client.init_source(url)?;
+        let source = self
+            .client
+            .source_path()?
+            .ok_or(KaizenError::ChezmoidataTargetUnknown)?;
         let kaizen_dir = source.join(manifest::KAIZEN_DIR);
         let m = manifest::load(&kaizen_dir)?;
         manifest::validate(&m)
@@ -81,9 +90,6 @@ impl ChezmoiBootstrapper {
 }
 
 /// Resolve the features directory from an already-known chezmoi `source_dir`.
-///
-/// Used during `setup` where source_dir comes from the bootstrap step,
-/// not from a chezmoi query (unlike `resolve_features_dir` in `lib.rs`).
 pub fn resolve_features_dir_from_source(explicit: Option<&Path>, source_dir: &Path) -> PathBuf {
     if let Some(dir) = explicit {
         return dir.to_owned();

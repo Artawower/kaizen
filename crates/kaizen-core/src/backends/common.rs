@@ -1,9 +1,8 @@
-use std::process::Command;
-use std::process::Stdio;
-
 use crate::{
-    chezmoi,
+    chezmoi::{self, merge_chezmoidata_with},
+    chezmoi_client::ChezmoiClient,
     container::ContainerCleaner,
+    fs::FileSystem,
     process,
     progress::ProgressReporter,
     sync_backend::{ApplyReport, CleanReport},
@@ -14,61 +13,38 @@ pub fn chezmoi_write_and_apply(
     plan: &ConfigPlan,
     dry_run: bool,
     reporter: &dyn ProgressReporter,
+    client: &dyn ChezmoiClient,
+    fs: &dyn FileSystem,
 ) -> Result<ApplyReport, KaizenError> {
-    let initial = chezmoi::source_path(plan)?;
-
     if dry_run {
         return Ok(ApplyReport { data_path: None });
     }
 
-    let source_dir = match initial {
-        chezmoi::SourcePathState::Confirmed(p) => p,
-        chezmoi::SourcePathState::Uninitialized(_) => {
+    let source_dir = match client.source_path()? {
+        Some(p) => p,
+        None => {
             let url = plan
                 .dotfiles_source
                 .as_deref()
                 .ok_or(KaizenError::ChezmoidataTargetUnknown)?;
-            chezmoi::init_source(url)?;
-            chezmoi::source_path(plan)?.into_confirmed()?
+            client.init_source(url)?;
+            client
+                .source_path()?
+                .ok_or(KaizenError::ChezmoidataTargetUnknown)?
         }
     };
+
     let data_path = source_dir.join(".chezmoidata.toml");
 
     if let Some(parent) = data_path.parent() {
-        std::fs::create_dir_all(parent)?;
+        fs.create_dir_all(parent)?;
     }
 
-    let content = chezmoi::merge_chezmoidata(&data_path, plan)?;
-    std::fs::write(&data_path, &content)?;
+    let content = merge_chezmoidata_with(&data_path, plan, fs)?;
+    fs.write(&data_path, content.as_bytes())?;
 
     reporter.step("→ chezmoi apply");
-    let mut child = Command::new("chezmoi")
-        .arg("apply")
-        .stderr(Stdio::piped())
-        .spawn()?;
-    let stderr_bytes = child
-        .stderr
-        .take()
-        .map(|s| {
-            use std::io::Read;
-            let mut buf = Vec::new();
-            let mut s = s;
-            let _ = s.read_to_end(&mut buf);
-            buf
-        })
-        .unwrap_or_default();
-    let status = child.wait()?;
-    if !status.success() {
-        let stderr = String::from_utf8_lossy(&stderr_bytes).trim().to_owned();
-        return Err(KaizenError::ChezmoidataApplyFailed {
-            code: status.code(),
-            reason: if stderr.is_empty() {
-                None
-            } else {
-                Some(stderr)
-            },
-        });
-    }
+    client.apply()?;
 
     Ok(ApplyReport {
         data_path: Some(data_path),
@@ -93,10 +69,6 @@ pub fn clean_report_from_steps(steps: Vec<String>) -> CleanReport {
     }
 }
 
-/// Build the list of cleanup steps for dry-run preview.
-///
-/// Package manager and Nix GC steps come from core.
-/// Container cleanup step is provided by the injected `ContainerCleaner`.
 pub fn clean_steps(
     os: &TargetOs,
     include_nix: bool,
@@ -129,3 +101,7 @@ fn run_optional(bin: &str, args: &[&str], dry_run: bool) -> Result<(), KaizenErr
     }
     process::run_cmd_if_available(bin, args)
 }
+
+// Keep `chezmoi` in scope for tests that use it
+#[allow(unused_imports)]
+use chezmoi as _;

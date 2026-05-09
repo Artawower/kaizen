@@ -52,10 +52,7 @@ pub fn load(path: &Path) -> Result<UserConfig, KaizenError> {
     load_with(path, &crate::StdFileSystem)
 }
 
-pub fn load_with(
-    path: &Path,
-    fs: &dyn crate::FileSystem,
-) -> Result<UserConfig, KaizenError> {
+pub fn load_with(path: &Path, fs: &dyn crate::FileSystem) -> Result<UserConfig, KaizenError> {
     if !fs.exists(path) {
         return Err(KaizenError::ConfigNotFound {
             path: path.to_owned(),

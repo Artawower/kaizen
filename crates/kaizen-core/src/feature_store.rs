@@ -1,7 +1,7 @@
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
-use crate::{FileSystem, FeatureFile, KaizenError, StdFileSystem};
+use crate::{FeatureFile, FileSystem, KaizenError, StdFileSystem};
 
 pub struct FeatureStore {
     dir: PathBuf,

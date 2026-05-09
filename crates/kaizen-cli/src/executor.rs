@@ -35,8 +35,8 @@ fn run_status(cmd: ProcessCommand) -> Result<ProcessOutput, KaizenError> {
 
 #[allow(clippy::result_large_err)]
 fn run_sudo(cmd: ProcessCommand) -> Result<ProcessOutput, KaizenError> {
-    let bin_path = which::which(&cmd.bin)
-        .map_err(|e| std::io::Error::new(std::io::ErrorKind::NotFound, e))?;
+    let bin_path =
+        which::which(&cmd.bin).map_err(|e| std::io::Error::new(std::io::ErrorKind::NotFound, e))?;
     let status = std::process::Command::new("sudo")
         .arg("-p")
         .arg("[kaizen] sudo password: ")
@@ -70,8 +70,8 @@ fn run_capturing(cmd: ProcessCommand) -> Result<ProcessOutput, KaizenError> {
 
 #[allow(clippy::result_large_err)]
 fn run_sudo_capturing(cmd: ProcessCommand) -> Result<ProcessOutput, KaizenError> {
-    let bin_path = which::which(&cmd.bin)
-        .map_err(|e| std::io::Error::new(std::io::ErrorKind::NotFound, e))?;
+    let bin_path =
+        which::which(&cmd.bin).map_err(|e| std::io::Error::new(std::io::ErrorKind::NotFound, e))?;
     let out = std::process::Command::new("sudo")
         .arg("-p")
         .arg("[kaizen] sudo password: ")

@@ -5,6 +5,8 @@ use anyhow::Result;
 use dialoguer::{theme::ColorfulTheme, Confirm};
 use owo_colors::OwoColorize;
 
+use kaizen_core::ChezmoiClient;
+
 use crate::output;
 
 pub fn run(_engine: &kaizen_core::KaizenEngine, config_path: &Path, dry_run: bool) -> Result<()> {
@@ -14,9 +16,10 @@ pub fn run(_engine: &kaizen_core::KaizenEngine, config_path: &Path, dry_run: boo
         "uninstall"
     });
 
-    let chezmoi_source = kaizen_core::chezmoi::standalone_source_dir().unwrap_or(None);
-    let managed = kaizen_core::chezmoi::managed_files().unwrap_or_default();
-    let modified = kaizen_core::chezmoi::locally_modified_files().unwrap_or_default();
+    let client = crate::chezmoi::StdChezmoiClient;
+    let chezmoi_source = client.source_path().unwrap_or(None);
+    let managed = client.managed_files().unwrap_or_default();
+    let modified = client.locally_modified_files().unwrap_or_default();
     let nix_installed = which::which("nix").is_ok();
 
     print_plan(
@@ -147,7 +150,8 @@ fn remove_dotfiles(files: &[std::path::PathBuf]) -> Result<()> {
     if files.is_empty() {
         return Ok(());
     }
-    let report = kaizen_core::chezmoi::remove_files(files, false)?;
+    let client = crate::chezmoi::StdChezmoiClient;
+    let report = client.remove_files(files, false)?;
     for f in &report.removed {
         output::item_ok(&format!("removed {}", f.display()));
     }

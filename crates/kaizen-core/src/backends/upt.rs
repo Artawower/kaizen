@@ -8,12 +8,14 @@ use crate::{
         InstallReport, PostApplyBackend, PreviewBackend, SyncOpts, SyncPreview, SyncStep,
         UpdateBackend, UpdateOpts, UpdateReport,
     },
+    runtime::Runtime,
     toolchain::DevToolsManager,
     KaizenError, SyncBackend, TargetOs, WorkflowPlan,
 };
 
 pub struct UptSyncBackend {
     os: TargetOs,
+    runtime: Runtime,
     installer: Box<dyn PackageInstaller>,
     dev_tools: Box<dyn DevToolsManager>,
     container: Box<dyn ContainerCleaner>,
@@ -22,12 +24,14 @@ pub struct UptSyncBackend {
 impl UptSyncBackend {
     pub fn new(
         os: TargetOs,
+        runtime: Runtime,
         installer: Box<dyn PackageInstaller>,
         dev_tools: Box<dyn DevToolsManager>,
         container: Box<dyn ContainerCleaner>,
     ) -> Self {
         Self {
             os,
+            runtime,
             installer,
             dev_tools,
             container,
@@ -89,7 +93,13 @@ impl ApplyBackend for UptSyncBackend {
         opts: &SyncOpts,
         reporter: &dyn ProgressReporter,
     ) -> Result<ApplyReport, KaizenError> {
-        common::chezmoi_write_and_apply(&plan.config_plan, opts.dry_run, reporter)
+        common::chezmoi_write_and_apply(
+            &plan.config_plan,
+            opts.dry_run,
+            reporter,
+            self.runtime.chezmoi.as_ref(),
+            self.runtime.fs.as_ref(),
+        )
     }
 
     fn apply_preview(&self, _plan: &WorkflowPlan) -> SyncPreview {
@@ -185,8 +195,11 @@ impl PreviewBackend for UptSyncBackend {
 mod tests {
     use super::*;
     use crate::{
+        chezmoi_client::NoopChezmoiClient,
         container::NoopContainerCleaner,
+        executor::NoopExecutor,
         installer::{Installer, Updater},
+        runtime::Runtime,
         plan::{ConfigPlan, HookPlan, InstallPlan},
         progress::NoopReporter,
         sync_backend::{CleanOpts, SyncOpts, UpdateOpts},
@@ -218,6 +231,11 @@ mod tests {
     fn mock_backend(os: TargetOs) -> UptSyncBackend {
         UptSyncBackend::new(
             os,
+            Runtime::new(
+                std::sync::Arc::new(NoopExecutor),
+                std::sync::Arc::new(crate::StdFileSystem),
+                std::sync::Arc::new(NoopChezmoiClient),
+            ),
             Box::new(MockInstaller),
             Box::new(NoopDevTools),
             Box::new(NoopContainerCleaner),
