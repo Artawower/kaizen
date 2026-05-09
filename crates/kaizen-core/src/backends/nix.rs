@@ -1,8 +1,9 @@
 use crate::{
     backends::common,
     container::ContainerCleaner,
-    process,
+    executor::ProcessCommand,
     progress::ProgressReporter,
+    runtime::Runtime,
     sync_backend::{
         ApplyBackend, ApplyReport, CleanBackend, CleanOpts, CleanReport, InstallBackend,
         InstallReport, PostApplyBackend, PreviewBackend, SyncOpts, SyncPreview, SyncStep,
@@ -14,6 +15,7 @@ use crate::{
 
 pub struct NixSyncBackend {
     os: TargetOs,
+    runtime: Runtime,
     dev_tools: Box<dyn DevToolsManager>,
     container: Box<dyn ContainerCleaner>,
 }
@@ -21,11 +23,13 @@ pub struct NixSyncBackend {
 impl NixSyncBackend {
     pub fn new(
         os: TargetOs,
+        runtime: Runtime,
         dev_tools: Box<dyn DevToolsManager>,
         container: Box<dyn ContainerCleaner>,
     ) -> Self {
         Self {
             os,
+            runtime,
             dev_tools,
             container,
         }
@@ -38,12 +42,72 @@ impl NixSyncBackend {
         }
     }
 
+    fn current_user(&self) -> Result<String, KaizenError> {
+        let out = self
+            .runtime
+            .executor
+            .execute(ProcessCommand::run("id", ["-un"]).capturing())?;
+        Ok(out.stdout.trim().to_owned())
+    }
+
+    fn nix_config_dir(&self) -> Result<std::path::PathBuf, KaizenError> {
+        Ok(dirs::home_dir()
+            .ok_or(KaizenError::HomeDirUnavailable)?
+            .join(".config/nix"))
+    }
+
+    fn run_darwin_rebuild(&self) -> Result<(), KaizenError> {
+        let flake = self.nix_config_dir()?.to_string_lossy().into_owned();
+        self.runtime.executor.execute(
+            ProcessCommand::run("darwin-rebuild", ["switch", "--flake", &flake]).sudo(),
+        )?;
+        Ok(())
+    }
+
+    fn run_home_manager(&self) -> Result<(), KaizenError> {
+        let user = self.current_user()?;
+        let nix_dir = self.nix_config_dir()?;
+        let flake = format!("{}#{}@{}", nix_dir.display(), user, self.flake_host());
+        self.runtime.executor.execute(ProcessCommand::run(
+            "home-manager",
+            ["switch", "--flake", &flake, "--impure"],
+        ))?;
+        Ok(())
+    }
+
+    fn run_nix_flake_update(&self, dry_run: bool) -> Result<(), KaizenError> {
+        if dry_run {
+            return Ok(());
+        }
+        let nix_dir = self.nix_config_dir()?;
+        let flake_str = nix_dir.to_string_lossy().into_owned();
+        self.runtime.executor.execute(ProcessCommand::run(
+            "nix",
+            ["flake", "update", "--flake", &flake_str],
+        ))?;
+        Ok(())
+    }
+
+    fn run_nix_gc(&self, dry_run: bool) -> Result<(), KaizenError> {
+        if dry_run {
+            return Ok(());
+        }
+        self.runtime.executor.execute(ProcessCommand::run(
+            "nix-collect-garbage",
+            ["--delete-older-than", "7d"],
+        ))?;
+        self.runtime
+            .executor
+            .execute(ProcessCommand::run("nix-store", ["--optimise"]))?;
+        Ok(())
+    }
+
     fn nix_install_steps(&self) -> Vec<String> {
         let mut steps = vec![];
         if self.os == TargetOs::Darwin {
             steps.push("sudo darwin-rebuild switch --flake ~/.config/nix".into());
         }
-        let user = current_user().unwrap_or_else(|_| "<user>".into());
+        let user = self.current_user().unwrap_or_else(|_| "<user>".into());
         steps.push(format!(
             "home-manager switch --flake .#{}@{} --impure",
             user,
@@ -89,10 +153,10 @@ impl InstallBackend for NixSyncBackend {
 
         if self.os == TargetOs::Darwin {
             reporter.step("→ darwin-rebuild switch");
-            run_darwin_rebuild()?;
+            self.run_darwin_rebuild()?;
         }
         reporter.step("→ home-manager switch");
-        run_home_manager(self.flake_host())?;
+        self.run_home_manager()?;
 
         Ok(InstallReport {
             steps,
@@ -146,9 +210,7 @@ impl UpdateBackend for NixSyncBackend {
         opts: &UpdateOpts,
         reporter: &dyn ProgressReporter,
     ) -> Result<UpdateReport, KaizenError> {
-        if opts.update_flake {
-            run_nix_flake_update(opts.dry_run)?;
-        }
+        self.run_nix_flake_update(opts.dry_run)?;
 
         self.sync(
             plan,
@@ -172,7 +234,7 @@ impl CleanBackend for NixSyncBackend {
     fn clean(&self, opts: &CleanOpts) -> Result<CleanReport, KaizenError> {
         let steps = common::clean_steps(&self.os, true, self.container.as_ref());
         if !opts.dry_run {
-            run_nix_gc(false)?;
+            self.run_nix_gc(false)?;
             common::os_cache_clean(&self.os, false)?;
             self.container.clean(false)?;
         }
@@ -206,54 +268,17 @@ impl PreviewBackend for NixSyncBackend {
     }
 }
 
-fn current_user() -> Result<String, KaizenError> {
-    process::run_cmd_output("id", &["-un"])
-}
-
-fn nix_config_dir() -> Result<std::path::PathBuf, KaizenError> {
-    Ok(dirs::home_dir()
-        .ok_or(KaizenError::HomeDirUnavailable)?
-        .join(".config/nix"))
-}
-
-fn run_darwin_rebuild() -> Result<(), KaizenError> {
-    let flake = nix_config_dir()?.to_string_lossy().into_owned();
-    process::run_cmd_sudo("darwin-rebuild", &["switch", "--flake", &flake])
-}
-
-fn run_home_manager(host: &str) -> Result<(), KaizenError> {
-    let user = current_user()?;
-    let nix_dir = nix_config_dir()?;
-    let flake = format!("{}#{}@{}", nix_dir.display(), user, host);
-    process::run_cmd("home-manager", &["switch", "--flake", &flake, "--impure"])
-}
-
-fn run_nix_flake_update(dry_run: bool) -> Result<(), KaizenError> {
-    if dry_run {
-        return Ok(());
-    }
-    let nix_dir = dirs::home_dir()
-        .ok_or(KaizenError::HomeDirUnavailable)?
-        .join(".config/nix");
-    let flake_str = nix_dir.to_string_lossy().into_owned();
-    process::run_cmd("nix", &["flake", "update", "--flake", &flake_str])
-}
-
-fn run_nix_gc(dry_run: bool) -> Result<(), KaizenError> {
-    if dry_run {
-        return Ok(());
-    }
-    process::run_cmd("nix-collect-garbage", &["--delete-older-than", "7d"])?;
-    process::run_cmd("nix-store", &["--optimise"])
-}
-
 #[cfg(test)]
 mod tests {
+    use std::sync::Arc;
+
     use super::*;
     use crate::{
         container::NoopContainerCleaner,
+        executor::NoopExecutor,
         plan::{ConfigPlan, HookPlan, InstallPlan},
         progress::NoopReporter,
+        runtime::Runtime,
         sync_backend::SyncOpts,
         toolchain::NoopDevTools,
         UserSettings,
@@ -261,7 +286,12 @@ mod tests {
     use indexmap::IndexMap;
 
     fn mock_backend(os: TargetOs) -> NixSyncBackend {
-        NixSyncBackend::new(os, Box::new(NoopDevTools), Box::new(NoopContainerCleaner))
+        NixSyncBackend::new(
+            os,
+            Runtime::new(Arc::new(NoopExecutor)),
+            Box::new(NoopDevTools),
+            Box::new(NoopContainerCleaner),
+        )
     }
 
     fn empty_plan(os: TargetOs) -> WorkflowPlan {

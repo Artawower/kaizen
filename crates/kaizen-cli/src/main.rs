@@ -6,6 +6,7 @@ mod commands;
 mod ensure;
 mod hooks;
 mod docker;
+mod executor;
 mod installer;
 mod mise;
 mod output;

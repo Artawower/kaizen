@@ -1,15 +1,23 @@
-use kaizen_core::{NixSyncBackend, SyncBackend, TargetOs, UptSyncBackend};
+use std::sync::Arc;
 
-use crate::{docker::DockerCleaner, installer::UptInstaller, mise::MiseToolchain};
+use kaizen_core::{NixSyncBackend, Runtime, SyncBackend, TargetOs, UptSyncBackend};
+
+use crate::{
+    docker::DockerCleaner, executor::StdProcessExecutor, installer::UptInstaller,
+    mise::MiseToolchain,
+};
 
 /// Detect the appropriate sync backend for the current system.
 ///
-/// All capability detection (`which`) lives here in CLI, not in core.
-/// Priority: Nix (home-manager / darwin-rebuild) → upt
+/// All capability detection (`which`) lives here in CLI.
+/// Injects concrete adapters (StdProcessExecutor, MiseToolchain, DockerCleaner, UptInstaller).
 pub fn detect_backend(os: TargetOs) -> Box<dyn SyncBackend> {
+    let runtime = Runtime::new(Arc::new(StdProcessExecutor));
+
     if nix_available() {
         return Box::new(NixSyncBackend::new(
             os,
+            runtime,
             Box::new(MiseToolchain),
             Box::new(DockerCleaner),
         ));

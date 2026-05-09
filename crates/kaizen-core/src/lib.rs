@@ -1,6 +1,8 @@
 use std::path::{Path, PathBuf};
 
 pub mod backends;
+pub mod executor;
+pub mod runtime;
 pub mod container;
 pub mod toolchain;
 pub mod chezmoi;
@@ -33,6 +35,8 @@ pub use installer::{Installer, PackageInstaller, Remover, Updater};
 pub use os::{PackageManagerKind, TargetOs};
 pub use plan::{ConfigPlan, HookPlan, InstallPlan, WorkflowPlan};
 pub use container::{ContainerCleaner, NoopContainerCleaner};
+pub use executor::{NoopExecutor, ProcessCommand, ProcessExecutor, ProcessOutput};
+pub use runtime::Runtime;
 pub use progress::{NoopReporter, ProgressReporter};
 pub use toolchain::{DevToolsManager, NoopDevTools, ToolStep};
 pub use setup::{
