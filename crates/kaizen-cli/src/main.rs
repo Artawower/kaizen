@@ -19,6 +19,7 @@ mod selector;
 use std::sync::Arc;
 
 use chezmoi::StdChezmoiClient;
+use executor::StdProcessExecutor;
 use filesystem::StdFileSystem;
 use paths::StdPathProvider;
 use reporter::StderrReporter;
@@ -100,7 +101,14 @@ enum Command {
     /// Upgrade tool versions and re-add lock/config files to the chezmoi source.
     /// Maintainer command: bumps mise + nix flake inputs, then re-adds locks to chezmoi.
     #[command(hide = true)]
-    Bump,
+    Bump {
+        #[arg(long, help = "Update only nix flake inputs (default: all)")]
+        nix: bool,
+        #[arg(long, help = "Bump only mise tool versions (default: all)")]
+        mise: bool,
+        #[arg(long, help = "Preview without executing")]
+        dry_run: bool,
+    },
 }
 
 fn main() -> Result<()> {
@@ -156,7 +164,16 @@ fn main() -> Result<()> {
             commands::uninstall::run(&engine, &config_path, dry_run)?;
         }
         Command::Doctor => commands::doctor::run(&engine, &config_path)?,
-        Command::Bump => commands::bump::run()?,
+        Command::Bump { nix, mise, dry_run } => {
+            commands::bump::run(
+                nix,
+                mise,
+                dry_run,
+                &StdProcessExecutor,
+                &StdPathProvider,
+                &StderrReporter,
+            )?;
+        }
     }
 
     Ok(())

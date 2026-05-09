@@ -80,23 +80,22 @@ kaizen apply
 
 ### Bumping dependency versions
 
-> **Planned** — `kaizen bump` is not yet implemented.
-
-When implemented, `kaizen bump` will upgrade mise tools, update flake inputs,
-and re-add lock files back into the chezmoi source. Because it reads
-`chezmoi source-path`, after the dev setup above it will write directly
-into `./dotfiles/`.
-
-For now, bump manually:
+`kaizen bump` upgrades mise tools, updates nix flake inputs, and re-adds lock
+files back into the chezmoi source. After the dev setup above it writes
+directly into `./dotfiles/`:
 
 ```bash
-# upgrade mise tools and bump version pins
-mise upgrade --bump
-chezmoi re-add ~/.config/mise.lock
+kaizen bump           # bump everything: nix flake inputs + mise tools
+kaizen bump --nix     # only update nix flake inputs
+kaizen bump --mise    # only bump mise tool versions
+kaizen bump --dry-run # preview what would run
+```
 
-# update nix flake inputs
-nix flake update --flake ~/.config/nix
-chezmoi re-add ~/.config/nix/flake.lock
+Then commit the updated lock files:
+
+```bash
+jj new -m "chore: bump dependencies"
+# lock files are already updated in dotfiles/ by bump
 ```
 
 ### Running tests

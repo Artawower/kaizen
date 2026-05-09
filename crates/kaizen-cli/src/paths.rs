@@ -10,7 +10,10 @@ impl PathProvider for StdPathProvider {
     }
 
     fn config_dir(&self) -> Option<PathBuf> {
-        dirs::config_dir().or_else(|| dirs::home_dir().map(|h| h.join(".config")))
+        // Always use XDG-style ~/.config — kaizen is XDG-based even on macOS.
+        // dirs::config_dir() returns ~/Library/Application Support on macOS,
+        // which is wrong for Nix, mise, and kaizen's own config.
+        dirs::home_dir().map(|h| h.join(".config"))
     }
 
     fn is_tool_available(&self, tool: &str) -> bool {
