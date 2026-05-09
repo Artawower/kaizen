@@ -1,6 +1,6 @@
 use kaizen_core::{NixSyncBackend, SyncBackend, TargetOs, UptSyncBackend};
 
-use crate::installer::UptInstaller;
+use crate::{docker::DockerCleaner, installer::UptInstaller, mise::MiseToolchain};
 
 /// Detect the appropriate sync backend for the current system.
 ///
@@ -8,9 +8,18 @@ use crate::installer::UptInstaller;
 /// Priority: Nix (home-manager / darwin-rebuild) → upt
 pub fn detect_backend(os: TargetOs) -> Box<dyn SyncBackend> {
     if nix_available() {
-        return Box::new(NixSyncBackend::new(os));
+        return Box::new(NixSyncBackend::new(
+            os,
+            Box::new(MiseToolchain),
+            Box::new(DockerCleaner),
+        ));
     }
-    Box::new(UptSyncBackend::new(os, Box::new(UptInstaller)))
+    Box::new(UptSyncBackend::new(
+        os,
+        Box::new(UptInstaller),
+        Box::new(MiseToolchain),
+        Box::new(DockerCleaner),
+    ))
 }
 
 fn nix_available() -> bool {

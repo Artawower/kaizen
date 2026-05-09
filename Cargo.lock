@@ -468,6 +468,7 @@ dependencies = [
  "colog",
  "crossterm",
  "dialoguer",
+ "dirs",
  "kaizen-core",
  "libc",
  "log",

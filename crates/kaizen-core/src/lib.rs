@@ -1,6 +1,8 @@
 use std::path::{Path, PathBuf};
 
 pub mod backends;
+pub mod container;
+pub mod toolchain;
 pub mod chezmoi;
 pub mod config;
 pub mod error;
@@ -30,7 +32,9 @@ pub use hooks::HookRunner;
 pub use installer::{Installer, PackageInstaller, Remover, Updater};
 pub use os::{PackageManagerKind, TargetOs};
 pub use plan::{ConfigPlan, HookPlan, InstallPlan, WorkflowPlan};
+pub use container::{ContainerCleaner, NoopContainerCleaner};
 pub use progress::{NoopReporter, ProgressReporter};
+pub use toolchain::{DevToolsManager, NoopDevTools, ToolStep};
 pub use setup::{
     render_config, resolve_features_dir_from_source, BootstrapStatus, ChezmoiBootstrapper,
 };

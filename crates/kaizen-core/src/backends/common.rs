@@ -2,7 +2,9 @@ use std::process::Command;
 use std::process::Stdio;
 
 use crate::{
-    chezmoi, process,
+    chezmoi,
+    container::ContainerCleaner,
+    process,
     progress::ProgressReporter,
     sync_backend::{ApplyReport, CleanReport},
     ConfigPlan, KaizenError, PackageManagerKind, TargetOs,
@@ -73,31 +75,6 @@ pub fn chezmoi_write_and_apply(
     })
 }
 
-pub fn mise_install(dry_run: bool) -> Result<(), KaizenError> {
-    if dry_run {
-        return Ok(());
-    }
-    process::run_cmd("mise", &["install"])?;
-    let mise_toml = dirs::home_dir()
-        .ok_or(KaizenError::HomeDirUnavailable)?
-        .join(".config/mise.toml");
-    if mise_toml.exists() {
-        let toml_str = mise_toml.to_string_lossy().into_owned();
-        process::run_cmd("mise", &["trust", &toml_str])?;
-    }
-    Ok(())
-}
-
-pub fn mise_upgrade(tools: &[String], dry_run: bool) -> Result<(), KaizenError> {
-    if dry_run {
-        return Ok(());
-    }
-    let tool_refs: Vec<&str> = tools.iter().map(String::as_str).collect();
-    let mut args = vec!["upgrade"];
-    args.extend_from_slice(&tool_refs);
-    process::run_cmd("mise", &args)
-}
-
 pub fn os_cache_clean(os: &TargetOs, dry_run: bool) -> Result<(), KaizenError> {
     let (bin, args): (&str, &[&str]) = match os.package_manager_kind() {
         PackageManagerKind::Brew => ("brew", &["cleanup"]),
@@ -109,13 +86,6 @@ pub fn os_cache_clean(os: &TargetOs, dry_run: bool) -> Result<(), KaizenError> {
     run_optional(bin, args, dry_run)
 }
 
-pub fn docker_clean(dry_run: bool) -> Result<(), KaizenError> {
-    if which::which("docker").is_err() {
-        return Ok(());
-    }
-    run_optional("docker", &["system", "prune", "-f"], dry_run)
-}
-
 pub fn clean_report_from_steps(steps: Vec<String>) -> CleanReport {
     CleanReport {
         freed_bytes: None,
@@ -123,7 +93,15 @@ pub fn clean_report_from_steps(steps: Vec<String>) -> CleanReport {
     }
 }
 
-pub fn clean_steps(os: &TargetOs, include_nix: bool) -> Vec<String> {
+/// Build the list of cleanup steps for dry-run preview.
+///
+/// Package manager and Nix GC steps come from core.
+/// Container cleanup step is provided by the injected `ContainerCleaner`.
+pub fn clean_steps(
+    os: &TargetOs,
+    include_nix: bool,
+    container: &dyn ContainerCleaner,
+) -> Vec<String> {
     let mut steps = vec![];
     if include_nix {
         steps.push("nix-collect-garbage --delete-older-than 7d".into());
@@ -139,8 +117,8 @@ pub fn clean_steps(os: &TargetOs, include_nix: bool) -> Vec<String> {
     if let Some(cmd) = pm_cmd {
         steps.push(cmd.into());
     }
-    if which::which("docker").is_ok() {
-        steps.push("docker system prune -f".into());
+    if let Some(step) = container.clean_step() {
+        steps.push(step);
     }
     steps
 }

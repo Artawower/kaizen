@@ -1,5 +1,6 @@
 use crate::{
     backends::common,
+    container::ContainerCleaner,
     process,
     progress::ProgressReporter,
     sync_backend::{
@@ -7,16 +8,27 @@ use crate::{
         InstallReport, PostApplyBackend, PreviewBackend, SyncOpts, SyncPreview, SyncStep,
         UpdateBackend, UpdateOpts, UpdateReport,
     },
+    toolchain::DevToolsManager,
     KaizenError, SyncBackend, TargetOs, WorkflowPlan,
 };
 
 pub struct NixSyncBackend {
     os: TargetOs,
+    dev_tools: Box<dyn DevToolsManager>,
+    container: Box<dyn ContainerCleaner>,
 }
 
 impl NixSyncBackend {
-    pub fn new(os: TargetOs) -> Self {
-        Self { os }
+    pub fn new(
+        os: TargetOs,
+        dev_tools: Box<dyn DevToolsManager>,
+        container: Box<dyn ContainerCleaner>,
+    ) -> Self {
+        Self {
+            os,
+            dev_tools,
+            container,
+        }
     }
 
     fn flake_host(&self) -> &'static str {
@@ -45,7 +57,6 @@ impl SyncBackend for NixSyncBackend {
     fn id(&self) -> &'static str {
         "nix"
     }
-
 
     fn sync(
         &self,
@@ -96,11 +107,10 @@ impl PostApplyBackend for NixSyncBackend {
         opts: &SyncOpts,
         reporter: &dyn ProgressReporter,
     ) -> Result<(), KaizenError> {
-        if which::which("mise").is_ok() {
-            reporter.step("→ mise install");
-            return common::mise_install(opts.dry_run);
+        if let Some(step) = self.dev_tools.install_step() {
+            reporter.step(&format!("→ {}", step.label));
         }
-        Ok(())
+        self.dev_tools.install(opts.dry_run)
     }
 }
 
@@ -119,10 +129,10 @@ impl ApplyBackend for NixSyncBackend {
             label: "apply dotfiles".into(),
             command: "chezmoi apply".into(),
         }];
-        if which::which("mise").is_ok() {
+        if let Some(step) = self.dev_tools.install_step() {
             steps.push(SyncStep {
-                label: "install mise tools".into(),
-                command: "mise install".into(),
+                label: step.label,
+                command: step.command,
             });
         }
         SyncPreview { steps }
@@ -149,9 +159,7 @@ impl UpdateBackend for NixSyncBackend {
         )?;
 
         let tools: Vec<String> = plan.install_plan.mise_tools.keys().cloned().collect();
-        if !tools.is_empty() {
-            common::mise_upgrade(&tools, opts.dry_run)?;
-        }
+        self.dev_tools.upgrade(&tools, opts.dry_run)?;
 
         Ok(UpdateReport {
             upgraded: vec!["nix (home-manager switch)".into()],
@@ -162,11 +170,11 @@ impl UpdateBackend for NixSyncBackend {
 
 impl CleanBackend for NixSyncBackend {
     fn clean(&self, opts: &CleanOpts) -> Result<CleanReport, KaizenError> {
-        let steps = common::clean_steps(&self.os, true);
+        let steps = common::clean_steps(&self.os, true, self.container.as_ref());
         if !opts.dry_run {
             run_nix_gc(false)?;
             common::os_cache_clean(&self.os, false)?;
-            common::docker_clean(false)?;
+            self.container.clean(false)?;
         }
         Ok(common::clean_report_from_steps(steps))
     }
@@ -186,10 +194,10 @@ impl PreviewBackend for NixSyncBackend {
             });
         }
 
-        if which::which("mise").is_ok() {
+        if let Some(step) = self.dev_tools.install_step() {
             steps.push(SyncStep {
-                label: "install mise tools".into(),
-                command: "mise install".into(),
+                label: step.label,
+                command: step.command,
             });
         }
 
@@ -243,12 +251,18 @@ fn run_nix_gc(dry_run: bool) -> Result<(), KaizenError> {
 mod tests {
     use super::*;
     use crate::{
+        container::NoopContainerCleaner,
         plan::{ConfigPlan, HookPlan, InstallPlan},
         progress::NoopReporter,
         sync_backend::SyncOpts,
+        toolchain::NoopDevTools,
         UserSettings,
     };
     use indexmap::IndexMap;
+
+    fn mock_backend(os: TargetOs) -> NixSyncBackend {
+        NixSyncBackend::new(os, Box::new(NoopDevTools), Box::new(NoopContainerCleaner))
+    }
 
     fn empty_plan(os: TargetOs) -> WorkflowPlan {
         WorkflowPlan::new(
@@ -271,22 +285,22 @@ mod tests {
 
     #[test]
     fn flake_host_is_mac_on_darwin() {
-        assert_eq!(NixSyncBackend::new(TargetOs::Darwin).flake_host(), "mac");
+        assert_eq!(mock_backend(TargetOs::Darwin).flake_host(), "mac");
     }
 
     #[test]
     fn flake_host_is_linux_on_fedora() {
-        assert_eq!(NixSyncBackend::new(TargetOs::Fedora).flake_host(), "linux");
+        assert_eq!(mock_backend(TargetOs::Fedora).flake_host(), "linux");
     }
 
     #[test]
     fn flake_host_is_linux_on_ubuntu() {
-        assert_eq!(NixSyncBackend::new(TargetOs::Ubuntu).flake_host(), "linux");
+        assert_eq!(mock_backend(TargetOs::Ubuntu).flake_host(), "linux");
     }
 
     #[test]
     fn install_dry_run_returns_steps_without_spawning() {
-        let backend = NixSyncBackend::new(TargetOs::Darwin);
+        let backend = mock_backend(TargetOs::Darwin);
         let plan = empty_plan(TargetOs::Darwin);
         let report = backend
             .install(&plan, &SyncOpts { dry_run: true }, &NoopReporter)
@@ -296,7 +310,7 @@ mod tests {
 
     #[test]
     fn install_dry_run_darwin_steps_include_darwin_rebuild() {
-        let backend = NixSyncBackend::new(TargetOs::Darwin);
+        let backend = mock_backend(TargetOs::Darwin);
         let plan = empty_plan(TargetOs::Darwin);
         let report = backend
             .install(&plan, &SyncOpts { dry_run: true }, &NoopReporter)
@@ -309,7 +323,7 @@ mod tests {
 
     #[test]
     fn install_dry_run_linux_steps_skip_darwin_rebuild() {
-        let backend = NixSyncBackend::new(TargetOs::Linux);
+        let backend = mock_backend(TargetOs::Linux);
         let plan = empty_plan(TargetOs::Linux);
         let report = backend
             .install(&plan, &SyncOpts { dry_run: true }, &NoopReporter)
@@ -322,7 +336,7 @@ mod tests {
 
     #[test]
     fn apply_preview_contains_chezmoi_apply() {
-        let backend = NixSyncBackend::new(TargetOs::Darwin);
+        let backend = mock_backend(TargetOs::Darwin);
         let plan = empty_plan(TargetOs::Darwin);
         let preview = backend.apply_preview(&plan);
         assert!(
@@ -336,7 +350,7 @@ mod tests {
 
     #[test]
     fn apply_preview_does_not_contain_nix_switch() {
-        let backend = NixSyncBackend::new(TargetOs::Darwin);
+        let backend = mock_backend(TargetOs::Darwin);
         let plan = empty_plan(TargetOs::Darwin);
         let preview = backend.apply_preview(&plan);
         assert!(
@@ -351,7 +365,7 @@ mod tests {
 
     #[test]
     fn clean_dry_run_returns_nix_steps() {
-        let backend = NixSyncBackend::new(TargetOs::Darwin);
+        let backend = mock_backend(TargetOs::Darwin);
         let report = backend.clean(&CleanOpts { dry_run: true }).unwrap();
         assert!(
             report
