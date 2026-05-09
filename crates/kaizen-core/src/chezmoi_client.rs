@@ -2,6 +2,19 @@ use std::path::{Path, PathBuf};
 
 use crate::{chezmoi::RemoveFilesReport, KaizenError};
 
+/// Backup result: what was backed up and where to restore it on rollback.
+///
+/// `backup_path` and `restore_path` may differ when the effective chezmoi
+/// source is a subdirectory of a git repo (e.g. with `.chezmoiroot`).
+/// In that case the git root is backed up, so rollback must restore to the
+/// git root, not to the subdirectory path.
+pub struct SourceBackup {
+    /// Path the original directory was moved to.
+    pub backup_path: PathBuf,
+    /// Path to restore the backup to on rollback (the original git root).
+    pub restore_path: PathBuf,
+}
+
 /// Port for all external chezmoi interactions (process calls + related FS ops).
 ///
 /// Concrete implementation (`StdChezmoiClient`) lives in kaizen-cli.
@@ -25,15 +38,19 @@ pub trait ChezmoiClient: Send + Sync {
     /// Run `chezmoi apply` (with stderr captured for error messages).
     fn apply(&self) -> Result<(), KaizenError>;
 
-    /// Remove dotfiles from disk.  Dry-run collects the plan without deleting.
+    /// Remove dotfiles from disk. Dry-run collects the plan without deleting.
     fn remove_files(
         &self,
         files: &[PathBuf],
         dry_run: bool,
     ) -> Result<RemoveFilesReport, KaizenError>;
 
-    /// Move `source_dir` to a timestamped backup path and return the backup path.
-    fn backup_source_dir(&self, source_dir: &Path) -> Result<PathBuf, KaizenError>;
+    /// Back up the source directory (or its git root) to a timestamped path.
+    ///
+    /// When `source_dir` is a subdirectory of a git repo (`.chezmoiroot` case),
+    /// the entire git root is backed up so that rollback can fully restore state.
+    /// Falls back to backing up `source_dir` itself for non-git sources.
+    fn backup_source_dir(&self, source_dir: &Path) -> Result<SourceBackup, KaizenError>;
 }
 
 /// No-op client: succeeds without touching the filesystem or spawning processes.
@@ -65,7 +82,11 @@ impl ChezmoiClient for NoopChezmoiClient {
             skipped: vec![],
         })
     }
-    fn backup_source_dir(&self, source_dir: &Path) -> Result<PathBuf, KaizenError> {
-        Ok(source_dir.with_extension("bak"))
+    fn backup_source_dir(&self, source_dir: &Path) -> Result<SourceBackup, KaizenError> {
+        let backup_path = source_dir.with_extension("bak");
+        Ok(SourceBackup {
+            backup_path,
+            restore_path: source_dir.to_owned(),
+        })
     }
 }

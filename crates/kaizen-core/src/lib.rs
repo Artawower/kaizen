@@ -26,7 +26,7 @@ pub mod toolchain;
 
 pub use backends::{NixSyncBackend, UptSyncBackend};
 pub use chezmoi::{ModifiedFile, RemoveFilesReport};
-pub use chezmoi_client::{ChezmoiClient, NoopChezmoiClient};
+pub use chezmoi_client::{ChezmoiClient, NoopChezmoiClient, SourceBackup};
 pub use config::{
     DotfilesConfig, FeatureSelection, UserConfig, UserSettings, CURRENT_SCHEMA_VERSION,
     DEFAULT_DOTFILES_SOURCE,
@@ -172,8 +172,14 @@ mod tests {
             })
         }
 
-        fn backup_source_dir(&self, source_dir: &Path) -> Result<PathBuf, KaizenError> {
-            Ok(source_dir.with_extension("bak"))
+        fn backup_source_dir(
+            &self,
+            source_dir: &Path,
+        ) -> Result<chezmoi_client::SourceBackup, KaizenError> {
+            Ok(chezmoi_client::SourceBackup {
+                backup_path: source_dir.with_extension("bak"),
+                restore_path: source_dir.to_owned(),
+            })
         }
     }
 

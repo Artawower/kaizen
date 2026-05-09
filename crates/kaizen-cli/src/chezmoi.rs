@@ -9,9 +9,25 @@ use kaizen_core::{
         parse_managed_files, parse_source_path_output, parse_status_output, FileStatus,
         RemoveFilesReport,
     },
-    chezmoi_client::ChezmoiClient,
+    chezmoi_client::{ChezmoiClient, SourceBackup},
     KaizenError,
 };
+
+/// Return the git repository root containing `dir`, or `None` if not in a git repo.
+/// Falls back gracefully so non-git dotfiles sources still work.
+fn git_root(dir: &Path) -> Option<PathBuf> {
+    let out = Command::new("git")
+        .arg("-C")
+        .arg(dir)
+        .args(["rev-parse", "--show-toplevel"])
+        .output()
+        .ok()?;
+    if !out.status.success() {
+        return None;
+    }
+    let path = std::str::from_utf8(&out.stdout).ok()?.trim();
+    Some(PathBuf::from(path))
+}
 
 /// Concrete chezmoi client that spawns real processes.
 ///
@@ -131,14 +147,70 @@ impl ChezmoiClient for StdChezmoiClient {
         Ok(report)
     }
 
-    fn backup_source_dir(&self, source_dir: &Path) -> Result<PathBuf, KaizenError> {
+    fn backup_source_dir(&self, source_dir: &Path) -> Result<SourceBackup, KaizenError> {
+        let restore_path = git_root(source_dir).unwrap_or_else(|| source_dir.to_owned());
         let ts = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .map(|d| d.as_secs())
             .unwrap_or(0);
-        let name = source_dir.file_name().unwrap_or_default().to_string_lossy();
-        let backup = source_dir.with_file_name(format!("{name}.bak.{ts}"));
-        std::fs::rename(source_dir, &backup)?;
-        Ok(backup)
+        let name = restore_path
+            .file_name()
+            .unwrap_or_default()
+            .to_string_lossy();
+        let backup_path = restore_path.with_file_name(format!("{name}.bak.{ts}"));
+        std::fs::rename(&restore_path, &backup_path)?;
+        Ok(SourceBackup {
+            backup_path,
+            restore_path,
+        })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// backup_source_dir must back up the git root, not the source subdirectory,
+    /// when the chezmoi source is nested inside a git repo (.chezmoiroot case).
+    #[test]
+    fn backup_targets_git_root_when_source_is_subdir() {
+        let repo = tempfile::tempdir().unwrap();
+        let repo_path = repo.path();
+
+        // Initialise a real git repo
+        std::process::Command::new("git")
+            .args(["init", "-q"])
+            .current_dir(repo_path)
+            .status()
+            .unwrap();
+
+        // Simulate .chezmoiroot = dotfiles
+        let source_dir = repo_path.join("dotfiles");
+        std::fs::create_dir_all(&source_dir).unwrap();
+
+        // Canonicalize before backup: after rename the original path no longer exists.
+        // On macOS /tmp is a symlink to /private/tmp; git returns the resolved path.
+        let canonical_root = repo_path.canonicalize().unwrap();
+        let canonical_parent = canonical_root.parent().unwrap().to_owned();
+
+        let client = StdChezmoiClient;
+        let backup = client.backup_source_dir(&source_dir).unwrap();
+
+        // restore_path must be the git root, not dotfiles/
+        assert_eq!(backup.restore_path, canonical_root);
+        // backup_path must be a sibling of the repo root, not of dotfiles/
+        assert_eq!(backup.backup_path.parent().unwrap(), canonical_parent);
+    }
+
+    /// When source_dir is not inside a git repo, fallback to backing up source_dir itself.
+    #[test]
+    fn backup_falls_back_to_source_dir_when_not_git() {
+        let dir = tempfile::tempdir().unwrap();
+        let source_dir = dir.path().to_owned();
+
+        let client = StdChezmoiClient;
+        let backup = client.backup_source_dir(&source_dir).unwrap();
+
+        assert_eq!(backup.restore_path, source_dir);
     }
 }

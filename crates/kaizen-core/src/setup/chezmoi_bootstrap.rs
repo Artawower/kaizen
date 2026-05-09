@@ -51,8 +51,8 @@ impl ChezmoiBootstrapper {
         }
     }
 
-    /// Backup `existing` source, run `chezmoi init`, validate manifest.
-    /// Returns `(new_source_dir, backup_dir)`. Rolls back on failure.
+    /// Backup `existing` source (or its git root), run `chezmoi init`, validate manifest.
+    /// Returns `(new_source_dir, backup_path)`. Rolls back on failure.
     pub fn backup_and_reinit(
         &self,
         url: &str,
@@ -60,14 +60,14 @@ impl ChezmoiBootstrapper {
     ) -> Result<(PathBuf, PathBuf), KaizenError> {
         let backup = self.client.backup_source_dir(existing)?;
         if let Err(e) = self.init_and_validate(url) {
-            let _ = self.fs.rename(&backup, existing);
+            let _ = self.fs.rename(&backup.backup_path, &backup.restore_path);
             return Err(e);
         }
         let new_source = self
             .client
             .source_path()?
             .ok_or(KaizenError::ChezmoidataTargetUnknown)?;
-        Ok((new_source, backup))
+        Ok((new_source, backup.backup_path))
     }
 
     /// Run `chezmoi init` and validate the resulting source manifest.
@@ -113,7 +113,7 @@ mod tests {
     use std::sync::{Arc, Mutex};
 
     use super::*;
-    use crate::{fs::mem::MemFileSystem, RemoveFilesReport};
+    use crate::{chezmoi_client::SourceBackup, fs::mem::MemFileSystem, RemoveFilesReport};
 
     struct TestChezmoiClient {
         source: PathBuf,
@@ -165,8 +165,11 @@ mod tests {
             })
         }
 
-        fn backup_source_dir(&self, _: &Path) -> Result<PathBuf, KaizenError> {
-            Ok(self.backup.clone())
+        fn backup_source_dir(&self, source_dir: &Path) -> Result<SourceBackup, KaizenError> {
+            Ok(SourceBackup {
+                backup_path: self.backup.clone(),
+                restore_path: source_dir.to_owned(),
+            })
         }
     }
 

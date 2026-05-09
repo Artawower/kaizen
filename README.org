@@ -204,6 +204,26 @@ cd kaizen
 cargo install --path crates/kaizen-cli
 #+END_SRC
 
+* Repository layout
+
+This is a monorepo: the ~kaizen~ CLI tool and the default curated dotfiles live together.
+
+#+BEGIN_SRC
+kaizen/
+├── .chezmoiroot          ← tells chezmoi to use dotfiles/ as source root
+├── crates/               ← Rust source for the kaizen CLI
+├── features/             ← development fixtures (tests only)
+└── dotfiles/             ← chezmoi source root (applied to ~/)
+    ├── .chezmoiignore    ← excludes kaizen/ from being applied to $HOME
+    ├── kaizen/
+    │   ├── manifest.toml ← schema version
+    │   └── features/     ← curated workflow features
+    └── dot_config/       ← ~/.config/* dotfiles
+#+END_SRC
+
+Users who prefer their own dotfiles can set a custom URL during ~kaizen configure~.
+The =dotfiles.source= field in =config.toml= is fully swappable.
+
 * Usage
 
 The primary workflow:
