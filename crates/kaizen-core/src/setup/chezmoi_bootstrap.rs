@@ -110,8 +110,125 @@ pub fn resolve_features_dir_from_source(
 
 #[cfg(test)]
 mod tests {
+    use std::sync::{Arc, Mutex};
+
     use super::*;
-    use crate::fs::mem::MemFileSystem;
+    use crate::{fs::mem::MemFileSystem, RemoveFilesReport};
+
+    struct TestChezmoiClient {
+        source: PathBuf,
+        backup: PathBuf,
+    }
+
+    impl TestChezmoiClient {
+        fn new(source: impl Into<PathBuf>, backup: impl Into<PathBuf>) -> Self {
+            Self {
+                source: source.into(),
+                backup: backup.into(),
+            }
+        }
+    }
+
+    impl ChezmoiClient for TestChezmoiClient {
+        fn managed_files(&self) -> Result<Vec<PathBuf>, KaizenError> {
+            Ok(vec![])
+        }
+
+        fn locally_modified_files(&self) -> Result<Vec<PathBuf>, KaizenError> {
+            Ok(vec![])
+        }
+
+        fn source_path(&self) -> Result<Option<PathBuf>, KaizenError> {
+            Ok(Some(self.source.clone()))
+        }
+
+        fn current_remote(&self, _: &Path) -> Result<Option<String>, KaizenError> {
+            Ok(None)
+        }
+
+        fn init_source(&self, _: &str) -> Result<(), KaizenError> {
+            Ok(())
+        }
+
+        fn apply(&self) -> Result<(), KaizenError> {
+            Ok(())
+        }
+
+        fn remove_files(
+            &self,
+            files: &[PathBuf],
+            _: bool,
+        ) -> Result<RemoveFilesReport, KaizenError> {
+            Ok(RemoveFilesReport {
+                removed: files.to_vec(),
+                skipped: vec![],
+            })
+        }
+
+        fn backup_source_dir(&self, _: &Path) -> Result<PathBuf, KaizenError> {
+            Ok(self.backup.clone())
+        }
+    }
+
+    struct RecordingFileSystem {
+        inner: MemFileSystem,
+        renames: Arc<Mutex<Vec<(PathBuf, PathBuf)>>>,
+    }
+
+    impl RecordingFileSystem {
+        fn new() -> Self {
+            Self {
+                inner: MemFileSystem::new(),
+                renames: Arc::new(Mutex::new(vec![])),
+            }
+        }
+
+        fn add_file(&self, path: impl Into<PathBuf>, content: impl Into<Vec<u8>>) {
+            self.inner.add_file(path, content);
+        }
+    }
+
+    impl FileSystem for RecordingFileSystem {
+        fn read_to_string(&self, path: &Path) -> Result<String, KaizenError> {
+            self.inner.read_to_string(path)
+        }
+
+        fn read_dir_paths(&self, path: &Path) -> Result<Vec<PathBuf>, KaizenError> {
+            self.inner.read_dir_paths(path)
+        }
+
+        fn exists(&self, path: &Path) -> bool {
+            self.inner.exists(path)
+        }
+
+        fn is_dir(&self, path: &Path) -> bool {
+            self.inner.is_dir(path)
+        }
+
+        fn write(&self, path: &Path, content: &[u8]) -> Result<(), KaizenError> {
+            self.inner.write(path, content)
+        }
+
+        fn create_dir_all(&self, path: &Path) -> Result<(), KaizenError> {
+            self.inner.create_dir_all(path)
+        }
+
+        fn rename(&self, from: &Path, to: &Path) -> Result<(), KaizenError> {
+            self.renames
+                .lock()
+                .unwrap()
+                .push((from.to_owned(), to.to_owned()));
+            Ok(())
+        }
+
+        fn remove_file(&self, path: &Path) -> Result<(), KaizenError> {
+            self.inner.remove_file(path)
+        }
+
+        fn remove_dir_all(&self, path: &Path) -> Result<(), KaizenError> {
+            self.inner.remove_dir_all(path)
+        }
+    }
 
     #[test]
     fn resolve_explicit_dir_is_returned_unchanged() {
@@ -139,5 +256,49 @@ mod tests {
         let fs = MemFileSystem::new();
         let result = resolve_features_dir_from_source(None, Path::new("/source"), &fs);
         assert_eq!(result, PathBuf::from("features"));
+    }
+
+    #[test]
+    fn init_validates_manifest_through_injected_filesystem() {
+        let fs = MemFileSystem::new();
+        let source = PathBuf::from("/source");
+        fs.add_file(
+            source.join(manifest::KAIZEN_DIR).join("manifest.toml"),
+            "schema_version = 999",
+        );
+        let bootstrapper = ChezmoiBootstrapper::new(
+            Box::new(TestChezmoiClient::new(&source, "/backup")),
+            Box::new(fs),
+        );
+
+        let error = bootstrapper
+            .init("https://example.com/dotfiles")
+            .unwrap_err();
+
+        assert!(matches!(error, KaizenError::ManifestSchemaTooNew { .. }));
+    }
+
+    #[test]
+    fn backup_and_reinit_rolls_back_when_manifest_validation_fails() {
+        let fs = RecordingFileSystem::new();
+        let existing = PathBuf::from("/existing");
+        let source = PathBuf::from("/source");
+        let backup = PathBuf::from("/backup");
+        fs.add_file(
+            source.join(manifest::KAIZEN_DIR).join("manifest.toml"),
+            "schema_version = 999",
+        );
+        let renames = Arc::clone(&fs.renames);
+        let bootstrapper = ChezmoiBootstrapper::new(
+            Box::new(TestChezmoiClient::new(&source, &backup)),
+            Box::new(fs),
+        );
+
+        let error = bootstrapper
+            .backup_and_reinit("https://example.com/dotfiles", &existing)
+            .unwrap_err();
+
+        assert!(matches!(error, KaizenError::ManifestSchemaTooNew { .. }));
+        assert_eq!(renames.lock().unwrap().as_slice(), &[(backup, existing)]);
     }
 }

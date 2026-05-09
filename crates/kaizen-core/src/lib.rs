@@ -126,3 +126,98 @@ impl KaizenEngine {
         merge::build_plan(config, &store, target_os)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{fs::mem::MemFileSystem, progress::RecordingReporter};
+
+    struct SourceClient {
+        source: Option<PathBuf>,
+    }
+
+    impl chezmoi_client::ChezmoiClient for SourceClient {
+        fn managed_files(&self) -> Result<Vec<PathBuf>, KaizenError> {
+            Ok(vec![])
+        }
+
+        fn locally_modified_files(&self) -> Result<Vec<PathBuf>, KaizenError> {
+            Ok(vec![])
+        }
+
+        fn source_path(&self) -> Result<Option<PathBuf>, KaizenError> {
+            Ok(self.source.clone())
+        }
+
+        fn current_remote(&self, _: &Path) -> Result<Option<String>, KaizenError> {
+            Ok(None)
+        }
+
+        fn init_source(&self, _: &str) -> Result<(), KaizenError> {
+            Ok(())
+        }
+
+        fn apply(&self) -> Result<(), KaizenError> {
+            Ok(())
+        }
+
+        fn remove_files(
+            &self,
+            files: &[PathBuf],
+            _: bool,
+        ) -> Result<RemoveFilesReport, KaizenError> {
+            Ok(RemoveFilesReport {
+                removed: files.to_vec(),
+                skipped: vec![],
+            })
+        }
+
+        fn backup_source_dir(&self, source_dir: &Path) -> Result<PathBuf, KaizenError> {
+            Ok(source_dir.with_extension("bak"))
+        }
+    }
+
+    #[test]
+    fn resolve_features_dir_uses_injected_filesystem_manifest() {
+        let fs = MemFileSystem::new();
+        let source = PathBuf::from("/source");
+        let kaizen_dir = source.join(manifest::KAIZEN_DIR);
+        let features = kaizen_dir.join(manifest::FEATURES_SUBDIR);
+        fs.add_dir(&features);
+        fs.add_file(kaizen_dir.join("manifest.toml"), "schema_version = 1");
+
+        let result = resolve_features_dir(
+            None,
+            &NoopReporter,
+            &SourceClient {
+                source: Some(source),
+            },
+            &fs,
+        )
+        .unwrap();
+
+        assert_eq!(result, features);
+    }
+
+    #[test]
+    fn resolve_features_dir_warns_and_falls_back_when_source_has_no_features() {
+        let fs = MemFileSystem::new();
+        let reporter = RecordingReporter::new();
+
+        let result = resolve_features_dir(
+            None,
+            &reporter,
+            &SourceClient {
+                source: Some(PathBuf::from("/source")),
+            },
+            &fs,
+        )
+        .unwrap();
+
+        assert_eq!(result, PathBuf::from("features"));
+        assert_eq!(
+            reporter.warnings(),
+            vec!["kaizen/features not found in chezmoi source — using built-in features"]
+        );
+    }
+}
