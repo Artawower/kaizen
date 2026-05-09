@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<title>architecture.html</title>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+<link rel="stylesheet" type="text/css" media="all" href="/Users/darkawower/.emacs.d/elpaca/builds/markdown-xwidget/resources/github_css/light.css"  />
+<link rel="stylesheet" type="text/css" media="all" href="/Users/darkawower/.emacs.d/elpaca/builds/markdown-xwidget/resources/highlight_css/default.css"  /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<style>
+  body {
+    box-sizing: border-box;
+    min-width: 200px;
+    max-width: 980px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 45px;
+  }
+</style>
+
+<script
+  type="text/javascript"
+  id="MathJax-script"
+  src="/Users/darkawower/.emacs.d/elpaca/builds/markdown-xwidget/resources/tex-mml-chtml.js"
+></script>
+
+<script type="text/javascript" src="/Users/darkawower/.emacs.d/elpaca/builds/markdown-xwidget/resources/highlight.min.js"></script>
+
+<script type="text/javascript" src="/Users/darkawower/.emacs.d/elpaca/builds/markdown-xwidget/resources/mermaid.min.js"></script>
+
+<script type="text/javascript">
+  // Use highlight.js for syntax highlighting on non-mermaid code blocks.
+  hljs.configure({ noHighlightRe: /^mermaid$/i });
+  hljs.highlightAll();
+</script>
+
+<script type="text/javascript">
+  mermaid.initialize({
+    theme: "default",
+    startOnLoad: true,
+  });
+</script>
+
+<script type="text/javascript">
+  document.addEventListener("DOMContentLoaded", () => {
+    // Add a "markdown-body" class attribute to the body. We must do this because
+    // the GitHub CSS only applies to a div with the "markdown-body" class.
+    document.body.classList.add("markdown-body");
+
+    // If there's a stored scroll location, scroll to that location. Otherwise,
+    // the document resets to the top of the page every time it is refreshed.
+    let prevScroll = sessionStorage.getItem("scrollY");
+    if (prevScroll) window.scroll(0, prevScroll);
+  });
+
+  // Save new scroll locations on scroll.
+  // See: https://developer.mozilla.org/en-US/docs/Web/API/Document/scroll_event
+  let ticking = false;
+  document.addEventListener("scroll", (event) => {
+    if (!ticking) {
+      window.requestAnimationFrame(() => {
+        sessionStorage.setItem("scrollY", window.scrollY);
+        ticking = false;
+      });
+      ticking = true;
+    }
+  });
+</script>
+
+</head>
+
+<body>
+
+<h1 id="kaizenarchitecture">Kaizen Architecture</h1>
+
+<p>Kaizen is a headless workflow orchestrator: manages dotfiles, packages, and dev tooling across macOS and Linux. Two-crate workspace — <code>kaizen-core</code> (pure library) and <code>kaizen-cli</code> (binary that wires concrete OS adapters).</p>
+
+<h2 id="layerdiagram">Layer Diagram</h2>
+
+<pre><code class="mermaid">graph TD
+    subgraph CLI[&quot;kaizen-cli&quot;]
+        CMD[&quot;Commands&lt;br/&gt;sync · apply · update&lt;br/&gt;clean · install · doctor&quot;]
+        ROOT[&quot;Composition Root&lt;br/&gt;detect_backend()&lt;br/&gt;main.rs&quot;]
+        ADAPTERS[&quot;Concrete Adapters&lt;br/&gt;StdProcessExecutor · StdFileSystem&lt;br/&gt;StdChezmoiClient · StdPathProvider&lt;br/&gt;UptInstaller · MiseToolchain · DockerCleaner&quot;]
+    end
+
+    subgraph CORE[&quot;kaizen-core&quot;]
+        ENGINE[&quot;KaizenEngine&lt;br/&gt;load_config · build_workflow_plan&quot;]
+        PLAN[&quot;merge::build_plan()&lt;br/&gt;WorkflowPlan&quot;]
+        BACKENDS[&quot;SyncBackend impls&lt;br/&gt;NixSyncBackend · UptSyncBackend&quot;]
+        RUNTIME[&quot;Runtime&lt;br/&gt;executor · fs · chezmoi · paths · pm&quot;]
+        PORTS[&quot;Ports (traits)&lt;br/&gt;ProcessExecutor · FileSystem&lt;br/&gt;ChezmoiClient · PathProvider&lt;br/&gt;DevToolsManager · ContainerCleaner&quot;]
+    end
+
+    OS[&quot;OS / External Tools&lt;br/&gt;chezmoi · home-manager · nix&lt;br/&gt;upt · mise · docker&quot;]
+
+    CMD --&gt; ENGINE
+    CMD --&gt; ROOT
+    ROOT --&gt; ADAPTERS
+    ADAPTERS --&gt; RUNTIME
+    RUNTIME --&gt; BACKENDS
+    ENGINE --&gt; PLAN
+    PLAN --&gt; BACKENDS
+    BACKENDS --&gt; PORTS
+    PORTS -.-&gt;|implemented by| ADAPTERS
+    ADAPTERS --&gt; OS
+</code></pre>
+
+<p>Core backends call ports (traits), never OS directly. All <code>which</code> / <code>std::process</code> calls are in CLI adapters. <code>TargetOs::detect()</code> is the single exception — it queries <code>os_info</code> in core for convenience.</p>
+
+<h2 id="compositionroot">Composition Root</h2>
+
+<p><code>backend.rs</code> in CLI constructs all concrete adapters and injects them:</p>
+
+<pre><code>detect_backend(os)
+  └─ Runtime { StdProcessExecutor, StdFileSystem, StdChezmoiClient, StdPathProvider, pm }
+  └─ NixSyncBackend(os, runtime, MiseToolchain, DockerCleaner)
+  └─ UptSyncBackend(os, runtime, UptInstaller, MiseToolchain, DockerCleaner)
+</code></pre>
+
+<h2 id="dataflow">Data Flow</h2>
+
+<pre><code class="mermaid">sequenceDiagram
+    participant User
+    participant CLI as kaizen-cli
+    participant Engine as KaizenEngine
+    participant Plan as build_plan()
+    participant Backend as SyncBackend
+
+    User-&gt;&gt;CLI: kaizen sync
+    CLI-&gt;&gt;Engine: load_config(path)
+    Engine-&gt;&gt;Plan: build_workflow_plan(config, os)
+    Plan--&gt;&gt;CLI: WorkflowPlan
+    CLI-&gt;&gt;CLI: detect_backend(os) → Box&lt;dyn SyncBackend&gt;
+    CLI-&gt;&gt;Backend: sync(plan, opts, StderrReporter)
+    Backend--&gt;&gt;User: progress via ProgressReporter
+</code></pre>
+
+<p><code>ProgressReporter</code> is injected by CLI (<code>StderrReporter</code>); core never prints directly.</p>
+
+<h2 id="backendselection">Backend Selection</h2>
+
+<pre><code class="mermaid">flowchart LR
+    START([detect_backend]) --&gt; NIX{home-manager\nor darwin-rebuild\non PATH?}
+    NIX -- yes --&gt; NIXBE[&quot;NixSyncBackend\napply → install → post_apply\n(chezmoi before home-manager reads it)&quot;]
+    NIX -- no --&gt; UPTBE[&quot;UptSyncBackend\ninstall → apply → post_apply&quot;]
+</code></pre>
+
+<p>Step order differs: Nix runs <code>chezmoi apply</code> first so <code>.chezmoidata.toml</code> exists when <code>home-manager switch</code> reads it.</p>
+
+<h2 id="syncbackendtraithierarchy">SyncBackend Trait Hierarchy</h2>
+
+<pre><code class="mermaid">classDiagram
+    class SyncBackend {
+        &lt;&lt;trait&gt;&gt;
+        +id() str
+        +sync(plan, opts, reporter)
+    }
+    class InstallBackend { +install() }
+    class ApplyBackend { +apply() · +apply_preview() }
+    class PostApplyBackend { +post_apply() }
+    class UpdateBackend { +update() }
+    class CleanBackend { +clean() }
+    class PreviewBackend { +preview() }
+
+    SyncBackend --|&gt; InstallBackend
+    SyncBackend --|&gt; ApplyBackend
+    SyncBackend --|&gt; PostApplyBackend
+    SyncBackend --|&gt; UpdateBackend
+    SyncBackend --|&gt; CleanBackend
+    SyncBackend --|&gt; PreviewBackend
+
+    NixSyncBackend ..|&gt; SyncBackend
+    UptSyncBackend ..|&gt; SyncBackend
+</code></pre>
+
+<p>Each CLI command depends only on the narrowest sub-trait it needs.</p>
+
+<h2 id="command→sub-traitmapping">Command → Sub-trait Mapping</h2>
+
+<table>
+<colgroup>
+<col />
+<col />
+</colgroup>
+
+<thead>
+<tr>
+	<th> Command </th>
+	<th> Depends on         </th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+	<td> <code>sync</code> </td>
+	<td> <code>SyncBackend</code> (full)      </td>
+</tr>
+<tr>
+	<td> <code>apply</code> </td>
+	<td> <code>ApplyBackend + PostApplyBackend</code>   </td>
+</tr>
+<tr>
+	<td> <code>update</code> </td>
+	<td> <code>UpdateBackend</code>       </td>
+</tr>
+<tr>
+	<td> <code>clean</code> </td>
+	<td> <code>CleanBackend</code>        </td>
+</tr>
+<tr>
+	<td> <code>install</code> </td>
+	<td> <code>&amp;dyn Installer</code> (direct, not SyncBackend) </td>
+</tr>
+</tbody>
+</table>
+
+<p><code>install</code> bypasses backend abstraction and calls <code>UptInstaller</code> directly via <code>&amp;dyn Installer</code>. It is intentionally Nix-unaware and emits a warning when Nix is detected.</p>
+
+<h2 id="workflowplan">WorkflowPlan</h2>
+
+<pre><code>WorkflowPlan
+├── install_plan  — OS packages + mise dev tools
+├── config_plan   — dotfiles backend (&quot;chezmoi&quot;), source URL, feature flags, settings
+└── hook_plan     — post_install / post_apply / post_update shell commands
+</code></pre>
+
+<h2 id="setupflow">Setup Flow</h2>
+
+<p><code>kaizen init</code> / <code>kaizen setup</code> use <code>ChezmoiBootstrapper</code> (in core) for source-dir inspection, backup, and rollback — isolated from the main sync pipeline.</p>
+
+<h2 id="testing">Testing</h2>
+
+<p>All ports have no-op / in-memory implementations (<code>NoopExecutor</code>, <code>NoopChezmoiClient</code>, <code>MemFileSystem</code>). CLI commands expose <code>run_with(..., backend: &amp;dyn SubTrait)</code> for injection — tests never spawn processes or touch disk.</p>
+
+</body>
+</html>
