@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use kaizen_core::{NixSyncBackend, Runtime, SyncBackend, TargetOs, UptSyncBackend};
+use kaizen_core::{NixSyncBackend, Runtime, StdFileSystem, SyncBackend, TargetOs, UptSyncBackend};
 
 use crate::{
     docker::DockerCleaner, executor::StdProcessExecutor, installer::UptInstaller,
@@ -12,7 +12,7 @@ use crate::{
 /// All capability detection (`which`) lives here in CLI.
 /// Injects concrete adapters (StdProcessExecutor, MiseToolchain, DockerCleaner, UptInstaller).
 pub fn detect_backend(os: TargetOs) -> Box<dyn SyncBackend> {
-    let runtime = Runtime::new(Arc::new(StdProcessExecutor));
+    let runtime = Runtime::new(Arc::new(StdProcessExecutor), Arc::new(StdFileSystem));
 
     if nix_available() {
         return Box::new(NixSyncBackend::new(

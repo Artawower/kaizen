@@ -288,7 +288,7 @@ mod tests {
     fn mock_backend(os: TargetOs) -> NixSyncBackend {
         NixSyncBackend::new(
             os,
-            Runtime::new(Arc::new(NoopExecutor)),
+            Runtime::new(Arc::new(NoopExecutor), Arc::new(crate::StdFileSystem)),
             Box::new(NoopDevTools),
             Box::new(NoopContainerCleaner),
         )

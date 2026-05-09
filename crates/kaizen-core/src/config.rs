@@ -49,12 +49,19 @@ pub struct DotfilesConfig {
 }
 
 pub fn load(path: &Path) -> Result<UserConfig, KaizenError> {
-    if !path.exists() {
+    load_with(path, &crate::StdFileSystem)
+}
+
+pub fn load_with(
+    path: &Path,
+    fs: &dyn crate::FileSystem,
+) -> Result<UserConfig, KaizenError> {
+    if !fs.exists(path) {
         return Err(KaizenError::ConfigNotFound {
             path: path.to_owned(),
         });
     }
-    let raw = std::fs::read_to_string(path)?;
+    let raw = fs.read_to_string(path)?;
     toml::from_str(&raw).map_err(|source| KaizenError::ConfigParse {
         path: path.to_owned(),
         source,
