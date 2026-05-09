@@ -26,9 +26,6 @@ impl SyncBackend for UptSyncBackend {
         "upt"
     }
 
-    fn is_available(&self) -> bool {
-        which::which("upt").is_ok()
-    }
 }
 
 impl InstallBackend for UptSyncBackend {

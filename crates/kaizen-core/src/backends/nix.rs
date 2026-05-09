@@ -46,9 +46,6 @@ impl SyncBackend for NixSyncBackend {
         "nix"
     }
 
-    fn is_available(&self) -> bool {
-        which::which("home-manager").is_ok() || which::which("darwin-rebuild").is_ok()
-    }
 
     fn sync(
         &self,

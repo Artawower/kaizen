@@ -116,7 +116,6 @@ pub trait SyncBackend:
     InstallBackend + ApplyBackend + PostApplyBackend + UpdateBackend + CleanBackend + PreviewBackend
 {
     fn id(&self) -> &'static str;
-    fn is_available(&self) -> bool;
 
     /// Default: install → apply → post_apply.
     /// NixSyncBackend overrides to: apply → install → post_apply.

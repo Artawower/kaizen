@@ -78,9 +78,6 @@ mod tests {
         fn id(&self) -> &'static str {
             "mock"
         }
-        fn is_available(&self) -> bool {
-            true
-        }
         fn sync(
             &self,
             _: &WorkflowPlan,
