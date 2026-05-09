@@ -14,6 +14,7 @@ mod output;
 mod reporter;
 mod selector;
 
+use chezmoi::StdChezmoiClient;
 use reporter::StderrReporter;
 
 #[derive(Parser)]
@@ -114,7 +115,7 @@ fn main() -> Result<()> {
         return match cli.command {
             Command::Setup => commands::setup::run(features_dir_opt, &config_path),
             Command::Init { dry_run } => {
-                let features_dir = kaizen_core::resolve_features_dir(cli.features_dir, &reporter)?;
+                let features_dir = kaizen_core::resolve_features_dir(cli.features_dir, &reporter, &StdChezmoiClient)?;
                 let engine = kaizen_core::KaizenEngine::new(&features_dir);
                 commands::init::run(&engine, features_dir_opt, &config_path, dry_run)
             }
@@ -122,7 +123,7 @@ fn main() -> Result<()> {
         };
     }
 
-    let features_dir = kaizen_core::resolve_features_dir(cli.features_dir, &reporter)?;
+    let features_dir = kaizen_core::resolve_features_dir(cli.features_dir, &reporter, &StdChezmoiClient)?;
     let engine = kaizen_core::KaizenEngine::new(&features_dir);
 
     match cli.command {

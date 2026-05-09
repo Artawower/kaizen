@@ -3,7 +3,9 @@ use std::path::Path;
 use anyhow::Result;
 use kaizen_core::KaizenEngine;
 
-use crate::{commands, output};
+use kaizen_core::ChezmoiClient;
+
+use crate::{chezmoi::StdChezmoiClient, commands, output};
 
 /// Full first-time setup: wizard + sync.
 ///
@@ -20,9 +22,7 @@ pub fn run(
     dry_run: bool,
 ) -> Result<()> {
     let config_exists = config_path.exists();
-    let chezmoi_ready = kaizen_core::chezmoi::standalone_source_dir()
-        .unwrap_or(None)
-        .is_some();
+    let chezmoi_ready = StdChezmoiClient.source_path().unwrap_or(None).is_some();
 
     let need_setup = !config_exists || !chezmoi_ready;
 

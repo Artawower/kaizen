@@ -55,11 +55,12 @@ pub use sync_backend::{
 pub fn resolve_features_dir(
     explicit: Option<PathBuf>,
     reporter: &dyn ProgressReporter,
+    chezmoi: &dyn chezmoi_client::ChezmoiClient,
 ) -> Result<PathBuf, KaizenError> {
     if let Some(dir) = explicit {
         return Ok(dir);
     }
-    if let Some(source) = chezmoi::standalone_source_dir()? {
+    if let Some(source) = chezmoi.source_path()? {
         let kaizen_dir = source.join(manifest::KAIZEN_DIR);
         let candidate = kaizen_dir.join(manifest::FEATURES_SUBDIR);
         if candidate.is_dir() {
