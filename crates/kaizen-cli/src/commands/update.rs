@@ -2,12 +2,12 @@ use std::path::Path;
 
 use anyhow::Result;
 use kaizen_core::{
-    detect_backend, HookRunner, KaizenEngine, ShellHookRunner, TargetOs, UpdateBackend,
+    HookRunner, KaizenEngine, TargetOs, UpdateBackend,
     UpdateOpts, UserConfig,
 };
 use owo_colors::OwoColorize;
 
-use crate::{hooks, output, reporter::StderrReporter, selector};
+use crate::{backend::detect_backend, hooks, hooks::ShellHookRunner, output, reporter::StderrReporter, selector};
 
 pub fn run(
     engine: &KaizenEngine,
@@ -141,7 +141,6 @@ fn resolve_features(
 
 #[cfg(test)]
 mod tests {
-    use std::cell::RefCell;
     use std::path::PathBuf;
     use std::sync::atomic::{AtomicBool, Ordering};
 
@@ -177,23 +176,23 @@ mod tests {
     }
 
     struct RecordingHookRunner {
-        calls: RefCell<Vec<Vec<String>>>,
+        calls: std::sync::Mutex<Vec<Vec<String>>>,
     }
 
     impl RecordingHookRunner {
         fn new() -> Self {
             Self {
-                calls: RefCell::new(vec![]),
+                calls: std::sync::Mutex::new(vec![]),
             }
         }
         fn was_called(&self) -> bool {
-            !self.calls.borrow().is_empty()
+            !self.calls.lock().unwrap().is_empty()
         }
     }
 
     impl HookRunner for RecordingHookRunner {
         fn run(&self, cmds: &[String]) -> Result<(), KaizenError> {
-            self.calls.borrow_mut().push(cmds.to_vec());
+            self.calls.lock().unwrap().push(cmds.to_vec());
             Ok(())
         }
     }

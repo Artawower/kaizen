@@ -1,7 +1,9 @@
 use std::path::Path;
 
 use anyhow::Result;
-use kaizen_core::{detect_backend, CleanBackend, CleanOpts, KaizenEngine, TargetOs};
+use kaizen_core::{CleanBackend, CleanOpts, KaizenEngine, TargetOs};
+
+use crate::backend::detect_backend;
 use owo_colors::OwoColorize;
 
 use crate::output;

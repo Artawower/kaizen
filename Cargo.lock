@@ -469,6 +469,7 @@ dependencies = [
  "crossterm",
  "dialoguer",
  "kaizen-core",
+ "libc",
  "log",
  "owo-colors",
  "serde_json",

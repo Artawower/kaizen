@@ -1,7 +1,6 @@
 use crate::{
     backends::common,
-    installer::UptInstaller,
-    installer::{Installer, Updater},
+    installer::{Installer, PackageInstaller, Updater},
     progress::ProgressReporter,
     sync_backend::{
         ApplyBackend, ApplyReport, CleanBackend, CleanOpts, CleanReport, InstallBackend,
@@ -13,11 +12,12 @@ use crate::{
 
 pub struct UptSyncBackend {
     os: TargetOs,
+    installer: Box<dyn PackageInstaller>,
 }
 
 impl UptSyncBackend {
-    pub fn new(os: TargetOs) -> Self {
-        Self { os }
+    pub fn new(os: TargetOs, installer: Box<dyn PackageInstaller>) -> Self {
+        Self { os, installer }
     }
 }
 
@@ -45,15 +45,15 @@ impl InstallBackend for UptSyncBackend {
 
         if opts.dry_run {
             return Ok(InstallReport {
-                steps: vec![UptInstaller.preview_install(programs)],
+                steps: vec![self.installer.preview_install(programs)],
                 warnings: vec![],
             });
         }
 
         reporter.step("→ upt install");
-        UptInstaller.install(programs)?;
+        self.installer.install(programs)?;
         Ok(InstallReport {
-            steps: vec![UptInstaller.preview_install(programs)],
+            steps: vec![self.installer.preview_install(programs)],
             warnings: vec![],
         })
     }
@@ -115,7 +115,7 @@ impl UpdateBackend for UptSyncBackend {
                     warnings,
                 });
             }
-            match UptInstaller.upgrade(programs) {
+            match self.installer.upgrade(programs) {
                 Ok(()) => {}
                 Err(KaizenError::InstallerPartialFailure { failed, .. }) => {
                     warnings.extend(failed.iter().map(|p| format!("{p}: failed to upgrade")));
@@ -154,7 +154,7 @@ impl PreviewBackend for UptSyncBackend {
         if !plan.install_plan.programs.is_empty() {
             steps.push(SyncStep {
                 label: "install packages".into(),
-                command: UptInstaller.preview_install(&plan.install_plan.programs),
+                command: self.installer.preview_install(&plan.install_plan.programs),
             });
         }
 
@@ -185,6 +185,30 @@ mod tests {
     };
     use indexmap::IndexMap;
 
+    struct MockInstaller;
+
+    impl Installer for MockInstaller {
+        fn install(&self, _programs: &[String]) -> Result<(), KaizenError> {
+            Ok(())
+        }
+        fn preview_install(&self, programs: &[String]) -> String {
+            format!("mock install {}", programs.join(" "))
+        }
+    }
+
+    impl Updater for MockInstaller {
+        fn upgrade(&self, _programs: &[String]) -> Result<(), KaizenError> {
+            Ok(())
+        }
+        fn preview_upgrade(&self, programs: &[String]) -> String {
+            format!("mock upgrade {}", programs.join(" "))
+        }
+    }
+
+    fn mock_backend(os: TargetOs) -> UptSyncBackend {
+        UptSyncBackend::new(os, Box::new(MockInstaller))
+    }
+
     fn empty_plan() -> WorkflowPlan {
         WorkflowPlan::new(
             TargetOs::Darwin,
@@ -212,7 +236,7 @@ mod tests {
 
     #[test]
     fn install_dry_run_returns_steps_without_calling_upt() {
-        let backend = UptSyncBackend::new(TargetOs::Darwin);
+        let backend = mock_backend(TargetOs::Darwin);
         let plan = plan_with_programs(&["git", "ripgrep"]);
         let report = backend
             .install(&plan, &SyncOpts { dry_run: true }, &NoopReporter)
@@ -223,7 +247,7 @@ mod tests {
 
     #[test]
     fn install_empty_programs_returns_empty_report() {
-        let backend = UptSyncBackend::new(TargetOs::Darwin);
+        let backend = mock_backend(TargetOs::Darwin);
         let plan = empty_plan();
         let report = backend
             .install(&plan, &SyncOpts { dry_run: true }, &NoopReporter)
@@ -233,7 +257,7 @@ mod tests {
 
     #[test]
     fn update_dry_run_returns_programs_without_spawning() {
-        let backend = UptSyncBackend::new(TargetOs::Darwin);
+        let backend = mock_backend(TargetOs::Darwin);
         let plan = plan_with_programs(&["git"]);
         let report = backend
             .update(
@@ -250,7 +274,7 @@ mod tests {
 
     #[test]
     fn apply_preview_contains_chezmoi() {
-        let backend = UptSyncBackend::new(TargetOs::Darwin);
+        let backend = mock_backend(TargetOs::Darwin);
         let plan = empty_plan();
         let preview = backend.apply_preview(&plan);
         assert!(
@@ -264,7 +288,7 @@ mod tests {
 
     #[test]
     fn apply_preview_does_not_contain_upt() {
-        let backend = UptSyncBackend::new(TargetOs::Darwin);
+        let backend = mock_backend(TargetOs::Darwin);
         let plan = plan_with_programs(&["git"]);
         let preview = backend.apply_preview(&plan);
         assert!(
@@ -275,7 +299,7 @@ mod tests {
 
     #[test]
     fn clean_dry_run_returns_brew_step_on_darwin() {
-        let backend = UptSyncBackend::new(TargetOs::Darwin);
+        let backend = mock_backend(TargetOs::Darwin);
         let report = backend.clean(&CleanOpts { dry_run: true }).unwrap();
         assert!(
             report.steps.iter().any(|s| s.contains("brew")),
@@ -286,7 +310,7 @@ mod tests {
 
     #[test]
     fn clean_dry_run_returns_dnf_step_on_fedora() {
-        let backend = UptSyncBackend::new(TargetOs::Fedora);
+        let backend = mock_backend(TargetOs::Fedora);
         let report = backend.clean(&CleanOpts { dry_run: true }).unwrap();
         assert!(
             report.steps.iter().any(|s| s.contains("dnf")),

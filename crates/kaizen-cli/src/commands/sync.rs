@@ -1,7 +1,9 @@
 use std::path::Path;
 
 use anyhow::Result;
-use kaizen_core::{detect_backend, KaizenEngine, SyncBackend, SyncOpts, TargetOs};
+use kaizen_core::{KaizenEngine, SyncBackend, SyncOpts, TargetOs};
+
+use crate::backend::detect_backend;
 
 use crate::{output, reporter::StderrReporter};
 

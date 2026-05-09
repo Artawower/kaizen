@@ -1,9 +1,9 @@
 use std::path::Path;
 
 use anyhow::Result;
-use kaizen_core::{
-    HookRunner, Installer, KaizenEngine, KaizenError, ShellHookRunner, TargetOs, UptInstaller,
-};
+use kaizen_core::{HookRunner, Installer, KaizenEngine, KaizenError, TargetOs};
+
+use crate::{hooks::ShellHookRunner, installer::UptInstaller};
 use owo_colors::OwoColorize;
 
 use crate::{ensure, output};
@@ -94,7 +94,6 @@ fn print_programs(programs: &[String]) {
 
 #[cfg(test)]
 mod tests {
-    use std::cell::RefCell;
     use std::path::PathBuf;
 
     use kaizen_core::{HookRunner, KaizenError};
@@ -110,24 +109,24 @@ mod tests {
     }
 
     struct RecordingHookRunner {
-        calls: RefCell<Vec<Vec<String>>>,
+        calls: std::sync::Mutex<Vec<Vec<String>>>,
     }
 
     impl RecordingHookRunner {
         fn new() -> Self {
             Self {
-                calls: RefCell::new(vec![]),
+                calls: std::sync::Mutex::new(vec![]),
             }
         }
 
         fn was_called(&self) -> bool {
-            !self.calls.borrow().is_empty()
+            !self.calls.lock().unwrap().is_empty()
         }
     }
 
     impl HookRunner for RecordingHookRunner {
         fn run(&self, commands: &[String]) -> Result<(), KaizenError> {
-            self.calls.borrow_mut().push(commands.to_vec());
+            self.calls.lock().unwrap().push(commands.to_vec());
             Ok(())
         }
     }
@@ -148,28 +147,28 @@ mod tests {
     }
 
     struct RecordingInstaller {
-        calls: RefCell<Vec<Vec<String>>>,
+        calls: std::sync::Mutex<Vec<Vec<String>>>,
     }
 
     impl RecordingInstaller {
         fn new() -> Self {
             Self {
-                calls: RefCell::new(vec![]),
+                calls: std::sync::Mutex::new(vec![]),
             }
         }
 
         fn was_called(&self) -> bool {
-            !self.calls.borrow().is_empty()
+            !self.calls.lock().unwrap().is_empty()
         }
 
         fn last_call(&self) -> Option<Vec<String>> {
-            self.calls.borrow().last().cloned()
+            self.calls.lock().unwrap().last().cloned()
         }
     }
 
     impl Installer for RecordingInstaller {
         fn install(&self, programs: &[String]) -> Result<(), KaizenError> {
-            self.calls.borrow_mut().push(programs.to_vec());
+            self.calls.lock().unwrap().push(programs.to_vec());
             Ok(())
         }
 

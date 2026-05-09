@@ -1,9 +1,11 @@
 use anyhow::Result;
 use clap::{Parser, Subcommand};
 
+mod backend;
 mod commands;
 mod ensure;
 mod hooks;
+mod installer;
 mod output;
 mod reporter;
 mod selector;

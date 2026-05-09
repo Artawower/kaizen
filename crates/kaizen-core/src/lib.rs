@@ -16,7 +16,6 @@ pub mod process;
 pub mod progress;
 pub mod sync_backend;
 
-pub use backends::detect::detect_backend;
 pub use backends::{NixSyncBackend, UptSyncBackend};
 pub use chezmoi::{ModifiedFile, RemoveFilesReport};
 pub use config::{
@@ -26,8 +25,8 @@ pub use config::{
 pub use error::KaizenError;
 pub use feature::FeatureFile;
 pub use feature_store::FeatureStore;
-pub use hooks::{HookRunner, ShellHookRunner};
-pub use installer::{Installer, Remover, Updater, UptInstaller};
+pub use hooks::HookRunner;
+pub use installer::{Installer, PackageInstaller, Remover, Updater};
 pub use os::{PackageManagerKind, TargetOs};
 pub use plan::{ConfigPlan, HookPlan, InstallPlan, WorkflowPlan};
 pub use progress::{NoopReporter, ProgressReporter};
