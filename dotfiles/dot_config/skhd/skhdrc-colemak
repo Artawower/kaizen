@@ -1,0 +1,197 @@
+:: default : PATH=/opt/homebrew/bin:/Users/darkawower/.nix-profile/bin:$PATH
+
+ralt + rshift - n : /opt/homebrew/bin/yabai -m window --focus "$(/opt/homebrew/bin/yabai -m query --windows --space | /Users/darkawower/.nix-profile/bin/jq -re 'map(select(."is-minimized" == false and ."can-move" == true)) | sort_by(.frame.y, .frame.x) | . as $array | index(map(select(."has-focus" == true))[0]) as $idx | $array[($idx + 1) % length].id')"
+ralt + rshift - e : /opt/homebrew/bin/yabai -m window --focus "$(/opt/homebrew/bin/yabai -m query --windows --space | /Users/darkawower/.nix-profile/bin/jq -re 'map(select(."is-minimized" == false and ."can-move" == true)) | sort_by(.frame.y, .frame.x) | . as $array | index(map(select(."has-focus" == true))[0]) as $idx | $array[($idx - 1 + length) % length].id')"
+
+ralt + rshift - i : /opt/homebrew/bin/yabai -m window --focus east || /opt/homebrew/bin/yabai -m space --focus next
+ralt + rshift - h : /opt/homebrew/bin/yabai -m window --focus west || /opt/homebrew/bin/yabai -m space --focus prev
+ralt + rshift + lshift - i : /opt/homebrew/bin/yabai -m window --warp east || (/opt/homebrew/bin/yabai -m window --space next && /opt/homebrew/bin/yabai -m space --focus next)
+ralt + rshift + lcmd - h : /opt/homebrew/bin/yabai -m window --warp west || (/opt/homebrew/bin/yabai -m window --space prev && /opt/homebrew/bin/yabai -m space --focus prev)
+
+
+ralt + rshift + lcmd - v : layout=$(/opt/homebrew/bin/yabai -m query --spaces --space | /Users/darkawower/.nix-profile/bin/jq -r '.type'); \
+          if [ "$layout" = "bsp" ]; then \
+            /opt/homebrew/bin/yabai -m space --layout stack; \
+          else \
+            /opt/homebrew/bin/yabai -m space --layout bsp; \
+          fi
+
+lalt + lshift + lctrl - i : nohup /opt/homebrew/bin/wallboy next >> /tmp/wallboy.log 2>&1
+lalt + lshift + lctrl - d: /opt/homebrew/bin/wallboy save
+lalt + lshift + lctrl - o: /opt/homebrew/bin/wallboy open
+
+
+ralt + rshift + lcmd - n : /opt/homebrew/bin/yabai -m window --swap south || $(/opt/homebrew/bin/yabai -m window --display south; /opt/homebrew/bin/yabai -m display --focus south)
+ralt + rshift + lcmd - e : /opt/homebrew/bin/yabai -m window --swap north || $(/opt/homebrew/bin/yabai -m window --display north; /opt/homebrew/bin/yabai -m display --focus north)
+
+lcmd + ralt + rshift - m : /opt/homebrew/bin/yabai -m window --space last && /opt/homebrew/bin/yabai -m space --focus last
+lcmd + ralt + rshift - p : /opt/homebrew/bin/yabai -m window --space prev && /opt/homebrew/bin/yabai -m space --focus prev
+lcmd + ralt + rshift - n : /opt/homebrew/bin/yabai -m window --space next && /opt/homebrew/bin/yabai -m space --focus next
+lcmd + ralt + rshift - 1 : /opt/homebrew/bin/yabai -m window --space 1 && /opt/homebrew/bin/yabai -m space --focus 1
+lcmd + ralt + rshift - 2 : /opt/homebrew/bin/yabai -m window --space 2 && /opt/homebrew/bin/yabai -m space --focus 2
+lcmd + ralt + rshift - 3 : /opt/homebrew/bin/yabai -m window --space 3 && /opt/homebrew/bin/yabai -m space --focus 3
+lcmd + ralt + rshift - 4 : /opt/homebrew/bin/yabai -m window --space 4 && /opt/homebrew/bin/yabai -m space --focus 4
+lcmd + ralt + rshift - 5 : /opt/homebrew/bin/yabai -m window --space 5 && /opt/homebrew/bin/yabai -m space --focus 5
+lcmd + ralt + rshift - 6 : /opt/homebrew/bin/yabai -m window --space 6 && /opt/homebrew/bin/yabai -m space --focus 6
+lcmd + ralt + rshift - 7 : /opt/homebrew/bin/yabai -m window --space 7 && /opt/homebrew/bin/yabai -m space --focus 7
+lcmd + ralt + rshift - 8 : /opt/homebrew/bin/yabai -m window --space 8 && /opt/homebrew/bin/yabai -m space --focus 8
+lcmd + ralt + rshift - 9 : /opt/homebrew/bin/yabai -m window --space 9 && /opt/homebrew/bin/yabai -m space --focus 9
+lcmd + ralt + rshift - 0 : /opt/homebrew/bin/yabai -m window --space 10 && /opt/homebrew/bin/yabai -m space --focus 10
+lcmd + ralt + rshift - 0x1B : /opt/homebrew/bin/yabai -m window --space 11 && /opt/homebrew/bin/yabai -m space --focus 11
+lcmd + ralt + rshift - 0x18 : /opt/homebrew/bin/yabai -m window --space 12 && /opt/homebrew/bin/yabai -m space --focus 12
+
+
+lcmd + ralt + rshift - d : /opt/homebrew/bin/yabai -m window --space dev && /opt/homebrew/bin/yabai -m space --focus dev
+lcmd + ralt + rshift - w : /opt/homebrew/bin/yabai -m window --space www && /opt/homebrew/bin/yabai -m space --focus www
+lcmd + ralt + rshift - s : /opt/homebrew/bin/yabai -m window --space social && /opt/homebrew/bin/yabai -m space --focus social
+lcmd + ralt + rshift - u : /opt/homebrew/bin/yabai -m window --space thrash && /opt/homebrew/bin/yabai -m space --focus thrash
+lcmd + ralt + rshift - t : /opt/homebrew/bin/yabai -m window --space term && /opt/homebrew/bin/yabai -m space --focus term
+lcmd + ralt + rshift - t : /opt/homebrew/bin/yabai -m window --space term && /opt/homebrew/bin/yabai -m space --focus term
+lcmd + ralt + rshift - r : /opt/homebrew/bin/yabai -m window --space entertainment && /opt/homebrew/bin/yabai -m space --focus entertainment
+lcmd + ralt + rshift - a : /opt/homebrew/bin/yabai -m window --space ai && /opt/homebrew/bin/yabai -m space --focus ai
+lcmd + ralt + rshift - o : /opt/homebrew/bin/yabai -m window --space other && /opt/homebrew/bin/yabai -m space --focus other
+lcmd + ralt + rshift - l : /opt/homebrew/bin/yabai -m window --space study && /opt/homebrew/bin/yabai -m space --focus study
+
+
+lctrl + ralt + rshift - h : \
+    /opt/homebrew/bin/yabai -m window --resize left:-40:0 ; \
+    /opt/homebrew/bin/yabai -m window --resize right:-40:0
+
+lctrl + ralt + rshift - n : \
+    /opt/homebrew/bin/yabai -m window --resize bottom:0:40 ; \
+    /opt/homebrew/bin/yabai -m window --resize top:0:40
+
+lctrl + ralt + rshift - e : \
+    /opt/homebrew/bin/yabai -m window --resize top:0:-40 ; \
+    /opt/homebrew/bin/yabai -m window --resize bottom:0:-40
+
+lctrl + ralt + rshift - i : \
+    /opt/homebrew/bin/yabai -m window --resize right:40:0 ; \
+    /opt/homebrew/bin/yabai -m window --resize left:40:0
+
+lcmd + ralt + rshift - c : /opt/homebrew/bin/yabai -m window --toggle float;\
+                  /opt/homebrew/bin/yabai -m window --grid 4:4:1:1:2:2
+
+lctrl + ralt + rshift - 0 : /opt/homebrew/bin/yabai -m space --balance
+
+lctrl + ralt + rshift - g : /opt/homebrew/bin/yabai -m space --toggle padding; /opt/homebrew/bin/yabai -m space --toggle gap
+
+lctrl + ralt + rshift - b: /opt/homebrew/bin/borders \
+  "active_color=gradient(top_left=0xff8b5cf6,bottom_right=0xff5b21b6)" \
+  "inactive_color=gradient(top_left=0xff2e2a3a,bottom_right=0xff1f1b2e)" \
+  "blacklist=,qemu-system-aarch64,Simulator,iPhone Mirroring" \
+  width=2.0 \
+  hidpi=on \
+  order=above \
+  style=round
+
+
+lctrl + ralt + rshift + lcmd - b : pkill borders
+
+
+ralt + rshift - r         : /opt/homebrew/bin/yabai -m space --rotate 90
+lcmd + ralt + rshift - r : /opt/homebrew/bin/yabai -m space --rotate 270
+
+lcmd + ralt + rshift - x : /opt/homebrew/bin/yabai -m space --mirror x-axis
+lcmd + ralt + rshift - y : /opt/homebrew/bin/yabai -m space --mirror y-axis
+
+lcmd + lctrl + ralt + rshift - h : /opt/homebrew/bin/yabai -m window --insert west
+lcmd + lctrl + ralt + rshift - n : /opt/homebrew/bin/yabai -m window --insert south
+lcmd + lctrl + ralt + rshift - e : /opt/homebrew/bin/yabai -m window --insert north
+lcmd + lctrl + ralt + rshift - i : /opt/homebrew/bin/yabai -m window --insert east
+
+lcmd + ralt + rshift - space : /opt/homebrew/bin/yabai -m window --toggle float
+
+lalt + ralt + rshift - r : 
+    /usr/bin/env osascript <<< \
+        "display notification \"Restarting /Opt/Homebrew/Bin/Yabai\" with title \"/Opt/Homebrew/Bin/Yabai\""; \
+    /opt/homebrew/bin/yabai --stop-service; \
+    /opt/homebrew/bin/yabai --start-service
+
+
+
+lcmd + lctrl + ralt + rshift - s : 
+    /usr/bin/env osascript <<< \
+        "display notification \"Restarting Skhd\" with title \"SKHD\""; \
+    skhd --restart-sevice
+
+lalt + ralt + rshift - i : /opt/homebrew/bin/yabai -m config window_opacity off
+lalt + ralt + rshift - o : /opt/homebrew/bin/yabai -m config window_opacity on
+
+
+
+lctrl + ralt + rshift - c : /opt/homebrew/bin/yabai -m space --create
+
+lctrl + ralt + rshift - d : /opt/homebrew/bin/yabai -m space --destroy
+
+ralt + rshift - f         : /opt/homebrew/bin/yabai -m window --toggle zoom-fullscreen
+lcmd + ralt + rshift - f : /opt/homebrew/bin/yabai -m window --toggle native-fullscreen
+
+lctrl + ralt + rshift - left : /opt/homebrew/bin/yabai -m space --focus prev || /opt/homebrew/bin/yabai -m space --focus last
+lctrl + ralt + rshift - right : /opt/homebrew/bin/yabai -m space --focus next || /opt/homebrew/bin/yabai -m space --focus first
+
+
+ralt + rshift - 1 : /opt/homebrew/bin/yabai -m space --focus 1
+ralt + rshift - 2 : /opt/homebrew/bin/yabai -m space --focus 2
+ralt + rshift - 3 : /opt/homebrew/bin/yabai -m space --focus 3
+ralt + rshift - 4 : /opt/homebrew/bin/yabai -m space --focus 4
+ralt + rshift - 5 : /opt/homebrew/bin/yabai -m space --focus 5
+ralt + rshift - 6 : /opt/homebrew/bin/yabai -m space --focus 6
+ralt + rshift - 7 : /opt/homebrew/bin/yabai -m space --focus 7
+ralt + rshift - 8 : /opt/homebrew/bin/yabai -m space --focus 8
+ralt + rshift - 9 : /opt/homebrew/bin/yabai -m space --focus 9
+ralt + rshift - 0 : /opt/homebrew/bin/yabai -m space --focus 10
+ralt + rshift - 0x1B : /opt/homebrew/bin/yabai -m space --focus 11
+ralt + rshift - 0x18 : /opt/homebrew/bin/yabai -m space --focus 12
+
+ralt + rshift - a : /opt/homebrew/bin/yabai -m space --focus ai
+ralt + rshift - s : /opt/homebrew/bin/yabai -m space --focus social
+ralt + rshift - w : /opt/homebrew/bin/yabai -m space --focus www
+ralt + rshift - d : /opt/homebrew/bin/yabai -m space --focus dev
+ralt + rshift - u : /opt/homebrew/bin/yabai -m space --focus thrash
+ralt + rshift - t : /opt/homebrew/bin/yabai -m space --focus term
+ralt + rshift - r : /opt/homebrew/bin/yabai -m space --focus entertainment
+ralt + rshift - l : /opt/homebrew/bin/yabai -m space --focus study
+ralt + rshift - o : /opt/homebrew/bin/yabai -m space --focus other
+
+
+lcmd + ralt + rshift - return : /opt/homebrew/bin/wezterm
+ralt + rshift - return : open -na Ghostty.app
+
+cmd + ralt + rshift - return : open -a kitty.app
+
+cmd + ralt + rshift - f : /opt/homebrew/bin/yabai -m space --focus 3;\
+                open -a firefox.app;\
+                /opt/homebrew/bin/yabai -m window --space 3 && /opt/homebrew/bin/yabai -m space --focus 3
+
+cmd + ralt + rshift - w : /opt/homebrew/bin/yabai -m space --focus 3;\
+                open -na firefox.app;\
+                /opt/homebrew/bin/yabai -m window --space 3 && /opt/homebrew/bin/yabai -m space --focus 3
+
+
+cmd + ralt + rshift - t : /opt/homebrew/bin/yabai -m space --focus 1;\
+                open -a telegram.app
+
+
+cmd + ralt + rshift - x : /opt/homebrew/bin/yabai -m window --close
+ralt + rshift - q : /opt/homebrew/bin/yabai -m window --close
+
+cmd + lctrl - n : /opt/homebrew/bin/yabai -m window --focus stack.next
+cmd + lctrl - p : /opt/homebrew/bin/yabai -m window --focus stack.prev
+
+
+cmd + lctrl - left  : /opt/homebrew/bin/yabai -m window west --stack $(/opt/homebrew/bin/yabai -m query --windows --window | jq -r '.id')
+cmd + lctrl - down  : /opt/homebrew/bin/yabai -m window south --stack $(/opt/homebrew/bin/yabai -m query --windows --window | jq -r '.id')
+cmd + lctrl - up    : /opt/homebrew/bin/yabai -m window north --stack $(/opt/homebrew/bin/yabai -m query --windows --window | jq -r '.id')
+cmd + lctrl - e    : /opt/homebrew/bin/yabai -m window north --stack $(/opt/homebrew/bin/yabai -m query --windows --window | jq -r '.id')
+cmd + lctrl - n  : /opt/homebrew/bin/yabai -m window south --stack $(/opt/homebrew/bin/yabai -m query --windows --window | jq -r '.id')
+cmd + lctrl - right : /opt/homebrew/bin/yabai -m window east --stack $(/opt/homebrew/bin/yabai -m query --windows --window | jq -r '.id')
+
+cmd + lctrl + ralt + rshift - s: /opt/homebrew/bin/yabai --stop-service
+cmd + lctrl + ralt + rshift - r: /opt/homebrew/bin/yabai --start-service
+
+ralt + rshift - b: $HOME/.config//opt/homebrew/bin/yabai/toggle-bar.sh
+
+lctrl + ralt + rshift + lcmd - m: /Users/darkawower/.nix-profile/bin/python3 $HOME/.config/yabai/init.py
+  
+lctrl + ralt + rshift + lcmd - t : /Users/darkawower/.nix-profile/bin/python3 /Users/darkawower/.config/yabai/scratchpad.py toggle term

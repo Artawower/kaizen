@@ -1,0 +1,97 @@
+// Zed settings
+//
+// For information on how to configure Zed, see the Zed
+// documentation: https://zed.dev/docs/configuring-zed
+//
+// To see all of Zed's default settings without changing your
+// custom settings, run the `open default settings` command
+// from the command palette or from `Zed` application menu.
+{
+  "edit_predictions": {
+    "provider": "copilot",
+    "mode": "subtle",
+  },
+  "autosave": "on_focus_change",
+  "debugger": {
+    "button": true,
+  },
+  "title_bar": {
+    "show_branch_icon": false,
+    "show_branch_name": true,
+    "show_project_items": true,
+    "show_onboarding_banner": false,
+    "show_user_picture": false,
+    "show_sign_in": false,
+    "show_menus": true,
+  },
+  "use_system_window_tabs": false,
+  "project_panel": {
+    "button": true,
+  },
+  "terminal": {
+    "shell": {
+      "program": "{{ .chezmoi.homeDir }}/.nix-profile/bin/xonsh",
+    },
+  },
+  "buffer_font_family": "Myna Nerd Font",
+  "helix_mode": true,
+  "base_keymap": "Emacs",
+  "context_servers": {
+    "mcp-server-github": {
+      "enabled": true,
+      "settings": {
+        "github_personal_access_token": "",
+      },
+    },
+    "mcp-server-context7": {
+      "enabled": true,
+      "settings": {
+        "default_minimum_tokens": "10000",
+      },
+    },
+    "Sentry": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote@latest", "https://mcp.sentry.dev/mcp"],
+    },
+  },
+  "icon_theme": "Zed (Default)",
+  "relative_line_numbers": "enabled",
+  "telemetry": {
+    "diagnostics": false,
+    "metrics": false,
+  },
+  "agent": {
+    "dock": "right",
+    "default_profile": "write",
+    "play_sound_when_agent_done": "always",
+    "default_model": {
+      "provider": "zed.dev",
+      "model": "claude-sonnet-4",
+    },
+    "commit_message_model": {
+      "provider": "copilot_chat",
+      "model": "gpt-4.1",
+    },
+  },
+  "theme": {
+    "light": "Catppuccin Latte",
+    "dark": "Tokyo Night Storm",
+  },
+  "vim_mode": true,
+  // "helix_mode": true,
+  "ui_font_size": 14,
+  "buffer_font_size": 15.0,
+  "tab_bar": {
+    "show": false,
+  },
+  "tab_size": 2,
+  "hard_tabs": false,
+  "languages": {
+    "TypeScript": {
+      "language_servers": ["angular", "vtsls"],
+    },
+    "HTML": {
+      "language_servers": ["angular"],
+    },
+  },
+}

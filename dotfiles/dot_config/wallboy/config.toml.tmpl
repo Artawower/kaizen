@@ -1,0 +1,27 @@
+[state]
+path = "{{ .chezmoi.homeDir }}/.config/wallboy/state.json"
+
+[providers.wallhaven]
+auth = "${WALLHAVEN}"
+
+[providers.unsplash]
+auth = "${UNSPLASH_ACCESS_KEY}"
+
+[providers.local]
+recursive = true
+
+[providers.wallhalla]
+pass = true
+
+[theme]
+mode = "auto"
+
+[light]
+dirs = ["{{ .chezmoi.homeDir }}/Pictures/wallpappers/light"]
+upload-dir = "{{ .chezmoi.homeDir }}/Pictures/wallpappers/light"
+queries = ["light minimalist illustration", "light minimal line art", "light digital art", "white art"]
+
+[dark]
+dirs = ["{{ .chezmoi.homeDir }}/Pictures/wallpappers/dark"]
+upload-dir = "{{ .chezmoi.homeDir }}/Pictures/wallpappers/dark"
+queries = ["night city digital art", "neon cyberpunk", "minimal line art", "flat digital art", "universe", "flat cosmos art", "flat digital universe art", "anime", "arcane", "flat mountain art", "anime girl", "tokyo ghoul", "abstract", "linux", "mr robot", "minimal digital line art", "line art", "minimalistic", "2d", "tokio", "japan", "warcraft", "lovecraft"]

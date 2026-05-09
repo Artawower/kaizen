@@ -1,0 +1,5 @@
+{{- if eq .layout "colemak" -}}
+{{ include "dot_config/skhd/skhdrc-colemak" }}
+{{- else -}}
+{{ include "dot_config/skhd/skhdrc-qwerty" }}
+{{- end -}}

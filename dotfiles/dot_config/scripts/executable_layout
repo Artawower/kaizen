@@ -1,0 +1,38 @@
+#!/usr/bin/env python3
+import re
+import subprocess
+import sys
+import os
+
+LAYOUTS   = ["colemak", "qwerty"]
+DATA_FILE = os.path.expanduser("~/.local/share/chezmoi/.chezmoidata.toml")
+
+def pick_layout():
+    if len(sys.argv) > 1:
+        layout = sys.argv[1]
+        if layout not in LAYOUTS:
+            print(f"Unknown layout: {layout}. Choose from: {', '.join(LAYOUTS)}", file=sys.stderr)
+            sys.exit(1)
+        return layout
+
+    result = subprocess.run(
+        ["fzf", "--prompt=layout> ", "--height=2", "--no-multi"],
+        input="\n".join(LAYOUTS),
+        capture_output=True, text=True
+    )
+    if result.returncode != 0:
+        sys.exit(0)
+    return result.stdout.strip()
+
+layout = pick_layout()
+
+with open(DATA_FILE) as f:
+    content = f.read()
+
+content = re.sub(r'^layout = .*', f'layout = "{layout}"', content, flags=re.MULTILINE)
+
+with open(DATA_FILE, "w") as f:
+    f.write(content)
+
+print(f"Layout set to {layout}")
+subprocess.run(["chezmoi", "apply"], check=True)

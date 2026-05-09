@@ -1,0 +1,94 @@
+#!/usr/bin/env python3
+
+from __future__ import annotations
+
+import argparse
+import datetime as dt
+import platform
+import re
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+
+DARK_THEME = "my"
+LIGHT_THEME = "my_light"
+THEME_PATTERN = re.compile(r'(?m)^theme\s*=\s*"[^"]*"\s*$')
+
+
+def main() -> int:
+    args = parse_args()
+    system_theme = detect_system_theme()
+    helix_theme = DARK_THEME if system_theme == "dark" else LIGHT_THEME
+    update_theme(args.config, helix_theme)
+    print(f"Switched Helix theme to: {helix_theme} (system: {system_theme})")
+    return 0
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Switch Helix theme to match system appearance")
+    parser.add_argument(
+        "--config",
+        type=Path,
+        default=Path.home() / ".config" / "helix" / "config.toml",
+        help="Helix config path",
+    )
+    return parser.parse_args()
+
+
+def detect_system_theme() -> str:
+    if platform.system() == "Darwin":
+        return detect_macos_theme()
+
+    if command_exists("gsettings"):
+        return detect_gsettings_theme()
+
+    return detect_time_theme()
+
+
+def detect_macos_theme() -> str:
+    result = subprocess.run(
+        ["osascript", "-e", 'tell application "System Events" to tell appearance preferences to get dark mode'],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    return "dark" if result.stdout.strip() == "true" else "light"
+
+
+def detect_gsettings_theme() -> str:
+    result = subprocess.run(
+        ["gsettings", "get", "org.gnome.desktop.interface", "gtk-theme"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    return "dark" if "dark" in result.stdout.lower() else "light"
+
+
+def detect_time_theme() -> str:
+    hour = dt.datetime.now().hour
+    return "dark" if hour >= 18 or hour <= 6 else "light"
+
+
+def command_exists(command: str) -> bool:
+    return shutil.which(command) is not None
+
+
+def update_theme(config_path: Path, theme: str) -> None:
+    if not config_path.exists():
+        raise SystemExit(f"Helix config file not found at: {config_path}")
+
+    content = config_path.read_text()
+    replacement = f'theme = "{theme}"'
+    if THEME_PATTERN.search(content):
+        updated = THEME_PATTERN.sub(replacement, content, count=1)
+    else:
+        updated = f"{replacement}\n{content}"
+
+    if updated != content:
+        config_path.write_text(updated)
+
+
+if __name__ == "__main__":
+    sys.exit(main())

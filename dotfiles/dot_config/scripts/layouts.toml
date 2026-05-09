@@ -1,0 +1,122 @@
+[[layouts]]
+id = "TEAM"
+name = "☠️ Full Multiagent coging development with orchestration"
+description = "[LEAD + CODER + REVIEWER + RESEARCHER | VCS | RUN | TERM]"
+
+[[layouts.tabs]]
+name = "{dir}@ai"
+pane = "left"
+
+[layouts.tabs.pi]
+role = "team-lead"
+
+[[layouts.tabs]]
+name = "{dir}@vcs"
+pane = "left"
+command = "jjui"
+
+[[layouts.tabs]]
+name = "{dir}@run"
+pane = "left"
+
+[[layouts.tabs]]
+name = "{dir}@term"
+pane = "left"
+command = "hx"
+
+[[layouts.tabs]]
+name = "{dir}@researcher"
+pane = "right-top"
+split_from = "left"
+split = "right"
+
+[layouts.tabs.pi]
+role = "researcher"
+
+[[layouts.tabs]]
+name = "{dir}@reviewer"
+pane = "right-bottom"
+split_from = "right-top"
+split = "down"
+
+[layouts.tabs.pi]
+role = "reviewer"
+
+[[layouts.tabs]]
+name = "{dir}@coder"
+pane = "right-bottom"
+split_from = "right-top"
+split = "down"
+
+[layouts.tabs.pi]
+role = "coder"
+
+[[layouts]]
+id = "SOLO"
+name = "🐥 Solo AI"
+description = "[LEAD | VCS |RUN | TERM]"
+
+[[layouts.tabs]]
+name = "{dir}@ai"
+
+[layouts.tabs.pi]
+role = "team-lead"
+
+[[layouts.tabs]]
+name = "{dir}@vcs"
+command = "jjui"
+
+[[layouts.tabs]]
+name = "{dir}@run"
+
+[[layouts.tabs]]
+name = "{dir}@term"
+command = "hx"
+
+
+[[layouts]]
+id = "DUO"
+name = "🤖 AI DUO"
+description = "[CODER + REVIEWER | VCS | TERM]"
+
+[[layouts.tabs]]
+name = "{dir}@coder"
+pane = "left"
+
+[layouts.tabs.pi]
+role = "coder"
+
+[[layouts.tabs]]
+name = "{dir}@reviewer"
+pane = "left"
+
+[layouts.tabs.pi]
+role = "reviewer"
+
+[[layouts.tabs]]
+name = "{dir}@vcs"
+pane = "left"
+command = "jjui"
+
+[[layouts.tabs]]
+name = "{dir}@term"
+pane = "left"
+
+
+[[layouts]]
+id = "COMPACT"
+name = "🦐 COMPACT AI"
+description = "[AI + VCS]"
+
+[[layouts.tabs]]
+name = "{dir}@ai"
+pane = "left"
+
+[layouts.tabs.pi]
+role = "ai"
+
+[[layouts.tabs]]
+name = "{dir}@vcs"
+pane = "left"
+command = "jjui"
+

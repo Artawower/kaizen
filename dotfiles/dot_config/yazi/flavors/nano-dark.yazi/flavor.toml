@@ -1,0 +1,61 @@
+[app]
+overall = { bg = "#202124" }
+
+[mgr]
+cwd = { fg = "#d0d0d0", bold = true }
+
+find_keyword = { fg = "#eeeeee", bg = "#3a3d42", bold = true, underline = true }
+find_position = { fg = "#9aa0a6", bg = "reset", bold = true }
+
+symlink_target = { fg = "#d0d0d0", italic = true }
+
+border_symbol = "│"
+border_style = { fg = "#3a3d42" }
+
+[indicator]
+parent = { fg = "#eeeeee", bg = "#4b5560" }
+current = { fg = "#eeeeee", bg = "#4b5560" }
+preview = { fg = "#eeeeee", bg = "#4b5560" }
+padding = { open = "█", close = "█" }
+
+[tabs]
+active = { fg = "#eeeeee", bg = "#303238", bold = true }
+inactive = { fg = "#9aa0a6", bg = "#202124" }
+
+[mode]
+normal_main = { fg = "#202124", bg = "#d0d0d0", bold = true }
+normal_alt = { fg = "#d0d0d0", bg = "#303238" }
+
+select_main = { fg = "#202124", bg = "#9aa0a6", bold = true }
+select_alt = { fg = "#9aa0a6", bg = "#303238" }
+
+unset_main = { fg = "#202124", bg = "#c06c6c", bold = true }
+unset_alt = { fg = "#c06c6c", bg = "#303238" }
+
+[status]
+overall = { fg = "#d0d0d0", bg = "#202124" }
+
+perm_sep = { fg = "#3a3d42" }
+perm_type = { fg = "#d0d0d0" }
+perm_read = { fg = "#d0d0d0" }
+perm_write = { fg = "#d0d0d0" }
+perm_exec = { fg = "#d0d0d0" }
+
+progress_label = { fg = "#d0d0d0", bold = true }
+progress_normal = { fg = "#202124", bg = "#d0d0d0" }
+progress_error = { fg = "#202124", bg = "#c06c6c" }
+
+[filetype]
+rules = [
+  { url = "*/", fg = "#d0d0d0" },
+  { url = "*",  fg = "#d0d0d0" },
+]
+
+[icon]
+prepend_globs = [
+  { url = "*/", text = "󰉋", fg = "#d0d0d0" },
+]
+
+prepend_conds = [
+  { if = "!(dir | link)", text = "󰈔", fg = "#d0d0d0" },
+]

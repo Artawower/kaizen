@@ -1,0 +1,285 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "plugin": [
+    "opencode-openai-codex-auth@1.0.2",
+    "oh-my-openagent",
+    "opencode-antigravity-auth@1.6.0",
+    "opencode-kilo-auth@latest",
+    "opentmux",
+    "@slkiser/opencode-quota",
+    "opencode-wakatime",
+    "@pantheon-ai/opencode-warcraft-notifications",
+    "context-mode"
+  ],
+  "agent": {
+    "translator": {
+      "description": "Manually edits i18n dictionary files. Always updates keys and values by hand according to provided i18n errors and user-specified words. Automatic generation is strictly forbidden, as is removing existing words. Must use jq utility for nested dictionaries.",
+      "mode": "subagent",
+      "prompt": "{file:./prompts/translator.txt}",
+      "tools": {
+        "write": true,
+        "edit": true
+      }
+    }
+  },
+  "provider": {
+    "zai-coding-plan": {
+      "options": {
+        "timeout": 600000
+      }
+    },
+    "openai": {
+      "name": "OpenAI",
+      "options": {
+        "reasoningEffort": "medium",
+        "reasoningSummary": "auto",
+        "textVerbosity": "medium",
+        "include": ["reasoning.encrypted_content"],
+        "store": false
+      },
+      "models": {
+        "gpt-5.2": {
+          "name": "GPT 5.2 (OAuth)",
+          "limit": {
+            "context": 272000,
+            "output": 128000
+          },
+          "modalities": {
+            "input": ["text", "image"],
+            "output": ["text"]
+          },
+          "variants": {
+            "none": {
+              "reasoningEffort": "none",
+              "reasoningSummary": "auto",
+              "textVerbosity": "medium"
+            },
+            "low": {
+              "reasoningEffort": "low",
+              "reasoningSummary": "auto",
+              "textVerbosity": "medium"
+            },
+            "medium": {
+              "reasoningEffort": "medium",
+              "reasoningSummary": "auto",
+              "textVerbosity": "medium"
+            },
+            "high": {
+              "reasoningEffort": "high",
+              "reasoningSummary": "detailed",
+              "textVerbosity": "medium"
+            },
+            "xhigh": {
+              "reasoningEffort": "xhigh",
+              "reasoningSummary": "detailed",
+              "textVerbosity": "medium"
+            }
+          }
+        },
+        "gpt-5.2-codex": {
+          "name": "GPT 5.2 Codex (OAuth)",
+          "limit": {
+            "context": 272000,
+            "output": 128000
+          },
+          "modalities": {
+            "input": ["text", "image"],
+            "output": ["text"]
+          },
+          "variants": {
+            "low": {
+              "reasoningEffort": "low",
+              "reasoningSummary": "auto",
+              "textVerbosity": "medium"
+            },
+            "medium": {
+              "reasoningEffort": "medium",
+              "reasoningSummary": "auto",
+              "textVerbosity": "medium"
+            },
+            "high": {
+              "reasoningEffort": "high",
+              "reasoningSummary": "detailed",
+              "textVerbosity": "medium"
+            },
+            "xhigh": {
+              "reasoningEffort": "xhigh",
+              "reasoningSummary": "detailed",
+              "textVerbosity": "medium"
+            }
+          }
+        },
+        "gpt-5.1-codex-max": {
+          "name": "GPT 5.1 Codex Max (OAuth)",
+          "limit": {
+            "context": 272000,
+            "output": 128000
+          },
+          "modalities": {
+            "input": ["text", "image"],
+            "output": ["text"]
+          },
+          "variants": {
+            "low": {
+              "reasoningEffort": "low",
+              "reasoningSummary": "detailed",
+              "textVerbosity": "medium"
+            },
+            "medium": {
+              "reasoningEffort": "medium",
+              "reasoningSummary": "detailed",
+              "textVerbosity": "medium"
+            },
+            "high": {
+              "reasoningEffort": "high",
+              "reasoningSummary": "detailed",
+              "textVerbosity": "medium"
+            },
+            "xhigh": {
+              "reasoningEffort": "xhigh",
+              "reasoningSummary": "detailed",
+              "textVerbosity": "medium"
+            }
+          }
+        }
+      }
+    },
+    "google": {
+      "name": "Google",
+      "models": {
+        "antigravity-gemini-3-pro-high": {
+          "name": "Gemini 3 Pro High (Antigravity)",
+          "thinking": true,
+          "attachment": true,
+          "limit": {
+            "context": 1048576,
+            "output": 65535
+          },
+          "modalities": {
+            "input": ["text", "image", "pdf"],
+            "output": ["text"]
+          }
+        },
+        "antigravity-gemini-3-pro-low": {
+          "name": "Gemini 3 Pro Low (Antigravity)",
+          "thinking": true,
+          "attachment": true,
+          "limit": {
+            "context": 1048576,
+            "output": 65535
+          },
+          "modalities": {
+            "input": ["text", "image", "pdf"],
+            "output": ["text"]
+          }
+        },
+        "antigravity-gemini-3-flash": {
+          "name": "Gemini 3 Flash (Antigravity)",
+          "attachment": true,
+          "limit": {
+            "context": 1048576,
+            "output": 65536
+          },
+          "modalities": {
+            "input": ["text", "image", "pdf"],
+            "output": ["text"]
+          }
+        }
+      }
+    }
+  },
+  "mcp": {
+    "sequential-thinking": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking"
+      ]
+    },
+    "context7": {
+      "type": "local",
+      "command": ["npx", "-y", "@upstash/context7-mcp@latest"]
+    },
+    "codex-cli": {
+      "type": "local",
+      "enabled": false,
+      "command": ["mcp-codex-cli", "--allow-npx"]
+    },
+    "gemini": {
+      "type": "local",
+      "enabled": false,
+      "command": ["npx", "-y", "gemini-mcp-tool"]
+    },
+    "deepcontext": {
+      "type": "local",
+      "command": ["npx", "-y", "@wildcard-ai/deepcontext@latest"]
+    },
+    "sentry": {
+      "type": "local",
+      "enabled": false,
+      "command": [
+        "npx",
+        "-y",
+        "mcp-remote@latest",
+        "https://mcp.sentry.dev/mcp"
+      ]
+    },
+    "serena": {
+      "type": "local",
+      "command": [
+        "uvx",
+        "--from",
+        "git+https://github.com/oraios/serena",
+        "serena",
+        "start-mcp-server",
+        "--enable-web-dashboard",
+        "False"
+      ]
+    },
+    "playwright": {
+      "type": "local",
+      "command": ["npx", "@playwright/mcp@latest"]
+    },
+    "youtrack": {
+      "type": "local",
+      "command": [
+        "npx",
+        "mcp-remote",
+        "https://verifika.youtrack.cloud/mcp",
+        "--header",
+        "{env:YOUTRACK_AUTH_HEADER}"
+      ]
+    },
+    "qwen": {
+      "type": "local",
+      "enabled": false,
+      "command": ["npx", "-y", "jeffery9/qwen-mcp-tool"]
+    },
+    "deepseek": {
+      "type": "local",
+      "enabled": false,
+      "command": ["npx", "-y", "deepseek-mcp-server"]
+    },
+    "toon-context": {
+      "type": "local",
+      "enabled": false,
+      "command": [
+        "bun",
+        "{{ .chezmoi.homeDir }}/apps/TOON-context-mcp-server/toon-context-mcp/build/index.js"
+      ]
+    },
+    "context-mode": {
+      "type": "local",
+      "command": ["context-mode"]
+    },
+    "mem0": {
+      "type": "local",
+      "command": ["uvx", "mem0-mcp-server"]
+    },
+    "qmd": {
+      "type": "local",
+      "command": ["qmd", "mcp"]
+    }
+  }
+}

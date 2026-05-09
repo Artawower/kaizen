@@ -1,0 +1,44 @@
+(readme-iconed-modern
+ ":PROPERTIES:" n
+ ":ID: " (p "repo id" repo-id) n
+ ":END:" n n
+
+ "#+TITLE: ✨ " (p "title") n n
+
+ "#+HTML: <div align=\"center\">" n
+ "#+HTML: <img src=\"./images/" (p "logo name") "\" width=\"" (p "image width") "\" height=\"" (p "image height") "\" alt=\"" (p "title") "\">" n
+ "#+HTML: </div>" n n
+
+ "#+HTML: <p align=\"center\">" n
+ "#+HTML: <a href=\"https://github.com/artawower/" (p "repo id" repo-id) "\"><img src=\"https://img.shields.io/badge/GitHub-" (p "repo id" repo-id) "-181717?style=for-the-badge&logo=github&logoColor=white\" alt=\"GitHub\"></a>" n
+ "#+HTML: <a href=\"https://wakatime.com/badge/github/Artawower/" (p "repo id" repo-id) "\"><img src=\"https://img.shields.io/endpoint?style=for-the-badge&url=https://wakatime.com/badge/github/Artawower/" (p "repo id" repo-id) ".json\" alt=\"Wakatime\"></a>" n
+ "#+HTML: <a href=\"https://github.com/artawower/" (p "repo id" repo-id) "/actions/workflows/melpazoid.yml\"><img src=\"https://img.shields.io/github/actions/workflow/status/artawower/" (p "repo id" repo-id) "/melpazoid.yml?style=for-the-badge&logo=githubactions&logoColor=white&label=CI\" alt=\"CI\"></a>" n
+ "#+HTML: <a href=\"https://www.gnu.org/software/emacs/\"><img src=\"https://img.shields.io/badge/Emacs-7F5AB6?style=for-the-badge&logo=gnuemacs&logoColor=white\" alt=\"Emacs\"></a>" n
+ "#+HTML: </p>" n n
+
+ "#+HTML: <p align=\"center\">" n
+ "#+HTML: <a href=\"https://www.paypal.me/darkawower\"><img src=\"https://img.shields.io/badge/PayPal-Donate-00457C?style=for-the-badge&logo=paypal&logoColor=white\" alt=\"PayPal\"></a>" n
+ "#+HTML: <a href=\"https://patreon.com/artawower\"><img src=\"https://img.shields.io/badge/Patreon-Support-F96854?style=for-the-badge&logo=patreon&logoColor=white\" alt=\"Patreon\"></a>" n
+ "#+HTML: </p>" n n
+
+ "#+HTML: <p align=\"center\">" n
+ (p "modern badges"
+    "#+HTML: <a href=\"https://www.gnu.org/software/emacs/\"><img src=\"https://img.shields.io/badge/Emacs-7F5AB6?style=for-the-badge&logo=gnuemacs&logoColor=white\" alt=\"Emacs\"></a>") n
+ "#+HTML: </p>" n n
+
+ "* Introduction" n n
+ (p "description") n n
+
+ "* Connected links" n n
+ (p "connected links") n n
+
+ "* Install" n n
+ (p "how to install") n n
+
+ "* Usage" n n
+ (p "how to use") n n
+
+ "* 🍩 Contribute guide" n n
+ "Any contribution is very much appreciated! Please read the [[./CONTRIBUTE.org][style guide]] before contributing to avoid misunderstandings!" n
+ "I would also appreciate it if you would consider becoming my [[https://www.patreon.com/artawower][patron]]." n n
+ (p "contribute") n)

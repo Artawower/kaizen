@@ -1,0 +1,49 @@
+#!/usr/bin/env python3
+"""Build and install manual dependencies: hyprvoice, trackpad-is-too-damn-big."""
+
+from __future__ import annotations
+
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+
+
+def run(*cmd: str, **kwargs) -> None:
+    subprocess.run(list(cmd), check=True, **kwargs)
+
+
+def build_hyprvoice() -> None:
+    src = Path("/tmp/hyprvoice")
+    shutil.rmtree(src, ignore_errors=True)
+    run("git", "clone", "https://github.com/leonardotrapani/hyprvoice.git", str(src))
+    run("go", "mod", "download", cwd=src)
+    run("go", "build", "-o", "hyprvoice", "./cmd/hyprvoice", cwd=src)
+    dest = Path.home() / ".local/bin"
+    dest.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(src / "hyprvoice", dest / "hyprvoice")
+    print("hyprvoice installed")
+
+
+def build_titdb() -> None:
+    src = Path("/tmp/trackpad-is-too-damn-big")
+    shutil.rmtree(src, ignore_errors=True)
+    run("git", "clone", "--recurse-submodules",
+        "https://github.com/tascvh/trackpad-is-too-damn-big", str(src))
+    build = src / "build"
+    run("cmake", "-B", str(build), "-S", str(src))
+    run("make", "-C", str(build))
+    run("sudo", "systemctl", "stop", "titdb.service")
+    run("sudo", "install", "-m", "0755", str(build / "titdb"), "/usr/local/bin/titdb")
+    run("sudo", "systemctl", "restart", "titdb.service")
+    print("titdb installed")
+
+
+def main() -> int:
+    build_hyprvoice()
+    build_titdb()
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

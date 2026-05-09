@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "code-comments": {
+      "source": "caidanw/skills",
+      "sourceType": "github",
+      "skillPath": "code-comments/SKILL.md",
+      "computedHash": "48f2845743581fe5ef0732d7fac67cf7dce1d4d5785949e7230b968839fb76c0"
+    }
+  }
+}

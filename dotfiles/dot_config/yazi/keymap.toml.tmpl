@@ -1,0 +1,23 @@
+{{- if eq .layout "colemak" -}}
+# Colemak HNEI: override j/k/l to n/e/i
+[[mgr.prepend_keymap]]
+on   = "n"
+run  = "arrow next"
+desc = "Next file"
+[[mgr.prepend_keymap]]
+on   = "e"
+run  = "arrow prev"
+desc = "Previous file"
+[[mgr.prepend_keymap]]
+on   = "i"
+run  = "enter"
+desc = "Enter the child directory"
+[[mgr.prepend_keymap]]
+on   = "j"
+run  = "arrow next 5"
+desc = "Next 5 files"
+[[mgr.prepend_keymap]]
+on   = "k"
+run  = "arrow prev 5"
+desc = "Previous 5 files"
+{{- end -}}

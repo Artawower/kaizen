@@ -1,0 +1,68 @@
+[tools]
+node = "lts"
+pnpm = "10.33.2"
+
+"npm:@tobilu/qmd" = "2.1.0"
+"npm:bun" = "latest"
+
+{{ if .features.vcs -}}
+"cargo:gitu"   = "latest"
+"npm:git-trim" = "0.2.1"
+{{ end -}}
+
+
+{{ if or .features.terminal .features.emacs -}}
+"npm:typescript-language-server"      = "latest"
+"npm:vscode-langservers-extracted"    = "4.10.0"
+"npm:yaml-language-server"            = "latest"
+"npm:@github/copilot-language-server" = "1.483.0"
+"npm:copilot-node-server"             = "1.41.0"
+"cargo:kdlfmt"      = "latest"
+"cargo:codebook-lsp" = "latest"
+"npm:lua-fmt"        = "2.6.0"
+{{ end -}}
+
+{{ if .features.emacs -}}
+"npm:orgnote-cli" = "0.12.4"
+"npm:@mermaid-js/mermaid-cli"   = "11.14.0"
+"pipx:rassumfrassum"            = "latest"
+{{ end -}}
+
+{{ if .features.frontend -}}
+"npm:typescript"                = "6.0.3"
+"npm:prettier"                  = "3.8.3"
+"npm:@angular/cli"              = "21.2.10"
+"npm:@angular/language-server"  = "21.2.12"
+"npm:@angular/language-service" = "21"
+"npm:@vue/language-server"      = "3.2.8"
+"npm:eslint"                    = "10.3.0"
+"npm:stylelint"                 = "17.11.0"
+"npm:pretty-ts-errors-markdown" = "0.0.15"
+"npm:ngx-unused-css"            = "4.0.0-1"
+"npm:playwright"                = "1.59.1"
+"npm:npm-check-updates"         = "22.1.1"
+"npm:npm-upgrade"               = "3.1.2"
+"npm:env-cmd"                   = "11.0.0"
+"npm:yalc"                      = "1.0.0-pre.53"
+{{ end -}}
+
+{{ if .features.go -}}
+"go:golang.org/x/tools/gopls" = "latest"
+{{ end -}}
+
+{{ if .features.python -}}
+"pipx:basedpyright" = "latest"
+"pipx:ty"           = "latest"
+"pipx:httpie"       = "latest"
+{{ end -}}
+
+{{ if .features.ai -}}
+"npm:@earendil-works/pi-coding-agent" = "0.74.0"
+"npm:opencode-ai"                   = "1.14.41"
+"npm:skills"                        = "1.5.5"
+"npm:context-mode"                  = "1.0.111"
+"npm:pi-link"                       = "0.1.14"
+"npm:@mem0/cli"                     = "0.2.4"
+"npm:mem0ai"                        = "3.0.3"
+"go:github.com/umputun/ralphex/cmd/ralphex" = "latest"
+{{ end -}}

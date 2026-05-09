@@ -1,0 +1,187 @@
+/*
+!fonts
+!yabai
+!skhd
+!alacritty.yamlREADME.md
+
+
+# Git
+.gitignore
+!.gitignore
+!jj
+jj/repos
+jj/repos/*
+
+!README.org
+!sketchybar
+!.wezterm.lua
+!.raycast
+!karabiner
+!aerospace
+!wezterm
+!helix
+!gitu
+!jjui
+!raycast
+!zellij
+!launchagents
+opencode/plugin/*
+!opencode/plugin/
+!opencode/plugin/ntfy.js
+opencode/plugins/ntfy-debug.log
+opencode/plugins/ntfy-state.json
+!fish
+!eca
+!codex
+!nix
+!nix-linux
+!nix-linux/**
+!images
+
+# Shared AI registry
+!agents
+!agents/**
+!Justfile
+
+# Generated AI links
+.pi/agents/AGENTS.md
+eca/skills
+opencode/skills
+opencode/AGENTS.md
+opencode/context-mode
+
+.DS_Store
+
+# Ignore backup files created by scripts/editors
+# Note: .gitignore doesn't support brace expansion like {number}?
+# These patterns cover .bak, .backup, and numbered variants (.bak1, .bak2, ...)
+**/*.bak
+**/*.backup
+**/*.bak[0-9]*
+**/__pycache__/
+**/*.pyc
+
+# Scripts
+!scripts
+
+# Raycast - only keep .rayconfig, extensions auto-install from Store
+raycast/extensions/
+
+# Fish secrets and generated files
+fish/secrets.fish
+fish/conf.d/secrets.fish
+fish/fish_variables
+fish/conf.d/plugin-*.fish
+fish/functions/_pisces_*.fish
+fish/functions/_nvm_*.fish
+fish/functions/_pure_*.fish
+fish/functions/loadenv.fish
+fish/functions/fish_greeting.fish
+fish/functions/fish_prompt.fish
+fish/functions/fish_mode_prompt.fish
+fish/functions/fish_title.fish
+fish/functions/zi.fish
+fish/functions/bash.fish
+fish/functions/hx.fish
+!walsh
+!cava
+!wallboy/config.toml
+!rassumfrassum
+rassumfrassum/__pycache__
+
+
+# Temporary/state files
+**/.!*
+
+# Karabiner backups
+karabiner/automatic_backups/
+
+# Wezterm state
+wezterm/.last-appearance
+wezterm/.theme-idx
+
+# Emacs tree-sitter - binaries can be regenerated
+
+# Fonts - standard fonts installed via Homebrew/Nix (see fonts/README.md)
+fonts/JetBrainsMono*.ttf
+fonts/JetBrains*.ttf
+fonts/FiraCode*.ttf
+fonts/Cascadia*.ttf
+fonts/Monaspace*.ttf
+
+
+!xonsh
+xonsh/.secrets.xsh
+xonsh/project-markers.json
+!starship.toml
+!ghostty
+!docker-services
+prowlarr-config
+
+!aictl
+
+# Emacs
+!emacs/
+emacs/**
+!emacs/*.org
+!emacs/elpaca.lock
+!emacs/init.el
+!emacs/templates
+!emacs/templates/**
+
+
+# Linux
+!xremap
+!niri
+!hypr
+!vicinae
+!systemd
+
+!noctalia
+noctalia/*
+!noctalia/settings.json
+!noctalia/plugins.json
+!noctalia/user-templates.toml
+!noctalia/colors.json
+!AGENTS.md
+
+
+# AI
+!opencode
+!.pi/
+.pi/*
+!.pi/agent/
+!.pi/extensions/
+!.pi/extensions/**
+!.pi/docs/
+!.pi/docs/**
+.pi/extensions/pi-ntfy-debug.log
+.pi/extensions/pi-ntfy-state.json
+!.pi/agents/
+!.pi/agents/**
+!.pi/themes/
+!.pi/themes/**
+.pi/agent/*
+!.pi/agent/agents/
+!.pi/agent/prompts/
+!.pi/agent/prompts/*.md
+!.pi/agent/settings.json
+!.pi/agent/*.md
+!.pi/agent/mcp.json
+.pi/skills
+.pi/agent/skills
+
+eca/ntfy-hook.log
+eca/ntfy-topic
+
+# Binaries — install via PM or build from source
+**/*.dylib
+**/*.so
+**/*.wasm
+**/*.js.map
+
+# Kitty themes — clone separately if needed
+kitty/kitty-themes/
+
+# Emacs tree-sitter compiled binaries
+emacs-tree-sitter/

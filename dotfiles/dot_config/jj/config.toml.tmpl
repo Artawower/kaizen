@@ -1,0 +1,51 @@
+#:schema https://docs.jj-vcs.dev/latest/config-schema.json
+
+[user]
+name = "{{ .full_name }}"
+email = "{{ .email }}"
+
+[signing]
+behavior = "own"
+backend = "gpg"
+{{- if eq .chezmoi.os "linux" }}
+key = "{{ .gpg_key_linux }}"
+{{- else }}
+key = "{{ .gpg_key_darwin }}"
+{{- end }}
+
+[ui]
+editor = "hx"
+
+[revsets]
+push-default = "@"
+log = "present(@) | ancestors(latest(visible_heads(), 10), 10) | latest(::, 20) | trunk()"
+
+[revset-aliases]
+"immutable_heads()" = "none()"
+
+
+[git]
+push = "origin"
+fetch = "origin"
+
+push-new-bookmark = true
+
+[aliases]
+l = ["log"]
+ll = ["log", "-n", "20"]
+d = ["diff"]
+sh = ["show"]
+
+fetch = ["git", "fetch"]
+push = ["git", "push"]
+
+pushc = ["git", "push", "--change"]
+
+pushc-prev = ["git", "push", "--change", "@-"]
+
+tug = ["bookmark", "move", "--from", "heads(::@- & bookmarks())", "--to", "@-"]
+
+cur = ["bookmark", "move", "--from", "heads(::@ & bookmarks())", "--to", "@"]
+
+unpushed = ["log", "-r", "@origin..@"]
+

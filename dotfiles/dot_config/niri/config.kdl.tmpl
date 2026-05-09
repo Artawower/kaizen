@@ -1,0 +1,609 @@
+// This config is in the KDL format: https://kdl.dev
+// "/-" comments out the following node.
+// Check the wiki for a full description of the configuration:
+// https://yalter.github.io/niri/Configuration:-Introduction
+// Input device configuration.
+// Find the full list of options on the wiki:
+// https://yalter.github.io/niri/Configuration:-Input
+
+{{ $down := "j" -}}
+{{ $up := "k" -}}
+{{ $right := "l" -}}
+{{ $overview := "i" -}}
+{{ if eq .layout "colemak" -}}
+{{   $down = "n" -}}
+{{   $up = "e" -}}
+{{   $right = "i" -}}
+{{   $overview = "l" -}}
+{{ end }}
+
+environment {
+    QT_PLUGIN_PATH null
+    __EGL_VENDOR_LIBRARY_FILENAMES "/usr/share/glvnd/egl_vendor.d/50_mesa.json"
+    __GLX_VENDOR_LIBRARY_NAME "mesa"
+    LIBGL_DRIVERS_PATH "/usr/lib64/dri"
+    GBM_BACKENDS_PATH "/usr/lib64/gbm"
+    VDPAU_DRIVER_PATH "/usr/lib64/vdpau"
+    VK_ICD_FILENAMES "/usr/share/vulkan/icd.d/asahi_icd.aarch64.json"
+    VK_LAYER_PATH "/usr/share/vulkan/explicit_layer.d:/usr/share/vulkan/implicit_layer.d"
+}
+
+input {
+    keyboard {
+        xkb {
+            layout "us,ru"
+{{- if eq .layout "colemak" }}
+            variant "colemak,"
+{{- end }}
+            options "grp:caps_toggle"
+        }
+        //feel free to change it to other input toggle options, i like to use caps_lock as  language toggle        }
+        track-layout "global"
+        numlock
+    }
+    touchpad {
+        // off
+        // tap
+        // dwt
+        dwtp
+    }
+    mouse {
+
+    }
+    trackpoint {
+        // off
+        natural-scroll
+ // accel-speed 0.2
+        // accel-profile "flat"
+        // scroll-method "on-button-down"
+        // scroll-button 273
+        // scroll-button-lock
+        // middle-emulation
+    }
+ // Uncomment this to make the mouse warp to the center of newly focused windows.
+    // warp-mouse-to-focus
+
+    // Focus windows and outputs automatically when moving the mouse into them.
+    // Setting max-scroll-amount="0%" makes it work only on windows already fully on screen.
+    // focus-follows-mouse max-scroll-amount="0%"
+}
+output "eDP-1" {
+    mode "3024x1964@60.004"
+    scale 2
+}
+workspace "soc"
+workspace "web"
+workspace "dev"
+workspace "deb"
+workspace "oth"
+// workspace "term"
+// Settings that influence how windows are positioned and sized.
+// Find more information on the wiki:
+// https://yalter.github.io/niri/Configuration:-Layout
+layout {
+    background-color "00000020"
+    // Set gaps around windows in logical pixels.
+    gaps 16
+    center-focused-column "never"
+    preset-column-widths {
+        proportion 0.33333
+        proportion 0.5
+        proportion 0.66667
+    }
+    default-column-width {
+        proportion 0.5
+    }
+    focus-ring {
+        off
+        width 4
+        active-color "#7fc8ff"
+        inactive-color "#505050"
+    }
+    border {
+        width 2
+        active-color "#7b57ff"
+        inactive-color "#2e2a3a"
+        urgent-color "#9b0000"
+ // active-gradient from="#e5989b" to="#ffb4a2" angle=45 relative-to="workspace-view" in="oklch longer hue"
+
+        // inactive-gradient from="#505050" to="#808080" angle=45 relative-to="workspace-view"
+    }
+    shadow {
+        // on
+        draw-behind-window true
+        softness 30
+        spread 10
+        offset x=0 y=5
+        color "#0007"
+    }
+    struts {
+        // left 64
+        // right 64
+        top 0
+ // MacBook notch compensation // bottom 64
+    }
+}
+layer-rule {
+    place-within-backdrop true
+}
+spawn-at-startup "sh" "-c" "systemctl --user unset-environment QT_PLUGIN_PATH; systemctl --user set-environment __EGL_VENDOR_LIBRARY_FILENAMES=/usr/share/glvnd/egl_vendor.d/50_mesa.json __GLX_VENDOR_LIBRARY_NAME=mesa LIBGL_DRIVERS_PATH=/usr/lib64/dri GBM_BACKENDS_PATH=/usr/lib64/gbm VDPAU_DRIVER_PATH=/usr/lib64/vdpau VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/asahi_icd.aarch64.json VK_LAYER_PATH=/usr/share/vulkan/explicit_layer.d:/usr/share/vulkan/implicit_layer.d; dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP=niri __EGL_VENDOR_LIBRARY_FILENAMES __GLX_VENDOR_LIBRARY_NAME LIBGL_DRIVERS_PATH GBM_BACKENDS_PATH VDPAU_DRIVER_PATH VK_ICD_FILENAMES VK_LAYER_PATH XDG_DATA_DIRS"
+spawn-at-startup "darkman run"
+spawn-at-startup "ydotoold"
+// spawn-at-startup "dms" "run"
+spawn-at-startup "vicinae-soft" "server"
+spawn-sh-at-startup "pkill xremap; xremap --ignore xremap --watch ~/.config/xremap/config.yml"
+spawn-at-startup "sh" "-c" "sleep 1 && /usr/bin/quickshell -c noctalia-shell"
+spawn-at-startup "sh" "-c" "sleep 1; exec hyprvoice serve"
+spawn-sh-at-startup "$HOME/.config/bin/wallpaper-rotate"
+spawn-sh-at-startup "swayidle -w timeout 300 'qs -c noctalia-shell ipc call lockScreen lock' timeout 900 'systemctl suspend' before-sleep 'qs -c noctalia-shell ipc call lockScreen lock'"
+spawn-at-startup "sway-audio-idle-inhibit"
+spawn-at-startup "wl-clip-persist" "--clipboard" "regular"
+spawn-at-startup "wl-paste --type text --watch cliphist store"
+spawn-at-startup "wl-paste --type image --watch cliphist store"
+hotkey-overlay {
+ // Uncomment this line to disable the "Important Hotkeys" pop-up at startup.
+    // skip-at-startup
+
+}
+prefer-no-csd
+screenshot-path "~/Pictures/Screenshots/Screenshot from %Y-%m-%d %H-%M-%S.png"
+// The wiki explains how to configure individual animations:
+// https://yalter.github.io/niri/Configuration:-Animations
+animations {
+ // Uncomment to turn off all animations.
+    // off
+
+    // Slow down all animations by this factor. Values below 1 speed them up instead.
+    // slowdown 3.0
+
+}
+window-rule {
+    match app-id="^org\\.wezfurlong\\.wezterm$"
+    default-column-width {
+
+    }
+}
+window-rule {
+    match app-id="^telegram-desktop$"
+    open-on-workspace "soc"
+}
+window-rule {
+    match app-id="^mattermost$"
+    open-on-workspace "soc"
+}
+window-rule {
+    match app-id="^discord$"
+    open-on-workspace "soc"
+}
+window-rule {
+    match app-id="^brave-browser"
+    open-on-workspace "oth"
+}
+window-rule {
+    match app-id="^zen-browser$"
+    open-on-workspace "web"
+}
+window-rule {
+    match app-id="^app.zen_browser.zen$"
+    open-on-workspace "web"
+}
+// Open the Firefox picture-in-picture player as floating by default.
+window-rule {
+    match app-id="firefox$" title="^Picture-in-Picture$"
+    open-floating true
+}
+window-rule {
+    match is-active=true
+    draw-border-with-background false
+    opacity 0.96
+}
+window-rule {
+    match is-active=false
+    opacity 0.94
+}
+// Rounded corners for all windows.
+window-rule {
+    geometry-corner-radius 6
+    clip-to-geometry true
+}
+binds {
+    Alt+Shift+Slash {
+        show-hotkey-overlay
+    }
+    Alt+Return hotkey-overlay-title="Open a Terminal: wezterm" {
+        spawn "flatpak" "run" "org.wezfurlong.wezterm"
+    }
+    Ctrl+Return hotkey-overlay-title="Open a Terminal: wezterm" {
+        spawn "ghostty"
+    }
+    Alt+Space hotkey-overlay-title="Run an Application: vicinae" {
+        spawn "vicinae" "open"
+    }
+    Super+Alt+L hotkey-overlay-title="Lock the Screen: noctalia" {
+        spawn "qs" "-c" "noctalia-shell" "ipc" "call" "lockScreen" "lock"
+    }
+    XF86AudioRaiseVolume allow-when-locked=true {
+        spawn-sh "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.1+ -l 1.0"
+    }
+    XF86AudioLowerVolume allow-when-locked=true {
+        spawn-sh "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.1-"
+    }
+    XF86AudioMute allow-when-locked=true {
+        spawn-sh "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
+    }
+    XF86AudioMicMute allow-when-locked=true {
+        spawn-sh "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"
+    }
+    XF86AudioPlay allow-when-locked=true {
+        spawn-sh "playerctl play-pause"
+    }
+    XF86AudioStop allow-when-locked=true {
+        spawn-sh "playerctl stop"
+    }
+    XF86AudioPrev allow-when-locked=true {
+        spawn-sh "playerctl previous"
+    }
+    XF86AudioNext allow-when-locked=true {
+        spawn-sh "playerctl next"
+    }
+    XF86MonBrightnessUp allow-when-locked=true {
+        spawn "brightnessctl" "--class=backlight" "set" "+5%"
+    }
+    XF86MonBrightnessDown allow-when-locked=true {
+        spawn "brightnessctl" "--class=backlight" "set" "5%-"
+    }
+    Alt+Shift+G {
+        maximize-window-to-edges
+    }
+    Alt+Shift+{{ $overview }} repeat=false {
+        toggle-overview
+    }
+    Alt+Shift+Q repeat=false {
+        close-window
+    }
+    Alt+Shift+H {
+        focus-column-left
+    }
+    Alt+Shift+{{ $right }} {
+        focus-column-right
+    }
+    Alt+Shift+Super+Left {
+        move-column-left
+    }
+    Alt+Shift+Super+Down {
+        move-window-down
+    }
+    Alt+Shift+Super+Up {
+        move-window-up
+    }
+    Alt+Shift+Super+Right {
+        move-column-right
+    }
+    Alt+Shift+Super+H {
+        move-column-left
+    }
+    Alt+Shift+Super+{{ $right }} {
+        move-column-right
+    }
+    Alt+Shift+Home {
+        focus-column-first
+    }
+    Alt+Shift+End {
+        focus-column-last
+    }
+    Alt+Shift+Ctrl+Home {
+        move-column-to-first
+    }
+    Alt+Shift+Ctrl+End {
+        move-column-to-last
+    }
+    Alt+Shift+Ctrl+Super+Left {
+        move-column-to-monitor-left
+    }
+    Alt+Shift+Ctrl+Super+Down {
+        move-column-to-monitor-down
+    }
+    Alt+Shift+Ctrl+Super+Up {
+        move-column-to-monitor-up
+    }
+    Alt+Shift+Ctrl+Super+Right {
+        move-column-to-monitor-right
+    }
+    Alt+Shift+Ctrl+Super+H {
+        move-column-to-monitor-left
+    }
+    Alt+Shift+Ctrl+Super+{{ $down }} {
+        move-column-to-monitor-down
+    }
+    Alt+Shift+Ctrl+Super+{{ $up }} {
+        move-column-to-monitor-up
+    }
+    Alt+Shift+Ctrl+Super+{{ $right }} {
+        move-column-to-monitor-right
+    }
+    Alt+Shift+Page_Down {
+        focus-workspace-down
+    }
+    Alt+Shift+Page_Up {
+        focus-workspace-up
+    }
+    Alt+Shift+{{ $down }} {
+        focus-workspace-down
+    }
+    Alt+Shift+{{ $up }} {
+        focus-workspace-up
+    }
+    Alt+Shift+Ctrl+Page_Down {
+        move-column-to-workspace-down
+    }
+    Alt+Shift+Ctrl+Page_Up {
+        move-column-to-workspace-up
+    }
+    Alt+Shift+Super+{{ $down }} {
+        move-column-to-workspace-down
+    }
+    Alt+Shift+Super+{{ $up }} {
+        move-column-to-workspace-up
+    }
+    Alt+Shift+Super+Page_Down {
+        move-workspace-down
+    }
+    Alt+Shift+Super+Page_Up {
+        move-workspace-up
+    }
+{{- if ne .layout "colemak" }}
+    Alt+Shift+Super+U {
+        move-workspace-down
+    }
+    Alt+Shift+Super+I {
+        move-workspace-up
+    }
+{{- end }}
+    Alt+Shift+WheelScrollDown cooldown-ms=150 {
+        focus-workspace-down
+    }
+    Alt+Shift+WheelScrollUp cooldown-ms=150 {
+        focus-workspace-up
+    }
+    Alt+Shift+Ctrl+WheelScrollDown cooldown-ms=150 {
+        move-column-to-workspace-down
+    }
+    Alt+Shift+Ctrl+WheelScrollUp cooldown-ms=150 {
+        move-column-to-workspace-up
+    }
+    Alt+Shift+WheelScrollRight {
+        focus-column-right
+    }
+    Alt+Shift+WheelScrollLeft {
+        focus-column-left
+    }
+    Alt+Shift+Ctrl+WheelScrollRight {
+        move-column-right
+    }
+    Alt+Shift+Ctrl+WheelScrollLeft {
+        move-column-left
+    }
+    Alt+Shift+Super+WheelScrollDown {
+        focus-column-right
+    }
+    Alt+Shift+Super+WheelScrollUp {
+        focus-column-left
+    }
+    Alt+Shift+Ctrl+Super+WheelScrollDown {
+        move-column-right
+    }
+    Alt+Shift+Ctrl+Super+WheelScrollUp {
+        move-column-left
+    }
+    Alt+Shift+1 {
+        focus-workspace "soc"
+    }
+    Alt+Shift+2 {
+        focus-workspace "web"
+    }
+    Alt+Shift+3 {
+        focus-workspace "dev"
+    }
+    Alt+Shift+4 {
+        focus-workspace "deb"
+    }
+    Alt+Shift+5 {
+        focus-workspace "oth"
+    }
+    Alt+Shift+O {
+        focus-workspace "oth"
+    }
+    Alt+Shift+S {
+        focus-workspace "soc"
+    }
+    Alt+Shift+P {
+        focus-workspace "deb"
+    }
+    Alt+Shift+D {
+        spawn-sh "niri msg action focus-workspace dev && niri msg action focus-column-last"
+    }
+    Alt+Shift+Ctrl+D {
+        spawn-sh "niri msg action focus-workspace dev && niri msg action focus-column-first"
+    }
+    Alt+Shift+W {
+        focus-workspace "web"
+    }
+    Alt+Shift+Super+1 {
+        move-window-to-workspace "soc"
+    }
+    Alt+Shift+Super+2 {
+        move-window-to-workspace "web"
+    }
+    Alt+Shift+Super+3 {
+        move-window-to-workspace "dev"
+    }
+    Alt+Shift+Super+4 {
+        move-window-to-workspace "deb"
+    }
+    Alt+Shift+Super+5 {
+        move-window-to-workspace "oth"
+    }
+    Alt+Shift+Super+O {
+        move-window-to-workspace "oth"
+    }
+    Alt+Shift+Super+S {
+        move-window-to-workspace "soc"
+    }
+    Alt+Shift+Super+W {
+        move-window-to-workspace "web"
+    }
+    Alt+Shift+Super+D {
+        move-window-to-workspace "dev"
+    }
+    Alt+Shift+Super+P {
+        move-window-to-workspace "deb"
+    }
+    Alt+Shift+Ctrl+1 {
+        move-column-to-workspace "soc"
+    }
+    Alt+Shift+Ctrl+2 {
+        move-column-to-workspace "dev"
+    }
+    Alt+Shift+Ctrl+3 {
+        move-column-to-workspace "web"
+    }
+    Alt+Shift+Ctrl+4 {
+        move-column-to-workspace "deb"
+    }
+    Alt+Shift+Ctrl+5 {
+        move-column-to-workspace "oth"
+    }
+    Alt+Shift+BracketLeft {
+        consume-or-expel-window-left
+    }
+    Alt+Shift+BracketRight {
+        consume-or-expel-window-right
+    }
+    Alt+Shift+Comma {
+        consume-window-into-column
+    }
+    Alt+Shift+Period {
+        expel-window-from-column
+    }
+    Alt+Shift+R {
+        switch-preset-column-width
+    }
+    Alt+Shift+Super+R {
+        switch-preset-window-height
+    }
+    Alt+Shift+Ctrl+R {
+        reset-window-height
+    }
+    Alt+Shift+F {
+        maximize-column
+    }
+    Alt+Shift+Super+F {
+        fullscreen-window
+    }
+    Alt+Shift+Ctrl+F {
+        expand-column-to-available-width
+    }
+    Alt+Shift+C {
+        center-column
+    }
+    Alt+Shift+Ctrl+C {
+        center-visible-columns
+    }
+    Alt+Shift+Minus {
+        set-column-width "-10%"
+    }
+    Alt+Shift+Equal {
+        set-column-width "+10%"
+    }
+    Alt+Shift+Super+Minus {
+        set-window-height "-10%"
+    }
+    Alt+Shift+Super+Equal {
+        set-window-height "+10%"
+    }
+    Alt+Shift+Super+C {
+        toggle-window-floating
+    }
+    Alt+Shift+Super+V {
+        switch-focus-between-floating-and-tiling
+    }    // Actions to switch layouts.
+    // Note: if you uncomment these, make sure you do NOT have
+    // a matching layout switch hotkey configured in xkb options above.
+    // Having both at once on the same hotkey will break the switching,
+    // since it will switch twice upon pressing the hotkey (once by xkb, once by niri).
+    // Alt+Dot       { switch-layout "next"; }
+    // Mod+Shift+Space { switch-layout "prev"; }
+    Ctrl+Shift+X {
+        spawn-sh "GEOM=$(slurp); canberra-gtk-play -i camera-shutter & grim -g \"$GEOM\" - | gradia"
+    }
+    Ctrl+Shift+1 {
+        spawn-sh "canberra-gtk-play -i camera-shutter & grim - | gradia"
+    }
+    Ctrl+Shift+2 {
+        spawn-sh "canberra-gtk-play -i camera-shutter & grim -g \"$(slurp)\" - | gradia"
+    }
+    Super+Shift+X {
+        spawn-sh "GEOM=$(slurp); canberra-gtk-play -i camera-shutter & grim -g \"$GEOM\" - | satty -f - "
+    }
+    Ctrl+Super+1 {
+        spawn-sh "canberra-gtk-play -i camera-shutter & grim - | satty -f - "
+    }
+    Ctrl+Super+2 {
+        spawn-sh "canberra-gtk-play -i camera-shutter & grim -g \"$(slurp)\" - | satty -f - "
+    }
+    Alt+Escape allow-inhibiting=false {
+        toggle-keyboard-shortcuts-inhibit
+    }
+    Ctrl+Alt+Shift+Q {
+        quit
+    }
+    Ctrl+Alt+Delete {
+        quit
+    }
+    Ctrl+Super+C {
+        spawn "vicinae" "vicinae://extensions/vicinae/clipboard/history"
+    }
+    Super+Space {
+        spawn "vicinae" "vicinae://extensions/vicinae/clipboard/history"
+    }
+    Ctrl+Super+E {
+        spawn "vicinae" "vicinae://extensions/vicinae/core/search-emojis"
+    }
+    Super+Shift+Alt+G {
+        spawn "vicinae" "vicinae://extensions/rolandleth/kill-process/index"
+    }
+    Super+Shift+Alt+B {
+        spawn "vicinae" "vicinae://extensions/lardissone/raindrop-io/search"
+    }
+    Super+Shift+G {
+        spawn-sh "grim -g \"$(slurp)\" - | tesseract - - -l rus+eng | wl-copy"
+    }
+    Alt+Tab {
+        spawn "vicinae" "vicinae://extensions/vicinae/wm/switch-windows"
+    }
+    Ctrl+Super+3 {
+        spawn-sh "dms notify \"Start crop recording\" && wf-recorder --audio -g \"$(slurp)\" -f ~/Videos/crop_$(date +%H%M%S).mp4"
+    }
+    Ctrl+Super+4 {
+        spawn-sh "dms notify \"Start full recording\" && wf-recorder --audio -f ~/Videos/full_$(date +%H%M%S).mp4"
+    }
+    Ctrl+Super+S {
+        spawn-sh "killall -s SIGINT wf-recorder && dms notify \"Stop recording\" && sleep 0.5 && nautilus ~/Videos"
+    }
+    Ctrl+Backslash {
+        spawn-sh "hyprvoice toggle"
+    }
+    Ctrl+Shift+Backslash {
+        // spawn-sh "/home/darkawower/.local/bin/waystt-toggle"
+        spawn-sh "pkill -USR2 -n handy"
+    }
+ // waystt - Speech to Text (clipboard copy)
+    // Ctrl+Shift+R {
+    //     spawn "/home/darkawower/.local/bin/waystt-toggle"
+    // }
+ // Ctrl+Backslash {
+    //     spawn-sh "hyprvoice toggle && sleep 0.1 && wtype -M ctrl -k v -m ctrl"
+    // }
+}
+include "dms/binds.kdl"
+include "dms/cursor.kdl"

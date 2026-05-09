@@ -1,0 +1,45 @@
+#!/usr/bin/env python3
+"""Install and enable user systemd services (Linux only)."""
+
+from __future__ import annotations
+
+import subprocess
+import sys
+from pathlib import Path
+
+TITDB_UNIT = """\
+[Unit]
+Description=Trackpad is too damn big - palm rejection for Apple trackpad
+After=multi-user.target
+
+[Service]
+ExecStart=/usr/local/bin/titdb -d /dev/input/by-path/platform-39b10c000.spi-cs-0-event-mouse -l 10 -r 15 -t 15 -b 10
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
+"""
+
+
+def run(*cmd: str) -> None:
+    subprocess.run(list(cmd), check=True)
+
+
+def install_titdb_service() -> None:
+    unit = Path("/etc/systemd/system/titdb.service")
+    run("sudo", "tee", str(unit), input=TITDB_UNIT.encode(), stdout=subprocess.DEVNULL)
+    run("sudo", "systemctl", "daemon-reload")
+    run("sudo", "systemctl", "enable", "titdb.service")
+    run("sudo", "systemctl", "restart", "titdb.service")
+    run("systemctl", "--user", "daemon-reload")
+    print("titdb.service installed and started")
+
+
+def main() -> int:
+    install_titdb_service()
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

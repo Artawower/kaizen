@@ -1,0 +1,28 @@
+email = "artawower@protonmail.com"
+full_name = "Artur Iaroshenko"
+gpg_key_darwin = "4357424B95BAB5C5"
+gpg_key_linux = "542983F6B228CCC1"
+hostname = "Arturs-MacBook-Pro"
+layout = "colemak"
+username = "darkawower"
+
+[features]
+ai = true
+core = true
+emacs = true
+frontend = true
+go = true
+helix = true
+keyboard = true
+python = true
+rust = true
+terminal = true
+tiling = true
+vcs = true
+
+[models]
+coder = "openai/gpt-5.5"
+default = "anthropic/claude-sonnet-4-6"
+quick = "anthropic/claude-haiku-4-5-20251001"
+research = "openai/gpt-5.4"
+reviewer = "anthropic/claude-sonnet-4-6"

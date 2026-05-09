@@ -1,0 +1,37 @@
+{{- if eq .chezmoi.os "linux" }}
+theme = noctalia
+{{- else }}
+theme = dark:TokyoNight,light:Catppuccin Latte
+{{- end }}
+
+window-decoration = false
+window-theme = ghostty
+macos-non-native-fullscreen = true
+
+keybind = cmd+t=unbind
+window-inherit-working-directory = true
+window-inherit-font-size = false
+
+copy-on-select = clipboard
+background-opacity = 0.90
+background-blur-radius = 10
+macos-titlebar-style = "tabs"
+window-padding-x = 16,16
+window-padding-y = 16,16
+
+font-family = "Myna Nerd Font"
+font-size = 15
+
+keybind = alt+arrow_left=unbind
+keybind = alt+arrow_right=unbind
+keybind = super+d=unbind
+keybind = super+s=unbind
+macos-option-as-alt = true
+
+shell-integration-features = path
+{{- if eq .chezmoi.os "linux" }}
+command = xonsh
+{{- else }}
+command = shell:zsh -l -c 'exec xonsh'
+{{- end }}
+

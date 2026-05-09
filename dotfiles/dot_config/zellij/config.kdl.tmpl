@@ -1,0 +1,5 @@
+{{- if eq .layout "colemak" -}}
+{{ include "dot_config/zellij/config-colemak.kdl" }}
+{{- else -}}
+{{ include "dot_config/zellij/config-qwerty.kdl" }}
+{{- end -}}

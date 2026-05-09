@@ -1,0 +1,18 @@
+kaizen/
+{{- if eq .chezmoi.os "darwin" }}
+.var/app/org.wezfurlong.wezterm/
+.config/niri/
+.config/xremap/
+.config/hypr/
+.config/cava/
+.config/noctalia/
+.config/vicinae/
+.config/systemd/
+{{- else if eq .chezmoi.os "linux" }}
+.config/skhd/
+.config/aerospace/
+.config/karabiner/
+.config/sketchybar/
+.config/yabai/
+.config/launchagents/
+{{- end }}

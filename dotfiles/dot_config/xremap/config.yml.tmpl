@@ -1,0 +1,120 @@
+modmap:
+  - name: CapsLock as niri modifier and layout switch
+    remap:
+      CapsLock:
+        held: [Alt_L, Shift_L]
+        alone: CapsLock
+        free_hold: true
+
+keymap:
+  - name: Ctrl+Super arrows
+    exact_match: true
+    remap:
+      Ctrl-Super-h: Left
+      Ctrl-Super-j: Down
+      Ctrl-Super-k: Up
+      Ctrl-Super-l: Right
+      Ctrl-Super-Shift-h: Shift-Left
+      Ctrl-Super-Shift-j: Shift-Down
+      Ctrl-Super-Shift-k: Shift-Up
+      Ctrl-Super-Shift-l: Shift-Right
+{{- if eq .layout "colemak" }}
+      Ctrl-Super-n: Down
+      Ctrl-Super-e: Up
+      Ctrl-Super-i: Right
+      Ctrl-Super-Shift-n: Shift-Down
+      Ctrl-Super-Shift-e: Shift-Up
+      Ctrl-Super-Shift-i: Shift-Right
+{{- end }}
+
+  - name: Common Super shortcuts
+    application:
+      not: [Emacs, emacs, "app.zen_browser.zen", zen, org.gnu.Emacs, zen-browser, "org.wezfurlong.wezterm", "com.mitchellh.ghostty", kitty]
+    exact_match: true
+    remap:
+      Super-c: C-c
+      Super-v: C-v
+      Super-x: C-x
+      Super-z: C-z
+      Super-a: C-a
+      Super-f: C-f
+      Super-l: C-l
+      Super-t: C-t
+      Super-w: C-w
+      Super-r: C-r
+      Super-s: C-s
+      Super-n: C-n
+      Super-q: C-q
+
+  - name: Terminals commands
+    application:
+      only: [alacritty, kitty, wezterm, "org.wezfurlong.wezterm", app.kde.konsole, konsole, "com.mitchellh.ghostty"]
+    remap:
+      Super-v: C-Shift-v
+      Super-c: C-Shift-c
+      Super-z: C-Shift-z
+      
+  - name: Delete
+    application:
+      not: [Emacs, emacs]
+    remap:
+      Alt-Backspace: C-Backspace
+      Super-Backspace: [Shift-Home, Backspace]
+      Super-Left: Home
+      Super-Right: End
+      Super-Up: C-Home
+      Super-Down: C-End
+      Super-Shift-Left: [Shift-Home]
+      Super-Shift-Right: [Shift-End]
+      Super-Shift-Up: [C-Shift-Home]
+      Super-Shift-Down: [C-Shift-End]
+      Alt-Left: C-Left
+      Alt-Right: C-Right
+      Alt-Shift-Left: [C-Shift-Left]
+      Alt-Shift-Right: [C-Shift-Right]
+
+  - name: GUI shortcuts
+    application:
+      only: [brave-browser, org.mozilla.firefox, "app.zen_browser.zen", zen, org.telegram.desktop]
+    remap:
+      C-j: C-Tab
+      C-k: C-Shift-Tab
+      Alt-Left: Home
+      Alt-Right: End
+      Super-a: C-a
+      Super-c: C-c
+      Super-v: C-v
+      Super-z: C-z
+      Super-Shift-t: C-Shift-t
+
+  - name: Browser shortcuts
+    application:
+      only: [brave-browser, org.mozilla.firefox, "app.zen_browser.zen", zen]
+    exact_match: true
+    remap:
+      Super-f: C-f
+      Super-1: C-1
+      Super-2: C-2
+      Super-3: C-3
+      Super-4: C-4
+      Super-5: C-5
+      Super-6: C-6
+      Super-7: C-7
+      Super-8: C-8
+      Super-9: C-9
+      Super-z: C-z
+
+
+  - name: Fn tabs
+    remap:
+      Fn-{{ if eq .layout "colemak" }}n{{ else }}j{{ end }}: C-Tab
+      Fn-{{ if eq .layout "colemak" }}e{{ else }}k{{ end }}: C-S-Tab
+
+  - name: Emacs
+    application:
+      only: emacs
+    remap:
+      S-k: S-k
+      Super-c: Super-c
+      Super-v: Super-v
+      # Super-Dot: Super-Dot

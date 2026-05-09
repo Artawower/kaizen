@@ -1,0 +1,159 @@
+#:schema https://yazi-rs.github.io/schemas/theme.json
+
+[app]
+overall = { bg = "#f3f4f7" }
+
+[mgr]
+cwd = { fg = "#4f5b66", bold = true }
+
+find_keyword = { fg = "#2f3b45", bg = "#e4e7ec", bold = true, underline = true }
+find_position = { fg = "#6b7680", bg = "reset", bold = true }
+
+symlink_target = { fg = "#4f5b66", italic = true }
+
+marker_copied = { fg = "#7a8f5a", bg = "#7a8f5a" }
+marker_cut = { fg = "#9a5b5b", bg = "#9a5b5b" }
+marker_marked = { fg = "#6b7680", bg = "#6b7680" }
+marker_selected = { fg = "#6b7680", bg = "#6b7680" }
+marker_symbol = "│"
+
+count_copied = { fg = "#f3f4f7", bg = "#7a8f5a" }
+count_cut = { fg = "#f3f4f7", bg = "#9a5b5b" }
+count_selected = { fg = "#f3f4f7", bg = "#6b7680" }
+
+border_symbol = "│"
+border_style = { fg = "#c8cdd5" }
+
+syntect_theme = ""
+
+
+[tabs]
+active = { fg = "#2f3b45", bg = "#e4e7ec", bold = true }
+inactive = { fg = "#6b7680", bg = "#f3f4f7" }
+
+sep_inner = { open = "", close = "" }
+sep_outer = { open = "", close = "" }
+
+[mode]
+normal_main = { fg = "#f3f4f7", bg = "#60717f", bold = true }
+normal_alt = { fg = "#60717f", bg = "#e4e7ec" }
+
+select_main = { fg = "#f3f4f7", bg = "#4f5b66", bold = true }
+select_alt = { fg = "#4f5b66", bg = "#e4e7ec" }
+
+unset_main = { fg = "#f3f4f7", bg = "#9a5b5b", bold = true }
+unset_alt = { fg = "#9a5b5b", bg = "#e4e7ec" }
+
+[status]
+overall = { fg = "#4f5b66", bg = "#f3f4f7" }
+
+sep_left = { open = "", close = "" }
+sep_right = { open = "", close = "" }
+
+perm_sep = { fg = "#c8cdd5" }
+perm_type = { fg = "#4f5b66" }
+perm_read = { fg = "#4f5b66" }
+perm_write = { fg = "#4f5b66" }
+perm_exec = { fg = "#4f5b66" }
+
+progress_label = { fg = "#4f5b66", bold = true }
+progress_normal = { fg = "#f3f4f7", bg = "#60717f" }
+progress_error = { fg = "#f3f4f7", bg = "#9a5b5b" }
+
+[which]
+cols = 3
+mask = { bg = "#e4e7ec" }
+
+cand = { fg = "#4f5b66", bold = true }
+rest = { fg = "#6b7680" }
+desc = { fg = "#4f5b66" }
+
+separator = " │ "
+separator_style = { fg = "#c8cdd5" }
+
+[confirm]
+border = { fg = "#c8cdd5" }
+title = { fg = "#4f5b66", bold = true }
+body = { fg = "#4f5b66" }
+list = { fg = "#4f5b66" }
+
+btn_yes = { fg = "#f3f4f7", bg = "#60717f", bold = true }
+btn_no = { fg = "#60717f", bg = "#e4e7ec" }
+btn_labels = [ " Yes ", " No " ]
+
+[spot]
+border = { fg = "#c8cdd5" }
+title = { fg = "#4f5b66", bold = true }
+
+tbl_col = { fg = "#4f5b66", bold = true }
+tbl_cell = { fg = "#4f5b66", bg = "#e4e7ec" }
+
+[notify]
+title_info = { fg = "#4f5b66", bold = true }
+title_warn = { fg = "#8a7440", bold = true }
+title_error = { fg = "#9a5b5b", bold = true }
+
+icon_info = "i"
+icon_warn = "!"
+icon_error = "x"
+
+[pick]
+border = { fg = "#c8cdd5" }
+active = { fg = "#2f3b45", bg = "#e4e7ec", bold = true }
+inactive = { fg = "#4f5b66" }
+
+[input]
+border = { fg = "#c8cdd5" }
+title = { fg = "#4f5b66", bold = true }
+value = { fg = "#4f5b66" }
+selected = { fg = "#2f3b45", bg = "#e4e7ec" }
+
+[cmp]
+border = { fg = "#c8cdd5" }
+active = { fg = "#2f3b45", bg = "#e4e7ec", bold = true }
+inactive = { fg = "#4f5b66" }
+
+icon_file = "f"
+icon_folder = "d"
+icon_command = ">"
+
+[tasks]
+border = { fg = "#c8cdd5" }
+title = { fg = "#4f5b66", bold = true }
+hovered = { fg = "#2f3b45", bg = "#e4e7ec" }
+
+[help]
+on = { fg = "#4f5b66", bold = true }
+run = { fg = "#4f5b66" }
+desc = { fg = "#4f5b66" }
+hovered = { fg = "#2f3b45", bg = "#e4e7ec" }
+footer = { fg = "#f3f4f7", bg = "#60717f" }
+
+
+[indicator]
+parent = { reversed = true }
+current = { reversed = true }
+preview = { reversed = true }
+padding = { open = "█", close = "█" }
+
+[filetype]
+
+rules = [
+
+  { url = "*/", fg = "#4f5b66" },
+
+  { url = "*",  fg = "#4f5b66" },
+
+]
+
+[icon]
+prepend_globs = [
+  { url = "*/", text = "󰉋", fg = "#4f5b66" },
+
+]
+
+prepend_conds = [
+
+  { if = "!(dir | link)", text = "󰈔", fg = "#4f5b66" },
+
+]

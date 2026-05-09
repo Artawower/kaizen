@@ -1,0 +1,202 @@
+# HNEI (colemak) / HJKL (qwerty) keybindings for jjui
+# Layout: {{ .layout }}
+
+{{- $down := "j" }}
+{{- $up := "k" }}
+{{- $right := "l" }}
+{{- $new := "n" }}
+{{- $edit := "e" }}
+{{- $interactive := "i" }}
+{{- if eq .layout "colemak" }}
+{{-   $down = "n" }}
+{{-   $up = "e" }}
+{{-   $right = "i" }}
+{{-   $new = "j" }}
+{{-   $edit = "k" }}
+{{-   $interactive = "l" }}
+{{- end }}
+
+# --- Navigation ---
+
+[[bindings]]
+action = "revisions.move_down"
+key = "{{ $down }}"
+scope = "revisions"
+desc = "down"
+
+[[bindings]]
+action = "revisions.move_up"
+key = "{{ $up }}"
+scope = "revisions"
+desc = "up"
+
+[[bindings]]
+action = "revisions.open_details"
+key = "{{ $right }}"
+scope = "revisions"
+desc = "details"
+
+[[bindings]]
+action = "revset.edit"
+key = "shift+{{ $right }}"
+scope = "revisions"
+desc = "revset"
+
+# --- Displaced keys ---
+
+[[bindings]]
+action = "revisions.new"
+key = "{{ $new }}"
+scope = "revisions"
+desc = "new"
+
+[[bindings]]
+action = "revisions.edit"
+key = "{{ $edit }}"
+scope = "revisions"
+desc = "edit"
+
+# --- Help scope ---
+
+[[bindings]]
+action = "help.scroll_down"
+key = "{{ $down }}"
+scope = "help"
+desc = "down"
+
+[[bindings]]
+action = "help.scroll_up"
+key = "{{ $up }}"
+scope = "help"
+desc = "up"
+
+# --- Diff scope ---
+
+[[bindings]]
+action = "diff.scroll_down"
+key = "{{ $down }}"
+scope = "diff"
+desc = "down"
+
+[[bindings]]
+action = "diff.scroll_up"
+key = "{{ $up }}"
+scope = "diff"
+desc = "up"
+
+[[bindings]]
+action = "diff.right"
+key = "{{ $right }}"
+scope = "diff"
+desc = "right"
+
+# --- Oplog scope ---
+
+[[bindings]]
+action = "oplog.move_down"
+key = "{{ $down }}"
+scope = "oplog"
+desc = "down"
+
+[[bindings]]
+action = "oplog.move_up"
+key = "{{ $up }}"
+scope = "oplog"
+desc = "up"
+
+# --- Bookmarks scope ---
+
+[[bindings]]
+action = "bookmarks.move_down"
+key = "{{ $down }}"
+scope = "bookmarks"
+desc = "down"
+
+[[bindings]]
+action = "bookmarks.move_up"
+key = "{{ $up }}"
+scope = "bookmarks"
+desc = "up"
+
+# --- Git scope ---
+
+[[bindings]]
+action = "git.move_down"
+key = "{{ $down }}"
+scope = "git"
+desc = "down"
+
+[[bindings]]
+action = "git.move_up"
+key = "{{ $up }}"
+scope = "git"
+desc = "up"
+
+# --- Choose scope ---
+
+[[bindings]]
+action = "choose.move_down"
+key = "{{ $down }}"
+scope = "choose"
+desc = "down"
+
+[[bindings]]
+action = "choose.move_up"
+key = "{{ $up }}"
+scope = "choose"
+desc = "up"
+
+# --- Revisions details scope ---
+
+[[bindings]]
+action = "revisions.details.move_down"
+key = "{{ $down }}"
+scope = "revisions.details"
+desc = "down"
+
+[[bindings]]
+action = "revisions.details.move_up"
+key = "{{ $up }}"
+scope = "revisions.details"
+desc = "up"
+
+# --- Revisions squash scope ---
+
+[[bindings]]
+action = "revisions.move_down"
+key = "{{ $down }}"
+scope = "revisions.squash"
+desc = "down"
+
+[[bindings]]
+action = "revisions.move_up"
+key = "{{ $up }}"
+scope = "revisions.squash"
+desc = "up"
+
+[[bindings]]
+action = "revisions.squash.keep_emptied"
+key = "{{ $edit }}"
+scope = "revisions.squash"
+desc = "keep emptied"
+
+[[bindings]]
+action = "revisions.squash.interactive"
+key = "{{ $interactive }}"
+scope = "revisions.squash"
+desc = "interactive"
+
+# --- Evolog scope ---
+
+[[bindings]]
+action = "revisions.evolog.move_down"
+key = "{{ $down }}"
+scope = "revisions.evolog"
+desc = "down"
+
+[[bindings]]
+action = "revisions.evolog.move_up"
+key = "{{ $up }}"
+scope = "revisions.evolog"
+desc = "up"
+

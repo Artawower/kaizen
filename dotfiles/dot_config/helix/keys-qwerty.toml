@@ -1,0 +1,7 @@
+"C-j" = "goto_next_diag"
+"C-k" = "goto_prev_diag"
+"S-h" = "swap_view_left"
+"S-l" = "swap_view_right"
+"S-j" = "swap_view_down"
+"S-k" = "swap_view_up"
+K = "hover"

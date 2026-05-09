@@ -1,0 +1,104 @@
+{
+  "lastChangelogVersion": "0.73.0",
+  "hideThinkingBlock": true,
+  "quietStartup": true,
+  "enableSkillCommands": true,
+  "npmCommand": ["npm"],
+  "packages": [
+    "npm:pi-web-access",
+    {
+      "source": "npm:oh-pi",
+      "skills": [
+        "-pi-package/skills/liquid-glass/SKILL.md",
+        "-pi-package/skills/glassmorphism/SKILL.md",
+        "+pi-package/skills/git-workflow/SKILL.md",
+        "-pi-package/skills/debug-helper/SKILL.md",
+        "-pi-package/skills/neubrutalism/SKILL.md",
+        "-pi-package/skills/quick-setup/SKILL.md",
+        "+pi-package/skills/context7/SKILL.md"
+      ],
+      "extensions": [
+        "-pi-package/extensions/bg-process.ts",
+        "-pi-package/extensions/custom-footer.ts",
+        "-pi-package/extensions/ant-colony/index.ts",
+        "-pi-package/extensions/auto-update.ts",
+        "-pi-package/extensions/auto-session-name.ts",
+        "-pi-package/extensions/compact-header.ts",
+        "-pi-package/extensions/git-guard.ts",
+        "-pi-package/extensions/safe-guard.ts"
+      ],
+      "themes": ["-pi-package/themes/catppuccin-mocha.json"]
+    },
+    "npm:pi-copy-output",
+    "npm:@sherif-fanous/pi-catppuccin",
+    "npm:pi-notify",
+    {
+      "source": "npm:pi-tool-display",
+      "extensions": ["+index.ts"]
+    },
+    {
+      "source": "npm:pi-usage-bars",
+      "extensions": ["+extensions/usage-bars/index.ts"]
+    },
+    {
+      "source": "npm:@tintinweb/pi-subagents",
+      "extensions": ["-src/index.ts"]
+    },
+    "npm:@mjakl/pi-dark-or-light",
+    "npm:@benvargas/pi-exa-mcp",
+    {
+      "source": "git:github.com/hk-vk/pi-connect",
+      "extensions": ["-index.ts"]
+    },
+    {
+      "source": "npm:pi-free",
+      "extensions": [
+        "-providers/fireworks.ts",
+        "-providers/go.ts",
+        "-providers/mistral.ts",
+        "-providers/nvidia.ts"
+      ]
+    },
+    {
+      "source": "npm:pi-image-preview",
+      "extensions": ["-index.ts"]
+    },
+    "npm:pi-skills-sh",
+    "npm:pi-secret-guard",
+    "npm:pi-extension-manager",
+    {
+      "source": "npm:pi-btw",
+      "extensions": ["-extensions/btw.ts"]
+    },
+    "npm:pi-session-switch",
+    {
+      "source": "npm:@dkmnx/pi-clarify",
+      "extensions": ["-index.ts"]
+    },
+    "npm:pi-bailian-models",
+    "npm:@thesethrose/pi-zai-provider",
+    "git:github.com/HazAT/pi-interactive-subagents",
+    {
+      "source": "npm:pi-lens",
+      "extensions": ["+index.ts"],
+      "skills": ["+skills/ast-grep/SKILL.md", "+skills/lsp-navigation/SKILL.md"]
+    },
+    "npm:pi-link",
+    "git:github.com/tomooshi/condensed-milk-pi",
+    "npm:@tmustier/pi-usage-extension",
+    "npm:@benvargas/pi-claude-code-use",
+    "npm:context-mode",
+    "npm:pi-jj-auto"
+  ],
+  "defaultProvider": "anthropic",
+  "defaultModel": "claude-sonnet-4-6",
+  "defaultThinkingLevel": "high",
+  "collapseChangelog": false,
+  "theme": "catppuccin-frappe",
+  "extensions": [
+    "-extensions/subagent/index.ts",
+    "-extensions/subagent/notify.ts",
+    "-extensions/agent-team.ts"
+  ],
+  "autocompleteMaxVisible": 3
+}

@@ -1,0 +1,204 @@
+#!/usr/bin/env sh
+
+# the scripting-addition must be loaded manually if
+# you are running yabai on macOS Big Sur. Uncomment
+# the following line to have the injection performed
+# when the config is executed during startup.
+#
+# for this to work you must configure sudo such that
+# it will be able to run the command without password
+#
+# see this wiki page for information:
+#  - https://github.com/koekeishiya/yabai/wiki/Installing-yabai-(latest-release)
+#
+# sudo yabai --load-sa
+# yabai -m signal --add event=dock_did_restart action="sudo yabai --load-sa"
+
+# grid optioins
+# <rows>:<cols>:<start-x>:<start-y>:<width>:<height>
+
+# pkill -x yabai
+# yabai &
+#
+sudo yabai --load-sa
+yabai -m signal --add event=dock_did_restart action="sudo yabai --load-sa"
+sleep 0.1
+
+
+yabai -m signal --add event=window_created action="echo \"create \$YABAI_WINDOW_ID\" | nc -U /tmp/yb_$USER.socket"
+yabai -m signal --add event=window_destroyed action="echo \"destroy \$YABAI_WINDOW_ID\" | nc -U /tmp/yb_$USER.socket"
+yabai -m signal --add event=space_changed action="echo \"query\" | nc -U /tmp/yb_$USER.socket"
+yabai -m signal --add event=display_changed action="echo \"query\" | nc -U /tmp/yb_$USER.socket"
+yabai -m signal --add event=mission_control_enter action="echo \"mission_control_enter\" | nc -U /tmp/yb_$USER.socket"
+yabai -m signal --add event=mission_control_exit action="echo \"mission_control_exit\" | nc -U /tmp/yb_$USER.socket"
+
+# Rules
+yabai -m rule --add app="^System Preferences$" manage=off space=9
+yabai -m rule --add app="^Shottr" manage=off 
+yabai -m rule --add app="^LICEcap" manage=off 
+yabai -m rule --add app="^Preview" manage=off grid=100:100:10:10:80:80
+yabai -m rule --add app="^Weather$" manage=off space=9
+yabai -m rule --add app="^NeoHtop$" manage=off grid=100:100:0:0:100:100
+yabai -m rule --add app="^OrbStack$" manage=off space=12
+yabai -m rule --add app="^Bitwarden$" manage=off sticky=on
+yabai -m rule --add app="^Raycast$" manage=off
+yabai -m rule --add app="^Simulator$" manage=off
+yabai -m rule --add app="^Pika$" manage=off
+yabai -m rule --add app="^Pika$" manage=off
+yabai -m rule --add app="^Grammarly Desktop$" manage=off
+yabai -m rule --add app="^Системные настройки$" manage=off
+yabai -m rule --add app="^System Settings$" manage=off
+yabai -m rule --add app="^Authy Desktop$" manage=off
+yabai -m rule --add app="^Dynamic Wallpapper$" manage=off
+yabai -m rule --add app="^Kap$" manage=off
+yabai -m rule --add app="^Xnip$" manage=off
+yabai -m rule --add app="^Hearthstone$" manage=off
+yabai -m rule --add app="^Finder$" manage=off
+yabai -m rule --add app="^Bloom$" manage=off
+yabai -m rule --add app="^Spotify$" manage=off
+yabai -m rule --add app="^Flameshot$" manage=off
+yabai -m rule --add app="^zoom.us$" manage=off
+yabai -m rule --add app="^Android Emulator.*" manage=off
+yabai -m rule --add app="^Android Studio" manage=on space=7
+yabai -m rule --add app="^Xcode" manage=on space=8
+yabai -m rule --add app="^Safari" manage=on space=4
+yabai -m rule --add app="^qemu-system-aarch64" manage=off
+yabai -m rule --add app="^OpenVPN Connect$" manage=off
+yabai -m rule --add app="^Loom" manage=off
+yabai -m rule --add app="^Loom Recorder Settings$" manage=off
+yabai -m rule --add app="^Loom Control Menu$" manage=off
+yabai -m rule --add title="^Discord Updater$" manage=off
+yabai -m rule --add title="^Pearcleaner$" manage=off sticky=on
+yabai -m rule --add app="^Arc$" manage=off
+yabai -m rule --add app="^$" manage=off
+
+# yabai -m rule --add app="^World of Warcraft$" manage=off
+# yabai -m rule --add app="^World*" manage=off
+yabai -m rule --add app=Emacs manage=on space=dev
+yabai -m rule --add label=emacs app=Emacs manage=on space=dev
+yabai -m rule --add app=Ghostty manage=on space=term
+yabai -m rule --add app=Firefox manage=on space=4
+yabai -m rule --add app=Arc manage=on space=4
+yabai -m rule --add app="Brave Browser" manage=on space=3
+yabai -m rule --add app="^Marta$" manage=off grid=4:4:2:0:2:4
+yabai -m rule --add app="^spotube$" manage=off grid=100:100:5:7:84:84 space=6
+yabai -m rule --add app="^iPhone Mirroring$" manage=off grid=100:100:72:20:10:10 space=7
+yabai -m rule --add app="^Session$" manage=off grid=100:100:66:28:30:40 space=7
+yabai -m rule --add app="^TickTick$" manage=off grid=100:100:4:4:45:80 space=7
+yabai -m rule --add app="^App Store$" manage=off sticky=on
+
+
+yabai -m rule --add app="^Google Chrome$" manage=on space=9
+yabai -m rule --add app="^kitty$" manage=on space=2
+yabai -m rule --add app="^Telegram$" manage=on space=1
+yabai -m rule --add app=Ferdi manage=on space=social
+yabai -m rule --add app=Skype manage=on space=social
+yabai -m rule --add app=Slack manage=on space=social
+yabai -m rule --add app=Mattermost manage=on space=social
+yabai -m rule --add app="^Whalebird$" manage=on space=7
+yabai -m rule --add app="^Discord$" manage=on space=1
+yabai -m rule --add app="^Spark$" manage=off space=8 sticky=off
+yabai -m rule --add app="^MongoDB Compass" manage=on space=9
+yabai -m rule --add app="^WebTorrent" manage=on space=10
+yabai -m rule --add title="^Playwright Test$" manage=on space=10
+yabai -m rule --add app="^Chromium$" manage=on space=10
+yabai -m rule --add app="^ChatGPT$" manage=on space=9
+yabai -m rule --add app="^Books$" manage=on space=7
+yabai -m rule --add app="^Obsidian$" manage=on space=8
+
+
+# global settings
+yabai -m config mouse_follows_focus on
+# yabai -m config focus_follows_mouse autoraise
+yabai -m config focus_follows_mouse off
+
+
+yabai -m config window_placement second_child
+yabai -m config window_shadow off
+yabai -m config window_opacity on
+yabai -m config active_window_opacity 0.98
+yabai -m config normal_window_opacity 0.9
+yabai -m config split_ratio 0.50
+yabai -m config auto_balance off
+
+yabai -m config mouse_modifier fn
+yabai -m config mouse_action1 move
+yabai -m config mouse_action2 resize
+yabai -m config mouse_drop_action swap
+yabai -m config layout bsp
+
+yabai -m config top_padding 20
+yabai -m config bottom_padding 20
+yabai -m config left_padding 20
+yabai -m config right_padding 20
+yabai -m config window_gap 20
+
+# Space names
+yabai -m space 1 --label social
+yabai -m space 2 --label term
+yabai -m space 3 --label dev
+yabai -m space 4 --label other
+yabai -m space 5 --label www
+
+yabai -m space 6 --label entertainment
+yabai -m space 7 --label thrash
+yabai -m space 8 --label study
+yabai -m space 9 --label ai
+yabai -m space 10 --label load
+
+# yabai template colours
+CBACK=$(echo $background | sed 's/#//')
+CFORE=$(echo $foreground | sed 's/#//')
+CACTV=$(echo $color3 | sed 's/#//')
+CNORM=$(echo $color1 | sed 's/#//')
+CINSE=$(echo $foreground | sed 's/#//')
+
+
+borders \
+  "active_color=gradient(top_left=0xff8b5cf6,bottom_right=0xff5b21b6)" \
+  "inactive_color=gradient(top_left=0xff2e2a3a,bottom_right=0xff1f1b2e)" \
+  "blacklist=,qemu-system-aarch64,Simulator,iPhone Mirroring" \
+  width=2.0 \
+  hidpi=on \
+  order=above \
+  style=round &
+
+
+echo "yabai configuration loaded.."
+
+yabai -m signal --add event=mission_control_exit action='echo "refresh" | nc -U /tmp/yabai-indicator.socket'
+yabai -m signal --add event=display_added action='echo "refresh" | nc -U /tmp/yabai-indicator.socket'
+yabai -m signal --add event=display_removed action='echo "refresh" | nc -U /tmp/yabai-indicator.socket'
+yabai -m signal --add event=window_created action='echo "refresh windows" | nc -U /tmp/yabai-indicator.socket'
+yabai -m signal --add event=window_destroyed action='echo "refresh windows" | nc -U /tmp/yabai-indicator.socket'
+yabai -m signal --add event=window_focused action='echo "refresh windows" | nc -U /tmp/yabai-indicator.socket'
+yabai -m signal --add event=window_moved action='echo "refresh windows" | nc -U /tmp/yabai-indicator.socket'
+yabai -m signal --add event=window_resized action='echo "refresh windows" | nc -U /tmp/yabai-indicator.socket'
+yabai -m signal --add event=window_minimized action='echo "refresh windows" | nc -U /tmp/yabai-indicator.socket'
+yabai -m signal --add event=window_deminimized action='echo "refresh windows" | nc -U /tmp/yabai-indicator.socket'
+
+# python3 $HOME/.config/yabai/order_windows.py
+# $HOME/.config/yabai/visit-all-windows.sh
+# $HOME/.config/yabai/stack-windows.sh
+
+# Window specifinc configs
+
+# Apply after yabai is fully loaded
+
+# yabai -m space 6 --gap rel:64
+# yabai -m space 6 --padding abs:64:64:64:64
+yabai -m space 9 --gap rel:64 
+yabai -m space 9 --padding abs:64:64:64:64
+yabai -m space 8 --gap rel:32 
+yabai -m space 8 --padding abs:64:64:64:64 
+
+# focus window after active space changes
+# yabai -m signal --add event=space_changed action="yabai -m window --focus \$(yabai -m query --windows --space | jq .[0].id)"
+yabai -m signal --add event=space_changed action='window_id=$(yabai -m query --windows --space | jq -r "[.[] | select(.app != \"Raycast\")][0].id"); if [ "$window_id" != "null" ]; then yabai -m window --focus $window_id; fi'
+
+yabai -m signal --add app='^Finder$' event=window_created action='yabai -m space --focus next; sleep 0.01; yabai -m space --focus prev'
+yabai -m signal --add app='^Finder$' event=window_destroyed action='yabai -m space --focus next; sleep 0.01; yabai -m space --focus prev'
+
+
+
+
