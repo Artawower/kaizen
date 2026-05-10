@@ -115,8 +115,6 @@ fn print_plan(
             modified.len()
         );
     }
-
-
 }
 
 fn print_entry(path: &Path) {
