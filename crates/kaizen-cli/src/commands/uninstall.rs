@@ -1,6 +1,5 @@
 use std::path::Path;
 
-
 use anyhow::Result;
 use dialoguer::{theme::ColorfulTheme, Confirm};
 use owo_colors::OwoColorize;
@@ -21,7 +20,15 @@ pub fn run(_engine: &kaizen_core::KaizenEngine, config_path: &Path, dry_run: boo
     let managed = client.managed_files().unwrap_or_default();
     let modified = client.locally_modified_files().unwrap_or_default();
 
-    print_plan(config_path, chezmoi_source.as_deref(), &managed, &modified);
+    // When ~/.local/share/chezmoi is a symlink show the symlink path in the
+    // plan, not the resolved target — that is what will actually be removed.
+    // Show the symlink path in the plan when applicable so the user
+    // sees what will actually be removed, not the resolved target.
+    let chezmoi_display = chezmoi_source
+        .as_deref()
+        .map(|p| chezmoi_source_symlink(p).unwrap_or_else(|| p.to_owned()));
+
+    print_plan(config_path, chezmoi_display.as_deref(), &managed, &modified);
 
     if dry_run {
         println!();
@@ -150,8 +157,45 @@ fn remove_config(path: &Path) -> Result<()> {
     Ok(())
 }
 
+/// XDG path chezmoi always uses as its source root, regardless of platform.
+/// `dirs::data_local_dir()` returns `~/Library/Application Support` on macOS
+/// which is wrong — chezmoi follows XDG and uses `~/.local/share/chezmoi`.
+/// Returns `Some(path)` if `path` is a symlink, `None` otherwise.
+fn as_symlink(path: &Path) -> Option<std::path::PathBuf> {
+    path.symlink_metadata()
+        .ok()
+        .filter(|m| m.file_type().is_symlink())
+        .map(|_| path.to_owned())
+}
+
+/// XDG default chezmoi source dir: `~/.local/share/chezmoi`.
+/// `dirs::data_local_dir()` returns `~/Library/Application Support` on macOS —
+/// wrong. We derive the path from HOME directly.
+fn default_chezmoi_dir() -> Option<std::path::PathBuf> {
+    dirs::home_dir().map(|h| h.join(".local/share/chezmoi"))
+}
+
+/// If the chezmoi source is a symlink, returns the symlink path.
+/// Checks the XDG default dir first, then the resolved source path,
+/// so both standard and custom `sourceDir` setups are covered.
+fn chezmoi_source_symlink(resolved: &Path) -> Option<std::path::PathBuf> {
+    default_chezmoi_dir()
+        .as_deref()
+        .and_then(as_symlink)
+        .or_else(|| as_symlink(resolved))
+}
+
 fn remove_chezmoi_source(source: Option<&Path>) -> Result<()> {
     let Some(p) = source else { return Ok(()) };
+
+    // If the chezmoi source dir is a symlink, its target is the user's working
+    // repository — remove only the symlink, never the real directory.
+    if let Some(link) = chezmoi_source_symlink(p) {
+        std::fs::remove_file(&link)?;
+        output::item_ok(&format!("removed symlink {}", link.display()));
+        return Ok(());
+    }
+
     guard_against_dangerous_removal(p)?;
     if p.exists() {
         std::fs::remove_dir_all(p)?;
