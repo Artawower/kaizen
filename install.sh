@@ -166,3 +166,5 @@ case ":$PATH:" in
 *":$dest:"*) ;;
 *) say "add $dest to your PATH if the command is not available yet" ;;
 esac
+
+"$binary_path" install
