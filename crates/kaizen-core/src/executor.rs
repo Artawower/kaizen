@@ -9,6 +9,8 @@ pub struct ProcessCommand {
     pub capture_stdout: bool,
     /// Extra directories prepended to PATH for this subprocess.
     pub path_prefix: Vec<String>,
+    /// Additional environment variables passed only to this subprocess.
+    pub env: Vec<(String, String)>,
 }
 
 impl ProcessCommand {
@@ -20,12 +22,19 @@ impl ProcessCommand {
             sudo: false,
             capture_stdout: false,
             path_prefix: vec![],
+            env: vec![],
         }
     }
 
     /// Prepend directories to PATH when spawning this subprocess.
     pub fn with_path_prefix(mut self, dirs: impl IntoIterator<Item = impl Into<String>>) -> Self {
         self.path_prefix = dirs.into_iter().map(Into::into).collect();
+        self
+    }
+
+    /// Set additional environment variables for this subprocess.
+    pub fn with_env(mut self, key: impl Into<String>, value: impl Into<String>) -> Self {
+        self.env.push((key.into(), value.into()));
         self
     }
 

@@ -23,7 +23,6 @@ pnpm = "10.33.2"
 "npm:@github/copilot-language-server" = "1.483.0"
 "npm:copilot-node-server"             = "1.41.0"
 "cargo:kdlfmt"      = "latest"
-"cargo:codebook-lsp" = "latest"
 "npm:lua-fmt"        = "2.6.0"
 {{ end -}}
 
@@ -51,9 +50,7 @@ pnpm = "10.33.2"
 "npm:yalc"                      = "1.0.0-pre.53"
 {{ end -}}
 
-{{ if index $f "go" -}}
-"go:golang.org/x/tools/gopls" = "latest"
-{{ end -}}
+
 
 {{ if index $f "python" -}}
 "pipx:basedpyright" = "latest"

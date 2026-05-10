@@ -119,10 +119,9 @@ impl NixSyncBackend {
             )
         };
 
-        self.runtime.executor.execute(
-            ProcessCommand::run(cmd, args)
-                .with_path_prefix(self.nix_path_prefix()),
-        )?;
+        self.runtime
+            .executor
+            .execute(ProcessCommand::run(cmd, args).with_path_prefix(self.nix_path_prefix()))?;
         Ok(())
     }
 

@@ -26,6 +26,8 @@ in
       eza
       fastfetch
       direnv
+
+      codebook
     ];
   };
 }

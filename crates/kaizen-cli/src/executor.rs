@@ -38,6 +38,9 @@ fn base_command(cmd: &ProcessCommand) -> std::process::Command {
     if let Some(path) = effective_path(cmd) {
         c.env("PATH", path);
     }
+    for (k, v) in &cmd.env {
+        c.env(k, v);
+    }
     c
 }
 
@@ -50,13 +53,17 @@ fn sudo_command(cmd: &ProcessCommand) -> Result<std::process::Command, KaizenErr
     let bin_path =
         which::which(&cmd.bin).map_err(|e| std::io::Error::new(std::io::ErrorKind::NotFound, e))?;
 
-    let path_val = effective_path(cmd)
-        .unwrap_or_else(|| std::env::var("PATH").unwrap_or_default());
+    let path_val = effective_path(cmd).unwrap_or_else(|| std::env::var("PATH").unwrap_or_default());
 
     let mut c = std::process::Command::new("sudo");
     c.arg("-p").arg("[kaizen] sudo password: ");
+    c.arg("env");
     // Pass PATH explicitly so sudo child inherits nix profile dirs.
-    c.arg("env").arg(format!("PATH={path_val}"));
+    c.arg(format!("PATH={path_val}"));
+    // Forward extra env vars so they survive sudo's secure_path stripping.
+    for (k, v) in &cmd.env {
+        c.arg(format!("{k}={v}"));
+    }
     c.arg(bin_path).args(&cmd.args);
     Ok(c)
 }
