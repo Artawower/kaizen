@@ -22,3 +22,10 @@ e2e:
 # Uninstall Nix from macOS (pass --dry-run to preview)
 nix-uninstall *args:
     bash scripts/nix-uninstall-macos.sh {{args}}
+
+
+kaizen_dir := justfile_directory()
+
+dev-link:
+    ln -s "{{kaizen_dir}}" ~/.local/share/chezmoi
+
