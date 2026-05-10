@@ -11,7 +11,12 @@ use std::sync::Arc;
 
 use crate::{ensure, filesystem::StdFileSystem, output, selector};
 
-pub fn run(explicit_features_dir: Option<&Path>, config_path: &Path) -> Result<()> {
+/// Run the interactive configuration wizard.
+///
+/// When `prompt_next` is `true` (standalone `kaizen configure`) the user is
+/// offered a "What next?" prompt at the end.  When called from `kaizen install`
+/// pass `false` — install handles syncing itself (with `--force`).
+pub fn run(explicit_features_dir: Option<&Path>, config_path: &Path, prompt_next: bool) -> Result<()> {
     output::page_header("configure");
     ensure::ensure_chezmoi()?;
 
@@ -36,7 +41,7 @@ pub fn run(explicit_features_dir: Option<&Path>, config_path: &Path) -> Result<(
     let layout = pick_layout(existing.as_ref())?;
 
     let toml = render_config(&features, &selected, &layout, &dotfiles_url);
-    if write_config(config_path, &toml)? {
+    if write_config(config_path, &toml)? && prompt_next {
         prompt_next_action(&engine, config_path)?;
     }
     Ok(())

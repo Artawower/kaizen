@@ -20,7 +20,6 @@ pub fn run(
     features_dir: Option<&Path>,
     config_path: &Path,
     dry_run: bool,
-    force: bool,
 ) -> Result<()> {
     let config_exists = config_path.exists();
     let chezmoi_ready = StdChezmoiClient.source_path().unwrap_or(None).is_some();
@@ -33,11 +32,13 @@ pub fn run(
         }
         println!();
         output::page_header("install — configure");
-        commands::configure::run(features_dir, config_path)?;
+        commands::configure::run(features_dir, config_path, false)?;
         println!();
     } else {
         output::item_ok("config and dotfiles found — skipping configure");
     }
 
-    commands::sync::run(engine, config_path, dry_run, force)
+    // install is a first-time setup command — always force-apply dotfiles
+    // so chezmoi never prompts about locally modified managed files.
+    commands::sync::run(engine, config_path, dry_run, true)
 }
