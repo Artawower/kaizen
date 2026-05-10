@@ -39,11 +39,22 @@ pub trait ChezmoiClient: Send + Sync {
     /// When `.chezmoiroot` is in effect, `source_path()` returns a subdirectory.
     /// This method walks up to the git root so that the whole clone is targeted,
     /// not just the subdirectory. Falls back to `source_path()` for non-git sources.
+    /// Return the physical repository root for destructive operations.
+    ///
+    /// Unlike `source_path()` this does **not** require the effective source
+    /// path to exist on disk, so it works even when the `.chezmoiroot`
+    /// subdirectory is missing (stale clone).  The root is resolved via
+    /// `resolve_source_root()` starting from the parent of the raw path.
     fn source_root(&self) -> Result<Option<PathBuf>, KaizenError> {
-        let Some(p) = self.source_path()? else {
+        let Some(p) = self.raw_source_path()? else {
             return Ok(None);
         };
-        Ok(Some(self.resolve_source_root(&p)))
+        let search_from = if p.exists() {
+            p.clone()
+        } else {
+            p.parent().unwrap_or(&p).to_owned()
+        };
+        Ok(Some(self.resolve_source_root(&search_from)))
     }
 
     /// Resolve the physical root from an effective source path.
