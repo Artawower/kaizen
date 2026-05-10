@@ -1,0 +1,9 @@
+[[steps]]
+name = "mise"
+run = ["mise", "upgrade", "--bump"]
+capture = ["~/.config/mise.lock"]
+
+[[steps]]
+name = "nix"
+run = ["nix", "flake", "update", "--flake", "~/.config/nix"]
+capture = ["~/.config/nix/flake.lock"]

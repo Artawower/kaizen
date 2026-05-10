@@ -2,6 +2,7 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 pub mod backends;
+pub mod bump;
 pub mod chezmoi;
 pub mod chezmoi_client;
 pub mod config;

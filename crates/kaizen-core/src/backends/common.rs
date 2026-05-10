@@ -38,12 +38,10 @@ pub fn chezmoi_write_and_apply(
     // chezmoi source is a real clone, not a developer symlink.  When it is a
     // symlink the developer manages their own VCS and a silent pull would
     // overwrite uncommitted work.
-    if !client.source_is_dev_symlink() {
-        if let Some(source) = client.source_path()? {
-            if let Some(git_root) = source.parent() {
-                let _ = client.pull_source(git_root); // non-fatal: offline / no remote is fine
-            }
-        }
+    if let Some(source) = client.source_path()? {
+        // The adapter decides whether to pull (symlink, git root detection,
+        // offline tolerance). Non-fatal: diverge / no-remote is fine.
+        let _ = client.pull_source(&source);
     }
 
     // Write features data and manifest to ~/.config/kaizen/.
@@ -51,6 +49,7 @@ pub fn chezmoi_write_and_apply(
     // Nix options.nix reads manifest.toml via builtins.fromTOML.
     let data_path = write_kaizen_data(plan, paths, fs)?;
     copy_manifest_to_config(client, paths, fs)?;
+    copy_bump_manifest_to_config(client, paths, fs)?;
 
     reporter.step("→ chezmoi apply");
     client.apply(force)?;
@@ -80,6 +79,33 @@ fn write_kaizen_data(
 /// Copy `manifest.toml` from the chezmoi source to `~/.config/kaizen/manifest.toml`
 /// so that Nix `options.nix` can read it via `builtins.fromTOML` at eval time.
 /// No-op when the chezmoi source is unavailable (e.g. first bootstrap).
+fn copy_bump_manifest_to_config(
+    client: &dyn crate::chezmoi_client::ChezmoiClient,
+    paths: &dyn crate::paths::PathProvider,
+    fs: &dyn FileSystem,
+) -> Result<(), KaizenError> {
+    let Some(source) = client.source_path()? else {
+        return Ok(());
+    };
+    let src = source
+        .join(crate::manifest::KAIZEN_DIR)
+        .join(crate::bump::BUMP_MANIFEST_FILE);
+    if !fs.exists(&src) {
+        return Ok(());
+    }
+    let content = fs.read_to_string(&src)?;
+    let kaizen_dir = paths
+        .config_dir()
+        .ok_or(KaizenError::HomeDirUnavailable)?
+        .join("kaizen");
+    fs.create_dir_all(&kaizen_dir)?;
+    fs.write(
+        &kaizen_dir.join(crate::bump::BUMP_MANIFEST_FILE),
+        content.as_bytes(),
+    )?;
+    Ok(())
+}
+
 fn copy_manifest_to_config(
     client: &dyn crate::chezmoi_client::ChezmoiClient,
     paths: &dyn crate::paths::PathProvider,

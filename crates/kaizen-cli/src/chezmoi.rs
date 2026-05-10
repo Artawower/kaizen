@@ -23,6 +23,12 @@ use kaizen_core::{
 /// (e.g. `~` or `~/.local/share`), leading to catastrophic destructive ops.
 /// For chezmoi with `.chezmoiroot` the repo root is always exactly one level
 /// above the effective source path, so one-level search is sufficient.
+fn is_symlink(path: &Path) -> bool {
+    path.symlink_metadata()
+        .map(|m| m.file_type().is_symlink())
+        .unwrap_or(false)
+}
+
 pub fn git_root(dir: &Path) -> Option<PathBuf> {
     // Case 1: dir itself is the git root.
     if dir.join(".git").exists() {
@@ -95,30 +101,37 @@ impl ChezmoiClient for StdChezmoiClient {
         git_root(effective).unwrap_or_else(|| effective.to_owned())
     }
 
-    fn source_is_dev_symlink(&self) -> bool {
-        dirs::home_dir()
-            .map(|h| h.join(".local/share/chezmoi"))
-            .and_then(|p| p.symlink_metadata().ok())
-            .map(|m| m.file_type().is_symlink())
-            .unwrap_or(false)
-    }
+    fn pull_source(&self, source: &Path) -> Result<(), KaizenError> {
+        // Skip pull when the source itself or the XDG chezmoi dir is a symlink:
+        // the owner manages their own VCS.
+        let default_chezmoi_dir = dirs::home_dir().map(|h| h.join(".local/share/chezmoi"));
+        if is_symlink(source)
+            || default_chezmoi_dir
+                .as_deref()
+                .map(is_symlink)
+                .unwrap_or(false)
+        {
+            return Ok(());
+        }
 
-    fn pull_source(&self, git_root: &Path) -> Result<(), KaizenError> {
+        // Locate the git root via the same safe one-level search used elsewhere.
+        let root = git_root(source).ok_or_else(|| KaizenError::GitPullFailed {
+            path: source.to_owned(),
+        })?;
+
         let status = Command::new("git")
             .args([
                 "-C",
-                &git_root.to_string_lossy(),
+                &root.to_string_lossy(),
                 "pull",
                 "--ff-only",
                 "--quiet",
             ])
-            .stdout(std::process::Stdio::null())
-            .stderr(std::process::Stdio::null())
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
             .status()?;
         if !status.success() {
-            return Err(KaizenError::GitPullFailed {
-                path: git_root.to_owned(),
-            });
+            return Err(KaizenError::GitPullFailed { path: root });
         }
         Ok(())
     }

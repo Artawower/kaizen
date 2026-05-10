@@ -60,7 +60,10 @@ enum Command {
     Sync {
         #[arg(long, help = "Preview without executing")]
         dry_run: bool,
-        #[arg(long, help = "Overwrite locally modified managed files without prompting")]
+        #[arg(
+            long,
+            help = "Overwrite locally modified managed files without prompting"
+        )]
         force: bool,
     },
 
@@ -106,14 +109,17 @@ enum Command {
         dry_run: bool,
     },
 
-    /// Upgrade tool versions and re-add lock/config files to the chezmoi source.
-    /// Maintainer command: bumps mise + nix flake inputs, then re-adds locks to chezmoi.
-    #[command(hide = true)]
+    /// Upgrade version pins and save lock files back to the chezmoi source.
+    ///
+    /// Steps are defined in ~/.config/kaizen/bump.toml.
+    /// After bumping, commit the changed lock files with your VCS.
     Bump {
-        #[arg(long, help = "Update only nix flake inputs (default: all)")]
-        nix: bool,
-        #[arg(long, help = "Bump only mise tool versions (default: all)")]
-        mise: bool,
+        #[arg(
+            long,
+            value_name = "STEP",
+            help = "Run only the named step(s) (e.g. --only mise --only nix)"
+        )]
+        only: Vec<String>,
         #[arg(long, help = "Preview without executing")]
         dry_run: bool,
     },
@@ -159,7 +165,9 @@ fn main() -> Result<()> {
     match cli.command {
         Command::Configure | Command::Install { .. } => unreachable!(),
         Command::Features => commands::features::run(&engine)?,
-        Command::Sync { dry_run, force } => commands::sync::run(&engine, &config_path, dry_run, force)?,
+        Command::Sync { dry_run, force } => {
+            commands::sync::run(&engine, &config_path, dry_run, force)?
+        }
         Command::Apply { dry_run } => commands::apply::run(&engine, &config_path, dry_run)?,
         Command::Update {
             interactive,
@@ -173,10 +181,9 @@ fn main() -> Result<()> {
         }
         Command::Doctor => commands::doctor::run(&engine, &config_path)?,
         Command::SelfUpdate { dry_run } => commands::self_update::run(dry_run)?,
-        Command::Bump { nix, mise, dry_run } => {
+        Command::Bump { only, dry_run } => {
             commands::bump::run(
-                nix,
-                mise,
+                &only,
                 dry_run,
                 &StdProcessExecutor,
                 &StdPathProvider,

@@ -113,7 +113,7 @@ fn bootstrap_chezmoi(url: &str) -> Result<PathBuf> {
             ));
             use kaizen_core::ChezmoiClient as _;
             crate::chezmoi::StdChezmoiClient
-                .pull_source(&git_root)
+                .pull_source(&git_root) // adapter locates git root & handles symlink check
                 .context("failed to update dotfiles source")?;
             if !expected_source.exists() {
                 anyhow::bail!(

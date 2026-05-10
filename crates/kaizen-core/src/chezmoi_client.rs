@@ -46,14 +46,11 @@ pub trait ChezmoiClient: Send + Sync {
         effective.to_owned()
     }
 
-    fn pull_source(&self, git_root: &Path) -> Result<(), KaizenError>;
-
-    /// Returns `true` when the chezmoi source directory is a symlink to an
-    /// external location (developer working copy).  In that case automatic
-    /// `git pull` should be skipped — the developer manages their own VCS.
-    fn source_is_dev_symlink(&self) -> bool {
-        false
-    }
+    /// Pull the latest changes from the upstream remote.
+    /// Accepts the *effective source path* (as returned by `source_path()`);
+    /// the adapter is responsible for locating the git root and deciding
+    /// whether a pull is appropriate (e.g. skipping symlinked sources).
+    fn pull_source(&self, source: &Path) -> Result<(), KaizenError>;
 
     fn current_remote(&self, source_dir: &Path) -> Result<Option<String>, KaizenError>;
     fn init_source(&self, url: &str) -> Result<(), KaizenError>;
