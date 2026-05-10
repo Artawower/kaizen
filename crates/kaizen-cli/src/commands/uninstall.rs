@@ -177,24 +177,40 @@ fn guard_against_dangerous_removal(path: &Path) -> Result<()> {
             path.display()
         );
     }
-    // Home directory.
-    if let Some(home) = dirs::home_dir() {
-        if path == home || path.canonicalize().ok().as_deref() == Some(&home) {
+
+    let home = dirs::home_dir();
+
+    // Home directory itself.
+    if let Some(ref h) = home {
+        if path == h || path.canonicalize().ok().as_deref() == Some(h.as_path()) {
             anyhow::bail!(
                 "refusing to remove '{}' — this is your home directory",
                 path.display()
             );
         }
     }
-    // Any path outside $HOME is also suspicious for a chezmoi source.
-    if let Some(home) = dirs::home_dir() {
-        if !path.starts_with(&home) {
+
+    // Must be inside $HOME.
+    if let Some(ref h) = home {
+        if !path.starts_with(h) {
             anyhow::bail!(
                 "refusing to remove '{}' — chezmoi source should be inside $HOME",
                 path.display()
             );
         }
     }
+
+    // If the path exists on disk it must be a git repository.
+    // This catches cases where git_root() fell back to a non-chezmoi
+    // ancestor (e.g. ~/.local/share when the actual repo was deleted).
+    if path.exists() && !path.join(".git").exists() {
+        anyhow::bail!(
+            "refusing to remove '{}' — not a git repository \
+             (chezmoi source should be a git clone; run `chezmoi source-path` to verify)",
+            path.display()
+        );
+    }
+
     Ok(())
 }
 
@@ -208,11 +224,7 @@ fn uninstall_nix() -> Result<()> {
         ("/nix/nix-installer", &["uninstall"]),
         // 2. Determinate Systems installer if it ended up in PATH
         ("nix-installer", &["uninstall"]),
-        // 3. Official Nix uninstall script (works independently of receipts)
-        (
-            "sh",
-            &["-c", "curl -fsSL https://nixos.org/nix/uninstall | sh"],
-        ),
+
     ];
 
     for (cmd, args) in attempts {
