@@ -15,6 +15,7 @@ use crate::{
 pub fn chezmoi_write_and_apply(
     plan: &ConfigPlan,
     dry_run: bool,
+    force: bool,
     reporter: &dyn ProgressReporter,
     client: &dyn ChezmoiClient,
     fs: &dyn FileSystem,
@@ -39,7 +40,7 @@ pub fn chezmoi_write_and_apply(
     let data_path = write_kaizen_data(plan, paths, fs)?;
 
     reporter.step("→ chezmoi apply");
-    client.apply()?;
+    client.apply(force)?;
 
     Ok(ApplyReport {
         data_path: Some(data_path),

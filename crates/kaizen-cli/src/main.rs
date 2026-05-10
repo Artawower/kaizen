@@ -48,6 +48,8 @@ enum Command {
     Install {
         #[arg(long, help = "Preview sync without executing")]
         dry_run: bool,
+        #[arg(long, help = "Overwrite locally modified managed files without prompting")]
+        force: bool,
     },
 
     /// Interactively configure kaizen: pick features, dotfiles URL, keyboard layout.
@@ -60,6 +62,8 @@ enum Command {
     Sync {
         #[arg(long, help = "Preview without executing")]
         dry_run: bool,
+        #[arg(long, help = "Overwrite locally modified managed files without prompting")]
+        force: bool,
     },
 
     /// Apply dotfiles via chezmoi + mise install.
@@ -126,7 +130,7 @@ fn main() -> Result<()> {
         let features_dir_opt = features_dir_path.as_deref();
         return match cli.command {
             Command::Configure => commands::configure::run(features_dir_opt, &config_path),
-            Command::Install { dry_run } => {
+            Command::Install { dry_run, force } => {
                 let features_dir = kaizen_core::resolve_features_dir(
                     cli.features_dir,
                     &reporter,
@@ -134,7 +138,7 @@ fn main() -> Result<()> {
                     &StdFileSystem,
                 )?;
                 let engine = kaizen_core::KaizenEngine::new(&features_dir, Arc::new(StdFileSystem));
-                commands::install::run(&engine, features_dir_opt, &config_path, dry_run)
+                commands::install::run(&engine, features_dir_opt, &config_path, dry_run, force)
             }
             _ => unreachable!(),
         };
@@ -151,7 +155,7 @@ fn main() -> Result<()> {
     match cli.command {
         Command::Configure | Command::Install { .. } => unreachable!(),
         Command::Features => commands::features::run(&engine)?,
-        Command::Sync { dry_run } => commands::sync::run(&engine, &config_path, dry_run)?,
+        Command::Sync { dry_run, force } => commands::sync::run(&engine, &config_path, dry_run, force)?,
         Command::Apply { dry_run } => commands::apply::run(&engine, &config_path, dry_run)?,
         Command::Update {
             interactive,

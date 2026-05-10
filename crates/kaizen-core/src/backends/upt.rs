@@ -94,6 +94,7 @@ impl ApplyBackend for UptSyncBackend {
         common::chezmoi_write_and_apply(
             &plan.config_plan,
             opts.dry_run,
+            opts.force,
             reporter,
             self.runtime.chezmoi.as_ref(),
             self.runtime.fs.as_ref(),
@@ -281,7 +282,7 @@ mod tests {
         let backend = mock_backend(TargetOs::Darwin);
         let plan = plan_with_programs(&["git", "ripgrep"]);
         let report = backend
-            .install(&plan, &SyncOpts { dry_run: true }, &NoopReporter)
+            .install(&plan, &SyncOpts { dry_run: true, ..Default::default() }, &NoopReporter)
             .unwrap();
         assert!(!report.steps.is_empty());
         assert!(report.steps[0].contains("git"));
@@ -292,7 +293,7 @@ mod tests {
         let backend = mock_backend(TargetOs::Darwin);
         let plan = empty_plan();
         let report = backend
-            .install(&plan, &SyncOpts { dry_run: true }, &NoopReporter)
+            .install(&plan, &SyncOpts { dry_run: true, ..Default::default() }, &NoopReporter)
             .unwrap();
         assert!(report.steps.is_empty());
     }

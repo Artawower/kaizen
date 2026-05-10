@@ -117,11 +117,13 @@ impl ChezmoiClient for StdChezmoiClient {
         Ok(())
     }
 
-    fn apply(&self) -> Result<(), KaizenError> {
-        let mut child = Command::new("chezmoi")
-            .arg("apply")
-            .stderr(Stdio::piped())
-            .spawn()?;
+    fn apply(&self, force: bool) -> Result<(), KaizenError> {
+        let mut cmd = Command::new("chezmoi");
+        cmd.arg("apply").stderr(Stdio::piped());
+        if force {
+            cmd.arg("--force");
+        }
+        let mut child = cmd.spawn()?;
         let stderr_bytes = child
             .stderr
             .take()

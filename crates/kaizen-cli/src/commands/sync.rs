@@ -7,16 +7,17 @@ use crate::backend::detect_backend;
 
 use crate::{output, reporter::StderrReporter};
 
-pub fn run(engine: &KaizenEngine, config_path: &Path, dry_run: bool) -> Result<()> {
+pub fn run(engine: &KaizenEngine, config_path: &Path, dry_run: bool, force: bool) -> Result<()> {
     let os = TargetOs::detect();
     let backend = detect_backend(os);
-    run_with(engine, config_path, dry_run, backend.as_ref())
+    run_with(engine, config_path, dry_run, force, backend.as_ref())
 }
 
 fn run_with(
     engine: &KaizenEngine,
     config_path: &Path,
     dry_run: bool,
+    force: bool,
     backend: &dyn SyncBackend,
 ) -> Result<()> {
     output::page_header(if dry_run { "sync  (dry-run)" } else { "sync" });
@@ -41,7 +42,7 @@ fn run_with(
         return Ok(());
     }
 
-    backend.sync(&plan, &SyncOpts { dry_run: false }, &StderrReporter)?;
+    backend.sync(&plan, &SyncOpts { dry_run: false, force }, &StderrReporter)?;
 
     println!();
     output::item_ok("sync complete");
@@ -164,6 +165,7 @@ mod tests {
             &engine,
             &fixture_path("config-minimal.toml"),
             true,
+            false,
             &backend,
         )
         .unwrap();
@@ -177,6 +179,7 @@ mod tests {
         run_with(
             &engine,
             &fixture_path("config-minimal.toml"),
+            false,
             false,
             &backend,
         )

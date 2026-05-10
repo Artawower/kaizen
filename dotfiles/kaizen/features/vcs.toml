@@ -1,0 +1,6 @@
+[meta]
+description = "Version control tools (gitu TUI, git-trim)"
+
+[mise.tools]
+"cargo:gitu"   = "latest"
+"npm:git-trim" = "0.2.1"

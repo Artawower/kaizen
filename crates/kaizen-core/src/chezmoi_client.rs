@@ -43,7 +43,10 @@ pub trait ChezmoiClient: Send + Sync {
     fn init_source(&self, url: &str) -> Result<(), KaizenError>;
 
     /// Run `chezmoi apply` (with stderr captured for error messages).
-    fn apply(&self) -> Result<(), KaizenError>;
+    ///
+    /// When `force` is true, passes `--force` to chezmoi so locally modified
+    /// managed files are overwritten without prompting.
+    fn apply(&self, force: bool) -> Result<(), KaizenError>;
 
     /// Remove dotfiles from disk. Dry-run collects the plan without deleting.
     fn remove_files(
@@ -86,7 +89,7 @@ impl ChezmoiClient for NoopChezmoiClient {
     fn init_source(&self, _: &str) -> Result<(), KaizenError> {
         Ok(())
     }
-    fn apply(&self) -> Result<(), KaizenError> {
+    fn apply(&self, _force: bool) -> Result<(), KaizenError> {
         Ok(())
     }
     fn remove_files(&self, files: &[PathBuf], _: bool) -> Result<RemoveFilesReport, KaizenError> {

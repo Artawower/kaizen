@@ -169,7 +169,7 @@ mod tests {
             Ok(())
         }
 
-        fn apply(&self) -> Result<(), KaizenError> {
+        fn apply(&self, _force: bool) -> Result<(), KaizenError> {
             Ok(())
         }
 

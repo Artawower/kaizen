@@ -3,6 +3,8 @@ use crate::{progress::ProgressReporter, KaizenError, WorkflowPlan};
 #[derive(Debug, Clone, Default)]
 pub struct SyncOpts {
     pub dry_run: bool,
+    /// Overwrite locally modified managed files without prompting.
+    pub force: bool,
 }
 
 #[derive(Debug, Clone, Default)]

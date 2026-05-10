@@ -1,10 +1,22 @@
 use std::path::PathBuf;
 
 fn chezmoi_apply_message(code: &Option<i32>, reason: &Option<String>) -> String {
-    match reason {
-        Some(r) => format!(
-            "chezmoi apply failed\n\n{r}\n\nHint: a template references a missing key — run 'kaizen configure' or check ~/.config/kaizen/data.toml.\nRun 'kaizen configure' or add the missing key manually."
-        ),
+    match reason.as_deref() {
+        Some(r) if r.contains("could not open a new TTY") || r.contains("has changed since chezmoi") => {
+            format!(
+                "chezmoi apply failed: managed files have local changes\n\n\
+                 Run `kaizen sync --force` (or `kaizen install --force`) to overwrite.\n\n\
+                 Details: {r}"
+            )
+        }
+        Some(r) if r.contains("map has no entry for key") => {
+            format!(
+                "chezmoi apply failed\n\n{r}\n\n\
+                 Hint: a template references a missing feature key.\n\
+                 Run 'kaizen configure' or check ~/.config/kaizen/data.toml."
+            )
+        }
+        Some(r) => format!("chezmoi apply failed\n\n{r}"),
         None => format!("chezmoi apply failed with exit code {code:?}"),
     }
 }

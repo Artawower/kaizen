@@ -191,6 +191,7 @@ impl ApplyBackend for NixSyncBackend {
         common::chezmoi_write_and_apply(
             &plan.config_plan,
             opts.dry_run,
+            opts.force,
             reporter,
             self.runtime.chezmoi.as_ref(),
             self.runtime.fs.as_ref(),
@@ -226,6 +227,7 @@ impl UpdateBackend for NixSyncBackend {
             plan,
             &SyncOpts {
                 dry_run: opts.dry_run,
+                ..Default::default()
             },
             reporter,
         )?;
@@ -357,7 +359,7 @@ mod tests {
         let backend = mock_backend(TargetOs::Darwin);
         let plan = empty_plan(TargetOs::Darwin);
         let report = backend
-            .install(&plan, &SyncOpts { dry_run: true }, &NoopReporter)
+            .install(&plan, &SyncOpts { dry_run: true, ..Default::default() }, &NoopReporter)
             .unwrap();
         assert!(!report.steps.is_empty());
     }
@@ -367,7 +369,7 @@ mod tests {
         let backend = mock_backend(TargetOs::Darwin);
         let plan = empty_plan(TargetOs::Darwin);
         let report = backend
-            .install(&plan, &SyncOpts { dry_run: true }, &NoopReporter)
+            .install(&plan, &SyncOpts { dry_run: true, ..Default::default() }, &NoopReporter)
             .unwrap();
         assert!(
             report.steps.iter().any(|s| s.contains("darwin-rebuild")),
@@ -380,7 +382,7 @@ mod tests {
         let backend = mock_backend(TargetOs::Linux);
         let plan = empty_plan(TargetOs::Linux);
         let report = backend
-            .install(&plan, &SyncOpts { dry_run: true }, &NoopReporter)
+            .install(&plan, &SyncOpts { dry_run: true, ..Default::default() }, &NoopReporter)
             .unwrap();
         assert!(
             report.steps.iter().all(|s| !s.contains("darwin-rebuild")),

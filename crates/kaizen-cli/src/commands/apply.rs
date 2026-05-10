@@ -32,7 +32,7 @@ fn run_with<B: ApplyBackend + PostApplyBackend + ?Sized>(
     output::kv("backend", backend_id);
     println!();
 
-    let opts = SyncOpts { dry_run };
+    let opts = SyncOpts { dry_run, ..Default::default() };
 
     if dry_run {
         let preview = backend.apply_preview(&plan);

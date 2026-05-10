@@ -188,7 +188,7 @@ fn prompt_next_action(engine: &KaizenEngine, config_path: &Path) -> Result<()> {
 
     println!();
     match idx {
-        0 => super::sync::run(engine, config_path, false),
+        0 => super::sync::run(engine, config_path, false, false),
         1 => super::plan::run(engine, config_path, false),
         _ => Ok(()),
     }
