@@ -71,10 +71,38 @@ impl NixSyncBackend {
         let user = self.current_user()?;
         let nix_dir = self.nix_config_dir()?;
         let flake = format!("{}#{}@{}", nix_dir.display(), user, self.flake_host());
-        self.runtime.executor.execute(ProcessCommand::run(
-            "home-manager",
-            ["switch", "--flake", &flake, "--impure"],
-        ))?;
+
+        // Prefer the installed home-manager binary; fall back to `nix run`
+        // on a fresh system where home-manager is not yet in PATH.
+        let hm_in_path = std::process::Command::new("home-manager")
+            .arg("--version")
+            .output()
+            .map(|o| o.status.success())
+            .unwrap_or(false);
+
+        let (cmd, args): (&str, Vec<&str>) = if hm_in_path {
+            (
+                "home-manager",
+                vec!["switch", "--flake", &flake, "--impure"],
+            )
+        } else {
+            (
+                "nix",
+                vec![
+                    "run",
+                    "nixpkgs#home-manager",
+                    "--",
+                    "switch",
+                    "--flake",
+                    &flake,
+                    "--impure",
+                ],
+            )
+        };
+
+        self.runtime
+            .executor
+            .execute(ProcessCommand::run(cmd, args))?;
         Ok(())
     }
 
@@ -154,7 +182,16 @@ impl InstallBackend for NixSyncBackend {
             });
         }
 
-        if self.os == TargetOs::Darwin {
+        // darwin-rebuild is only available after nix-darwin is bootstrapped.
+        // On a fresh Nix install it is not yet present; skip it and let
+        // home-manager handle the first switch via `nix run` fallback.
+        let darwin_rebuild_available = std::process::Command::new("darwin-rebuild")
+            .arg("--version")
+            .output()
+            .map(|o| o.status.success())
+            .unwrap_or(false);
+
+        if self.os == TargetOs::Darwin && darwin_rebuild_available {
             reporter.step("→ darwin-rebuild switch");
             self.run_darwin_rebuild()?;
         }

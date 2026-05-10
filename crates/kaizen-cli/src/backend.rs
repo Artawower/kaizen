@@ -66,5 +66,10 @@ fn detect_generic_linux_pm() -> PackageManagerKind {
 }
 
 fn nix_available() -> bool {
-    which::which("home-manager").is_ok() || which::which("darwin-rebuild").is_ok()
+    // home-manager / darwin-rebuild are only in PATH after the first
+    // successful switch.  On a fresh install we only have the base `nix`
+    // binary — that is sufficient to bootstrap via `nix run`.
+    which::which("home-manager").is_ok()
+        || which::which("darwin-rebuild").is_ok()
+        || which::which("nix").is_ok()
 }
