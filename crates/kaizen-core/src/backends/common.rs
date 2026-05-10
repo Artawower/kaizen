@@ -34,10 +34,11 @@ pub fn chezmoi_write_and_apply(
         client.init_source(url)?;
     }
 
-    // Write features data to the single canonical location.
-    // chezmoi templates read from here via `include | fromToml`;
-    // Nix reads from here too — no duplication, no path coupling.
+    // Write features data and manifest to ~/.config/kaizen/.
+    // chezmoi templates read data.toml via `include | fromToml`;
+    // Nix options.nix reads manifest.toml via builtins.fromTOML.
     let data_path = write_kaizen_data(plan, paths, fs)?;
+    copy_manifest_to_config(client, paths, fs)?;
 
     reporter.step("→ chezmoi apply");
     client.apply(force)?;
@@ -62,6 +63,33 @@ fn write_kaizen_data(
     let content = merge_kaizen_data_with(&data_path, plan, fs)?;
     fs.write(&data_path, content.as_bytes())?;
     Ok(data_path)
+}
+
+/// Copy `manifest.toml` from the chezmoi source to `~/.config/kaizen/manifest.toml`
+/// so that Nix `options.nix` can read it via `builtins.fromTOML` at eval time.
+/// No-op when the chezmoi source is unavailable (e.g. first bootstrap).
+fn copy_manifest_to_config(
+    client: &dyn crate::chezmoi_client::ChezmoiClient,
+    paths: &dyn crate::paths::PathProvider,
+    fs: &dyn FileSystem,
+) -> Result<(), KaizenError> {
+    let Some(source) = client.source_path()? else {
+        return Ok(());
+    };
+    let src = source
+        .join(crate::manifest::KAIZEN_DIR)
+        .join("manifest.toml");
+    if !fs.exists(&src) {
+        return Ok(());
+    }
+    let content = fs.read_to_string(&src)?;
+    let kaizen_dir = paths
+        .config_dir()
+        .ok_or(KaizenError::HomeDirUnavailable)?
+        .join("kaizen");
+    fs.create_dir_all(&kaizen_dir)?;
+    fs.write(&kaizen_dir.join("manifest.toml"), content.as_bytes())?;
+    Ok(())
 }
 
 pub fn os_cache_clean(

@@ -282,7 +282,14 @@ mod tests {
         let backend = mock_backend(TargetOs::Darwin);
         let plan = plan_with_programs(&["git", "ripgrep"]);
         let report = backend
-            .install(&plan, &SyncOpts { dry_run: true, ..Default::default() }, &NoopReporter)
+            .install(
+                &plan,
+                &SyncOpts {
+                    dry_run: true,
+                    ..Default::default()
+                },
+                &NoopReporter,
+            )
             .unwrap();
         assert!(!report.steps.is_empty());
         assert!(report.steps[0].contains("git"));
@@ -293,7 +300,14 @@ mod tests {
         let backend = mock_backend(TargetOs::Darwin);
         let plan = empty_plan();
         let report = backend
-            .install(&plan, &SyncOpts { dry_run: true, ..Default::default() }, &NoopReporter)
+            .install(
+                &plan,
+                &SyncOpts {
+                    dry_run: true,
+                    ..Default::default()
+                },
+                &NoopReporter,
+            )
             .unwrap();
         assert!(report.steps.is_empty());
     }

@@ -359,7 +359,14 @@ mod tests {
         let backend = mock_backend(TargetOs::Darwin);
         let plan = empty_plan(TargetOs::Darwin);
         let report = backend
-            .install(&plan, &SyncOpts { dry_run: true, ..Default::default() }, &NoopReporter)
+            .install(
+                &plan,
+                &SyncOpts {
+                    dry_run: true,
+                    ..Default::default()
+                },
+                &NoopReporter,
+            )
             .unwrap();
         assert!(!report.steps.is_empty());
     }
@@ -369,7 +376,14 @@ mod tests {
         let backend = mock_backend(TargetOs::Darwin);
         let plan = empty_plan(TargetOs::Darwin);
         let report = backend
-            .install(&plan, &SyncOpts { dry_run: true, ..Default::default() }, &NoopReporter)
+            .install(
+                &plan,
+                &SyncOpts {
+                    dry_run: true,
+                    ..Default::default()
+                },
+                &NoopReporter,
+            )
             .unwrap();
         assert!(
             report.steps.iter().any(|s| s.contains("darwin-rebuild")),
@@ -382,7 +396,14 @@ mod tests {
         let backend = mock_backend(TargetOs::Linux);
         let plan = empty_plan(TargetOs::Linux);
         let report = backend
-            .install(&plan, &SyncOpts { dry_run: true, ..Default::default() }, &NoopReporter)
+            .install(
+                &plan,
+                &SyncOpts {
+                    dry_run: true,
+                    ..Default::default()
+                },
+                &NoopReporter,
+            )
             .unwrap();
         assert!(
             report.steps.iter().all(|s| !s.contains("darwin-rebuild")),

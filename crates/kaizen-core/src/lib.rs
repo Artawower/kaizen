@@ -110,10 +110,7 @@ impl KaizenEngine {
 
     /// Load manifest from the `kaizen/` directory (parent of `features/`).
     fn load_manifest(&self) -> Result<manifest::KaizenManifest, KaizenError> {
-        let kaizen_dir = self
-            .features_dir
-            .parent()
-            .unwrap_or(&self.features_dir);
+        let kaizen_dir = self.features_dir.parent().unwrap_or(&self.features_dir);
         manifest::load_with(kaizen_dir, self.fs.as_ref())
     }
 
@@ -292,10 +289,13 @@ description = "version control tooling"
         );
         let engine = KaizenEngine::new(features_dir, fs);
         let meta = engine.list_features_with_meta().unwrap();
-        assert_eq!(meta, vec![
-            ("core".to_owned(), Some("core CLI tools".to_owned())),
-            ("vcs".to_owned(),  Some("version control tooling".to_owned())),
-        ]);
+        assert_eq!(
+            meta,
+            vec![
+                ("core".to_owned(), Some("core CLI tools".to_owned())),
+                ("vcs".to_owned(), Some("version control tooling".to_owned())),
+            ]
+        );
     }
 
     #[test]

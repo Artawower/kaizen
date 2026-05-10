@@ -77,7 +77,10 @@ pub fn build_plan(
     // not selected. Templates and Nix configs rely on a complete map.
     // Source of truth: manifest (via all_feature_names), or store as fallback.
     for name in all_feature_names {
-        config_plan.features_data.entry(name.clone()).or_insert(false);
+        config_plan
+            .features_data
+            .entry(name.clone())
+            .or_insert(false);
     }
 
     Ok(WorkflowPlan::new(
@@ -277,7 +280,13 @@ mod tests {
     #[test]
     fn hooks_collected_from_enabled_features() {
         let config = fixture_config("config-hooks.toml");
-        let plan = build_plan(&config, &fixture_store(), &fixture_store().list().unwrap(), TargetOs::Darwin).unwrap();
+        let plan = build_plan(
+            &config,
+            &fixture_store(),
+            &fixture_store().list().unwrap(),
+            TargetOs::Darwin,
+        )
+        .unwrap();
         assert!(plan
             .hook_plan
             .post_install
@@ -299,7 +308,13 @@ mod tests {
     #[test]
     fn hooks_not_collected_from_disabled_features() {
         let config = fixture_config("config-hooks-disabled.toml");
-        let plan = build_plan(&config, &fixture_store(), &fixture_store().list().unwrap(), TargetOs::Darwin).unwrap();
+        let plan = build_plan(
+            &config,
+            &fixture_store(),
+            &fixture_store().list().unwrap(),
+            TargetOs::Darwin,
+        )
+        .unwrap();
         assert!(plan
             .hook_plan
             .post_install
@@ -320,7 +335,13 @@ mod tests {
         // config-alpha-only.toml enables only `alpha`; store also has `beta`.
         // Both must appear in features_data: alpha=true, beta=false.
         let config = fixture_config("config-alpha-only.toml");
-        let plan = build_plan(&config, &fixture_store(), &fixture_store().list().unwrap(), TargetOs::Darwin).unwrap();
+        let plan = build_plan(
+            &config,
+            &fixture_store(),
+            &fixture_store().list().unwrap(),
+            TargetOs::Darwin,
+        )
+        .unwrap();
         assert_eq!(plan.config_plan.features_data.get("alpha"), Some(&true));
         assert_eq!(plan.config_plan.features_data.get("beta"), Some(&false));
     }

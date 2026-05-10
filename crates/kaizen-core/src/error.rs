@@ -2,7 +2,10 @@ use std::path::PathBuf;
 
 fn chezmoi_apply_message(code: &Option<i32>, reason: &Option<String>) -> String {
     match reason.as_deref() {
-        Some(r) if r.contains("could not open a new TTY") || r.contains("has changed since chezmoi") => {
+        Some(r)
+            if r.contains("could not open a new TTY")
+                || r.contains("has changed since chezmoi") =>
+        {
             format!(
                 "chezmoi apply failed: managed files have local changes\n\n\
                  Run `kaizen sync --force` (or `kaizen install --force`) to overwrite.\n\n\
