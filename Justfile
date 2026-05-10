@@ -18,3 +18,7 @@ release-macos *args:
 
 e2e:
     bash tests/e2e/test.sh
+
+# Uninstall Nix from macOS (pass --dry-run to preview)
+nix-uninstall *args:
+    bash scripts/nix-uninstall-macos.sh {{args}}

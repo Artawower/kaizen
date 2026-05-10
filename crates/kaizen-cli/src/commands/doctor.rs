@@ -53,17 +53,18 @@ fn report_nix_uninstall_state() {
 
     if installer_bin.exists() {
         output::item_ok("nix-installer binary found — automated uninstall available");
-        output::item(&format!(
-            "  run: {} uninstall",
-            installer_bin.display()
-        ));
+        output::item(&format!("  run: {} uninstall", installer_bin.display()));
     } else if receipt.exists() {
         output::item_warn("nix-installer binary missing but receipt found");
         output::item("  download matching installer version and run with 'uninstall'");
         output::item("  see: https://docs.determinate.systems/determinate-nix/#uninstalling");
     } else {
-        output::item_warn("nix-installer binary and receipt both missing — manual uninstall required");
-        output::item("  Determinate: https://docs.determinate.systems/determinate-nix/#uninstalling");
+        output::item_warn(
+            "nix-installer binary and receipt both missing — manual uninstall required",
+        );
+        output::item(
+            "  Determinate: https://docs.determinate.systems/determinate-nix/#uninstalling",
+        );
         output::item("  Official:    https://nixos.org/manual/nix/stable/#sect-macos-installation");
     }
 
