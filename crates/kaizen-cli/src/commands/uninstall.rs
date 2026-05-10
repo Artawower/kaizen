@@ -22,13 +22,7 @@ pub fn run(_engine: &kaizen_core::KaizenEngine, config_path: &Path, dry_run: boo
     let modified = client.locally_modified_files().unwrap_or_default();
     let nix_installed = which::which("nix").is_ok();
 
-    print_plan(
-        config_path,
-        chezmoi_source.as_deref(),
-        &managed,
-        &modified,
-        nix_installed,
-    );
+    print_plan(config_path, chezmoi_source.as_deref(), &managed, &modified);
 
     if dry_run {
         println!();
@@ -93,7 +87,6 @@ fn print_plan(
     chezmoi_source: Option<&Path>,
     managed: &[std::path::PathBuf],
     modified: &[std::path::PathBuf],
-    nix_installed: bool,
 ) {
     output::header("will remove");
 
@@ -123,10 +116,7 @@ fn print_plan(
         );
     }
 
-    if nix_installed {
-        println!();
-        println!("  {}  Nix (will ask for confirmation)", "?".yellow());
-    }
+
 }
 
 fn print_entry(path: &Path) {
