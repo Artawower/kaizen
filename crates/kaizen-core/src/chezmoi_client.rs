@@ -33,6 +33,26 @@ pub trait ChezmoiClient: Send + Sync {
     /// path does not exist yet (e.g. `.chezmoiroot` subdir missing in stale clone).
     fn raw_source_path(&self) -> Result<Option<PathBuf>, KaizenError>;
 
+    /// Return the physical repository root to use for destructive operations
+    /// (uninstall, backup).
+    ///
+    /// When `.chezmoiroot` is in effect, `source_path()` returns a subdirectory.
+    /// This method walks up to the git root so that the whole clone is targeted,
+    /// not just the subdirectory. Falls back to `source_path()` for non-git sources.
+    fn source_root(&self) -> Result<Option<PathBuf>, KaizenError> {
+        let Some(p) = self.source_path()? else {
+            return Ok(None);
+        };
+        Ok(Some(self.resolve_source_root(&p)))
+    }
+
+    /// Resolve the physical root from an effective source path.
+    /// Extracted so implementors can override the git-root detection if needed.
+    fn resolve_source_root(&self, effective: &Path) -> PathBuf {
+        effective.to_owned()
+    }
+
+
     /// Run `git -C git_root pull --ff-only` to update a known-safe source repo.
     fn pull_source(&self, git_root: &Path) -> Result<(), KaizenError>;
 
@@ -82,6 +102,9 @@ impl ChezmoiClient for NoopChezmoiClient {
     }
     fn pull_source(&self, _git_root: &Path) -> Result<(), KaizenError> {
         Ok(())
+    }
+    fn resolve_source_root(&self, effective: &Path) -> PathBuf {
+        effective.to_owned()
     }
     fn current_remote(&self, _: &Path) -> Result<Option<String>, KaizenError> {
         Ok(None)

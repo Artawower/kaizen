@@ -17,7 +17,7 @@ pub fn run(_engine: &kaizen_core::KaizenEngine, config_path: &Path, dry_run: boo
     });
 
     let client = crate::chezmoi::StdChezmoiClient;
-    let chezmoi_source = client.source_path().unwrap_or(None);
+    let chezmoi_source = client.source_root().unwrap_or(None);
     let managed = client.managed_files().unwrap_or_default();
     let modified = client.locally_modified_files().unwrap_or_default();
     let nix_installed = which::which("nix").is_ok();
@@ -100,8 +100,7 @@ fn print_plan(
     print_entry(config_path);
 
     if let Some(source) = chezmoi_source {
-        let root = crate::chezmoi::git_root(source).unwrap_or_else(|| source.to_owned());
-        print_entry(&root);
+        print_entry(source);
     }
 
     if !managed.is_empty() {
@@ -171,12 +170,9 @@ fn remove_config(path: &Path) -> Result<()> {
 
 fn remove_chezmoi_source(source: Option<&Path>) -> Result<()> {
     let Some(p) = source else { return Ok(()) };
-    // When .chezmoiroot is set, source_path() returns a subdirectory.
-    // Remove the git root so the entire clone is gone.
-    let root = crate::chezmoi::git_root(p).unwrap_or_else(|| p.to_owned());
-    if root.exists() {
-        std::fs::remove_dir_all(&root)?;
-        output::item_ok(&format!("removed {}", root.display()));
+    if p.exists() {
+        std::fs::remove_dir_all(p)?;
+        output::item_ok(&format!("removed {}", p.display()));
     }
     Ok(())
 }

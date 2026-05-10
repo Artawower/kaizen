@@ -80,6 +80,10 @@ impl ChezmoiClient for StdChezmoiClient {
         Ok(parse_source_path_output(&raw))
     }
 
+    fn resolve_source_root(&self, effective: &std::path::Path) -> std::path::PathBuf {
+        git_root(effective).unwrap_or_else(|| effective.to_owned())
+    }
+
     fn pull_source(&self, git_root: &Path) -> Result<(), KaizenError> {
         let status = Command::new("git")
             .args(["-C", &git_root.to_string_lossy(), "pull", "--ff-only", "--quiet"])
@@ -168,7 +172,7 @@ impl ChezmoiClient for StdChezmoiClient {
     }
 
     fn backup_source_dir(&self, source_dir: &Path) -> Result<SourceBackup, KaizenError> {
-        let restore_path = git_root(source_dir).unwrap_or_else(|| source_dir.to_owned());
+        let restore_path = self.resolve_source_root(source_dir);
         let ts = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .map(|d| d.as_secs())
