@@ -67,6 +67,7 @@ pub fn run(_engine: &kaizen_core::KaizenEngine, config_path: &Path, dry_run: boo
     remove_dotfiles(&managed)?;
     remove_config(config_path)?;
     remove_chezmoi_source(chezmoi_source.as_deref())?;
+    remove_binary();
 
     if which::which("nix").is_ok() {
         println!();
@@ -83,6 +84,24 @@ pub fn run(_engine: &kaizen_core::KaizenEngine, config_path: &Path, dry_run: boo
     Ok(())
 }
 
+fn remove_binary() {
+    let exe = match std::env::current_exe() {
+        Ok(p) => p,
+        Err(_) => return,
+    };
+    match std::fs::remove_file(&exe) {
+        Ok(()) => output::item_ok(&format!("removed {}", exe.display())),
+        Err(e) if e.kind() == std::io::ErrorKind::PermissionDenied => {
+            output::item_warn(&format!(
+                "cannot remove {} — run: sudo rm {}",
+                exe.display(),
+                exe.display()
+            ));
+        }
+        Err(_) => {}
+    }
+}
+
 fn print_plan(
     config_path: &Path,
     chezmoi_source: Option<&Path>,
@@ -95,6 +114,10 @@ fn print_plan(
 
     if let Some(source) = chezmoi_source {
         print_entry(source);
+    }
+
+    if let Ok(exe) = std::env::current_exe() {
+        print_entry(&exe);
     }
 
     if !managed.is_empty() {
