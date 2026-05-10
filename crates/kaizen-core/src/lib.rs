@@ -108,11 +108,37 @@ impl KaizenEngine {
             .join("config.toml")
     }
 
+    /// Load manifest from the `kaizen/` directory (parent of `features/`).
+    fn load_manifest(&self) -> Result<manifest::KaizenManifest, KaizenError> {
+        let kaizen_dir = self
+            .features_dir
+            .parent()
+            .unwrap_or(&self.features_dir);
+        manifest::load_with(kaizen_dir, self.fs.as_ref())
+    }
+
     pub fn list_features(&self) -> Result<Vec<String>, KaizenError> {
+        let m = self.load_manifest()?;
+        if !m.features.is_empty() {
+            return Ok(m.features.into_iter().map(|f| f.name).collect());
+        }
         FeatureStore::new(&self.features_dir, Arc::clone(&self.fs)).list()
     }
 
+    /// Returns `(name, description)` pairs.
+    ///
+    /// When `manifest.toml` lists features it is the single source of truth —
+    /// no feature-file I/O needed.  Falls back to scanning `features/*.toml`
+    /// for repositories that predate the manifest (e.g. UPT-only setups).
     pub fn list_features_with_meta(&self) -> Result<Vec<(String, Option<String>)>, KaizenError> {
+        let m = self.load_manifest()?;
+        if !m.features.is_empty() {
+            return Ok(m
+                .features
+                .into_iter()
+                .map(|f| (f.name, Some(f.description)))
+                .collect());
+        }
         let store = FeatureStore::new(&self.features_dir, Arc::clone(&self.fs));
         store
             .list()?
@@ -130,7 +156,15 @@ impl KaizenEngine {
         target_os: TargetOs,
     ) -> Result<WorkflowPlan, KaizenError> {
         let store = FeatureStore::new(&self.features_dir, Arc::clone(&self.fs));
-        merge::build_plan(config, &store, target_os)
+        // Manifest is authoritative for the complete feature key set.
+        // Falls back to store.list() for legacy/UPT-only setups.
+        let m = self.load_manifest()?;
+        let all_names: Vec<String> = if !m.features.is_empty() {
+            m.features.into_iter().map(|f| f.name).collect()
+        } else {
+            store.list()?
+        };
+        merge::build_plan(config, &store, &all_names, target_os)
     }
 }
 
@@ -237,6 +271,31 @@ mod tests {
             reporter.warnings(),
             vec!["kaizen/features not found in chezmoi source — using built-in features"]
         );
+    }
+
+    #[test]
+    fn list_features_with_meta_uses_manifest_when_present() {
+        let fs = Arc::new(MemFileSystem::new());
+        let features_dir = PathBuf::from("/kaizen/features");
+        fs.add_dir(&features_dir);
+        fs.add_file(
+            PathBuf::from("/kaizen/manifest.toml"),
+            r#"schema_version = 1
+[[features]]
+name = "core"
+description = "core CLI tools"
+
+[[features]]
+name = "vcs"
+description = "version control tooling"
+"#,
+        );
+        let engine = KaizenEngine::new(features_dir, fs);
+        let meta = engine.list_features_with_meta().unwrap();
+        assert_eq!(meta, vec![
+            ("core".to_owned(), Some("core CLI tools".to_owned())),
+            ("vcs".to_owned(),  Some("version control tooling".to_owned())),
+        ]);
     }
 
     #[test]
