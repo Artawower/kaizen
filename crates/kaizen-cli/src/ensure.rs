@@ -1,3 +1,10 @@
+use std::process::Command;
+
+use anyhow::{bail, Result};
+use owo_colors::OwoColorize;
+
+use crate::output;
+
 pub struct Tool {
     pub name: &'static str,
     pub install_hint: &'static str,
@@ -33,3 +40,49 @@ pub const ALL: &[&Tool] = &[&CHEZMOI, &MISE];
 
 /// Nix-related tools checked by `kaizen doctor` when Nix backend is in use.
 pub const NIX_TOOLS: &[&Tool] = &[&NIX, &HOME_MANAGER, &DARWIN_REBUILD];
+
+/// Ensure chezmoi is available, installing it automatically if missing.
+///
+/// Uses the official chezmoi installer: https://www.chezmoi.io/install/
+/// Installs to `~/.local/bin` so no sudo is required.
+pub fn ensure_chezmoi() -> Result<()> {
+    if which::which("chezmoi").is_ok() {
+        return Ok(());
+    }
+
+    output::item_warn("chezmoi not found — installing via official installer…");
+
+    let bin_dir = dirs::home_dir()
+        .map(|h| h.join(".local/bin"))
+        .ok_or_else(|| anyhow::anyhow!("cannot determine home directory"))?;
+
+    std::fs::create_dir_all(&bin_dir)?;
+
+    let status = Command::new("sh")
+        .args([
+            "-c",
+            &format!(
+                "$(curl -fsLS get.chezmoi.io) -- -b {}",
+                bin_dir.to_string_lossy()
+            ),
+        ])
+        .status()?;
+
+    if !status.success() {
+        bail!(
+            "chezmoi installation failed.\nInstall manually: {}",
+            CHEZMOI.install_hint.dimmed()
+        );
+    }
+
+    output::item_ok(&format!("chezmoi installed to {}", bin_dir.display()));
+
+    // Extend PATH for the current process so subsequent chezmoi calls find it.
+    let current_path = std::env::var("PATH").unwrap_or_default();
+    let bin_str = bin_dir.to_string_lossy();
+    if !current_path.contains(bin_str.as_ref()) {
+        std::env::set_var("PATH", format!("{}:{current_path}", bin_dir.display()));
+    }
+
+    Ok(())
+}

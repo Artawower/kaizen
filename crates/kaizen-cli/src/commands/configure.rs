@@ -9,10 +9,11 @@ use kaizen_core::{
 
 use std::sync::Arc;
 
-use crate::{filesystem::StdFileSystem, output, selector};
+use crate::{ensure, filesystem::StdFileSystem, output, selector};
 
 pub fn run(explicit_features_dir: Option<&Path>, config_path: &Path) -> Result<()> {
     output::page_header("configure");
+    ensure::ensure_chezmoi()?;
 
     let fs = Arc::new(StdFileSystem);
     let existing = if config_path.exists() {

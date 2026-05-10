@@ -89,11 +89,15 @@ impl ChezmoiClient for StdChezmoiClient {
     }
 
     fn init_source(&self, url: &str) -> Result<(), KaizenError> {
-        let status = Command::new("chezmoi").args(["init", url]).status()?;
-        if !status.success() {
+        let out = Command::new("chezmoi").args(["init", url]).output()?;
+        if !out.status.success() {
+            let stderr = String::from_utf8_lossy(&out.stderr).trim().to_owned();
+            if !stderr.is_empty() {
+                eprintln!("{stderr}");
+            }
             return Err(KaizenError::ChezmoidataInitFailed {
                 url: url.to_owned(),
-                code: status.code(),
+                code: out.status.code(),
             });
         }
         Ok(())
