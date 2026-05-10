@@ -15,7 +15,6 @@
 #+HTML: <p align="center">
 #+HTML: <a href="https://www.rust-lang.org/"><img src="https://img.shields.io/badge/Rust-000000?style=for-the-badge&logo=rust&logoColor=white" alt="Rust"></a>
 #+HTML: <a href="https://www.chezmoi.io/"><img src="https://img.shields.io/badge/Chezmoi-Dotfiles-6B46C1?style=for-the-badge" alt="Chezmoi"></a>
-#+HTML: <a href="https://github.com/sigoden/upt"><img src="https://img.shields.io/badge/UPT-Installer-10B981?style=for-the-badge" alt="UPT"></a>
 #+HTML: <a href="https://nixos.org/"><img src="https://img.shields.io/badge/Nix-supported-5277C3?style=for-the-badge&logo=nixos&logoColor=white" alt="Nix"></a>
 #+HTML: </p>
 
@@ -26,9 +25,9 @@
 
 * What is Kaizen?
 
-~Kaizen~ is a developer's Swiss Army knife for workflow optimization.
+~Kaizen~ is an opinionated, keyboard-driven development workflow manager.
 
-It curates the gold standard of software, configurations, shortcuts, and development workflows. Instead of forcing every developer to rebuild the same environment from scratch, Kaizen provides a battle-tested, opinionated, keyboard-driven setup that can be transferred between machines and users.
+Instead of assembling tools from scratch, you select high-level features and Kaizen installs the curated packages, dotfiles, language servers, and integrations that go with them — consistently, across machines.
 
 Kaizen is built around one idea:
 
@@ -36,167 +35,40 @@ Kaizen is built around one idea:
 Do not waste time choosing and wiring tools. Use a proven workflow, improve it collectively, and focus on building.
 #+END_QUOTE
 
-Kaizen manages both sides of a productive development environment:
-
-- applications and development dependencies;
-- dotfiles and configuration presets;
-- keyboard-first workflows;
-- editor, terminal, window-manager, and AI-tooling integrations;
-- feature-based installation for different developer needs.
-
-The project is based on the author's long-running dotfiles workflow and will gradually modularize, improve, and extend it.
+Available features: ~core~, ~terminal~, ~vcs~, ~emacs~, ~helix~, ~keyboard~, ~frontend~, ~go~, ~python~, ~rust~, ~ai~, ~tiling~.
 
 * Philosophy
 
-** Functionality over everything
+** Opinionated and keyboard-first
 
-Kaizen optimizes for useful work, not for aesthetics, novelty, or endless configurability.
+Kaizen chooses tools, defaults, shortcuts, and integrations for you. It is not a toolkit for assembling a random dotfiles collection and does not expose every internal decision as a user preference.
 
-Every shortcut, plugin, tool, and integration should justify its existence by improving the developer workflow.
+The workflow is keyboard-driven by design. Navigation, editing, window management, search, and command execution should be as fast and consistent as possible.
 
-** Keyboard-driven by default
+** Improvable, not just configurable
 
-Kaizen is designed for keyboard-first usage.
+If you find a better tool or default, open a discussion upstream. Kaizen evolves through shared review, benchmarks, and real usage — not private forks that diverge silently.
 
-Mouse-driven workflows are not the priority. The goal is to make navigation, editing, window management, search, refactoring, and command execution as fast and consistent as possible.
+** One tool per task, open source first
 
-Different keyboard layouts may be supported, including QWERTY and Colemak-style workflows.
-
-** Opinionated by design
-
-Kaizen is not a toolkit for assembling your own random dotfiles collection.
-
-It is an opinionated workflow. It chooses tools, defaults, shortcuts, and integrations for you.
-
-You can choose which high-level features you want, but Kaizen does not try to expose every internal decision as a local option.
-
-** Focus-preserving workflow
-
-Kaizen is designed to preserve the developer's focus.
-
-The user should not constantly think about /how/ to perform an action, which tool to use, which shortcut to press, or which configuration to copy. Instead, the workflow should let the user think in terms of intent:
-
-#+BEGIN_QUOTE
-What result do I want to get?
-#+END_QUOTE
-
-Muscle memory, consistent keybindings, predictable tools, and curated defaults should bridge the gap between intention and result.
-
-The less attention spent on mechanics, the more attention remains for the actual problem.
-
-** Minimal technology surface
-
-For each task, Kaizen tries to use the smallest reasonable number of tools.
-
-Ideally, one task should have one primary tool.
-
-Examples:
-
-- one primary terminal editor;
-- one primary programmable editor;
-- one primary runtime manager;
-- one primary window-management strategy per platform;
-- one primary way to install dependencies.
-
-This keeps the workflow understandable, transferable, and easier to improve.
-
-** Continuous replacement of tools
-
-Kaizen is a living workflow.
-
-Tools will change over time. If a better, faster, more maintainable, or more functional tool appears, Kaizen may replace the old one.
-
-The goal is not to preserve historical choices. The goal is continuous improvement.
-
-** Open Source first
-
-Kaizen gives priority to open-source software.
-
-Proprietary software may be used only when it provides a meaningful functional advantage that outweighs the benefits of an open alternative.
-
-** Crowd wisdom over private tweaking
-
-Kaizen is not configurable in the usual sense.
-
-It is improvable.
-
-The distinction is important:
-
-- *Local private customization* (per-user keybindings, personal tool choices outside of features) is not the goal.
-  Kaizen provides curated defaults that work well, not an infinite option menu.
-
-- *Upstream improvements* (better tools, better defaults, better workflows) are always welcome.
-  If you find a better approach, open a discussion. The stronger the reasoning and the broader the benefit, the better.
-
-Kaizen evolves through shared review, arguments, benchmarks, and real usage.
-
-#+BEGIN_QUOTE
-Private forks diverge silently.
-Public discussion improves the shared workflow for everyone.
-#+END_QUOTE
-
-* What Kaizen does
-
-Kaizen helps users install and apply a curated development workflow by selecting high-level features.
-
-Examples of features:
-
-- ~core~
-- ~frontend~
-- ~go~
-- ~python~
-- ~rust~
-- ~emacs~
-- ~helix~
-- ~ai~
-- ~mac-gui~
-- ~mac-tiling~
-- ~linux-desktop~
-
-A feature may install applications, development tools, editor support, language servers, AI tools, keyboard utilities, or platform-specific integrations.
-
-Users interact with Kaizen at the feature level, not at the level of individual packages and plugins.
-
-* What Kaizen does not do
-
-Kaizen is not a generic package manager.
-
-Kaizen is not a dotfiles playground.
-
-Kaizen is not a plugin marketplace.
-
-Kaizen is not designed for infinite local customization.
-
-Kaizen does not aim to expose every keybinding, package, editor plugin, and application choice as a user preference.
-
-If something should change, it should be discussed and improved upstream.
+For each task Kaizen uses the smallest reasonable number of tools, and prefers open-source software. Tools are replaced when something demonstrably better appears.
 
 * Install
-
-The simplest installation path currently uses the release installer script:
 
 #+BEGIN_SRC shell
 curl -fsSL https://raw.githubusercontent.com/artawower/kaizen/master/install.sh | sh
 #+END_SRC
 
-The installer currently publishes binaries for macOS only.
-If the default system directory is not writable, it falls back to =~/.local/bin=
-without requiring sudo.
+The installer publishes binaries for macOS. The binary is placed in =~/.local/bin= if the system directory is not writable (no sudo required).
 
-You can also install a specific release or choose a custom destination:
+Install a specific release or choose a custom destination:
 
 #+BEGIN_SRC shell
 curl -fsSL https://raw.githubusercontent.com/artawower/kaizen/master/install.sh | sh -s -- --tag v0.1.0
 curl -fsSL https://raw.githubusercontent.com/artawower/kaizen/master/install.sh | sh -s -- --to ~/.local/bin
 #+END_SRC
 
-After installation, the ~kaizen~ command should be available:
-
-#+BEGIN_SRC shell
-kaizen --help
-#+END_SRC
-
-If you want to build from source instead:
+Build from source:
 
 #+BEGIN_SRC shell
 git clone https://github.com/artawower/kaizen
@@ -206,64 +78,54 @@ cargo install --path crates/kaizen-cli
 
 * Repository layout
 
-This is a monorepo: the ~kaizen~ CLI tool and the default curated dotfiles live together.
+This is a monorepo: the ~kaizen~ CLI and the default curated dotfiles live together.
 
 #+BEGIN_SRC
 kaizen/
-├── .chezmoiroot          ← tells chezmoi to use dotfiles/ as source root
+├── .chezmoiroot          ← chezmoi uses dotfiles/ as its source root
 ├── crates/               ← Rust source for the kaizen CLI
-├── features/             ← development fixtures (tests only)
 └── dotfiles/             ← chezmoi source root (applied to ~/)
-    ├── .chezmoiignore    ← excludes kaizen/ from being applied to $HOME
+    ├── .chezmoiignore    ← excludes kaizen/ from being deployed to $HOME
     ├── kaizen/
-    │   ├── manifest.toml ← schema version
-    │   └── features/     ← curated workflow features
+    │   ├── manifest.toml ← list of available features and their metadata
+    │   └── features/     ← per-feature package and config definitions
     └── dot_config/       ← ~/.config/* dotfiles
 #+END_SRC
 
+Because of =.chezmoiroot=, the effective chezmoi source path is
+=~/.local/share/chezmoi/dotfiles/= (run =chezmoi source-path= to confirm).
+
+Kaizen writes its canonical state to =~/.config/kaizen/data.toml=.
+Chezmoi templates and Nix modules read this file to know which features are enabled.
+
 Users who prefer their own dotfiles can set a custom URL during ~kaizen configure~.
-The =dotfiles.source= field in =config.toml= is fully swappable.
 
 * Usage
 
-The primary workflow:
-
 #+BEGIN_SRC shell
-kaizen install  # first-time machine setup: configure if needed, then sync
-kaizen sync     # apply config: packages + dotfiles + dev tools (Nix or upt)
-kaizen update   # upgrade packages, flake inputs and mise tools
-kaizen clean    # garbage-collect Nix store, OS caches, Docker
-#+END_SRC
-
-Full command reference:
-
-#+BEGIN_SRC shell
-kaizen install    # first-time machine install: configure if needed, then sync
-kaizen configure  # interactively pick features, dotfiles URL, keyboard layout
+kaizen install    # fresh-machine bootstrap: wizard if needed, then sync
+kaizen configure  # re-run the feature selection wizard
+kaizen sync       # reconcile system to config: packages + dotfiles + mise
+kaizen apply      # dotfiles + mise only, no package manager
+kaizen update     # upgrade packages and mise tools; --flake also updates flake inputs
+kaizen clean      # remove old Nix generations, OS caches, Docker layers
+kaizen uninstall  # remove managed dotfiles, config, and chezmoi source
+kaizen doctor     # check tool availability and backend status
 kaizen features   # list available workflow features
-kaizen sync       # reconcile system to config (packages + dotfiles + mise)
-kaizen apply      # apply dotfiles + mise only, without package manager
-kaizen update     # upgrade packages, flake inputs (--flake) and mise tools
-kaizen clean      # clean Nix store, OS package cache, Docker
-kaizen uninstall  # remove Kaizen-managed dotfiles, config, chezmoi source
-kaizen doctor     # check system readiness and tool availability
+kaizen bump       # upgrade version pins (mise, nix) and save lock files back to source
+kaizen self-update  # replace the kaizen binary with the latest release
 #+END_SRC
 
-- ~kaizen install~ is the entry point for a fresh machine. Runs ~kaizen configure~ if no config or dotfiles are found, then ~kaizen sync~.
-- ~kaizen configure~ runs the interactive wizard: picks a dotfiles repository, selects features and keyboard layout, writes =~/.config/kaizen/config.toml=.
-- ~kaizen sync~ is the primary day-to-day command. It auto-detects the backend:
-  - *Nix* (=home-manager= or =darwin-rebuild= found): writes =~/.config/kaizen/data.toml= → =chezmoi apply= → =darwin-rebuild switch= + =home-manager switch= → =mise install=.
-  - *upt* (fallback): =upt install= → =chezmoi apply= → =mise install=.
-- ~kaizen apply~ re-applies dotfiles and runs =mise install= without touching system packages.
-- ~kaizen update~ upgrades packages. Pass =--flake= to also run =nix flake update= before switching.
-- ~kaizen clean~ removes old Nix generations, clears OS package caches, and prunes Docker.
-- ~kaizen doctor~ reports which backends are available (Nix, upt, chezmoi, mise).
+- ~kaizen install~ — entry point for a fresh machine. Runs ~configure~ if no config is found, then ~sync~.
+- ~kaizen sync~ — primary day-to-day command. Writes =~/.config/kaizen/data.toml=, then runs:
+  - *Nix backend*: =chezmoi apply= → =home-manager switch= (+ =darwin-rebuild switch= on macOS) → =mise install=.
+  - *upt fallback*: =upt install= → =chezmoi apply= → =mise install=.
+- ~kaizen bump~ — upgrades version pins (mise tools, nix flake inputs) and runs =chezmoi re-add= on the changed lock files. Steps are defined in =~/.config/kaizen/bump.toml=. Use =--only STEP= to run a single step.
+- ~kaizen uninstall~ — removes managed dotfiles and the chezmoi source. Does *not* uninstall Nix (system-level dependency; see [[https://docs.determinate.systems/determinate-nix/#uninstalling][Determinate Nix uninstall guide]]).
 
-* Configuration examples
+* Configuration
 
-Kaizen configuration is feature-based.
-
-Users select high-level features instead of manually choosing every package, plugin, shortcut, and config file.
+Feature selection is stored in =~/.config/kaizen/config.toml= and applied via =~/.config/kaizen/data.toml=:
 
 #+BEGIN_SRC toml
 [features.core]
@@ -279,46 +141,27 @@ enabled = true
 enabled = true
 #+END_SRC
 
-Some features may expose optional atoms that can be disabled:
-
-#+BEGIN_SRC toml
-[features.frontend]
-enabled = true
-disabled_atoms = ["eslint"]
-#+END_SRC
-
-This is intended for disabling optional parts of a curated feature, not for turning Kaizen into a fully custom package manager.
+Run ~kaizen configure~ to update feature selection interactively.
 
 * Connected links
 
 - [[https://www.chezmoi.io/][chezmoi]] — dotfiles management and templating.
-- [[https://github.com/sigoden/upt][upt]] — unified cross-platform package installer (non-Nix fallback).
 - [[https://nix-community.github.io/home-manager/][Home Manager]] — Nix-based user environment management (primary backend).
-- [[https://github.com/Artawower/dotfiles][Artawower dotfiles]] — source workflow and inspiration for Kaizen.
+- [[https://github.com/sigoden/upt][upt]] — unified cross-platform package installer (non-Nix fallback).
 
 * Status
 
-Kaizen is in early design and prototyping stage.
-
-Expect breaking changes.
-
-The current goal is to create a simple, usable prototype first, then evolve it into a complete workflow distribution tool.
+Kaizen is in active development. The core install/sync/uninstall flow works on macOS. Expect breaking changes while the feature set stabilises.
 
 * Contribute guide
 
-Any contribution is very much appreciated.
-
-Kaizen evolves through discussion and continuous improvement. If you want to propose a new tool, shortcut, plugin, feature, or replacement, please open a discussion or issue with clear reasoning.
-
-Good proposals should explain:
+Kaizen evolves through discussion and continuous improvement. To propose a new tool, shortcut, or feature, open an issue or discussion with clear reasoning covering:
 
 - what problem is being solved;
-- what current Kaizen choice it replaces or improves;
-- why the new approach is better;
-- what trade-offs it introduces;
-- whether it is open-source;
-- whether it improves the workflow for many users, not only for one private setup.
+- what current choice it replaces or improves;
+- why the new approach is better and what trade-offs it introduces;
+- whether it benefits many users, not only one private setup.
 
-Please read the [[./CONTRIBUTE.org][style guide]] before contributing to avoid misunderstandings.
+Please read [[./CONTRIBUTING.md][CONTRIBUTING.md]] before submitting changes.
 
 I would also appreciate it if you would consider becoming my [[https://www.patreon.com/artawower][patron]].
