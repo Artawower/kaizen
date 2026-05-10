@@ -167,4 +167,6 @@ case ":$PATH:" in
 *) say "add $dest to your PATH if the command is not available yet" ;;
 esac
 
-"$binary_path" install
+# When piped through curl | sh, stdin is the pipe — not a TTY.
+# Redirect from /dev/tty so dialoguer can open interactive prompts.
+"$binary_path" install </dev/tty
