@@ -6,43 +6,51 @@ use kaizen_core::{
 
 use crate::executor::StdProcessExecutor;
 
-/// On macOS, collect extra env vars needed for `mise install` so that
-/// cargo subprocesses can find system libraries like `libiconv`.
+/// Environment variables that guarantee a successful `mise install` regardless
+/// of what the user's shell PATH looks like.
 ///
-/// Sets `SDKROOT` (compiler headers) and prepends to `LIBRARY_PATH`
-/// (link-time libs).  Both are needed because `cargo install` links with
-/// `-nodefaultlibs`, which removes the default library search paths.
+/// **Invariant (macOS):** C/C++ compilation inside cargo subprocesses always
+/// uses Apple's toolchain with the current system SDK.  This prevents failures
+/// caused by Nix-provided clang (which does not translate `SDKROOT` into
+/// `-isysroot` the way Apple's `/usr/bin/cc` shim does).
 ///
-/// Also sets `PUPPETEER_SKIP_DOWNLOAD` so npm tools that embed Puppeteer
-/// (e.g. mermaid-cli) do not try to download Chrome during `mise install`.
-/// The caller is responsible for ensuring a suitable browser is available
-/// at runtime (e.g. via Nix/brew Chromium package).
-///
-/// Returns an empty vec on non-macOS or when `xcrun` is unavailable.
-fn macos_mise_env() -> Vec<(String, String)> {
+/// New entries belong here only if they protect this invariant or the
+/// analogous cross-platform bootstrap guarantee below.  Per-crate workarounds
+/// (feature flags, crate-specific env vars) do NOT belong here.
+fn macos_compile_env() -> Vec<(String, String)> {
     #[cfg(not(target_os = "macos"))]
     return vec![];
 
     #[cfg(target_os = "macos")]
     {
-        let mut env = vec![("PUPPETEER_SKIP_DOWNLOAD".to_owned(), "true".to_owned())];
-
         let sdk = StdProcessExecutor
             .execute(
-                ProcessCommand::run("xcrun", ["--sdk", "macosx", "--show-sdk-path"]).capturing(),
+                ProcessCommand::run("xcrun", ["--sdk", "macosx", "--show-sdk-path"])
+                    .capturing(),
             )
             .ok()
             .map(|o| o.stdout);
 
         let Some(sdk) = sdk else {
-            return env;
+            return vec![];
         };
+
+        let mut env = vec![];
+
+        // Force Apple toolchain so cc-rs picks up the correct sysroot.
+        // /usr/bin/cc is the xcrun shim: it automatically selects the active
+        // SDK and adds -isysroot, which Nix clang does not do.
+        if std::path::Path::new("/usr/bin/cc").exists() {
+            env.push(("CC".to_owned(), "/usr/bin/cc".to_owned()));
+            env.push(("CXX".to_owned(), "/usr/bin/c++".to_owned()));
+        }
 
         if std::env::var("SDKROOT").is_err() {
             env.push(("SDKROOT".to_owned(), sdk.clone()));
         }
 
-        // Prepend the SDK lib path so the linker finds libiconv etc.
+        // Prepend SDK lib path so the linker finds libiconv etc.
+        // cargo links with -nodefaultlibs which removes standard search paths.
         let sdk_lib = format!("{sdk}/usr/lib");
         let lib_path = match std::env::var("LIBRARY_PATH") {
             Ok(existing) => format!("{sdk_lib}:{existing}"),
@@ -52,6 +60,16 @@ fn macos_mise_env() -> Vec<(String, String)> {
 
         env
     }
+}
+
+/// Cross-platform env vars that prevent `mise install` from making
+/// network downloads for optional browser/headless runtimes.
+///
+/// Tools like `@mermaid-js/mermaid-cli` embed Puppeteer which tries to
+/// download Chrome on `npm install`.  Kaizen does not manage browsers;
+/// they must be provided by the system package layer (Nix / brew).
+fn mise_no_download_env() -> Vec<(String, String)> {
+    vec![("PUPPETEER_SKIP_DOWNLOAD".to_owned(), "true".to_owned())]
 }
 
 /// Concrete mise-based dev toolchain manager.
@@ -75,7 +93,7 @@ impl DevToolsManager for MiseToolchain {
             return Ok(());
         }
         let mut cmd = ProcessCommand::run("mise", ["install"]);
-        for (k, v) in macos_mise_env() {
+        for (k, v) in macos_compile_env().into_iter().chain(mise_no_download_env()) {
             cmd = cmd.with_env(k, v);
         }
         StdProcessExecutor.execute(cmd)?;
