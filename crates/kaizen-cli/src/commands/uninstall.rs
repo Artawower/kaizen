@@ -176,7 +176,10 @@ fn uninstall_nix() -> Result<()> {
         // 2. Determinate Systems installer if it ended up in PATH
         ("nix-installer", &["uninstall"]),
         // 3. Official Nix uninstall script (works independently of receipts)
-        ("sh", &["-c", "curl -fsSL https://nixos.org/nix/uninstall | sh"]),
+        (
+            "sh",
+            &["-c", "curl -fsSL https://nixos.org/nix/uninstall | sh"],
+        ),
     ];
 
     for (cmd, args) in attempts {

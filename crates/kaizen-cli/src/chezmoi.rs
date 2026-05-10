@@ -15,18 +15,25 @@ use kaizen_core::{
 
 /// Return the git repository root containing `dir`, or `None` if not in a git repo.
 /// Falls back gracefully so non-git dotfiles sources still work.
+/// Return the git repository root that owns `dir`, searching **at most one
+/// level upward**.
+///
+/// We deliberately avoid `git rev-parse --show-toplevel` because it traverses
+/// all the way to the filesystem root and can return an unrelated parent repo
+/// (e.g. `~` or `~/.local/share`), leading to catastrophic destructive ops.
+/// For chezmoi with `.chezmoiroot` the repo root is always exactly one level
+/// above the effective source path, so one-level search is sufficient.
 pub fn git_root(dir: &Path) -> Option<PathBuf> {
-    let out = Command::new("git")
-        .arg("-C")
-        .arg(dir)
-        .args(["rev-parse", "--show-toplevel"])
-        .output()
-        .ok()?;
-    if !out.status.success() {
-        return None;
+    // Case 1: dir itself is the git root.
+    if dir.join(".git").exists() {
+        return Some(dir.canonicalize().unwrap_or_else(|_| dir.to_owned()));
     }
-    let path = std::str::from_utf8(&out.stdout).ok()?.trim();
-    Some(PathBuf::from(path))
+    // Case 2: .chezmoiroot — dir is a subdirectory; root is one level up.
+    let parent = dir.parent()?;
+    if parent.join(".git").exists() {
+        return Some(parent.canonicalize().unwrap_or_else(|_| parent.to_owned()));
+    }
+    None
 }
 
 /// Concrete chezmoi client that spawns real processes.
