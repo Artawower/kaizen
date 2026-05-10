@@ -50,7 +50,11 @@ pub trait ChezmoiClient: Send + Sync {
     fn current_remote(&self, source_dir: &Path) -> Result<Option<String>, KaizenError>;
     fn init_source(&self, url: &str) -> Result<(), KaizenError>;
     fn apply(&self, force: bool) -> Result<(), KaizenError>;
-    fn remove_files(&self, files: &[PathBuf], dry_run: bool) -> Result<RemoveFilesReport, KaizenError>;
+    fn remove_files(
+        &self,
+        files: &[PathBuf],
+        dry_run: bool,
+    ) -> Result<RemoveFilesReport, KaizenError>;
     fn backup_source_dir(&self, source_dir: &Path) -> Result<SourceBackup, KaizenError>;
 }
 
@@ -58,16 +62,35 @@ pub trait ChezmoiClient: Send + Sync {
 pub struct NoopChezmoiClient;
 
 impl ChezmoiClient for NoopChezmoiClient {
-    fn managed_files(&self) -> Result<Vec<PathBuf>, KaizenError> { Ok(vec![]) }
-    fn locally_modified_files(&self) -> Result<Vec<PathBuf>, KaizenError> { Ok(vec![]) }
-    fn source_path(&self) -> Result<Option<PathBuf>, KaizenError> { Ok(None) }
-    fn raw_source_path(&self) -> Result<Option<PathBuf>, KaizenError> { Ok(None) }
-    fn pull_source(&self, _: &Path) -> Result<(), KaizenError> { Ok(()) }
-    fn current_remote(&self, _: &Path) -> Result<Option<String>, KaizenError> { Ok(None) }
-    fn init_source(&self, _: &str) -> Result<(), KaizenError> { Ok(()) }
-    fn apply(&self, _: bool) -> Result<(), KaizenError> { Ok(()) }
+    fn managed_files(&self) -> Result<Vec<PathBuf>, KaizenError> {
+        Ok(vec![])
+    }
+    fn locally_modified_files(&self) -> Result<Vec<PathBuf>, KaizenError> {
+        Ok(vec![])
+    }
+    fn source_path(&self) -> Result<Option<PathBuf>, KaizenError> {
+        Ok(None)
+    }
+    fn raw_source_path(&self) -> Result<Option<PathBuf>, KaizenError> {
+        Ok(None)
+    }
+    fn pull_source(&self, _: &Path) -> Result<(), KaizenError> {
+        Ok(())
+    }
+    fn current_remote(&self, _: &Path) -> Result<Option<String>, KaizenError> {
+        Ok(None)
+    }
+    fn init_source(&self, _: &str) -> Result<(), KaizenError> {
+        Ok(())
+    }
+    fn apply(&self, _: bool) -> Result<(), KaizenError> {
+        Ok(())
+    }
     fn remove_files(&self, files: &[PathBuf], _: bool) -> Result<RemoveFilesReport, KaizenError> {
-        Ok(RemoveFilesReport { removed: files.to_vec(), skipped: vec![] })
+        Ok(RemoveFilesReport {
+            removed: files.to_vec(),
+            skipped: vec![],
+        })
     }
     fn backup_source_dir(&self, source_dir: &Path) -> Result<SourceBackup, KaizenError> {
         Ok(SourceBackup {
@@ -90,8 +113,12 @@ mod tests {
     }
 
     impl ChezmoiClient for StubClient {
-        fn managed_files(&self) -> Result<Vec<PathBuf>, KaizenError> { Ok(vec![]) }
-        fn locally_modified_files(&self) -> Result<Vec<PathBuf>, KaizenError> { Ok(vec![]) }
+        fn managed_files(&self) -> Result<Vec<PathBuf>, KaizenError> {
+            Ok(vec![])
+        }
+        fn locally_modified_files(&self) -> Result<Vec<PathBuf>, KaizenError> {
+            Ok(vec![])
+        }
         fn source_path(&self) -> Result<Option<PathBuf>, KaizenError> {
             Ok(self.raw.as_ref().filter(|p| p.exists()).cloned())
         }
@@ -101,15 +128,33 @@ mod tests {
         fn resolve_source_root(&self, effective: &Path) -> PathBuf {
             effective.with_extension("resolved")
         }
-        fn pull_source(&self, _: &Path) -> Result<(), KaizenError> { Ok(()) }
-        fn current_remote(&self, _: &Path) -> Result<Option<String>, KaizenError> { Ok(None) }
-        fn init_source(&self, _: &str) -> Result<(), KaizenError> { Ok(()) }
-        fn apply(&self, _: bool) -> Result<(), KaizenError> { Ok(()) }
-        fn remove_files(&self, files: &[PathBuf], _: bool) -> Result<RemoveFilesReport, KaizenError> {
-            Ok(RemoveFilesReport { removed: files.to_vec(), skipped: vec![] })
+        fn pull_source(&self, _: &Path) -> Result<(), KaizenError> {
+            Ok(())
+        }
+        fn current_remote(&self, _: &Path) -> Result<Option<String>, KaizenError> {
+            Ok(None)
+        }
+        fn init_source(&self, _: &str) -> Result<(), KaizenError> {
+            Ok(())
+        }
+        fn apply(&self, _: bool) -> Result<(), KaizenError> {
+            Ok(())
+        }
+        fn remove_files(
+            &self,
+            files: &[PathBuf],
+            _: bool,
+        ) -> Result<RemoveFilesReport, KaizenError> {
+            Ok(RemoveFilesReport {
+                removed: files.to_vec(),
+                skipped: vec![],
+            })
         }
         fn backup_source_dir(&self, src: &Path) -> Result<SourceBackup, KaizenError> {
-            Ok(SourceBackup { backup_path: src.with_extension("bak"), restore_path: src.to_owned() })
+            Ok(SourceBackup {
+                backup_path: src.with_extension("bak"),
+                restore_path: src.to_owned(),
+            })
         }
     }
 
@@ -126,7 +171,9 @@ mod tests {
         let dotfiles = dir.path().join("dotfiles");
         std::fs::create_dir_all(&dotfiles).unwrap();
 
-        let c = StubClient { raw: Some(dotfiles.clone()) };
+        let c = StubClient {
+            raw: Some(dotfiles.clone()),
+        };
         let root = c.source_root().unwrap().unwrap();
         assert_eq!(root, dotfiles.with_extension("resolved"));
     }
@@ -138,7 +185,9 @@ mod tests {
         let dir = tempfile::tempdir().unwrap();
         let dotfiles = dir.path().join("dotfiles"); // not created on disk
 
-        let c = StubClient { raw: Some(dotfiles) };
+        let c = StubClient {
+            raw: Some(dotfiles),
+        };
         let root = c.source_root().unwrap().unwrap();
         // parent is dir.path()  →  dir.path().with_extension("resolved")
         assert_eq!(root, dir.path().with_extension("resolved"));
