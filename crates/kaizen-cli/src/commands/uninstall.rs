@@ -1,5 +1,5 @@
 use std::path::Path;
-use std::process::Command;
+
 
 use anyhow::Result;
 use dialoguer::{theme::ColorfulTheme, Confirm};
@@ -20,7 +20,6 @@ pub fn run(_engine: &kaizen_core::KaizenEngine, config_path: &Path, dry_run: boo
     let chezmoi_source = client.source_root().unwrap_or(None);
     let managed = client.managed_files().unwrap_or_default();
     let modified = client.locally_modified_files().unwrap_or_default();
-    let nix_installed = which::which("nix").is_ok();
 
     print_plan(config_path, chezmoi_source.as_deref(), &managed, &modified);
 
@@ -62,19 +61,14 @@ pub fn run(_engine: &kaizen_core::KaizenEngine, config_path: &Path, dry_run: boo
     remove_config(config_path)?;
     remove_chezmoi_source(chezmoi_source.as_deref())?;
 
-    if nix_installed {
+    if which::which("nix").is_ok() {
         println!();
-        let remove_nix = Confirm::with_theme(&ColorfulTheme::default())
-            .with_prompt(
-                "Remove Nix? This will delete ALL Nix packages and home-manager. Are you sure?",
-            )
-            .default(false)
-            .interact()?;
-        if remove_nix {
-            uninstall_nix()?;
-        } else {
-            output::item_ok("Nix kept — your packages remain installed");
-        }
+        output::item_warn(
+            "Nix is installed but kaizen does not remove it automatically —              it is a system-level dependency outside kaizen's scope.",
+        );
+        output::item_warn(
+            "To remove Nix manually:              https://docs.determinate.systems/determinate-nix/#uninstalling",
+        );
     }
 
     println!();
@@ -212,45 +206,6 @@ fn guard_against_dangerous_removal(path: &Path) -> Result<()> {
     }
 
     Ok(())
-}
-
-fn uninstall_nix() -> Result<()> {
-    // Try uninstallers in order of reliability.
-    // IMPORTANT: do NOT download a fresh Determinate installer and run
-    // `uninstall` — it requires a receipt from the original install and
-    // will always fail without one.
-    let attempts: &[(&str, &[&str])] = &[
-        // 1. Determinate Systems installer binary (placed by the installer)
-        ("/nix/nix-installer", &["uninstall"]),
-        // 2. Determinate Systems installer if it ended up in PATH
-        ("nix-installer", &["uninstall"]),
-
-    ];
-
-    for (cmd, args) in attempts {
-        let available = if cmd.starts_with('/') {
-            Path::new(cmd).exists()
-        } else {
-            which::which(cmd).is_ok()
-        };
-        if !available {
-            continue;
-        }
-        output::item(&format!("running {cmd} uninstall…"));
-        let status = Command::new(cmd).args(*args).status()?;
-        if status.success() {
-            output::item_ok("Nix removed");
-            return Ok(());
-        }
-        output::item_warn(&format!("{cmd} uninstall failed, trying next method…"));
-    }
-
-    anyhow::bail!(
-        "could not uninstall Nix automatically.\n\
-         \n\
-         Determinate Nix: https://docs.determinate.systems/determinate-nix/#uninstalling\n\
-         Official Nix:    https://nixos.org/manual/nix/stable/#sect-macos-installation"
-    );
 }
 
 #[cfg(test)]
