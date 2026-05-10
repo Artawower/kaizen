@@ -47,6 +47,14 @@ pub trait ChezmoiClient: Send + Sync {
     }
 
     fn pull_source(&self, git_root: &Path) -> Result<(), KaizenError>;
+
+    /// Returns `true` when the chezmoi source directory is a symlink to an
+    /// external location (developer working copy).  In that case automatic
+    /// `git pull` should be skipped — the developer manages their own VCS.
+    fn source_is_dev_symlink(&self) -> bool {
+        false
+    }
+
     fn current_remote(&self, source_dir: &Path) -> Result<Option<String>, KaizenError>;
     fn init_source(&self, url: &str) -> Result<(), KaizenError>;
     fn apply(&self, force: bool) -> Result<(), KaizenError>;

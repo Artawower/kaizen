@@ -95,6 +95,14 @@ impl ChezmoiClient for StdChezmoiClient {
         git_root(effective).unwrap_or_else(|| effective.to_owned())
     }
 
+    fn source_is_dev_symlink(&self) -> bool {
+        dirs::home_dir()
+            .map(|h| h.join(".local/share/chezmoi"))
+            .and_then(|p| p.symlink_metadata().ok())
+            .map(|m| m.file_type().is_symlink())
+            .unwrap_or(false)
+    }
+
     fn pull_source(&self, git_root: &Path) -> Result<(), KaizenError> {
         let status = Command::new("git")
             .args([
