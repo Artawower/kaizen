@@ -64,6 +64,9 @@ pub enum KaizenError {
     #[error("chezmoi init {url} failed with exit code {code:?}")]
     ChezmoidataInitFailed { url: String, code: Option<i32> },
 
+    #[error("git pull failed for {path} — check network or repository access")]
+    GitPullFailed { path: PathBuf },
+
     #[error("failed to parse manifest at {path}: {source}")]
     ManifestParse {
         path: PathBuf,

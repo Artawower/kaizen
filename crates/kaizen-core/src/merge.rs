@@ -71,6 +71,13 @@ pub fn build_plan(
         }
     }
 
+    let mut config_plan = build_config_plan(config);
+    // Ensure every feature known to the store is present in the data snapshot,
+    // even when not selected. Templates and Nix configs rely on a complete map.
+    for name in store.list()? {
+        config_plan.features_data.entry(name).or_insert(false);
+    }
+
     Ok(WorkflowPlan::new(
         target_os,
         selected_features,
@@ -78,7 +85,7 @@ pub fn build_plan(
             programs: programs.into_values().collect(),
             dev_tools,
         },
-        build_config_plan(config),
+        config_plan,
         hook_plan,
         warnings,
     ))
@@ -304,6 +311,16 @@ mod tests {
             .post_apply
             .contains(&"echo beta-post-apply".to_owned()));
         assert!(plan.hook_plan.post_update.is_empty());
+    }
+
+    #[test]
+    fn all_store_features_present_in_data_even_when_not_selected() {
+        // config-alpha-only.toml enables only `alpha`; store also has `beta`.
+        // Both must appear in features_data: alpha=true, beta=false.
+        let config = fixture_config("config-alpha-only.toml");
+        let plan = build_plan(&config, &fixture_store(), TargetOs::Darwin).unwrap();
+        assert_eq!(plan.config_plan.features_data.get("alpha"), Some(&true));
+        assert_eq!(plan.config_plan.features_data.get("beta"), Some(&false));
     }
 
     #[test]

@@ -13,6 +13,15 @@ pub enum BootstrapStatus {
     },
     /// No chezmoi source exists. Proceed with `init`.
     InitRequired,
+    /// Chezmoi reports a source path, and the git root remote matches the requested URL,
+    /// but the source subdirectory (e.g. from `.chezmoiroot`) is missing — the local
+    /// clone is stale. Safe to pull: the repo belongs to us.
+    StaleSource {
+        /// Git repository root to pull from.
+        git_root: PathBuf,
+        /// The source path we expect to exist after pulling.
+        expected_source: PathBuf,
+    },
 }
 
 /// Orchestrates chezmoi source initialisation, backup, and rollback.
@@ -31,23 +40,46 @@ impl ChezmoiBootstrapper {
 
     /// Inspect the current chezmoi source against `url` and return the action required.
     pub fn check(&self, url: &str) -> Result<BootstrapStatus, KaizenError> {
-        match self.client.source_path()? {
+        // Fast path: source exists and is usable.
+        if let Some(source) = self.client.source_path()? {
+            let remote = self.client.current_remote(&source)?;
+            return if remote
+                .as_deref()
+                .map(|r| chezmoi::remotes_match(r, url))
+                .unwrap_or(false)
+            {
+                Ok(BootstrapStatus::AlreadyUpToDate(source))
+            } else {
+                Ok(BootstrapStatus::Conflict {
+                    source,
+                    current_remote: remote,
+                })
+            };
+        }
+
+        // Source path not found or doesn't exist on disk.
+        // Check whether chezmoi reports a path at all (raw, may be missing on disk).
+        let Some(reported) = self.client.raw_source_path()? else {
+            return Ok(BootstrapStatus::InitRequired);
+        };
+
+        // Chezmoi has a configured source but the reported path doesn't exist.
+        // This happens when `.chezmoiroot` points to a subdirectory added after
+        // the initial clone (stale local copy).
+        // Find the git root of the parent directory and check its remote.
+        let parent = reported.parent().unwrap_or(&reported);
+        let remote = self.client.current_remote(parent)?;
+
+        match remote {
+            Some(r) if chezmoi::remotes_match(&r, url) => Ok(BootstrapStatus::StaleSource {
+                git_root: parent.to_owned(),
+                expected_source: reported,
+            }),
+            Some(r) => Ok(BootstrapStatus::Conflict {
+                source: parent.to_owned(),
+                current_remote: Some(r),
+            }),
             None => Ok(BootstrapStatus::InitRequired),
-            Some(source) => {
-                let remote = self.client.current_remote(&source)?;
-                if remote
-                    .as_deref()
-                    .map(|r| chezmoi::remotes_match(r, url))
-                    .unwrap_or(false)
-                {
-                    Ok(BootstrapStatus::AlreadyUpToDate(source))
-                } else {
-                    Ok(BootstrapStatus::Conflict {
-                        source,
-                        current_remote: remote,
-                    })
-                }
-            }
         }
     }
 
@@ -141,7 +173,12 @@ mod tests {
         fn source_path(&self) -> Result<Option<PathBuf>, KaizenError> {
             Ok(Some(self.source.clone()))
         }
-
+        fn raw_source_path(&self) -> Result<Option<PathBuf>, KaizenError> {
+            Ok(Some(self.source.clone()))
+        }
+        fn pull_source(&self, _: &Path) -> Result<(), KaizenError> {
+            Ok(())
+        }
         fn current_remote(&self, _: &Path) -> Result<Option<String>, KaizenError> {
             Ok(None)
         }

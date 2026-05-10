@@ -155,7 +155,12 @@ mod tests {
         fn source_path(&self) -> Result<Option<PathBuf>, KaizenError> {
             Ok(self.source.clone())
         }
-
+        fn raw_source_path(&self) -> Result<Option<PathBuf>, KaizenError> {
+            Ok(self.source.clone())
+        }
+        fn pull_source(&self, _: &Path) -> Result<(), KaizenError> {
+            Ok(())
+        }
         fn current_remote(&self, _: &Path) -> Result<Option<String>, KaizenError> {
             Ok(None)
         }

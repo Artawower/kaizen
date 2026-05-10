@@ -26,8 +26,15 @@ pub trait ChezmoiClient: Send + Sync {
     /// Run `chezmoi status` and return locally-modified tracked files.
     fn locally_modified_files(&self) -> Result<Vec<PathBuf>, KaizenError>;
 
-    /// Run `chezmoi source-path` and return the current source directory, or `None`.
+    /// Run `chezmoi source-path` and return the path only when it exists on disk.
     fn source_path(&self) -> Result<Option<PathBuf>, KaizenError>;
+
+    /// Run `chezmoi source-path` and return whatever chezmoi reports, even if the
+    /// path does not exist yet (e.g. `.chezmoiroot` subdir missing in stale clone).
+    fn raw_source_path(&self) -> Result<Option<PathBuf>, KaizenError>;
+
+    /// Run `git -C git_root pull --ff-only` to update a known-safe source repo.
+    fn pull_source(&self, git_root: &Path) -> Result<(), KaizenError>;
 
     /// Run `git remote get-url origin` inside `source_dir`.
     fn current_remote(&self, source_dir: &Path) -> Result<Option<String>, KaizenError>;
@@ -66,6 +73,12 @@ impl ChezmoiClient for NoopChezmoiClient {
     }
     fn source_path(&self) -> Result<Option<PathBuf>, KaizenError> {
         Ok(None)
+    }
+    fn raw_source_path(&self) -> Result<Option<PathBuf>, KaizenError> {
+        Ok(None)
+    }
+    fn pull_source(&self, _git_root: &Path) -> Result<(), KaizenError> {
+        Ok(())
     }
     fn current_remote(&self, _: &Path) -> Result<Option<String>, KaizenError> {
         Ok(None)

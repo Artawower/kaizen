@@ -65,15 +65,29 @@ impl ChezmoiClient for StdChezmoiClient {
     }
 
     fn source_path(&self) -> Result<Option<PathBuf>, KaizenError> {
+        let Some(path) = self.raw_source_path()? else {
+            return Ok(None);
+        };
+        if path.exists() { Ok(Some(path)) } else { Ok(None) }
+    }
+
+    fn raw_source_path(&self) -> Result<Option<PathBuf>, KaizenError> {
         let out = Command::new("chezmoi").arg("source-path").output()?;
         if !out.status.success() {
             return Ok(None);
         }
         let raw = String::from_utf8_lossy(&out.stdout);
-        match parse_source_path_output(&raw) {
-            Some(path) if path.exists() => Ok(Some(path)),
-            _ => Ok(None),
+        Ok(parse_source_path_output(&raw))
+    }
+
+    fn pull_source(&self, git_root: &Path) -> Result<(), KaizenError> {
+        let status = Command::new("git")
+            .args(["-C", &git_root.to_string_lossy(), "pull", "--ff-only", "--quiet"])
+            .status()?;
+        if !status.success() {
+            return Err(KaizenError::GitPullFailed { path: git_root.to_owned() });
         }
+        Ok(())
     }
 
     fn current_remote(&self, source_dir: &Path) -> Result<Option<String>, KaizenError> {

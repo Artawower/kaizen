@@ -94,6 +94,28 @@ fn bootstrap_chezmoi(url: &str) -> Result<PathBuf> {
             output::item("cloning dotfiles via chezmoi init…");
             bootstrapper.init(url).context("chezmoi init failed")
         }
+        BootstrapStatus::StaleSource {
+            git_root,
+            expected_source,
+        } => {
+            output::item(&format!(
+                "dotfiles source is outdated — pulling {} …",
+                git_root.display()
+            ));
+            use kaizen_core::ChezmoiClient as _;
+            crate::chezmoi::StdChezmoiClient
+                .pull_source(&git_root)
+                .context("failed to update dotfiles source")?;
+            if !expected_source.exists() {
+                anyhow::bail!(
+                    "pull succeeded but expected source still missing: {}\n\
+                     Check .chezmoiroot or dotfiles repository layout.",
+                    expected_source.display()
+                );
+            }
+            output::item_ok("dotfiles source updated");
+            Ok(expected_source)
+        }
     }
 }
 
