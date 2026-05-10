@@ -15,7 +15,7 @@ use kaizen_core::{
 
 /// Return the git repository root containing `dir`, or `None` if not in a git repo.
 /// Falls back gracefully so non-git dotfiles sources still work.
-fn git_root(dir: &Path) -> Option<PathBuf> {
+pub fn git_root(dir: &Path) -> Option<PathBuf> {
     let out = Command::new("git")
         .arg("-C")
         .arg(dir)

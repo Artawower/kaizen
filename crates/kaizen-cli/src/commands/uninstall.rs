@@ -100,7 +100,8 @@ fn print_plan(
     print_entry(config_path);
 
     if let Some(source) = chezmoi_source {
-        print_entry(source);
+        let root = crate::chezmoi::git_root(source).unwrap_or_else(|| source.to_owned());
+        print_entry(&root);
     }
 
     if !managed.is_empty() {
@@ -170,9 +171,12 @@ fn remove_config(path: &Path) -> Result<()> {
 
 fn remove_chezmoi_source(source: Option<&Path>) -> Result<()> {
     let Some(p) = source else { return Ok(()) };
-    if p.exists() {
-        std::fs::remove_dir_all(p)?;
-        output::item_ok(&format!("removed {}", p.display()));
+    // When .chezmoiroot is set, source_path() returns a subdirectory.
+    // Remove the git root so the entire clone is gone.
+    let root = crate::chezmoi::git_root(p).unwrap_or_else(|| p.to_owned());
+    if root.exists() {
+        std::fs::remove_dir_all(&root)?;
+        output::item_ok(&format!("removed {}", root.display()));
     }
     Ok(())
 }
