@@ -49,7 +49,7 @@ backup() {
 	exit 1
 }
 
-if ! diskutil info /nix >/dev/null 2>&1 && [[ ! -d /nix ]]; then
+if ! /usr/sbin/diskutil info /nix >/dev/null 2>&1 && [[ ! -d /nix ]]; then
 	warn "/nix not found — Nix may already be removed."
 	exit 0
 fi
@@ -231,19 +231,21 @@ done
 
 header "7) Nix Store APFS volume"
 
-if diskutil info /nix >/dev/null 2>&1; then
+if /usr/sbin/diskutil info /nix >/dev/null 2>&1; then
 	if [[ "$DRY_RUN" == "1" ]]; then
-		info "[dry] diskutil apfs deleteVolume /nix"
+		info "[dry] /usr/sbin/diskutil apfs deleteVolume /nix"
 	else
 		info "deleting APFS volume /nix …"
-		if ! sudo diskutil apfs deleteVolume /nix; then
+		# Force-unmount first — releases kernel hold without reboot in most cases.
+		sudo /usr/sbin/diskutil unmount force /nix 2>/dev/null || true
+		if ! sudo /usr/sbin/diskutil apfs deleteVolume /nix; then
 			warn "Volume is in use by the kernel — a reboot is required."
 			warn "Everything else (daemons, users, hooks, fstab, synthetic.conf)"
 			warn "has already been removed. Only the volume remains."
 			warn ""
 			warn "After reboot, run:"
-			warn "  sudo diskutil apfs deleteVolume /nix"
-			vols="$(diskutil list 2>/dev/null | grep 'Nix Store' || true)"
+			warn "  sudo /usr/sbin/diskutil apfs deleteVolume /nix"
+			vols="$(/usr/sbin/diskutil list 2>/dev/null | grep 'Nix Store' || true)"
 			if [[ -n "$vols" ]]; then
 				warn "or by disk identifier:"
 				printf "%s\n" "$vols"
@@ -271,7 +273,7 @@ fi
 if [[ "$DRY_RUN" == "0" ]]; then
 	printf "\nVerification commands:\n"
 	printf "  command -v nix\n"
-	printf "  diskutil list | grep -i 'Nix Store'\n"
+	printf "  /usr/sbin/diskutil list | grep -i 'Nix Store'\n"
 	printf "  dscl . -list /Users | grep -E '^_?nixbld'\n"
 	printf "\nOpen a new terminal for shell changes to take effect.\n"
 	printf "A stale empty /nix directory may remain until reboot — that is normal.\n"

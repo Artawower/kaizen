@@ -86,3 +86,49 @@ pub fn ensure_chezmoi() -> Result<()> {
 
     Ok(())
 }
+
+/// Ensure Nix is available on macOS, installing via Determinate Systems if missing.
+///
+/// Adds the Nix profile bin dir to PATH so `detect_backend` picks up the Nix
+/// backend in the same run without requiring a new shell.
+pub fn ensure_nix_macos() -> Result<()> {
+    if which::which("nix").is_ok()
+        || which::which("home-manager").is_ok()
+        || which::which("darwin-rebuild").is_ok()
+    {
+        return Ok(());
+    }
+
+    output::item_warn("Nix not found — installing via Determinate Systems…");
+    output::item("This requires sudo and takes about a minute.");
+
+    let nix_installer_url = "https://install.determinate.systems/nix";
+    let fetch_cmd = format!(
+        "curl --proto '=https' --tlsv1.2 -sSfL {nix_installer_url} \
+         | sh -s -- install --no-confirm"
+    );
+    let status = Command::new("sh").args(["-c", &fetch_cmd]).status()?;
+
+    if !status.success() {
+        bail!(
+            "Nix installation failed.\nInstall manually: {}",
+            NIX.install_hint.dimmed()
+        );
+    }
+
+    output::item_ok("Nix installed");
+
+    // Extend PATH so detect_backend finds nix/home-manager/darwin-rebuild.
+    let nix_bin = "/nix/var/nix/profiles/default/bin";
+    let path = std::env::var("PATH").unwrap_or_default();
+    if !path.contains(nix_bin) {
+        std::env::set_var("PATH", format!("{nix_bin}:{path}"));
+    }
+
+    output::item_warn(
+        "Open a new terminal after install, or run:\n  \
+         source /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh",
+    );
+
+    Ok(())
+}

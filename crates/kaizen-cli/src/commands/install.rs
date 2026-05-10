@@ -5,7 +5,7 @@ use kaizen_core::KaizenEngine;
 
 use kaizen_core::ChezmoiClient;
 
-use crate::{chezmoi::StdChezmoiClient, commands, output};
+use crate::{chezmoi::StdChezmoiClient, commands, ensure, output};
 
 /// First-time machine install: configure if needed, then sync.
 ///
@@ -36,6 +36,12 @@ pub fn run(
         println!();
     } else {
         output::item_ok("config and dotfiles found — skipping configure");
+    }
+
+    // On macOS, ensure Nix is installed before syncing so detect_backend
+    // selects the Nix backend rather than falling back to upt/brew.
+    if kaizen_core::TargetOs::detect() == kaizen_core::TargetOs::Darwin {
+        ensure::ensure_nix_macos()?;
     }
 
     // install is a first-time setup command — always force-apply dotfiles
