@@ -166,28 +166,43 @@ fn remove_chezmoi_source(source: Option<&Path>) -> Result<()> {
 }
 
 fn uninstall_nix() -> Result<()> {
-    let determinate = Path::new("/nix/nix-installer");
-    let status = if determinate.exists() {
-        output::item("running Determinate Systems nix-installer uninstall...");
-        Command::new(determinate).arg("uninstall").status()?
-    } else {
-        output::item("running Nix uninstall...");
-        Command::new("sh")
-            .args([
-                "-c",
-                "/nix/nix-installer uninstall || \
-                 (curl -sSfL https://install.determinate.systems/nix | sh -s -- uninstall)",
-            ])
-            .status()?
-    };
-    if !status.success() {
-        anyhow::bail!(
-            "Nix uninstall failed — remove manually: \
-             https://nixos.org/manual/nix/stable/#sect-macos-installation"
-        );
+    // Try uninstallers in order of reliability.
+    // IMPORTANT: do NOT download a fresh Determinate installer and run
+    // `uninstall` — it requires a receipt from the original install and
+    // will always fail without one.
+    let attempts: &[(&str, &[&str])] = &[
+        // 1. Determinate Systems installer binary (placed by the installer)
+        ("/nix/nix-installer", &["uninstall"]),
+        // 2. Determinate Systems installer if it ended up in PATH
+        ("nix-installer", &["uninstall"]),
+        // 3. Official Nix uninstall script (works independently of receipts)
+        ("sh", &["-c", "curl -fsSL https://nixos.org/nix/uninstall | sh"]),
+    ];
+
+    for (cmd, args) in attempts {
+        let available = if cmd.starts_with('/') {
+            Path::new(cmd).exists()
+        } else {
+            which::which(cmd).is_ok()
+        };
+        if !available {
+            continue;
+        }
+        output::item(&format!("running {cmd} uninstall…"));
+        let status = Command::new(cmd).args(*args).status()?;
+        if status.success() {
+            output::item_ok("Nix removed");
+            return Ok(());
+        }
+        output::item_warn(&format!("{cmd} uninstall failed, trying next method…"));
     }
-    output::item_ok("Nix removed");
-    Ok(())
+
+    anyhow::bail!(
+        "could not uninstall Nix automatically.\n\
+         \n\
+         Determinate Nix: https://docs.determinate.systems/determinate-nix/#uninstalling\n\
+         Official Nix:    https://nixos.org/manual/nix/stable/#sect-macos-installation"
+    );
 }
 
 #[cfg(test)]
