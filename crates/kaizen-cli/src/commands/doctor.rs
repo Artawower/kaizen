@@ -20,6 +20,7 @@ pub fn run(engine: &KaizenEngine, config_path: &Path) -> Result<()> {
     }
 
     report_nix_tools();
+    report_nix_uninstall_state();
     report_config(engine, config_path);
     report_version();
 
@@ -34,6 +35,48 @@ pub fn run(engine: &KaizenEngine, config_path: &Path) -> Result<()> {
 
     println!();
     Ok(())
+}
+
+fn report_nix_uninstall_state() {
+    use std::path::Path;
+
+    let nix_store = Path::new("/nix/store");
+    if !nix_store.exists() {
+        return; // Nix not installed, nothing to report
+    }
+
+    output::header("Nix uninstall info");
+
+    // Determinate Systems: receipt is the key to automated uninstall
+    let receipt = Path::new("/nix/receipt.json");
+    let installer_bin = Path::new("/nix/nix-installer");
+
+    if installer_bin.exists() {
+        output::item_ok("nix-installer binary found — automated uninstall available");
+        output::item(&format!(
+            "  run: {} uninstall",
+            installer_bin.display()
+        ));
+    } else if receipt.exists() {
+        output::item_warn("nix-installer binary missing but receipt found");
+        output::item("  download matching installer version and run with 'uninstall'");
+        output::item("  see: https://docs.determinate.systems/determinate-nix/#uninstalling");
+    } else {
+        output::item_warn("nix-installer binary and receipt both missing — manual uninstall required");
+        output::item("  Determinate: https://docs.determinate.systems/determinate-nix/#uninstalling");
+        output::item("  Official:    https://nixos.org/manual/nix/stable/#sect-macos-installation");
+    }
+
+    // APFS volume
+    let apfs_vol = std::process::Command::new("diskutil")
+        .args(["info", "/nix"])
+        .output()
+        .ok()
+        .filter(|o| o.status.success())
+        .is_some();
+    if apfs_vol {
+        output::item_ok("/nix APFS volume detected");
+    }
 }
 
 fn report_nix_tools() {
