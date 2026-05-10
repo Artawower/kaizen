@@ -68,7 +68,11 @@ impl ChezmoiClient for StdChezmoiClient {
         let Some(path) = self.raw_source_path()? else {
             return Ok(None);
         };
-        if path.exists() { Ok(Some(path)) } else { Ok(None) }
+        if path.exists() {
+            Ok(Some(path))
+        } else {
+            Ok(None)
+        }
     }
 
     fn raw_source_path(&self) -> Result<Option<PathBuf>, KaizenError> {
@@ -86,10 +90,18 @@ impl ChezmoiClient for StdChezmoiClient {
 
     fn pull_source(&self, git_root: &Path) -> Result<(), KaizenError> {
         let status = Command::new("git")
-            .args(["-C", &git_root.to_string_lossy(), "pull", "--ff-only", "--quiet"])
+            .args([
+                "-C",
+                &git_root.to_string_lossy(),
+                "pull",
+                "--ff-only",
+                "--quiet",
+            ])
             .status()?;
         if !status.success() {
-            return Err(KaizenError::GitPullFailed { path: git_root.to_owned() });
+            return Err(KaizenError::GitPullFailed {
+                path: git_root.to_owned(),
+            });
         }
         Ok(())
     }

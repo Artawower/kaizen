@@ -52,7 +52,6 @@ pub trait ChezmoiClient: Send + Sync {
         effective.to_owned()
     }
 
-
     /// Run `git -C git_root pull --ff-only` to update a known-safe source repo.
     fn pull_source(&self, git_root: &Path) -> Result<(), KaizenError>;
 
