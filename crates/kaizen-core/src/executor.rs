@@ -7,6 +7,8 @@ pub struct ProcessCommand {
     pub args: Vec<String>,
     pub sudo: bool,
     pub capture_stdout: bool,
+    /// Extra directories prepended to PATH for this subprocess.
+    pub path_prefix: Vec<String>,
 }
 
 impl ProcessCommand {
@@ -17,7 +19,14 @@ impl ProcessCommand {
             args: args.into_iter().map(Into::into).collect(),
             sudo: false,
             capture_stdout: false,
+            path_prefix: vec![],
         }
+    }
+
+    /// Prepend directories to PATH when spawning this subprocess.
+    pub fn with_path_prefix(mut self, dirs: impl IntoIterator<Item = impl Into<String>>) -> Self {
+        self.path_prefix = dirs.into_iter().map(Into::into).collect();
+        self
     }
 
     /// Wrap the command with `sudo`.

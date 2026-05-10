@@ -59,11 +59,30 @@ impl NixSyncBackend {
             .join(".config/nix"))
     }
 
+    /// Nix profile directories to prepend to PATH for all nix subprocesses.
+    ///
+    /// `home-manager`, `darwin-rebuild` and other tools call `nix` internally.
+    /// Without these prefixes they fail when Nix is not yet on the shell PATH.
+    fn nix_path_prefix(&self) -> Vec<String> {
+        let mut dirs = vec!["/nix/var/nix/profiles/default/bin".to_owned()];
+        if let Some(home) = self.runtime.paths.home_dir() {
+            dirs.push(home.join(".nix-profile/bin").to_string_lossy().into_owned());
+            dirs.push(
+                home.join(".local/state/nix/profile/bin")
+                    .to_string_lossy()
+                    .into_owned(),
+            );
+        }
+        dirs
+    }
+
     fn run_darwin_rebuild(&self) -> Result<(), KaizenError> {
         let flake = self.nix_config_dir()?.to_string_lossy().into_owned();
-        self.runtime
-            .executor
-            .execute(ProcessCommand::run("darwin-rebuild", ["switch", "--flake", &flake]).sudo())?;
+        self.runtime.executor.execute(
+            ProcessCommand::run("darwin-rebuild", ["switch", "--flake", &flake])
+                .sudo()
+                .with_path_prefix(self.nix_path_prefix()),
+        )?;
         Ok(())
     }
 
@@ -100,9 +119,10 @@ impl NixSyncBackend {
             )
         };
 
-        self.runtime
-            .executor
-            .execute(ProcessCommand::run(cmd, args))?;
+        self.runtime.executor.execute(
+            ProcessCommand::run(cmd, args)
+                .with_path_prefix(self.nix_path_prefix()),
+        )?;
         Ok(())
     }
 

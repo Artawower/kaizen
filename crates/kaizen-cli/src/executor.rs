@@ -19,11 +19,51 @@ impl ProcessExecutor for StdProcessExecutor {
     }
 }
 
+/// Build the PATH string for a command with `path_prefix` set.
+/// Returns `None` when the prefix list is empty (no override needed).
+fn effective_path(cmd: &ProcessCommand) -> Option<String> {
+    if cmd.path_prefix.is_empty() {
+        return None;
+    }
+    let current = std::env::var("PATH").unwrap_or_default();
+    let prefix = cmd.path_prefix.join(":");
+    Some(format!("{prefix}:{current}"))
+}
+
+/// Create a `std::process::Command` for a non-sudo invocation,
+/// applying the PATH prefix when present.
+fn base_command(cmd: &ProcessCommand) -> std::process::Command {
+    let mut c = std::process::Command::new(&cmd.bin);
+    c.args(&cmd.args);
+    if let Some(path) = effective_path(cmd) {
+        c.env("PATH", path);
+    }
+    c
+}
+
+/// Create a `std::process::Command` for a sudo invocation.
+///
+/// Uses `sudo env PATH=… <bin> args` so that PATH survives sudo's
+/// `secure_path` stripping and the child process can find nix tools.
+#[allow(clippy::result_large_err)]
+fn sudo_command(cmd: &ProcessCommand) -> Result<std::process::Command, KaizenError> {
+    let bin_path =
+        which::which(&cmd.bin).map_err(|e| std::io::Error::new(std::io::ErrorKind::NotFound, e))?;
+
+    let path_val = effective_path(cmd)
+        .unwrap_or_else(|| std::env::var("PATH").unwrap_or_default());
+
+    let mut c = std::process::Command::new("sudo");
+    c.arg("-p").arg("[kaizen] sudo password: ");
+    // Pass PATH explicitly so sudo child inherits nix profile dirs.
+    c.arg("env").arg(format!("PATH={path_val}"));
+    c.arg(bin_path).args(&cmd.args);
+    Ok(c)
+}
+
 #[allow(clippy::result_large_err)]
 fn run_status(cmd: ProcessCommand) -> Result<ProcessOutput, KaizenError> {
-    let status = std::process::Command::new(&cmd.bin)
-        .args(&cmd.args)
-        .status()?;
+    let status = base_command(&cmd).status()?;
     if !status.success() {
         return Err(KaizenError::CommandFailed {
             cmd: cmd_label(&cmd),
@@ -35,14 +75,7 @@ fn run_status(cmd: ProcessCommand) -> Result<ProcessOutput, KaizenError> {
 
 #[allow(clippy::result_large_err)]
 fn run_sudo(cmd: ProcessCommand) -> Result<ProcessOutput, KaizenError> {
-    let bin_path =
-        which::which(&cmd.bin).map_err(|e| std::io::Error::new(std::io::ErrorKind::NotFound, e))?;
-    let status = std::process::Command::new("sudo")
-        .arg("-p")
-        .arg("[kaizen] sudo password: ")
-        .arg(bin_path)
-        .args(&cmd.args)
-        .status()?;
+    let status = sudo_command(&cmd)?.status()?;
     if !status.success() {
         return Err(KaizenError::CommandFailed {
             cmd: format!("sudo {}", cmd_label(&cmd)),
@@ -54,9 +87,7 @@ fn run_sudo(cmd: ProcessCommand) -> Result<ProcessOutput, KaizenError> {
 
 #[allow(clippy::result_large_err)]
 fn run_capturing(cmd: ProcessCommand) -> Result<ProcessOutput, KaizenError> {
-    let out = std::process::Command::new(&cmd.bin)
-        .args(&cmd.args)
-        .output()?;
+    let out = base_command(&cmd).output()?;
     if !out.status.success() {
         return Err(KaizenError::CommandFailed {
             cmd: cmd_label(&cmd),
@@ -70,14 +101,7 @@ fn run_capturing(cmd: ProcessCommand) -> Result<ProcessOutput, KaizenError> {
 
 #[allow(clippy::result_large_err)]
 fn run_sudo_capturing(cmd: ProcessCommand) -> Result<ProcessOutput, KaizenError> {
-    let bin_path =
-        which::which(&cmd.bin).map_err(|e| std::io::Error::new(std::io::ErrorKind::NotFound, e))?;
-    let out = std::process::Command::new("sudo")
-        .arg("-p")
-        .arg("[kaizen] sudo password: ")
-        .arg(bin_path)
-        .args(&cmd.args)
-        .output()?;
+    let out = sudo_command(&cmd)?.output()?;
     if !out.status.success() {
         return Err(KaizenError::CommandFailed {
             cmd: format!("sudo {}", cmd_label(&cmd)),
