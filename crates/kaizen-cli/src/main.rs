@@ -100,6 +100,12 @@ enum Command {
     /// Check system readiness and tool availability.
     Doctor,
 
+    /// Upgrade kaizen binary to the latest GitHub release.
+    SelfUpdate {
+        #[arg(long, help = "Show what would change without downloading")]
+        dry_run: bool,
+    },
+
     /// Upgrade tool versions and re-add lock/config files to the chezmoi source.
     /// Maintainer command: bumps mise + nix flake inputs, then re-adds locks to chezmoi.
     #[command(hide = true)]
@@ -166,6 +172,7 @@ fn main() -> Result<()> {
             commands::uninstall::run(&engine, &config_path, dry_run)?;
         }
         Command::Doctor => commands::doctor::run(&engine, &config_path)?,
+        Command::SelfUpdate { dry_run } => commands::self_update::run(dry_run)?,
         Command::Bump { nix, mise, dry_run } => {
             commands::bump::run(
                 nix,

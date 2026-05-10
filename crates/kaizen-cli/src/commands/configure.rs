@@ -16,7 +16,11 @@ use crate::{ensure, filesystem::StdFileSystem, output, selector};
 /// When `prompt_next` is `true` (standalone `kaizen configure`) the user is
 /// offered a "What next?" prompt at the end.  When called from `kaizen install`
 /// pass `false` — install handles syncing itself (with `--force`).
-pub fn run(explicit_features_dir: Option<&Path>, config_path: &Path, prompt_next: bool) -> Result<()> {
+pub fn run(
+    explicit_features_dir: Option<&Path>,
+    config_path: &Path,
+    prompt_next: bool,
+) -> Result<()> {
     output::page_header("configure");
     ensure::ensure_chezmoi()?;
 

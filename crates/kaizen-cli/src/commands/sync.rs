@@ -42,7 +42,14 @@ fn run_with(
         return Ok(());
     }
 
-    backend.sync(&plan, &SyncOpts { dry_run: false, force }, &StderrReporter)?;
+    backend.sync(
+        &plan,
+        &SyncOpts {
+            dry_run: false,
+            force,
+        },
+        &StderrReporter,
+    )?;
 
     println!();
     output::item_ok("sync complete");

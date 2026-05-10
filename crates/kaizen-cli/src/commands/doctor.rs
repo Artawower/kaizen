@@ -21,6 +21,7 @@ pub fn run(engine: &KaizenEngine, config_path: &Path) -> Result<()> {
 
     report_nix_tools();
     report_config(engine, config_path);
+    report_version();
 
     output::header("Features");
     match engine.list_features() {
@@ -62,6 +63,29 @@ fn report_tool(tool: &Tool) {
             tool.name,
             tool.install_hint.dimmed()
         )),
+    }
+}
+
+fn report_version() {
+    use super::self_update::{fetch_latest, versions_equal};
+
+    output::header("Version");
+    let current = env!("CARGO_PKG_VERSION");
+    output::kv("installed", current);
+
+    match fetch_latest() {
+        Ok(latest) if versions_equal(current, &latest) => {
+            output::item_ok("up to date");
+        }
+        Ok(latest) => {
+            output::item_warn(&format!(
+                "update available: {current} → {}  (run: kaizen self-update)",
+                latest.green()
+            ));
+        }
+        Err(_) => {
+            output::item_warn("could not check for updates (offline?)");
+        }
     }
 }
 

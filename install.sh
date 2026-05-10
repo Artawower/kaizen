@@ -145,9 +145,6 @@ if [ ! -w "$dest" ] && [ -z "$sudo_cmd" ]; then
 fi
 
 binary_path="$dest/$crate"
-if [ -e "$binary_path" ] && [ "$force" != "true" ]; then
-	die "$binary_path already exists; rerun with --force to overwrite"
-fi
 
 tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/kaizen.XXXXXX")
 trap 'rm -rf "$tmpdir"' EXIT HUP INT TERM
