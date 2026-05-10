@@ -158,9 +158,42 @@ fn remove_config(path: &Path) -> Result<()> {
 
 fn remove_chezmoi_source(source: Option<&Path>) -> Result<()> {
     let Some(p) = source else { return Ok(()) };
+    guard_against_dangerous_removal(p)?;
     if p.exists() {
         std::fs::remove_dir_all(p)?;
         output::item_ok(&format!("removed {}", p.display()));
+    }
+    Ok(())
+}
+
+/// Refuse to `remove_dir_all` obviously dangerous paths like `$HOME` or `/`.
+/// This guards against `git_root()` accidentally returning an ancestor repo
+/// (e.g. when `$HOME` is itself a git repository).
+fn guard_against_dangerous_removal(path: &Path) -> Result<()> {
+    // Filesystem root.
+    if path.parent().is_none() {
+        anyhow::bail!(
+            "refusing to remove '{}' — looks like filesystem root",
+            path.display()
+        );
+    }
+    // Home directory.
+    if let Some(home) = dirs::home_dir() {
+        if path == home || path.canonicalize().ok().as_deref() == Some(&home) {
+            anyhow::bail!(
+                "refusing to remove '{}' — this is your home directory",
+                path.display()
+            );
+        }
+    }
+    // Any path outside $HOME is also suspicious for a chezmoi source.
+    if let Some(home) = dirs::home_dir() {
+        if !path.starts_with(&home) {
+            anyhow::bail!(
+                "refusing to remove '{}' — chezmoi source should be inside $HOME",
+                path.display()
+            );
+        }
     }
     Ok(())
 }
@@ -227,6 +260,33 @@ mod tests {
         let config = dir.path().join("config.toml");
         std::fs::write(&config, "schema_version = 1\n").unwrap();
         (dir, config)
+    }
+
+    #[test]
+    fn guard_rejects_home_dir() {
+        let home = dirs::home_dir().expect("home dir must exist in test");
+        let err = guard_against_dangerous_removal(&home).unwrap_err();
+        assert!(err.to_string().contains("home directory"), "{err}");
+    }
+
+    #[test]
+    fn guard_rejects_filesystem_root() {
+        let err = guard_against_dangerous_removal(std::path::Path::new("/")).unwrap_err();
+        assert!(err.to_string().contains("filesystem root"), "{err}");
+    }
+
+    #[test]
+    fn guard_rejects_path_outside_home() {
+        let err = guard_against_dangerous_removal(std::path::Path::new("/etc")).unwrap_err();
+        assert!(err.to_string().contains("inside $HOME"), "{err}");
+    }
+
+    #[test]
+    fn guard_accepts_valid_chezmoi_source() {
+        let home = dirs::home_dir().expect("home dir must exist in test");
+        let chezmoi_source = home.join(".local/share/chezmoi");
+        // Guard should pass (not bail) for a normal chezmoi source path.
+        assert!(guard_against_dangerous_removal(&chezmoi_source).is_ok());
     }
 
     #[test]
