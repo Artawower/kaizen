@@ -25,8 +25,7 @@ fn macos_compile_env() -> Vec<(String, String)> {
     {
         let sdk = StdProcessExecutor
             .execute(
-                ProcessCommand::run("xcrun", ["--sdk", "macosx", "--show-sdk-path"])
-                    .capturing(),
+                ProcessCommand::run("xcrun", ["--sdk", "macosx", "--show-sdk-path"]).capturing(),
             )
             .ok()
             .map(|o| o.stdout);
@@ -93,7 +92,10 @@ impl DevToolsManager for MiseToolchain {
             return Ok(());
         }
         let mut cmd = ProcessCommand::run("mise", ["install"]);
-        for (k, v) in macos_compile_env().into_iter().chain(mise_no_download_env()) {
+        for (k, v) in macos_compile_env()
+            .into_iter()
+            .chain(mise_no_download_env())
+        {
             cmd = cmd.with_env(k, v);
         }
         StdProcessExecutor.execute(cmd)?;

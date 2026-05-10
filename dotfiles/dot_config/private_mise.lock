@@ -12,13 +12,13 @@ backend = "cargo:gitu"
 version = "0.1.6"
 backend = "cargo:kdlfmt"
 
+[[tools."go:golang.org/x/tools/gopls"]]
+version = "0.20.0"
+backend = "go:golang.org/x/tools/gopls"
+
 [[tools."go:github.com/umputun/ralphex/cmd/ralphex"]]
 version = "1.1.1"
 backend = "go:github.com/umputun/ralphex/cmd/ralphex"
-
-[[tools."go:golang.org/x/tools/gopls"]]
-version = "0.21.1"
-backend = "go:golang.org/x/tools/gopls"
 
 [[tools.node]]
 version = "24.15.0"

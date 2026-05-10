@@ -104,6 +104,8 @@ impl ChezmoiClient for StdChezmoiClient {
                 "--ff-only",
                 "--quiet",
             ])
+            .stdout(std::process::Stdio::null())
+            .stderr(std::process::Stdio::null())
             .status()?;
         if !status.success() {
             return Err(KaizenError::GitPullFailed {

@@ -34,6 +34,14 @@ pub fn chezmoi_write_and_apply(
         client.init_source(url)?;
     }
 
+    // Pull latest dotfiles from remote before applying so that changes
+    // pushed to the upstream repo are picked up automatically.
+    if let Some(source) = client.source_path()? {
+        if let Some(git_root) = source.parent() {
+            let _ = client.pull_source(git_root); // non-fatal: offline / no remote is fine
+        }
+    }
+
     // Write features data and manifest to ~/.config/kaizen/.
     // chezmoi templates read data.toml via `include | fromToml`;
     // Nix options.nix reads manifest.toml via builtins.fromTOML.
