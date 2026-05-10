@@ -38,12 +38,10 @@ pub fn chezmoi_write_and_apply(
     // chezmoi source is a real clone, not a developer symlink.  When it is a
     // symlink the developer manages their own VCS and a silent pull would
     // overwrite uncommitted work.
-    if !client.source_is_dev_symlink() {
-        if let Some(source) = client.source_path()? {
-            if let Some(git_root) = source.parent() {
-                let _ = client.pull_source(git_root); // non-fatal: offline / no remote is fine
-            }
-        }
+    if let Some(source) = client.source_path()? {
+        // The adapter decides whether to pull (symlink, git root detection,
+        // offline tolerance). Non-fatal: diverge / no-remote is fine.
+        let _ = client.pull_source(&source);
     }
 
     // Write features data and manifest to ~/.config/kaizen/.

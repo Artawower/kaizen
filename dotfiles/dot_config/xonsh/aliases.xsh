@@ -25,7 +25,7 @@ aliases['czcd'] = 'cd $(chezmoi source-path)'
 # Shell
 aliases['y']  = 'yazi'
 aliases['z']  = 'zellij'
-aliases['l']  = '~/.config/scripts/layout'
+aliases['l']  = 'python ~/.config/scripts/layout-presets.py'
 
 # Python / pip
 aliases['pip']    = 'pip3'
