@@ -64,7 +64,11 @@ impl NixSyncBackend {
     /// `home-manager`, `darwin-rebuild` and other tools call `nix` internally.
     /// Without these prefixes they fail when Nix is not yet on the shell PATH.
     fn nix_path_prefix(&self) -> Vec<String> {
-        let mut dirs = vec!["/nix/var/nix/profiles/default/bin".to_owned()];
+        let mut dirs = vec![
+            "/nix/var/nix/profiles/default/bin".to_owned(),
+            // nix-darwin system sw path — darwin-rebuild lives here after first activation
+            "/run/current-system/sw/bin".to_owned(),
+        ];
         if let Some(home) = self.runtime.paths.home_dir() {
             dirs.push(home.join(".nix-profile/bin").to_string_lossy().into_owned());
             dirs.push(
@@ -76,13 +80,37 @@ impl NixSyncBackend {
         dirs
     }
 
+    fn darwin_rebuild_available(&self) -> bool {
+        self.nix_path_prefix()
+            .iter()
+            .any(|dir| std::path::Path::new(dir).join("darwin-rebuild").exists())
+            || self.runtime.paths.is_tool_available("darwin-rebuild")
+    }
+
     fn run_darwin_rebuild(&self) -> Result<(), KaizenError> {
         let flake = self.nix_config_dir()?.to_string_lossy().into_owned();
-        self.runtime.executor.execute(
+        let cmd = if self.darwin_rebuild_available() {
             ProcessCommand::run("darwin-rebuild", ["switch", "--flake", &flake])
                 .sudo()
-                .with_path_prefix(self.nix_path_prefix()),
-        )?;
+                .with_path_prefix(self.nix_path_prefix())
+        } else {
+            // nix-darwin not yet bootstrapped — use `nix run` to perform the first switch.
+            // After this completes, darwin-rebuild will be available for subsequent runs.
+            ProcessCommand::run(
+                "nix",
+                [
+                    "run",
+                    "github:LnL7/nix-darwin/master#darwin-rebuild",
+                    "--",
+                    "switch",
+                    "--flake",
+                    &flake,
+                ],
+            )
+            .sudo()
+            .with_path_prefix(self.nix_path_prefix())
+        };
+        self.runtime.executor.execute(cmd)?;
         Ok(())
     }
 
@@ -93,11 +121,15 @@ impl NixSyncBackend {
 
         // Prefer the installed home-manager binary; fall back to `nix run`
         // on a fresh system where home-manager is not yet in PATH.
-        let hm_in_path = std::process::Command::new("home-manager")
-            .arg("--version")
-            .output()
-            .map(|o| o.status.success())
-            .unwrap_or(false);
+        let hm_in_path = self
+            .runtime
+            .executor
+            .execute(
+                ProcessCommand::run("home-manager", ["--version"])
+                    .capturing()
+                    .with_path_prefix(self.nix_path_prefix()),
+            )
+            .is_ok();
 
         let (cmd, args): (&str, Vec<&str>) = if hm_in_path {
             (
@@ -131,10 +163,10 @@ impl NixSyncBackend {
         }
         let nix_dir = self.nix_config_dir()?;
         let flake_str = nix_dir.to_string_lossy().into_owned();
-        self.runtime.executor.execute(ProcessCommand::run(
-            "nix",
-            ["flake", "update", "--flake", &flake_str],
-        ))?;
+        self.runtime.executor.execute(
+            ProcessCommand::run("nix", ["flake", "update", "--flake", &flake_str])
+                .with_path_prefix(self.nix_path_prefix()),
+        )?;
         Ok(())
     }
 
@@ -142,20 +174,205 @@ impl NixSyncBackend {
         if dry_run {
             return Ok(());
         }
-        self.runtime.executor.execute(ProcessCommand::run(
-            "nix-collect-garbage",
-            ["--delete-older-than", "7d"],
-        ))?;
-        self.runtime
+        self.runtime.executor.execute(
+            ProcessCommand::run("nix-collect-garbage", ["--delete-older-than", "7d"])
+                .with_path_prefix(self.nix_path_prefix()),
+        )?;
+        self.runtime.executor.execute(
+            ProcessCommand::run("nix-store", ["--optimise"])
+                .with_path_prefix(self.nix_path_prefix()),
+        )?;
+        Ok(())
+    }
+
+    /// Prepare source formulas before darwin-rebuild:
+    /// 1. Unlink any OTHER installed versions of the same formula family
+    ///    (e.g. emacs-plus@31 when switching to emacs-plus@30).
+    /// 2. Remove root-owned .app bundles from /Applications that bottles place
+    ///    as root and that block `brew reinstall` from updating them.
+    /// 3. Force-link with --overwrite so brew bundle install skips already-linked
+    ///    formulae instead of failing on non-symlink file conflicts.
+    /// All steps are non-fatal: formula may not be installed on a fresh system.
+    fn prelink_brew_source_formulas(&self, formulas: &[String]) {
+        for formula in formulas {
+            self.unlink_other_versions(formula);
+            self.remove_root_app_bundles(formula);
+            let _ = self.runtime.executor.execute(ProcessCommand::run(
+                "brew",
+                ["link", "--overwrite", formula.as_str()],
+            ));
+        }
+    }
+
+    /// Resolve the Homebrew Cellar path by asking brew directly.
+    ///
+    /// Avoids the `/opt/homebrew/Cellar` hardcode that breaks on Intel Macs
+    /// and custom Homebrew prefixes (e.g. `/usr/local`).
+    fn brew_cellar_dir(&self) -> Option<std::path::PathBuf> {
+        let out = self
+            .runtime
             .executor
-            .execute(ProcessCommand::run("nix-store", ["--optimise"]))?;
+            .execute(ProcessCommand::run("brew", ["--cellar"]).capturing())
+            .ok()?;
+        let path = out.stdout.trim();
+        if path.is_empty() {
+            return None;
+        }
+        Some(std::path::PathBuf::from(path))
+    }
+
+    /// Unlink all Cellar kegs that share the same base name but differ in version.
+    ///
+    /// e.g. target = "d12frosted/emacs-plus/emacs-plus@30"
+    ///      base   = "emacs-plus"
+    ///      unlinks "emacs-plus@31", "emacs-plus@29", … but not "emacs-plus@30".
+    ///
+    /// The match uses `== base` (unversioned) or `starts_with("{base}@")` to
+    /// avoid false-positives such as "emacs-plus-native" matching "emacs-plus".
+    fn unlink_other_versions(&self, formula: &str) {
+        let keg_name = formula.rsplit('/').next().unwrap_or(formula);
+        let base = keg_name.split('@').next().unwrap_or(keg_name);
+        let versioned_prefix = format!("{base}@");
+
+        let Some(cellar) = self.brew_cellar_dir() else {
+            return;
+        };
+        let Ok(entries) = std::fs::read_dir(&cellar) else {
+            return;
+        };
+        for entry in entries.flatten() {
+            let name = entry.file_name();
+            let name_str = name.to_string_lossy();
+            let is_same_family =
+                name_str == base || name_str.starts_with(versioned_prefix.as_str());
+            if is_same_family && name_str != keg_name {
+                let _ = self
+                    .runtime
+                    .executor
+                    .execute(ProcessCommand::run("brew", ["unlink", name_str.as_ref()]));
+            }
+        }
+    }
+
+    /// Remove /Applications/<Name>.app if it is owned by root.
+    ///
+    /// Homebrew bottles install app bundles to /Applications as root, which
+    /// blocks subsequent `brew reinstall --build-from-source` from updating them.
+    /// We discover the bundle path by asking brew where it installed the app.
+    fn remove_root_app_bundles(&self, formula: &str) {
+        let Ok(out) = self
+            .runtime
+            .executor
+            .execute(ProcessCommand::run("brew", ["--prefix", formula]).capturing())
+        else {
+            return;
+        };
+        let prefix = std::path::Path::new(out.stdout.trim());
+        // emacs-plus and similar formulae place Emacs.app next to bin/ in prefix
+        let Ok(entries) = std::fs::read_dir(prefix) else {
+            return;
+        };
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.extension().and_then(|e| e.to_str()) != Some("app") {
+                continue;
+            }
+            let app_name = match path.file_name().and_then(|n| n.to_str()) {
+                Some(n) => n.to_owned(),
+                None => continue,
+            };
+            let system_app = std::path::Path::new("/Applications").join(&app_name);
+            let owned_by_root = system_app
+                .symlink_metadata()
+                .ok()
+                .map(|m| {
+                    use std::os::unix::fs::MetadataExt;
+                    m.uid() == 0
+                })
+                .unwrap_or(false);
+            if owned_by_root {
+                let _ = self.runtime.executor.execute(
+                    ProcessCommand::run("rm", ["-rf", system_app.to_string_lossy().as_ref()])
+                        .sudo(),
+                );
+            }
+        }
+    }
+
+    /// Check if a formula has missing (broken) dylib paths.
+    ///
+    /// Uses `brew linkage` without `--test` and looks for "Missing:" lines.
+    /// `--test` exits non-zero for indirect dependencies too, giving false
+    /// positives on formulae like emacs-plus that use many transitive libs.
+    ///
+    /// Only the keg name (last path component) is passed to `brew linkage` —
+    /// the full tap path (e.g. "d12frosted/emacs-plus/emacs-plus@31") is only
+    /// needed for `brew install`; `brew linkage` operates on installed kegs.
+    fn brew_linkage_broken(&self, formula: &str) -> bool {
+        let keg_name = formula.rsplit('/').next().unwrap_or(formula);
+        let Ok(out) = self
+            .runtime
+            .executor
+            .execute(ProcessCommand::run("brew", ["linkage", keg_name]).capturing())
+        else {
+            return false; // can't run brew — assume OK
+        };
+        // brew uses different section headers across versions:
+        //   "Missing libraries:", "Missing:", "Broken dependencies:"
+        out.stdout.lines().any(|l| {
+            let t = l.trim_start();
+            t.starts_with("Missing") || t.starts_with("Broken dependencies")
+        })
+    }
+
+    /// For each formula in `brew_source_formulas`, check for missing dylibs.
+    /// If broken, reinstall from source so it links against current library versions.
+    fn repair_brew_source_formulas(
+        &self,
+        formulas: &[String],
+        reporter: &dyn ProgressReporter,
+    ) -> Result<(), KaizenError> {
+        for formula in formulas {
+            if !self.brew_linkage_broken(formula) {
+                continue;
+            }
+
+            reporter.step(&format!(
+                "→ {formula}: broken dylibs detected — rebuilding from source"
+            ));
+            // Ignore exit code: brew reinstall may exit non-zero if a registered
+            // launchd service fails to restart under sudo (Input/output error).
+            let _ = self.runtime.executor.execute(ProcessCommand::run(
+                "brew",
+                ["reinstall", "--build-from-source", formula.as_str()],
+            ));
+
+            // Force-relink after source build: brew reinstall may leave
+            // app bundles pointing to the old keg if auto-link failed mid-way.
+            let _ = self.runtime.executor.execute(ProcessCommand::run(
+                "brew",
+                ["link", "--overwrite", formula.as_str()],
+            ));
+
+            if self.brew_linkage_broken(formula) {
+                return Err(KaizenError::CommandFailed {
+                    cmd: format!("brew reinstall --build-from-source {formula}"),
+                    code: Some(1),
+                });
+            }
+        }
         Ok(())
     }
 
     fn nix_install_steps(&self) -> Vec<String> {
         let mut steps = vec![];
         if self.os == TargetOs::Darwin {
-            steps.push("sudo darwin-rebuild switch --flake ~/.config/nix".into());
+            let cmd = if self.darwin_rebuild_available() {
+                "sudo darwin-rebuild switch --flake ~/.config/nix".into()
+            } else {
+                "sudo nix run github:LnL7/nix-darwin/master#darwin-rebuild -- switch --flake ~/.config/nix".into()
+            };
+            steps.push(cmd);
         }
         let user = self.current_user().unwrap_or_else(|_| "<user>".into());
         steps.push(format!(
@@ -188,7 +405,7 @@ impl SyncBackend for NixSyncBackend {
 impl InstallBackend for NixSyncBackend {
     fn install(
         &self,
-        _plan: &WorkflowPlan,
+        plan: &WorkflowPlan,
         opts: &SyncOpts,
         reporter: &dyn ProgressReporter,
     ) -> Result<InstallReport, KaizenError> {
@@ -201,18 +418,14 @@ impl InstallBackend for NixSyncBackend {
             });
         }
 
-        // darwin-rebuild is only available after nix-darwin is bootstrapped.
-        // On a fresh Nix install it is not yet present; skip it and let
-        // home-manager handle the first switch via `nix run` fallback.
-        let darwin_rebuild_available = std::process::Command::new("darwin-rebuild")
-            .arg("--version")
-            .output()
-            .map(|o| o.status.success())
-            .unwrap_or(false);
-
-        if self.os == TargetOs::Darwin && darwin_rebuild_available {
+        if self.os == TargetOs::Darwin {
+            // Unlink source formulas before darwin-rebuild so brew bundle can
+            // relink cleanly without "already exists" symlink conflicts from
+            // previous installations (e.g. share/info/emacs/dir).
+            self.prelink_brew_source_formulas(&plan.install_plan.brew_source_formulas);
             reporter.step("→ darwin-rebuild switch");
             self.run_darwin_rebuild()?;
+            self.repair_brew_source_formulas(&plan.install_plan.brew_source_formulas, reporter)?;
         }
         reporter.step("→ home-manager switch");
         self.run_home_manager()?;
@@ -383,6 +596,7 @@ mod tests {
             InstallPlan {
                 programs: vec![],
                 dev_tools: IndexMap::new(),
+                brew_source_formulas: vec![],
             },
             ConfigPlan {
                 backend: "chezmoi".into(),
