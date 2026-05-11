@@ -22,7 +22,10 @@ in
     PATH = "${pkgs.coreutils}/bin:$PATH";
   };
 
-  nix.settings.experimental-features = "nix-command flakes";
+  # Determinate Nix manages the Nix daemon itself — disable nix-darwin's
+  # built-in Nix management to avoid the activation conflict.
+  # Determinate already enables nix-command + flakes by default.
+  nix.enable = false;
 
   system.primaryUser = user.username;
 
@@ -191,17 +194,8 @@ in
     ];
 
     brews = [
-      # Emacs with macOS-specific patches (xwidgets, imagemagick, dbus — not in nixpkgs)
-      {
-        name = "d12frosted/emacs-plus/emacs-plus@30";
-        restart_service = true;
-        args = [
-          "with-xwidgets"
-          "with-imagemagick"
-          "with-dbus"
-          "with-compress-install"
-        ];
-      }
+      # Emacs with macOS-specific patches (xwidgets, dbus — not in nixpkgs; imagemagick built-in since @31)
+
 
       # Window management — deep macOS system integration, codesigning requirements
       { name = "koekeishiya/formulae/yabai"; }
@@ -276,6 +270,14 @@ in
     ];
 
     masApps = { };
+
+    # build_from_source: links against whatever tree-sitter is installed,
+    # avoids dyld breakage when tree-sitter is upgraded between minor versions.
+    # nix-darwin homebrew module does not expose build_from_source as a field,
+    # so the entry is written as a raw Brewfile line via extraConfig.
+    extraConfig = ''
+      brew "d12frosted/emacs-plus/emacs-plus@31", args: ["with-xwidgets", "with-dbus", "with-compress-install"], build_from_source: true
+    '';
   };
 
   system.activationScripts.masOptional = ''

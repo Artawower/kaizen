@@ -259,6 +259,7 @@ mod tests {
             InstallPlan {
                 programs: vec![],
                 dev_tools: IndexMap::new(),
+                brew_source_formulas: vec![],
             },
             ConfigPlan {
                 backend: "chezmoi".into(),

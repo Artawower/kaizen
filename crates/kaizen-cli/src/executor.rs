@@ -50,10 +50,12 @@ fn base_command(cmd: &ProcessCommand) -> std::process::Command {
 /// `secure_path` stripping and the child process can find nix tools.
 #[allow(clippy::result_large_err)]
 fn sudo_command(cmd: &ProcessCommand) -> Result<std::process::Command, KaizenError> {
-    let bin_path =
-        which::which(&cmd.bin).map_err(|e| std::io::Error::new(std::io::ErrorKind::NotFound, e))?;
-
+    // Resolve binary against the effective PATH (prefix + current), not just the
+    // current process PATH. `nix` may only be in nix_path_prefix and absent from
+    // the shell PATH on a fresh install or in a restricted environment.
     let path_val = effective_path(cmd).unwrap_or_else(|| std::env::var("PATH").unwrap_or_default());
+    let bin_path = which::which_in(&cmd.bin, Some(&path_val), std::env::current_dir()?)
+        .map_err(|e| std::io::Error::new(std::io::ErrorKind::NotFound, e))?;
 
     let mut c = std::process::Command::new("sudo");
     c.arg("-p").arg("[kaizen] sudo password: ");

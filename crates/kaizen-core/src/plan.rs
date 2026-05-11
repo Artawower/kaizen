@@ -18,6 +18,11 @@ pub struct InstallPlan {
     pub programs: Vec<String>,
     /// Dev toolchain tools (sourced from `[mise.tools]` in feature files).
     pub dev_tools: IndexMap<String, String>,
+    /// Homebrew formulae declared via `[os.darwin].brew_source_formulas`.
+    /// On Darwin: after `darwin-rebuild switch`, kaizen checks linkage health
+    /// and rebuilds from source if any dylibs are broken.
+    #[serde(default)]
+    pub brew_source_formulas: Vec<String>,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]

@@ -6,3 +6,9 @@ packages = ["emacs", "sqlite", "imagemagick"]
 
 [programs.overrides.fedora]
 imagemagick = "ImageMagick"
+
+[os.darwin]
+# emacs-plus must be compiled from source so it links against whatever
+# tree-sitter / imagemagick version homebrew currently has installed.
+# kaizen auto-repairs broken dylibs after darwin-rebuild switch.
+brew_source_formulas = ["d12frosted/emacs-plus/emacs-plus@31"]

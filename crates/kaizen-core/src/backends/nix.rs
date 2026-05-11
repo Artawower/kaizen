@@ -186,12 +186,14 @@ impl NixSyncBackend {
     }
 
     /// Prepare source formulas before darwin-rebuild:
+    ///
     /// 1. Unlink any OTHER installed versions of the same formula family
     ///    (e.g. emacs-plus@31 when switching to emacs-plus@30).
     /// 2. Remove root-owned .app bundles from /Applications that bottles place
     ///    as root and that block `brew reinstall` from updating them.
     /// 3. Force-link with --overwrite so brew bundle install skips already-linked
     ///    formulae instead of failing on non-symlink file conflicts.
+    ///
     /// All steps are non-fatal: formula may not be installed on a fresh system.
     fn prelink_brew_source_formulas(&self, formulas: &[String]) {
         for formula in formulas {
@@ -308,38 +310,47 @@ impl NixSyncBackend {
     /// Only the keg name (last path component) is passed to `brew linkage` —
     /// the full tap path (e.g. "d12frosted/emacs-plus/emacs-plus@31") is only
     /// needed for `brew install`; `brew linkage` operates on installed kegs.
-    fn brew_linkage_broken(&self, formula: &str) -> bool {
+    ///
+    /// Returns `Err` if `brew linkage` itself fails to run (treat as suspect).
+    fn brew_linkage_broken(&self, formula: &str) -> Result<bool, KaizenError> {
         let keg_name = formula.rsplit('/').next().unwrap_or(formula);
-        let Ok(out) = self
+        let out = self
             .runtime
             .executor
-            .execute(ProcessCommand::run("brew", ["linkage", keg_name]).capturing())
-        else {
-            return false; // can't run brew — assume OK
-        };
+            .execute(ProcessCommand::run("brew", ["linkage", keg_name]).capturing())?;
         // brew uses different section headers across versions:
         //   "Missing libraries:", "Missing:", "Broken dependencies:"
-        out.stdout.lines().any(|l| {
+        Ok(out.stdout.lines().any(|l| {
             let t = l.trim_start();
             t.starts_with("Missing") || t.starts_with("Broken dependencies")
-        })
+        }))
     }
 
     /// For each formula in `brew_source_formulas`, check for missing dylibs.
     /// If broken, reinstall from source so it links against current library versions.
+    ///
+    /// If `brew linkage` itself fails to run, the formula is treated as suspect
+    /// and a repair is attempted rather than silently skipped.
     fn repair_brew_source_formulas(
         &self,
         formulas: &[String],
         reporter: &dyn ProgressReporter,
     ) -> Result<(), KaizenError> {
         for formula in formulas {
-            if !self.brew_linkage_broken(formula) {
-                continue;
+            match self.brew_linkage_broken(formula) {
+                Ok(false) => continue,
+                Ok(true) => {
+                    reporter.step(&format!(
+                        "→ {formula}: broken dylibs detected — rebuilding from source"
+                    ));
+                }
+                Err(e) => {
+                    reporter.step(&format!(
+                        "→ {formula}: brew linkage check failed ({e}) — attempting repair"
+                    ));
+                }
             }
 
-            reporter.step(&format!(
-                "→ {formula}: broken dylibs detected — rebuilding from source"
-            ));
             // Ignore exit code: brew reinstall may exit non-zero if a registered
             // launchd service fails to restart under sudo (Input/output error).
             let _ = self.runtime.executor.execute(ProcessCommand::run(
@@ -354,7 +365,7 @@ impl NixSyncBackend {
                 ["link", "--overwrite", formula.as_str()],
             ));
 
-            if self.brew_linkage_broken(formula) {
+            if self.brew_linkage_broken(formula).unwrap_or(true) {
                 return Err(KaizenError::CommandFailed {
                     cmd: format!("brew reinstall --build-from-source {formula}"),
                     code: Some(1),
@@ -375,8 +386,13 @@ impl NixSyncBackend {
             steps.push(cmd);
         }
         let user = self.current_user().unwrap_or_else(|_| "<user>".into());
+        let nix_dir = self
+            .nix_config_dir()
+            .map(|p| p.to_string_lossy().into_owned())
+            .unwrap_or_else(|_| "~/.config/nix".into());
         steps.push(format!(
-            "home-manager switch --flake .#{}@{} --impure",
+            "home-manager switch --flake {}#{}@{} --impure",
+            nix_dir,
             user,
             self.flake_host()
         ));

@@ -13,6 +13,7 @@ pub fn build_plan(
 ) -> Result<WorkflowPlan, KaizenError> {
     let mut programs: IndexMap<String, String> = IndexMap::new();
     let mut dev_tools: IndexMap<String, String> = IndexMap::new();
+    let mut brew_source_formulas: Vec<String> = Vec::new();
     let mut warnings: Vec<String> = Vec::new();
     let mut selected_features: Vec<String> = Vec::new();
     let mut hook_plan = HookPlan::default();
@@ -56,6 +57,11 @@ pub fn build_plan(
                 if let Some(ref mise) = os_section.mise {
                     merge_mise(&mut dev_tools, &mise.tools, feature_name, &mut warnings);
                 }
+                for formula in &os_section.brew_source_formulas {
+                    if !brew_source_formulas.contains(formula) {
+                        brew_source_formulas.push(formula.clone());
+                    }
+                }
             }
         }
 
@@ -89,6 +95,7 @@ pub fn build_plan(
         InstallPlan {
             programs: programs.into_values().collect(),
             dev_tools,
+            brew_source_formulas,
         },
         config_plan,
         hook_plan,

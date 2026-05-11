@@ -70,4 +70,11 @@ pub struct OsSection {
 
     #[serde(default)]
     pub mise: Option<MiseConfig>,
+
+    /// Homebrew formulae that must be compiled from source on Darwin.
+    /// After `darwin-rebuild switch`, kaizen runs `brew linkage --test` for each
+    /// and auto-repairs with `brew reinstall --build-from-source` if the binary
+    /// has broken dylib paths (e.g. after a dependency minor version bump).
+    #[serde(default)]
+    pub brew_source_formulas: Vec<String>,
 }
