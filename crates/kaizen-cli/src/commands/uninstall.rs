@@ -85,18 +85,45 @@ pub fn run(_engine: &kaizen_core::KaizenEngine, config_path: &Path, dry_run: boo
 }
 
 fn remove_binary() {
-    let exe = match std::env::current_exe() {
-        Ok(p) => p,
-        Err(_) => return,
-    };
-    match std::fs::remove_file(&exe) {
-        Ok(()) => output::item_ok(&format!("removed {}", exe.display())),
+    // Collect candidate paths: the installed location (via PATH) and the
+    // running executable itself.  Using which::which covers the case where
+    // the user runs the dev build (`cargo run` / `just run`) but wants to
+    // remove the already-installed binary.
+    let mut paths: Vec<std::path::PathBuf> = vec![];
+    if let Ok(p) = which::which("kaizen") {
+        paths.push(p);
+    }
+    if let Ok(p) = std::env::current_exe() {
+        if !paths.contains(&p) {
+            paths.push(p);
+        }
+    }
+
+    for exe in paths {
+        try_remove_binary(&exe);
+    }
+}
+
+fn try_remove_binary(exe: &std::path::Path) {
+    match std::fs::remove_file(exe) {
+        Ok(()) => {
+            output::item_ok(&format!("removed {}", exe.display()));
+        }
         Err(e) if e.kind() == std::io::ErrorKind::PermissionDenied => {
-            output::item_warn(&format!(
-                "cannot remove {} — run: sudo rm {}",
-                exe.display(),
-                exe.display()
-            ));
+            let ok = std::process::Command::new("sudo")
+                .args(["rm", &*exe.to_string_lossy()])
+                .status()
+                .map(|s| s.success())
+                .unwrap_or(false);
+            if ok {
+                output::item_ok(&format!("removed {} (sudo)", exe.display()));
+            } else {
+                output::item_warn(&format!(
+                    "cannot remove {} — run manually: sudo rm {}",
+                    exe.display(),
+                    exe.display()
+                ));
+            }
         }
         Err(_) => {}
     }
@@ -116,7 +143,11 @@ fn print_plan(
         print_entry(source);
     }
 
-    if let Ok(exe) = std::env::current_exe() {
+    // Show the installed binary (via PATH) in the plan, not the dev build.
+    let binary = which::which("kaizen")
+        .or_else(|_| std::env::current_exe())
+        .ok();
+    if let Some(exe) = binary {
         print_entry(&exe);
     }
 
