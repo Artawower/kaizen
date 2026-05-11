@@ -119,20 +119,69 @@ impl ChezmoiClient for StdChezmoiClient {
             path: source.to_owned(),
         })?;
 
-        let status = Command::new("git")
+        let dir = root.to_string_lossy().into_owned();
+
+        // Resolve the upstream tracking ref (e.g. origin/main, origin/master).
+        // Fall back to origin/master only when no upstream is configured.
+        let upstream = Command::new("git")
             .args([
                 "-C",
-                &root.to_string_lossy(),
-                "pull",
-                "--ff-only",
-                "--quiet",
+                &dir,
+                "rev-parse",
+                "--abbrev-ref",
+                "--symbolic-full-name",
+                "@{u}",
             ])
+            .output()
+            .ok()
+            .filter(|o| o.status.success())
+            .and_then(|o| String::from_utf8(o.stdout).ok())
+            .map(|s| s.trim().to_owned())
+            .filter(|s| !s.is_empty())
+            .unwrap_or_else(|| "origin/master".to_owned());
+
+        // Fetch latest refs from remote.
+        Command::new("git")
+            .args(["-C", &dir, "fetch", "--quiet"])
             .stdout(Stdio::null())
             .stderr(Stdio::null())
-            .status()?;
-        if !status.success() {
-            return Err(KaizenError::GitPullFailed { path: root });
+            .status()
+            .ok();
+
+        // Try fast-forward merge first.
+        let ff_ok = Command::new("git")
+            .args(["-C", &dir, "merge", "--ff-only", "--quiet", &upstream])
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .status()
+            .map(|s| s.success())
+            .unwrap_or(false);
+
+        if !ff_ok {
+            // Histories diverged (e.g. after jj rebase). Only reset when the
+            // working tree is clean — never silently destroy uncommitted changes.
+            let is_clean = Command::new("git")
+                .args(["-C", &dir, "status", "--porcelain"])
+                .output()
+                .map(|o| o.stdout.is_empty())
+                .unwrap_or(false);
+
+            if !is_clean {
+                return Err(KaizenError::GitPullFailed { path: root });
+            }
+
+            let reset_ok = Command::new("git")
+                .args(["-C", &dir, "reset", "--hard", &upstream])
+                .stdout(Stdio::null())
+                .stderr(Stdio::null())
+                .status()
+                .map(|s| s.success())
+                .unwrap_or(false);
+            if !reset_ok {
+                return Err(KaizenError::GitPullFailed { path: root });
+            }
         }
+
         Ok(())
     }
 

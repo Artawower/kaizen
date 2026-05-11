@@ -22,6 +22,7 @@ pub fn run(engine: &KaizenEngine, config_path: &Path) -> Result<()> {
     report_nix_tools();
     report_nix_uninstall_state();
     report_config(engine, config_path);
+    report_dotfiles_source();
     report_version();
 
     output::header("Features");
@@ -107,6 +108,127 @@ fn report_tool(tool: &Tool) {
             tool.name,
             tool.install_hint.dimmed()
         )),
+    }
+}
+
+fn report_dotfiles_source() {
+    use kaizen_core::ChezmoiClient as _;
+
+    output::header("Dotfiles source");
+
+    let client = crate::chezmoi::StdChezmoiClient;
+
+    // Resolve the chezmoi source dir (may be a symlink).
+    let chezmoi_dir = dirs::home_dir().map(|h| h.join(".local/share/chezmoi"));
+    let is_symlink = chezmoi_dir
+        .as_deref()
+        .and_then(|p| p.symlink_metadata().ok())
+        .map(|m| m.file_type().is_symlink())
+        .unwrap_or(false);
+
+    let source = match client.source_root().unwrap_or(None) {
+        Some(p) => p,
+        None => {
+            output::item_warn("chezmoi source not initialized — run: kaizen install");
+            return;
+        }
+    };
+
+    output::kv(
+        "path",
+        &format!(
+            "{}  {}",
+            source.display(),
+            if is_symlink {
+                "(dev symlink)"
+            } else {
+                "(clone)"
+            }
+        ),
+    );
+
+    // Current commit.
+    let commit = std::process::Command::new("git")
+        .args([
+            "-C",
+            &source.to_string_lossy(),
+            "rev-parse",
+            "--short",
+            "HEAD",
+        ])
+        .output()
+        .ok()
+        .filter(|o| o.status.success())
+        .and_then(|o| String::from_utf8(o.stdout).ok())
+        .map(|s| s.trim().to_owned());
+
+    match &commit {
+        Some(c) => output::kv("commit", c),
+        None => output::item_warn("not a git repository"),
+    }
+
+    // Dirty working tree (uncommitted changes visible to chezmoi).
+    let dirty = std::process::Command::new("git")
+        .args(["-C", &source.to_string_lossy(), "status", "--porcelain"])
+        .output()
+        .ok()
+        .filter(|o| o.status.success())
+        .map(|o| !o.stdout.is_empty())
+        .unwrap_or(false);
+
+    if dirty {
+        output::item_warn("working tree has uncommitted changes — chezmoi sees local state");
+    } else {
+        output::item_ok("working tree clean");
+    }
+
+    // Remote staleness check (only for real clones — symlinks are managed by the dev).
+    // Uses cached remote refs — no network call so doctor stays fast offline.
+    if !is_symlink {
+        let dir = source.to_string_lossy().into_owned();
+
+        // Resolve upstream tracking ref (@{u}), fall back to origin/master.
+        let upstream = std::process::Command::new("git")
+            .args([
+                "-C",
+                &dir,
+                "rev-parse",
+                "--abbrev-ref",
+                "--symbolic-full-name",
+                "@{u}",
+            ])
+            .output()
+            .ok()
+            .filter(|o| o.status.success())
+            .and_then(|o| String::from_utf8(o.stdout).ok())
+            .map(|s| s.trim().to_owned())
+            .filter(|s| !s.is_empty())
+            .unwrap_or_else(|| "origin/master".to_owned());
+
+        let count = |range: String| {
+            std::process::Command::new("git")
+                .args(["-C", &dir, "rev-list", "--count", &range])
+                .output()
+                .ok()
+                .filter(|o| o.status.success())
+                .and_then(|o| String::from_utf8(o.stdout).ok())
+                .and_then(|s| s.trim().parse::<u32>().ok())
+                .unwrap_or(0)
+        };
+
+        let behind = count(format!("HEAD..{upstream}"));
+        let ahead = count(format!("{upstream}..HEAD"));
+
+        match (behind > 0, ahead > 0) {
+            (true, true) => output::item_warn(&format!(
+                "{behind} commit(s) behind, {ahead} ahead — diverged. run: kaizen sync"
+            )),
+            (true, false) => output::item_warn(&format!(
+                "{behind} commit(s) behind remote — run: kaizen sync"
+            )),
+            (false, true) => output::item_warn(&format!("{ahead} local commit(s) not pushed")),
+            (false, false) => output::item_ok("up to date with remote (cached refs)"),
+        }
     }
 }
 
