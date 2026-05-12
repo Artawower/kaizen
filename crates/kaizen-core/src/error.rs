@@ -82,16 +82,6 @@ pub enum KaizenError {
     #[error("git pull failed for {path} — check network or repository access")]
     GitPullFailed { path: PathBuf },
 
-    #[error("failed to parse manifest at {path}: {source}")]
-    ManifestParse {
-        path: PathBuf,
-        #[source]
-        source: toml::de::Error,
-    },
-
-    #[error("manifest schema {found} is newer than supported {supported} — upgrade kaizen")]
-    ManifestSchemaTooNew { found: u32, supported: u32 },
-
     #[error("{}", chezmoi_apply_message(.code, .reason))]
     ChezmoidataApplyFailed {
         code: Option<i32>,
