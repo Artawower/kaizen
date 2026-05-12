@@ -365,6 +365,12 @@ impl NixSyncBackend {
                 ["link", "--overwrite", formula.as_str()],
             ));
 
+            // Re-sign .app bundles after source build.
+            // macOS 15.x refuses to open unsigned binaries built from source
+            // with error -600 (procNotFound). xattr -cr strips disallowed
+            // attributes first, then codesign applies an ad-hoc signature.
+            self.codesign_brew_app_bundles(formula, reporter);
+
             if self.brew_linkage_broken(formula).unwrap_or(true) {
                 return Err(KaizenError::CommandFailed {
                     cmd: format!("brew reinstall --build-from-source {formula}"),
@@ -373,6 +379,43 @@ impl NixSyncBackend {
             }
         }
         Ok(())
+    }
+
+    /// Re-sign all `.app` bundles in a formula's prefix with an ad-hoc signature.
+    ///
+    /// macOS 15.x refuses to open source-built binaries via LaunchServices
+    /// (error -600) unless they carry a valid code signature. The formula's
+    /// post-install hook should do this, but a `brew reinstall --build-from-source`
+    /// may skip it. We strip disallowed xattrs first (`xattr -cr`) then apply
+    /// an ad-hoc signature (`codesign --force --deep --sign -`).
+    fn codesign_brew_app_bundles(&self, formula: &str, reporter: &dyn ProgressReporter) {
+        let Ok(out) = self
+            .runtime
+            .executor
+            .execute(ProcessCommand::run("brew", ["--prefix", formula]).capturing())
+        else {
+            return;
+        };
+        let prefix = std::path::PathBuf::from(out.stdout.trim());
+        let Ok(entries) = std::fs::read_dir(&prefix) else {
+            return;
+        };
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.extension().and_then(|e| e.to_str()) != Some("app") {
+                continue;
+            }
+            let path_str = path.to_string_lossy().into_owned();
+            reporter.step(&format!("→ codesign {path_str}"));
+            let _ = self
+                .runtime
+                .executor
+                .execute(ProcessCommand::run("xattr", ["-cr", &path_str]));
+            let _ = self.runtime.executor.execute(ProcessCommand::run(
+                "codesign",
+                ["--force", "--deep", "--sign", "-", &path_str],
+            ));
+        }
     }
 
     /// For each formula, symlink any `.app` bundles from its brew prefix into
