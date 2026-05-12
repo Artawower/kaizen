@@ -1,8 +1,0 @@
-[meta]
-description = "Keyboard manager: karabiner (macOS) / xremap (Linux)"
-
-[os.darwin.programs]
-packages = ["karabiner-elements"]
-
-[os.linux.programs]
-packages = ["xremap"]

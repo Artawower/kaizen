@@ -1,5 +1,0 @@
-[meta]
-description = "Helix editor + marksman LSP + dotfiles config"
-
-[programs]
-packages = ["helix", "marksman"]

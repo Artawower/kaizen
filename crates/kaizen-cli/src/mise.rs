@@ -110,9 +110,11 @@ impl DevToolsManager for MiseToolchain {
     }
 
     fn upgrade(&self, tools: &[String], dry_run: bool) -> Result<(), KaizenError> {
-        if which::which("mise").is_err() || dry_run || tools.is_empty() {
+        if which::which("mise").is_err() || dry_run {
             return Ok(());
         }
+        // Empty tools list means "upgrade everything" — on Nix machines
+        // mise.toml is managed by chezmoi, not by feature TOMLs.
         let tool_refs: Vec<&str> = tools.iter().map(String::as_str).collect();
         let mut args = vec!["upgrade"];
         args.extend_from_slice(&tool_refs);

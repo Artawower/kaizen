@@ -40,21 +40,26 @@ impl ChezmoiBootstrapper {
 
     /// Inspect the current chezmoi source against `url` and return the action required.
     pub fn check(&self, url: &str) -> Result<BootstrapStatus, KaizenError> {
-        // Fast path: source exists and is usable.
+        // Fast path: source exists, remote matches, and kaizen/features is present.
         if let Some(source) = self.client.source_path()? {
             let remote = self.client.current_remote(&source)?;
-            return if remote
+            let remote_matches = remote
                 .as_deref()
                 .map(|r| chezmoi::remotes_match(r, url))
-                .unwrap_or(false)
-            {
-                Ok(BootstrapStatus::AlreadyUpToDate(source))
-            } else {
-                Ok(BootstrapStatus::Conflict {
+                .unwrap_or(false);
+            if !remote_matches {
+                return Ok(BootstrapStatus::Conflict {
                     source,
                     current_remote: remote,
-                })
-            };
+                });
+            }
+            let features_dir = source
+                .join(manifest::KAIZEN_DIR)
+                .join(manifest::FEATURES_SUBDIR);
+            if !self.fs.is_dir(&features_dir) {
+                return Err(KaizenError::FeaturesDirNotFound { path: features_dir });
+            }
+            return Ok(BootstrapStatus::AlreadyUpToDate(source));
         }
 
         // Source path not found or doesn't exist on disk.

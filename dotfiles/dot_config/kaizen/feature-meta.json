@@ -1,0 +1,14 @@
+{
+  "ai":       { "description": "AI coding agents and tooling",      "category": "ai"       },
+  "core":     { "description": "Core CLI utilities",                "category": "system"   },
+  "emacs":    { "description": "Emacs editor",                      "category": "editor"   },
+  "frontend": { "description": "Frontend development tooling",      "category": "dev"      },
+  "go":       { "description": "Go development tooling",            "category": "dev"      },
+  "helix":    { "description": "Helix editor + marksman LSP",       "category": "editor"   },
+  "keyboard": { "description": "Keyboard layout tooling",           "category": "system"   },
+  "python":   { "description": "Python development tooling",        "category": "dev"      },
+  "rust":     { "description": "Rust toolchain + cargo utilities",  "category": "dev"      },
+  "terminal": { "description": "Terminal, TUI tools, and shell",    "category": "terminal" },
+  "tiling":   { "description": "Tiling window manager",             "category": "desktop"  },
+  "vcs":      { "description": "Version control tooling",           "category": "vcs"      }
+}

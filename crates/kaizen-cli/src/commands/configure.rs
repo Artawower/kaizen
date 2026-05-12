@@ -9,7 +9,7 @@ use kaizen_core::{
     KaizenEngine, UserConfig,
 };
 
-use crate::{engine, ensure, filesystem::StdFileSystem, output, selector};
+use crate::{engine, ensure, filesystem::StdFileSystem, output, paths::StdPathProvider, selector};
 
 /// Run the interactive configuration wizard.
 ///
@@ -33,6 +33,8 @@ pub fn run(
 
     let dotfiles_url = pick_dotfiles_url(existing.as_ref())?;
     let source_dir = bootstrap_chezmoi(&dotfiles_url)?;
+
+    refresh_feature_cache_from_seed(&source_dir);
 
     let features_dir =
         resolve_features_dir_from_source(explicit_features_dir, &source_dir, fs.as_ref());
@@ -161,6 +163,28 @@ fn pick_layout(existing: Option<&UserConfig>) -> Result<String> {
         .default(default_idx)
         .interact()?;
     Ok(layouts[idx].to_owned())
+}
+
+/// Copy the committed `feature-meta.json` seed from the chezmoi source to
+/// `~/.config/kaizen/feature-meta.json`. Always overwrites the existing cache
+/// so that switching dotfiles sources never leaves a stale feature list in the
+/// wizard. The live home-manager activation will overwrite this seed again
+/// after the first `home-manager switch`.
+fn refresh_feature_cache_from_seed(source_dir: &Path) {
+    use kaizen_core::PathProvider as _;
+    let Some(config_dir) = StdPathProvider.config_dir() else {
+        return;
+    };
+    let target = config_dir.join("kaizen").join("feature-meta.json");
+    let seed = source_dir
+        .join("dot_config")
+        .join("kaizen")
+        .join("feature-meta.json");
+    if !seed.exists() {
+        return;
+    }
+    let _ = std::fs::create_dir_all(target.parent().unwrap());
+    let _ = std::fs::copy(&seed, &target);
 }
 
 fn write_config(path: &Path, content: &str) -> Result<bool> {
