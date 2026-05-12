@@ -1,7 +1,6 @@
 { config, lib, pkgs, ... }:
 
-let
-  cfg = config.conf.features.terminal;
+let cfg = config.conf.features.terminal;
 in
 
 {
@@ -24,4 +23,6 @@ in
       ];
     })
   ];
+
+  darwinCasks = [ "ghostty" "wezterm" "neohtop" "cmux" ];
 }

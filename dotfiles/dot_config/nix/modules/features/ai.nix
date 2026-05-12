@@ -1,7 +1,6 @@
 { config, lib, pkgs, ... }:
 
-let
-  cfg = config.conf.features.ai;
+let cfg = config.conf.features.ai;
 in
 
 {
@@ -18,4 +17,6 @@ in
       conf.packages.nix = with pkgs; [ podman ];
     })
   ];
+
+  darwinCasks = [ "claude-code" ];
 }

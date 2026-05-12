@@ -188,16 +188,6 @@ fn refresh_feature_cache_from_seed(source_dir: &Path) {
 }
 
 fn write_config(path: &Path, content: &str) -> Result<bool> {
-    if path.exists() {
-        let overwrite = Confirm::with_theme(&ColorfulTheme::default())
-            .with_prompt(format!("{} already exists — overwrite?", path.display()))
-            .default(false)
-            .interact()?;
-        if !overwrite {
-            println!("  Aborted.");
-            return Ok(false);
-        }
-    }
     if let Some(parent) = path.parent() {
         std::fs::create_dir_all(parent)?;
     }
@@ -222,7 +212,7 @@ fn prompt_next_action(engine: &KaizenEngine, config_path: &Path) -> Result<()> {
 
     println!();
     match idx {
-        0 => super::sync::run(engine, config_path, false, false),
+        0 => super::sync::run(engine, config_path, false, true),
         1 => super::plan::run(engine, config_path, false),
         _ => Ok(()),
     }

@@ -14,6 +14,42 @@ let
     else
       { };
   f = name: features.${name} or false;
+
+  featuresDir = ./modules/features;
+  featureFiles = lib.filterAttrs (n: t: t == "regular" && lib.hasSuffix ".nix" n) (
+    builtins.readDir featuresDir
+  );
+
+  # Import a feature file and read its darwin-specific top-level exports.
+  # Nix laziness ensures home-manager-only attrs (options/config) are never
+  # evaluated here — only the darwin export attrs are accessed.
+  #
+  # Feature files may declare:
+  #   darwinCasks                :: list of (string | attrset)
+  #   darwinBrews                :: list of (string | attrset)
+  #   darwinTaps                 :: list of string
+  #   darwinBrewFormulas         :: string  (appended to homebrew.extraConfig)
+  #   darwinActivationScripts    :: attrset of name -> string
+  importDarwin =
+    fileName:
+    let
+      name = lib.removeSuffix ".nix" fileName;
+    in
+    if !(f name) then
+      { }
+    else
+      import (featuresDir + "/${fileName}") {
+        inherit lib pkgs user;
+        config = { };
+      };
+
+  loaded = map importDarwin (builtins.attrNames featureFiles);
+
+  featureCasks = lib.concatMap (m: m.darwinCasks or [ ]) loaded;
+  featureBrews = lib.concatMap (m: m.darwinBrews or [ ]) loaded;
+  featureTaps = lib.concatMap (m: m.darwinTaps or [ ]) loaded;
+  featureFormulas = lib.concatStrings (map (m: m.darwinBrewFormulas or "") loaded);
+  featureActivation = lib.foldl' (acc: m: acc // (m.darwinActivationScripts or { })) { } loaded;
 in
 
 {
@@ -45,21 +81,6 @@ in
     loginwindow.LoginwindowText = "Husky v maske";
     screencapture.location = "~/Pictures/screenshots";
     screensaver.askForPasswordDelay = 30;
-    CustomUserPreferences = {
-      "com.apple.symbolichotkeys" = {
-        AppleSymbolicHotKeys."61" = {
-          enabled = true;
-          value = {
-            parameters = [
-              65535
-              105
-              0
-            ];
-            type = "standard";
-          };
-        };
-      };
-    };
   };
 
   environment.loginItems = {
@@ -77,63 +98,39 @@ in
     ];
   };
 
-  system.activationScripts.setWorkspaceAutoSwoosh = ''
-    echo "Disabling workspaces-auto-swoosh..."
-    defaults write com.apple.dock workspaces-auto-swoosh -bool NO
-    killall Dock || true
-  '';
-
-  system.activationScripts.setInputSourceHotkey = ''
-    su -l ${user.username} -c 'killall SystemUIServer || true'
-  '';
-
-  system.activationScripts.disableLanguageCursorPopup = ''
-    /usr/bin/defaults write /Library/Preferences/FeatureFlags/Domain/UIKit.plist redesigned_text_cursor -dict-add Enabled -bool NO
-  '';
-
-  system.activationScripts.postActivation.text = ''
+  system.activationScripts = lib.mkMerge [
+    {
+      setWorkspaceAutoSwoosh = ''
+        echo "Disabling workspaces-auto-swoosh..."
+        defaults write com.apple.dock workspaces-auto-swoosh -bool NO
+        killall Dock || true
+      '';
+      disableLanguageCursorPopup = ''
+        /usr/bin/defaults write /Library/Preferences/FeatureFlags/Domain/UIKit.plist redesigned_text_cursor -dict-add Enabled -bool NO
+      '';
+      postActivation.text = ''
         echo "Checking Library Validation..."
         if [ "$(/usr/bin/defaults read /Library/Preferences/com.apple.security.libraryvalidation.plist DisableLibraryValidation 2>/dev/null)" != "1" ]; then
           /usr/bin/defaults write /Library/Preferences/com.apple.security.libraryvalidation.plist DisableLibraryValidation -bool YES
         fi
-
-        emacsclient_bin="/opt/homebrew/bin/emacsclient"
-        target_dir="/Applications/Emacsclient.app"
-        if [ -x "$emacsclient_bin" ]; then
-          [ -d "$target_dir" ] && rm -rf "$target_dir"
-          mkdir -p "$target_dir/Contents/MacOS" "$target_dir/Contents/Resources"
-          cat > "$target_dir/Contents/Info.plist" <<'EOF'
-    <?xml version="1.0" encoding="UTF-8"?>
-    <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-    <plist version="1.0"><dict>
-      <key>CFBundleDisplayName</key><string>Emacsclient</string>
-      <key>CFBundleName</key><string>Emacsclient</string>
-      <key>CFBundleIdentifier</key><string>org.gnu.emacsclient</string>
-      <key>CFBundleVersion</key><string>1.0</string>
-      <key>CFBundleShortVersionString</key><string>1.0</string>
-      <key>CFBundleExecutable</key><string>Emacsclient</string>
-      <key>CFBundlePackageType</key><string>APPL</string>
-      <key>LSUIElement</key><false/>
-    </dict></plist>
-    EOF
-          cat > "$target_dir/Contents/MacOS/Emacsclient" <<'EOF'
-    #!/bin/sh
-    exec /opt/homebrew/bin/emacsclient -c -a ""
-    EOF
-          chmod +x "$target_dir/Contents/MacOS/Emacsclient"
+      '';
+      fixReadlink = ''
+        if [ ! -f /usr/local/bin/readlink ]; then
+          mkdir -p /usr/local/bin
+          ln -sf ${pkgs.coreutils}/bin/readlink /usr/local/bin/readlink 2>/dev/null || true
         fi
-  '';
-
-  system.activationScripts.ensureEmacsLogDir = ''
-    su -l ${user.username} -c 'mkdir -p "$HOME/.local/state/emacs"'
-  '';
-
-  system.activationScripts.fixReadlink = ''
-    if [ ! -f /usr/local/bin/readlink ]; then
-      mkdir -p /usr/local/bin
-      ln -sf ${pkgs.coreutils}/bin/readlink /usr/local/bin/readlink 2>/dev/null || true
-    fi
-  '';
+      '';
+      masOptional = ''
+        if command -v mas >/dev/null 2>&1; then
+          install_or_warn() { local name="$1" id="$2"; mas install "$id" || echo "Warning: failed to install $name ($id)" >&2; }
+          install_or_warn "Arc browser" 6472513080
+        else
+          echo "mas not found; skipping optional MAS apps" >&2
+        fi
+      '';
+    }
+    (lib.mapAttrs (_: text: { inherit text; }) featureActivation)
+  ];
 
   security.pam.services.sudo_local.touchIdAuth = true;
 
@@ -154,14 +151,7 @@ in
       upgrade = true;
     };
 
-    taps = [
-      "d12frosted/emacs-plus"
-      "koekeishiya/formulae"
-      "FelixKratz/formulae"
-      "nikitabobko/tap"
-      "krtirtho/apps"
-      "Artawower/tap"
-    ];
+    taps = lib.unique ([ "Artawower/tap" ] ++ featureTaps);
 
     brews = [
       "chezmoi"
@@ -171,101 +161,13 @@ in
       "Artawower/tap/wallboy"
       "ntfy"
     ]
-    ++ lib.optionals (f "tiling") [
-      { name = "koekeishiya/formulae/yabai"; }
-      { name = "koekeishiya/formulae/skhd"; }
-      {
-        name = "FelixKratz/formulae/borders";
-        restart_service = false;
-      }
-    ];
+    ++ featureBrews;
 
-    casks = lib.unique (
-      [
-        "font-liga-comic-mono"
-        "font-monaspace-nf"
-        "orbstack"
-        "lulu"
-        "vlc"
-        "marta"
-        "pearcleaner"
-        "krtirtho/apps/spotube"
-        "discord"
-        {
-          name = "stretchly";
-          args.no_quarantine = true;
-        }
-        "obsidian"
-        "neohtop"
-        "db-browser-for-sqlite"
-        "jordanbaird-ice"
-        "zen"
-        "loom"
-        "clop"
-        "input-source-pro"
-        "mongodb-compass"
-        "rustdesk"
-        "wakatime"
-        "arc"
-        "openvpn-connect"
-        "hoppscotch"
-        "mattermost"
-        "ticktick"
-        "raycast"
-        "licecap"
-        "amneziavpn"
-        "telegram-desktop"
-        "bitwarden"
-        "whatsapp"
-        "keycastr"
-        "stats"
-        "zed"
-        "chia"
-        "aldente"
-        "voiceink"
-        "chatgpt"
-        "claude-code"
-        "android-studio"
-        "cmux"
-      ]
-      ++ lib.optionals (f "terminal") [
-        "ghostty"
-        "wezterm"
-      ]
-      ++ lib.optionals (f "keyboard") [ "karabiner-elements" ]
-      ++ lib.optionals (f "tiling") [ "nikitabobko/tap/aerospace" ]
-    );
+    casks = lib.unique ([ "chia" ] ++ featureCasks);
 
-    extraConfig = lib.optionalString (f "emacs") ''
-      brew "d12frosted/emacs-plus/emacs-plus@31", args: ["with-xwidgets", "with-dbus"], build_from_source: true
-    '';
+    extraConfig = featureFormulas;
 
     masApps = { };
   };
 
-  system.activationScripts.emacsApp = lib.mkIf (f "emacs") {
-    text = ''
-      emacs_src="/opt/homebrew/opt/emacs-plus@31/Emacs.app"
-      emacs_dst="/Applications/Emacs.app"
-      if [ -d "$emacs_src" ]; then
-        if [ ! -d "$emacs_dst" ] || [ "$emacs_src/Contents/MacOS/Emacs" -nt "$emacs_dst/Contents/MacOS/Emacs" ]; then
-          rm -rf "$emacs_dst"
-          cp -r "$emacs_src" "$emacs_dst"
-        fi
-      fi
-    '';
-  };
-
-  system.activationScripts.masOptional = ''
-    if command -v mas >/dev/null 2>&1; then
-      install_or_warn() {
-        local name="$1" id="$2"
-        echo "Installing optional MAS app: $name ($id)"
-        mas install "$id" || echo "Warning: failed to install $name ($id)" >&2
-      }
-      install_or_warn "Arc browser" 6472513080
-    else
-      echo "mas not found; skipping optional MAS apps" >&2
-    fi
-  '';
 }

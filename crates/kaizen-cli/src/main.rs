@@ -58,11 +58,6 @@ enum Command {
     Sync {
         #[arg(long, help = "Preview without executing")]
         dry_run: bool,
-        #[arg(
-            long,
-            help = "Overwrite locally modified managed files without prompting"
-        )]
-        force: bool,
     },
 
     /// Apply dotfiles via chezmoi + mise install.
@@ -156,9 +151,7 @@ fn main() -> Result<()> {
     match cli.command {
         Command::Configure | Command::Install { .. } => unreachable!(),
         Command::Features => commands::features::run(&engine)?,
-        Command::Sync { dry_run, force } => {
-            commands::sync::run(&engine, &config_path, dry_run, force)?
-        }
+        Command::Sync { dry_run } => commands::sync::run(&engine, &config_path, dry_run, true)?,
         Command::Apply { dry_run } => commands::apply::run(&engine, &config_path, dry_run)?,
         Command::Update {
             interactive,
