@@ -1,14 +1,14 @@
-{
-  self,
-  pkgs,
-  user,
-  ...
-}:
+{ self, user, lib, pkgs, ... }:
+
 let
-  emacsDaemonStarter = pkgs.writeShellScriptBin "emacs-daemon-starter" ''
-    exec /opt/homebrew/bin/emacs --fg-daemon=server --eval '(server-start)'
-  '';
+  dataPath = "${builtins.getEnv "HOME"}/.config/kaizen/data.toml";
+  features =
+    if builtins.pathExists dataPath
+    then (builtins.fromTOML (builtins.readFile dataPath)).features or { }
+    else { };
+  f = name: features.${name} or false;
 in
+
 {
   environment.systemPackages = with pkgs; [
     vim
@@ -16,54 +16,33 @@ in
   ];
 
   environment.variables = {
-    # EDITOR = "emacsclient -c";
     EDITOR = "hx";
-
-    PATH = "${pkgs.coreutils}/bin:$PATH";
+    PATH   = "${pkgs.coreutils}/bin:$PATH";
   };
 
-  # Determinate Nix manages the Nix daemon itself — disable nix-darwin's
-  # built-in Nix management to avoid the activation conflict.
-  # Determinate already enables nix-command + flakes by default.
   nix.enable = false;
 
   system.primaryUser = user.username;
 
-  # programs.fish.enable = true;
-
-  # users.users.${user.username}.shell = pkgs.fish;
-
-  # xonsh lives in Home Manager (~/.nix-profile/bin/xonsh via terminal.nix).
-  # darwin only needs to register that path so macOS accepts it as a login shell.
   environment.shells = [ "/Users/${user.username}/.nix-profile/bin/xonsh" ];
-
   users.users.${user.username}.shell = "/Users/${user.username}/.nix-profile/bin/xonsh";
 
   system.defaults = {
     dock = {
-      autohide = true;
-      tilesize = 32;
-      largesize = 48;
+      autohide      = true;
+      tilesize      = 32;
+      largesize     = 48;
       magnification = true;
-      show-recents = false;
+      show-recents  = false;
     };
-    loginwindow.LoginwindowText = "Husky v maske";
-    screencapture.location = "~/Pictures/screenshots";
+    loginwindow.LoginwindowText    = "Husky v maske";
+    screencapture.location         = "~/Pictures/screenshots";
     screensaver.askForPasswordDelay = 30;
     CustomUserPreferences = {
       "com.apple.symbolichotkeys" = {
-        AppleSymbolicHotKeys = {
-          "61" = {
-            enabled = true;
-            value = {
-              parameters = [
-                65535
-                105
-                0
-              ];
-              type = "standard";
-            };
-          };
+        AppleSymbolicHotKeys."61" = {
+          enabled = true;
+          value   = { parameters = [ 65535 105 0 ]; type = "standard"; };
         };
       };
     };
@@ -73,7 +52,6 @@ in
     enable = true;
     items = [
       "/Applications/Ice.app"
-      # "/Applications/AltTab.app"
       "/Applications/AlDente.app"
       "/Applications/Stats.app"
       "/Applications/SpatialDock.app"
@@ -100,58 +78,42 @@ in
   '';
 
   system.activationScripts.postActivation.text = ''
-        echo "Updating hotkeys..."
-        echo "Checking Library Validation..."
-        if [ "$(/usr/bin/defaults read /Library/Preferences/com.apple.security.libraryvalidation.plist DisableLibraryValidation 2>/dev/null)" != "1" ]; then
-          echo "Applying Library Validation fix..."
-          /usr/bin/defaults write /Library/Preferences/com.apple.security.libraryvalidation.plist DisableLibraryValidation -bool YES
-        fi
+    echo "Checking Library Validation..."
+    if [ "$(/usr/bin/defaults read /Library/Preferences/com.apple.security.libraryvalidation.plist DisableLibraryValidation 2>/dev/null)" != "1" ]; then
+      /usr/bin/defaults write /Library/Preferences/com.apple.security.libraryvalidation.plist DisableLibraryValidation -bool YES
+    fi
 
-        emacsclient_bin="/opt/homebrew/bin/emacsclient"
-        target_dir="/Applications/Emacsclient.app"
-        if [ -x "$emacsclient_bin" ]; then
-          if [ -d "$target_dir" ]; then
-            rm -rf "$target_dir"
-          fi
-          mkdir -p "$target_dir/Contents/MacOS" "$target_dir/Contents/Resources"
-          cat > "$target_dir/Contents/Info.plist" <<'EOF'
-    <?xml version="1.0" encoding="UTF-8"?>
-    <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-    <plist version="1.0">
-    <dict>
-      <key>CFBundleDisplayName</key>
-      <string>Emacsclient</string>
-      <key>CFBundleName</key>
-      <string>Emacsclient</string>
-      <key>CFBundleIdentifier</key>
-      <string>org.gnu.emacsclient</string>
-      <key>CFBundleVersion</key>
-      <string>1.0</string>
-      <key>CFBundleShortVersionString</key>
-      <string>1.0</string>
-      <key>CFBundleExecutable</key>
-      <string>Emacsclient</string>
-      <key>CFBundlePackageType</key>
-      <string>APPL</string>
-      <key>LSUIElement</key>
-      <false/>
-    </dict>
-    </plist>
-    EOF
-          cat > "$target_dir/Contents/MacOS/Emacsclient" <<'EOF'
-    #!/bin/sh
-    exec /opt/homebrew/bin/emacsclient -c -a ""
-    EOF
-          chmod +x "$target_dir/Contents/MacOS/Emacsclient"
-        fi
+    emacsclient_bin="/opt/homebrew/bin/emacsclient"
+    target_dir="/Applications/Emacsclient.app"
+    if [ -x "$emacsclient_bin" ]; then
+      [ -d "$target_dir" ] && rm -rf "$target_dir"
+      mkdir -p "$target_dir/Contents/MacOS" "$target_dir/Contents/Resources"
+      cat > "$target_dir/Contents/Info.plist" <<'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+  <key>CFBundleDisplayName</key><string>Emacsclient</string>
+  <key>CFBundleName</key><string>Emacsclient</string>
+  <key>CFBundleIdentifier</key><string>org.gnu.emacsclient</string>
+  <key>CFBundleVersion</key><string>1.0</string>
+  <key>CFBundleShortVersionString</key><string>1.0</string>
+  <key>CFBundleExecutable</key><string>Emacsclient</string>
+  <key>CFBundlePackageType</key><string>APPL</string>
+  <key>LSUIElement</key><false/>
+</dict></plist>
+EOF
+      cat > "$target_dir/Contents/MacOS/Emacsclient" <<'EOF'
+#!/bin/sh
+exec /opt/homebrew/bin/emacsclient -c -a ""
+EOF
+      chmod +x "$target_dir/Contents/MacOS/Emacsclient"
+    fi
   '';
 
-  # ensure log dir exists for the user
   system.activationScripts.ensureEmacsLogDir = ''
     su -l ${user.username} -c 'mkdir -p "$HOME/.local/state/emacs"'
   '';
 
-  # Fix readlink for home-manager on macOS
   system.activationScripts.fixReadlink = ''
     if [ ! -f /usr/local/bin/readlink ]; then
       mkdir -p /usr/local/bin
@@ -168,116 +130,57 @@ in
   system.configurationRevision = self.rev or self.dirtyRev or null;
   system.stateVersion = 5;
   nixpkgs.hostPlatform = "aarch64-darwin";
-
-  nixpkgs.config = {
-    permittedInsecurePackages = [
-      "python-2.7.18.8"
-    ];
-  };
+  nixpkgs.config.permittedInsecurePackages = [ "python-2.7.18.8" ];
 
   homebrew = {
-    enable = true;
-    onActivation = {
-      autoUpdate = true;
-      cleanup = "uninstall";
-      upgrade = true;
-    };
+    enable    = true;
+    onActivation = { autoUpdate = true; cleanup = "uninstall"; upgrade = true; };
 
     taps = [
       "d12frosted/emacs-plus"
       "koekeishiya/formulae"
       "FelixKratz/formulae"
-      "kamillobinski/thock"
       "nikitabobko/tap"
       "krtirtho/apps"
       "Artawower/tap"
     ];
 
-    brews = [
-      # Emacs with macOS-specific patches (xwidgets, dbus — not in nixpkgs; imagemagick built-in since @31)
+    brews =
+      [ "chezmoi" "mas" "pkgconf" "enchant" "Artawower/tap/wallboy" "ntfy" ]
+      ++ lib.optionals (f "tiling") [
+        { name = "koekeishiya/formulae/yabai"; }
+        { name = "koekeishiya/formulae/skhd"; }
+        { name = "FelixKratz/formulae/borders"; restart_service = false; }
+      ];
 
+    casks = lib.unique (
+      [
+        "font-liga-comic-mono" "font-monaspace-nf"
+        "orbstack"
+        "lulu" "vlc" "marta" "pearcleaner"
+        "krtirtho/apps/spotube" "discord"
+        { name = "stretchly"; args.no_quarantine = true; }
+        "obsidian" "neohtop" "db-browser-for-sqlite"
+        "jordanbaird-ice" "zen" "loom"
+        "clop" "input-source-pro"
+        "mongodb-compass" "rustdesk" "wakatime"
+        "arc" "openvpn-connect" "hoppscotch"
+        "mattermost" "ticktick" "raycast" "licecap"
+        "amneziavpn" "telegram-desktop" "bitwarden"
+        "whatsapp" "keycastr" "stats" "zed"
+        "chia" "aldente" "voiceink" "chatgpt"
+        "claude-code" "android-studio" "cmux"
+      ]
+      ++ lib.optionals (f "terminal")  [ "ghostty" "wezterm" ]
+      ++ lib.optionals (f "keyboard")  [ "karabiner-elements" ]
+      ++ lib.optionals (f "tiling")    [ "nikitabobko/tap/aerospace" ]
+    );
 
-      # Window management — deep macOS system integration, codesigning requirements
-      { name = "koekeishiya/formulae/yabai"; }
-      { name = "koekeishiya/formulae/skhd"; }
-      {
-        name = "FelixKratz/formulae/borders";
-        restart_service = false;
-      }
-
-      # Bootstrap tools — installed before nix
-      "chezmoi"
-      "mas"
-      "pkgconf"
-      "enchant"
-      "Artawower/tap/wallboy"
-      "ntfy"
-    ];
-
-    casks = [
-      "font-liga-comic-mono"
-      "font-monaspace-nf"
-      "ghostty"
-      "wezterm"
-      "orbstack"
-      "karabiner-elements"
-      "nikitabobko/tap/aerospace"
-      "lulu"
-      "vlc"
-      "marta"
-      "pearcleaner"
-      "krtirtho/apps/spotube"
-      "discord"
-      {
-        name = "stretchly";
-        args = {
-          no_quarantine = true;
-        };
-      }
-      "obsidian"
-      "neohtop"
-      "db-browser-for-sqlite"
-      "jordanbaird-ice"
-      "zen"
-      "loom"
-      "shottr"
-      "clop"
-      "input-source-pro"
-      "mongodb-compass"
-      "rustdesk"
-      "wakatime"
-      "arc"
-      "openvpn-connect"
-      "hoppscotch"
-      "mattermost"
-      "ticktick"
-      "raycast"
-      "licecap"
-      "amneziavpn"
-      "telegram-desktop"
-      "bitwarden"
-      "whatsapp"
-      "keycastr"
-      "stats"
-      "zed"
-      "chia"
-      "aldente"
-      "voiceink"
-      "chatgpt"
-      "claude-code"
-      "android-studio"
-      "cmux"
-    ];
-
-    masApps = { };
-
-    # build_from_source: links against whatever tree-sitter is installed,
-    # avoids dyld breakage when tree-sitter is upgraded between minor versions.
-    # nix-darwin homebrew module does not expose build_from_source as a field,
-    # so the entry is written as a raw Brewfile line via extraConfig.
-    extraConfig = ''
+    extraConfig = lib.optionalString (f "emacs") ''
       brew "d12frosted/emacs-plus/emacs-plus@31", args: ["with-xwidgets", "with-dbus", "with-compress-install"], build_from_source: true
     '';
+
+    masApps = { };
   };
 
   system.activationScripts.masOptional = ''
@@ -285,12 +188,9 @@ in
       install_or_warn() {
         local name="$1" id="$2"
         echo "Installing optional MAS app: $name ($id)"
-        if ! mas install "$id"; then
-          echo "Warning: failed to install $name ($id)" >&2
-        fi
+        mas install "$id" || echo "Warning: failed to install $name ($id)" >&2
       }
       install_or_warn "Arc browser" 6472513080
-      # install_or_warn "Grab 2 text" 6475956137
     else
       echo "mas not found; skipping optional MAS apps" >&2
     fi

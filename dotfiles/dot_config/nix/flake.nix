@@ -42,9 +42,10 @@
     in
     {
       darwinConfigurations.${user.hostname} = nix-darwin.lib.darwinSystem {
+        specialArgs = { inherit self user; };
         modules = [
           darwin-login-items.darwinModules.default
-          ({ pkgs, ... }: import ./darwin.nix { inherit self pkgs user; })
+          ./darwin.nix
         ];
       };
 
