@@ -7,13 +7,6 @@
       default = "qwerty";
     };
 
-    features = lib.mkOption {
-      type = lib.types.attrsOf (lib.types.submodule {
-        options.enable = lib.mkEnableOption "feature";
-      });
-      default = { };
-    };
-
     featureRegistry = lib.mkOption {
       type = lib.types.attrsOf (lib.types.submodule {
         options = {

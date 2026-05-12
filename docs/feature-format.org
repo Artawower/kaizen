@@ -1,60 +1,83 @@
-#+title: Feature File Format
+#+title: Feature Module Format
 
-Struct: [[../crates/kaizen-core/src/feature.rs][crates/kaizen-core/src/feature.rs]]
+Each feature is a single =.nix= file in =dotfiles/dot_config/nix/modules/features/=.
+The file is auto-imported by =feature-loader.nix= via =builtins.readDir=.
 
-Each feature is a =.toml= file in the features directory.
+* Structure
+
+#+begin_src nix
+{ config, lib, pkgs, ... }:
+
+let
+  cfg      = config.conf.features.helix;
+  isDarwin = pkgs.stdenv.isDarwin;
+in {
+  # ── 1. Declare the enable option ─────────────────────────────────────────
+  options.conf.features.helix.enable = lib.mkEnableOption "Helix editor + LSP";
+
+  config = lib.mkMerge [
+
+    # ── 2. Always register metadata (even when disabled) ─────────────────
+    {
+      conf.featureRegistry.helix = {
+        description = "Helix editor + marksman LSP";
+        category    = "editor";
+      };
+    }
+
+    # ── 3. Conditional: packages + brew (only when enabled) ───────────────
+    (lib.mkIf cfg.enable {
+      conf.packages.nix = with pkgs; [ helix marksman ];
+
+      # macOS brew casks (see darwin.nix for aggregation)
+      # conf.packages.brewCasks = lib.optionals isDarwin [ "some-app" ];
+    })
+  ];
+}
+#+end_src
 
 * Sections
 
-** =[meta]=
-| =description= | Human-readable label shown in =kaizen features= |
+** =options.conf.features.<name>.enable=
+The Nix module option. Controlled at runtime by =data.toml= (written by
+=kaizen configure= after the wizard). The option description appears in
+=nix-darwin= / =home-manager= documentation output.
 
-** =[programs]=
-| =packages=        | Package names for the =upt= backend (non-Nix systems) |
-| =overrides.<os>=  | OS-specific name overrides (e.g. =fd= → =fd-find= on Fedora) |
+** =conf.featureRegistry.<name>=
+Always-active metadata block — populated regardless of the =enable= flag so
+the full feature list is available in =feature-meta.json= even on a fresh
+machine where nothing is enabled yet.
 
-Supported OS keys: =darwin=, =linux=, =ubuntu=, =fedora=, =arch=, =nixos=.
+| =description= | Human-readable label shown in =kaizen configure= wizard |
+| =category=    | Group key (=editor=, =dev=, =terminal=, =system=, ...)  |
 
-When Nix is available (=home-manager= or =darwin-rebuild= detected), =kaizen sync=
-skips =programs= entirely — packages are managed by Nix modules in the dotfiles
-repository. =programs= is the fallback for non-Nix systems.
+** =conf.packages.nix=
+List of =nixpkgs= attribute paths. Accumulates across all enabled feature
+modules and is mapped to =home.packages= by =adapters/home-manager.nix=.
 
-** =[mise.tools]=
-Key-value map of tool → version passed to =mise=.
-
-#+begin_src toml
-[mise.tools]
-node = "lts"
-python = "3.12"
+#+begin_src nix
+conf.packages.nix = with pkgs; [ go gopls go-tools ];
 #+end_src
 
-** =[os.<name>]=
-Override =programs= or =mise.tools= per OS. Same structure as root sections.
+** =conf.packages.brewCasks= (macOS)
+Brew cask identifiers. Currently, brew casks live in =darwin.nix= keyed on
+=data.toml= feature flags. This option is the future home for them once the
+nix-darwin and home-manager evaluation trees are merged.
 
-#+begin_src toml
-[os.fedora.programs]
-packages = ["fedora-specific-pkg"]
-#+end_src
+* Adding a new feature
 
-** =[atoms.<name>]=
-Named sub-groups of packages/tools. Users can disable individual atoms without disabling the whole feature.
+1. Create =dotfiles/dot_config/nix/modules/features/<name>.nix= following the
+   structure above.
+2. Add an entry to the seed file:
+   =dotfiles/dot_config/kaizen/feature-meta.json=.
+3. Run =kaizen sync= — =feature-loader.nix= picks up the new module
+   automatically.
 
-#+begin_src toml
-[atoms.lsp.programs]
-packages = ["clangd"]
-#+end_src
+No changes needed to =manifest.toml=, =options.nix=, =darwin.nix=,
+=linux.nix=, or =hosts/*.nix=.
 
-Disable in config: =disabled_atoms = ["lsp"]=
+* Infrastructure modules
 
-** =[hooks]=
-Shell commands executed at specific lifecycle points. Run via =sh -c=. Security is the user's responsibility.
-
-| =post_install= | After =kaizen sync= (install phase)  |
-| =post_apply=   | After =kaizen apply= (chezmoi apply) |
-| =post_update=  | After =kaizen update=                |
-
-#+begin_src toml
-[hooks]
-post_install = ["chezmoi re-add ~/.config/tool/settings.json"]
-post_update  = ["pi update --extensions"]
-#+end_src
+Modules that are not user-visible features (fonts, darkman, battery thresholds)
+live in =dotfiles/dot_config/nix/modules/system/= and are imported explicitly
+in =darwin.nix= / =linux.nix=. They are never auto-discovered.

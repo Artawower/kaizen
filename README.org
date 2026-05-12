@@ -82,23 +82,43 @@ This is a monorepo: the ~kaizen~ CLI and the default curated dotfiles live toget
 
 #+BEGIN_SRC
 kaizen/
-├── .chezmoiroot          ← chezmoi uses dotfiles/ as its source root
-├── crates/               ← Rust source for the kaizen CLI
-└── dotfiles/             ← chezmoi source root (applied to ~/)
-    ├── .chezmoiignore    ← excludes kaizen/ from being deployed to $HOME
+├── .chezmoiroot                  ← chezmoi uses dotfiles/ as its source root
+├── crates/                       ← Rust source for the kaizen CLI
+└── dotfiles/                     ← chezmoi source root (applied to ~/)
+    ├── .chezmoiignore
     ├── kaizen/
-    │   ├── manifest.toml ← list of available features and their metadata
-    │   └── features/     ← per-feature package and config definitions
-    └── dot_config/       ← ~/.config/* dotfiles
+    │   └── bump.toml             ← mise + nix upgrade step definitions
+    └── dot_config/
+        ├── kaizen/
+        │   └── feature-meta.json ← seed: description + category per feature
+        ├── nix/
+        │   ├── flake.nix
+        │   ├── darwin.nix        ← nix-darwin: system config + feature-conditional brew
+        │   ├── hosts/
+        │   │   ├── mac.nix       ← home-manager macOS config (reads data.toml)
+        │   │   └── linux.nix     ← home-manager Linux config (reads data.toml)
+        │   └── modules/
+        │       ├── options.nix         ← conf.* option declarations
+        │       ├── feature-loader.nix  ← auto-imports features/, writes feature-meta.json
+        │       ├── features/           ← one .nix per user-visible feature ✦
+        │       │   ├── core.nix
+        │       │   ├── helix.nix
+        │       │   └── ...             ← adding X.nix here is the only step
+        │       └── system/             ← infrastructure (fonts, darkman, …)
+        └── mise.toml.tmpl        ← dev tools, feature-conditional via data.toml
 #+END_SRC
+
+✦ See [[./docs/feature-format.org][docs/feature-format.org]] for the feature module format.
 
 Because of =.chezmoiroot=, the effective chezmoi source path is
 =~/.local/share/chezmoi/dotfiles/= (run =chezmoi source-path= to confirm).
 
 Kaizen writes its canonical state to =~/.config/kaizen/data.toml=.
-Chezmoi templates and Nix modules read this file to know which features are enabled.
+Nix modules and chezmoi templates read this file to know which features are enabled.
 
 Users who prefer their own dotfiles can set a custom URL during ~kaizen configure~.
+Custom repos must include =dot_config/kaizen/feature-meta.json= and Nix feature
+modules following the same conventions.
 
 * Usage
 
@@ -118,8 +138,11 @@ kaizen self-update  # replace the kaizen binary with the latest release
 
 - ~kaizen install~ — entry point for a fresh machine. Runs ~configure~ if no config is found, then ~sync~.
 - ~kaizen sync~ — primary day-to-day command. Writes =~/.config/kaizen/data.toml=, then runs:
-  - *Nix backend*: =chezmoi apply= → =home-manager switch= (+ =darwin-rebuild switch= on macOS) → =mise install=.
-  - *upt fallback*: =upt install= → =chezmoi apply= → =mise install=.
+  1. =chezmoi apply= — renders =mise.toml.tmpl= and deploys dotfiles.
+  2. =home-manager switch= — installs Nix packages from enabled feature modules.
+  3. =darwin-rebuild switch= — applies nix-darwin config (macOS only); installs feature-conditional brew casks.
+  4. =mise install= — installs dev tools declared in =mise.toml.tmpl=.
+  On activation, =home-manager= also regenerates =~/.config/kaizen/feature-meta.json=.
 - ~kaizen bump~ — upgrades version pins (mise tools, nix flake inputs) and runs =chezmoi re-add= on the changed lock files. Steps are defined in =~/.config/kaizen/bump.toml=. Use =--only STEP= to run a single step.
 - ~kaizen uninstall~ — removes managed dotfiles and the chezmoi source. Does *not* uninstall Nix (system-level dependency; see [[https://docs.determinate.systems/determinate-nix/#uninstalling][Determinate Nix uninstall guide]]).
 
