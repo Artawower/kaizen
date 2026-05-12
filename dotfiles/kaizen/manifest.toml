@@ -13,6 +13,10 @@ name = "terminal"
 description = "terminal, TUI tools, and shell"
 
 [[features]]
+name = "helix"
+description = "Helix editor + marksman LSP"
+
+[[features]]
 name = "emacs"
 description = "Emacs editor"
 
