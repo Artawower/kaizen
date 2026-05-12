@@ -375,6 +375,79 @@ impl NixSyncBackend {
         Ok(())
     }
 
+    /// For each formula, symlink any `.app` bundles from its brew prefix into
+    /// `/Applications`, replacing whatever was there before.
+    ///
+    /// Uses `brew --prefix formula` so the path is correct on any Homebrew
+    /// installation (Apple Silicon `/opt/homebrew`, Intel `/usr/local`, etc.).
+    /// Non-fatal: missing prefix or absent `.app` bundles are silently skipped.
+    fn link_brew_app_bundles(&self, formulas: &[String], reporter: &dyn ProgressReporter) {
+        for formula in formulas {
+            let Ok(out) = self
+                .runtime
+                .executor
+                .execute(ProcessCommand::run("brew", ["--prefix", formula.as_str()]).capturing())
+            else {
+                continue;
+            };
+            let prefix = std::path::PathBuf::from(out.stdout.trim());
+            let Ok(entries) = std::fs::read_dir(&prefix) else {
+                continue;
+            };
+            for entry in entries.flatten() {
+                let src = entry.path();
+                if src.extension().and_then(|e| e.to_str()) != Some("app") {
+                    continue;
+                }
+                let Some(name) = src.file_name() else {
+                    continue;
+                };
+                let dest = std::path::Path::new("/Applications").join(name);
+                // Remove stale entry (hardcopy or wrong-target symlink) before re-linking.
+                let _ = std::fs::remove_file(&dest);
+                let _ = std::fs::remove_dir_all(&dest);
+                if std::os::unix::fs::symlink(&src, &dest).is_ok() {
+                    reporter.step(&format!("→ linked {}", dest.display()));
+                }
+            }
+        }
+    }
+
+    /// Start the Homebrew-managed LaunchAgent for each formula that ships one.
+    ///
+    /// `brew services start` is idempotent — it is safe to call even if the
+    /// service is already running. Runs without `sudo` so the service is
+    /// registered as a user LaunchAgent (`~/Library/LaunchAgents/`), not a
+    /// system daemon.
+    fn start_brew_services(&self, formulas: &[String], reporter: &dyn ProgressReporter) {
+        for formula in formulas {
+            // Use the keg name (last path component) for brew services.
+            let keg_name = formula.rsplit('/').next().unwrap_or(formula.as_str());
+            // Check whether this formula actually ships a service plist before
+            // printing progress, to avoid noise for formulas without daemons.
+            let has_service = self
+                .runtime
+                .executor
+                .execute(
+                    ProcessCommand::run("brew", ["services", "info", keg_name, "--json"])
+                        .capturing(),
+                )
+                .ok()
+                .map(|o| o.stdout.contains("\"running\"") || o.stdout.contains("\"stopped\""))
+                .unwrap_or(false);
+
+            if !has_service {
+                continue;
+            }
+
+            reporter.step(&format!("→ brew services start {keg_name}"));
+            let _ = self
+                .runtime
+                .executor
+                .execute(ProcessCommand::run("brew", ["services", "start", keg_name]));
+        }
+    }
+
     fn nix_install_steps(&self) -> Vec<String> {
         let mut steps = vec![];
         if self.os == TargetOs::Darwin {
@@ -442,6 +515,8 @@ impl InstallBackend for NixSyncBackend {
             reporter.step("→ darwin-rebuild switch");
             self.run_darwin_rebuild()?;
             self.repair_brew_source_formulas(&plan.install_plan.brew_source_formulas, reporter)?;
+            self.link_brew_app_bundles(&plan.install_plan.brew_source_formulas, reporter);
+            self.start_brew_services(&plan.install_plan.brew_source_formulas, reporter);
         }
         reporter.step("→ home-manager switch");
         self.run_home_manager()?;
