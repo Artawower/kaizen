@@ -104,6 +104,9 @@ pub enum KaizenError {
     #[error("cannot determine home directory — $HOME is not set")]
     HomeDirUnavailable,
 
+    #[error("failed to parse feature-meta.json: {0}")]
+    FeatureCacheParse(String),
+
     #[error("io error: {0}")]
     Io(#[from] std::io::Error),
 }

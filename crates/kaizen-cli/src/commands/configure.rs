@@ -2,14 +2,14 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
 use dialoguer::{theme::ColorfulTheme, Confirm, Input, Select};
+use std::sync::Arc;
+
 use kaizen_core::{
     render_config, resolve_features_dir_from_source, BootstrapStatus, ChezmoiBootstrapper,
     KaizenEngine, UserConfig,
 };
 
-use std::sync::Arc;
-
-use crate::{ensure, filesystem::StdFileSystem, output, selector};
+use crate::{engine, ensure, filesystem::StdFileSystem, output, selector};
 
 /// Run the interactive configuration wizard.
 ///
@@ -36,7 +36,8 @@ pub fn run(
 
     let features_dir =
         resolve_features_dir_from_source(explicit_features_dir, &source_dir, fs.as_ref());
-    let engine = KaizenEngine::new(&features_dir, fs);
+    let use_cache = explicit_features_dir.is_none();
+    let engine = engine::build(features_dir, use_cache);
 
     let features = engine.list_features_with_meta()?;
     let Some(selected) = pick_features(&features, existing.as_ref())? else {

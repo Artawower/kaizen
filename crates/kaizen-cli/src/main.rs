@@ -5,6 +5,7 @@ mod backend;
 mod chezmoi;
 mod commands;
 mod docker;
+mod engine;
 mod ensure;
 mod executor;
 mod filesystem;
@@ -15,8 +16,6 @@ mod output;
 mod paths;
 mod reporter;
 mod selector;
-
-use std::sync::Arc;
 
 use chezmoi::StdChezmoiClient;
 use executor::StdProcessExecutor;
@@ -141,26 +140,28 @@ fn main() -> Result<()> {
         return match cli.command {
             Command::Configure => commands::configure::run(features_dir_opt, &config_path, true),
             Command::Install { dry_run } => {
+                let use_cache = cli.features_dir.is_none();
                 let features_dir = kaizen_core::resolve_features_dir(
                     cli.features_dir,
                     &reporter,
                     &StdChezmoiClient,
                     &StdFileSystem,
                 )?;
-                let engine = kaizen_core::KaizenEngine::new(&features_dir, Arc::new(StdFileSystem));
+                let engine = engine::build(features_dir, use_cache);
                 commands::install::run(&engine, features_dir_opt, &config_path, dry_run)
             }
             _ => unreachable!(),
         };
     }
 
+    let use_cache = cli.features_dir.is_none();
     let features_dir = kaizen_core::resolve_features_dir(
         cli.features_dir,
         &reporter,
         &StdChezmoiClient,
         &StdFileSystem,
     )?;
-    let engine = kaizen_core::KaizenEngine::new(&features_dir, Arc::new(StdFileSystem));
+    let engine = engine::build(features_dir, use_cache);
 
     match cli.command {
         Command::Configure | Command::Install { .. } => unreachable!(),
