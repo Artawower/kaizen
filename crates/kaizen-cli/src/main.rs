@@ -17,9 +17,8 @@ mod paths;
 mod reporter;
 mod selector;
 
-use chezmoi::StdChezmoiClient;
+use engine::resolve_features_dir_lenient;
 use executor::StdProcessExecutor;
-use filesystem::StdFileSystem;
 use paths::StdPathProvider;
 use reporter::StderrReporter;
 
@@ -141,12 +140,8 @@ fn main() -> Result<()> {
             Command::Configure => commands::configure::run(features_dir_opt, &config_path, true),
             Command::Install { dry_run } => {
                 let use_cache = cli.features_dir.is_none();
-                let features_dir = kaizen_core::resolve_features_dir(
-                    cli.features_dir,
-                    &reporter,
-                    &StdChezmoiClient,
-                    &StdFileSystem,
-                )?;
+                let features_dir =
+                    resolve_features_dir_lenient(cli.features_dir, &reporter, use_cache);
                 let engine = engine::build(features_dir, use_cache);
                 commands::install::run(&engine, features_dir_opt, &config_path, dry_run)
             }
@@ -155,12 +150,7 @@ fn main() -> Result<()> {
     }
 
     let use_cache = cli.features_dir.is_none();
-    let features_dir = kaizen_core::resolve_features_dir(
-        cli.features_dir,
-        &reporter,
-        &StdChezmoiClient,
-        &StdFileSystem,
-    )?;
+    let features_dir = resolve_features_dir_lenient(cli.features_dir, &reporter, use_cache);
     let engine = engine::build(features_dir, use_cache);
 
     match cli.command {

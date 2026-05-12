@@ -1,14 +1,41 @@
 use std::path::PathBuf;
 use std::sync::Arc;
 
-use kaizen_core::{KaizenEngine, PathProvider as _};
+use kaizen_core::{manifest, KaizenEngine, PathProvider as _};
 
-use crate::{filesystem::StdFileSystem, paths::StdPathProvider};
+use crate::{filesystem::StdFileSystem, paths::StdPathProvider, reporter::StderrReporter};
 
 fn nix_cache_path() -> Option<PathBuf> {
     StdPathProvider
         .config_dir()
         .map(|d| d.join("kaizen").join("feature-meta.json"))
+}
+
+/// Resolve features directory; when `use_cache` is true and the directory
+/// is missing, return the expected path without failing — the engine will
+/// use the Nix cache instead of reading TOML files.
+pub fn resolve_features_dir_lenient(
+    explicit: Option<PathBuf>,
+    reporter: &StderrReporter,
+    use_cache: bool,
+) -> PathBuf {
+    let fallback = || PathBuf::from(manifest::KAIZEN_DIR).join(manifest::FEATURES_SUBDIR);
+    if use_cache && explicit.is_none() {
+        return kaizen_core::resolve_features_dir(
+            None,
+            reporter,
+            &crate::chezmoi::StdChezmoiClient,
+            &StdFileSystem,
+        )
+        .unwrap_or_else(|_| fallback());
+    }
+    kaizen_core::resolve_features_dir(
+        explicit,
+        reporter,
+        &crate::chezmoi::StdChezmoiClient,
+        &StdFileSystem,
+    )
+    .unwrap_or_else(|_| fallback())
 }
 
 /// Build a `KaizenEngine` for the given features directory.

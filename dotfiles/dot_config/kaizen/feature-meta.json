@@ -4,6 +4,7 @@
   "emacs":    { "description": "Emacs editor",                      "category": "editor"   },
   "frontend": { "description": "Frontend development tooling",      "category": "dev"      },
   "go":       { "description": "Go development tooling",            "category": "dev"      },
+  "fonts":    { "description": "Fonts and Nerd Fonts",               "category": "system"   },
   "helix":    { "description": "Helix editor + marksman LSP",       "category": "editor"   },
   "keyboard": { "description": "Keyboard layout tooling",           "category": "system"   },
   "python":   { "description": "Python development tooling",        "category": "dev"      },

@@ -1,11 +1,18 @@
-{ self, user, lib, pkgs, ... }:
+{
+  self,
+  user,
+  lib,
+  pkgs,
+  ...
+}:
 
 let
-  dataPath = "${builtins.getEnv "HOME"}/.config/kaizen/data.toml";
+  dataPath = "${user.homeDirectory}/.config/kaizen/data.toml";
   features =
-    if builtins.pathExists dataPath
-    then (builtins.fromTOML (builtins.readFile dataPath)).features or { }
-    else { };
+    if builtins.pathExists dataPath then
+      (builtins.fromTOML (builtins.readFile dataPath)).features or { }
+    else
+      { };
   f = name: features.${name} or false;
 in
 
@@ -17,7 +24,7 @@ in
 
   environment.variables = {
     EDITOR = "hx";
-    PATH   = "${pkgs.coreutils}/bin:$PATH";
+    PATH = "${pkgs.coreutils}/bin:$PATH";
   };
 
   nix.enable = false;
@@ -29,20 +36,27 @@ in
 
   system.defaults = {
     dock = {
-      autohide      = true;
-      tilesize      = 32;
-      largesize     = 48;
+      autohide = true;
+      tilesize = 32;
+      largesize = 48;
       magnification = true;
-      show-recents  = false;
+      show-recents = false;
     };
-    loginwindow.LoginwindowText    = "Husky v maske";
-    screencapture.location         = "~/Pictures/screenshots";
+    loginwindow.LoginwindowText = "Husky v maske";
+    screencapture.location = "~/Pictures/screenshots";
     screensaver.askForPasswordDelay = 30;
     CustomUserPreferences = {
       "com.apple.symbolichotkeys" = {
         AppleSymbolicHotKeys."61" = {
           enabled = true;
-          value   = { parameters = [ 65535 105 0 ]; type = "standard"; };
+          value = {
+            parameters = [
+              65535
+              105
+              0
+            ];
+            type = "standard";
+          };
         };
       };
     };
@@ -78,36 +92,36 @@ in
   '';
 
   system.activationScripts.postActivation.text = ''
-    echo "Checking Library Validation..."
-    if [ "$(/usr/bin/defaults read /Library/Preferences/com.apple.security.libraryvalidation.plist DisableLibraryValidation 2>/dev/null)" != "1" ]; then
-      /usr/bin/defaults write /Library/Preferences/com.apple.security.libraryvalidation.plist DisableLibraryValidation -bool YES
-    fi
+        echo "Checking Library Validation..."
+        if [ "$(/usr/bin/defaults read /Library/Preferences/com.apple.security.libraryvalidation.plist DisableLibraryValidation 2>/dev/null)" != "1" ]; then
+          /usr/bin/defaults write /Library/Preferences/com.apple.security.libraryvalidation.plist DisableLibraryValidation -bool YES
+        fi
 
-    emacsclient_bin="/opt/homebrew/bin/emacsclient"
-    target_dir="/Applications/Emacsclient.app"
-    if [ -x "$emacsclient_bin" ]; then
-      [ -d "$target_dir" ] && rm -rf "$target_dir"
-      mkdir -p "$target_dir/Contents/MacOS" "$target_dir/Contents/Resources"
-      cat > "$target_dir/Contents/Info.plist" <<'EOF'
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0"><dict>
-  <key>CFBundleDisplayName</key><string>Emacsclient</string>
-  <key>CFBundleName</key><string>Emacsclient</string>
-  <key>CFBundleIdentifier</key><string>org.gnu.emacsclient</string>
-  <key>CFBundleVersion</key><string>1.0</string>
-  <key>CFBundleShortVersionString</key><string>1.0</string>
-  <key>CFBundleExecutable</key><string>Emacsclient</string>
-  <key>CFBundlePackageType</key><string>APPL</string>
-  <key>LSUIElement</key><false/>
-</dict></plist>
-EOF
-      cat > "$target_dir/Contents/MacOS/Emacsclient" <<'EOF'
-#!/bin/sh
-exec /opt/homebrew/bin/emacsclient -c -a ""
-EOF
-      chmod +x "$target_dir/Contents/MacOS/Emacsclient"
-    fi
+        emacsclient_bin="/opt/homebrew/bin/emacsclient"
+        target_dir="/Applications/Emacsclient.app"
+        if [ -x "$emacsclient_bin" ]; then
+          [ -d "$target_dir" ] && rm -rf "$target_dir"
+          mkdir -p "$target_dir/Contents/MacOS" "$target_dir/Contents/Resources"
+          cat > "$target_dir/Contents/Info.plist" <<'EOF'
+    <?xml version="1.0" encoding="UTF-8"?>
+    <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+    <plist version="1.0"><dict>
+      <key>CFBundleDisplayName</key><string>Emacsclient</string>
+      <key>CFBundleName</key><string>Emacsclient</string>
+      <key>CFBundleIdentifier</key><string>org.gnu.emacsclient</string>
+      <key>CFBundleVersion</key><string>1.0</string>
+      <key>CFBundleShortVersionString</key><string>1.0</string>
+      <key>CFBundleExecutable</key><string>Emacsclient</string>
+      <key>CFBundlePackageType</key><string>APPL</string>
+      <key>LSUIElement</key><false/>
+    </dict></plist>
+    EOF
+          cat > "$target_dir/Contents/MacOS/Emacsclient" <<'EOF'
+    #!/bin/sh
+    exec /opt/homebrew/bin/emacsclient -c -a ""
+    EOF
+          chmod +x "$target_dir/Contents/MacOS/Emacsclient"
+        fi
   '';
 
   system.activationScripts.ensureEmacsLogDir = ''
@@ -133,8 +147,12 @@ EOF
   nixpkgs.config.permittedInsecurePackages = [ "python-2.7.18.8" ];
 
   homebrew = {
-    enable    = true;
-    onActivation = { autoUpdate = true; cleanup = "uninstall"; upgrade = true; };
+    enable = true;
+    onActivation = {
+      autoUpdate = true;
+      cleanup = "uninstall";
+      upgrade = true;
+    };
 
     taps = [
       "d12frosted/emacs-plus"
@@ -145,42 +163,97 @@ EOF
       "Artawower/tap"
     ];
 
-    brews =
-      [ "chezmoi" "mas" "pkgconf" "enchant" "Artawower/tap/wallboy" "ntfy" ]
-      ++ lib.optionals (f "tiling") [
-        { name = "koekeishiya/formulae/yabai"; }
-        { name = "koekeishiya/formulae/skhd"; }
-        { name = "FelixKratz/formulae/borders"; restart_service = false; }
-      ];
+    brews = [
+      "chezmoi"
+      "mas"
+      "pkgconf"
+      "enchant"
+      "Artawower/tap/wallboy"
+      "ntfy"
+    ]
+    ++ lib.optionals (f "tiling") [
+      { name = "koekeishiya/formulae/yabai"; }
+      { name = "koekeishiya/formulae/skhd"; }
+      {
+        name = "FelixKratz/formulae/borders";
+        restart_service = false;
+      }
+    ];
 
     casks = lib.unique (
       [
-        "font-liga-comic-mono" "font-monaspace-nf"
+        "font-liga-comic-mono"
+        "font-monaspace-nf"
         "orbstack"
-        "lulu" "vlc" "marta" "pearcleaner"
-        "krtirtho/apps/spotube" "discord"
-        { name = "stretchly"; args.no_quarantine = true; }
-        "obsidian" "neohtop" "db-browser-for-sqlite"
-        "jordanbaird-ice" "zen" "loom"
-        "clop" "input-source-pro"
-        "mongodb-compass" "rustdesk" "wakatime"
-        "arc" "openvpn-connect" "hoppscotch"
-        "mattermost" "ticktick" "raycast" "licecap"
-        "amneziavpn" "telegram-desktop" "bitwarden"
-        "whatsapp" "keycastr" "stats" "zed"
-        "chia" "aldente" "voiceink" "chatgpt"
-        "claude-code" "android-studio" "cmux"
+        "lulu"
+        "vlc"
+        "marta"
+        "pearcleaner"
+        "krtirtho/apps/spotube"
+        "discord"
+        {
+          name = "stretchly";
+          args.no_quarantine = true;
+        }
+        "obsidian"
+        "neohtop"
+        "db-browser-for-sqlite"
+        "jordanbaird-ice"
+        "zen"
+        "loom"
+        "clop"
+        "input-source-pro"
+        "mongodb-compass"
+        "rustdesk"
+        "wakatime"
+        "arc"
+        "openvpn-connect"
+        "hoppscotch"
+        "mattermost"
+        "ticktick"
+        "raycast"
+        "licecap"
+        "amneziavpn"
+        "telegram-desktop"
+        "bitwarden"
+        "whatsapp"
+        "keycastr"
+        "stats"
+        "zed"
+        "chia"
+        "aldente"
+        "voiceink"
+        "chatgpt"
+        "claude-code"
+        "android-studio"
+        "cmux"
       ]
-      ++ lib.optionals (f "terminal")  [ "ghostty" "wezterm" ]
-      ++ lib.optionals (f "keyboard")  [ "karabiner-elements" ]
-      ++ lib.optionals (f "tiling")    [ "nikitabobko/tap/aerospace" ]
+      ++ lib.optionals (f "terminal") [
+        "ghostty"
+        "wezterm"
+      ]
+      ++ lib.optionals (f "keyboard") [ "karabiner-elements" ]
+      ++ lib.optionals (f "tiling") [ "nikitabobko/tap/aerospace" ]
     );
 
     extraConfig = lib.optionalString (f "emacs") ''
-      brew "d12frosted/emacs-plus/emacs-plus@31", args: ["with-xwidgets", "with-dbus", "with-compress-install"], build_from_source: true
+      brew "d12frosted/emacs-plus/emacs-plus@31", args: ["with-xwidgets", "with-dbus"], build_from_source: true
     '';
 
     masApps = { };
+  };
+
+  system.activationScripts.emacsApp = lib.mkIf (f "emacs") {
+    text = ''
+      emacs_src="/opt/homebrew/opt/emacs-plus@31/Emacs.app"
+      emacs_dst="/Applications/Emacs.app"
+      if [ -d "$emacs_src" ]; then
+        if [ ! -d "$emacs_dst" ] || [ "$emacs_src/Contents/MacOS/Emacs" -nt "$emacs_dst/Contents/MacOS/Emacs" ]; then
+          rm -rf "$emacs_dst"
+          cp -r "$emacs_src" "$emacs_dst"
+        fi
+      fi
+    '';
   };
 
   system.activationScripts.masOptional = ''

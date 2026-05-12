@@ -40,7 +40,7 @@ impl ChezmoiBootstrapper {
 
     /// Inspect the current chezmoi source against `url` and return the action required.
     pub fn check(&self, url: &str) -> Result<BootstrapStatus, KaizenError> {
-        // Fast path: source exists, remote matches, and kaizen/features is present.
+        // Fast path: source exists, remote matches, and feature-meta seed is present.
         if let Some(source) = self.client.source_path()? {
             let remote = self.client.current_remote(&source)?;
             let remote_matches = remote
@@ -53,11 +53,9 @@ impl ChezmoiBootstrapper {
                     current_remote: remote,
                 });
             }
-            let features_dir = source
-                .join(manifest::KAIZEN_DIR)
-                .join(manifest::FEATURES_SUBDIR);
-            if !self.fs.is_dir(&features_dir) {
-                return Err(KaizenError::FeaturesDirNotFound { path: features_dir });
+            let seed = source.join(manifest::FEATURE_META_SEED);
+            if !self.fs.exists(&seed) {
+                return Err(KaizenError::FeaturesDirNotFound { path: seed });
             }
             return Ok(BootstrapStatus::AlreadyUpToDate(source));
         }
@@ -108,18 +106,16 @@ impl ChezmoiBootstrapper {
         Ok((new_source, backup.backup_path))
     }
 
-    /// Run `chezmoi init` and validate the resulting source has `kaizen/features`.
+    /// Run `chezmoi init` and validate the resulting source has the feature-meta seed.
     pub fn init(&self, url: &str) -> Result<PathBuf, KaizenError> {
         self.client.init_source(url)?;
         let source = self
             .client
             .source_path()?
             .ok_or(KaizenError::ChezmoidataTargetUnknown)?;
-        let features_dir = source
-            .join(manifest::KAIZEN_DIR)
-            .join(manifest::FEATURES_SUBDIR);
-        if !self.fs.is_dir(&features_dir) {
-            return Err(KaizenError::FeaturesDirNotFound { path: features_dir });
+        let seed = source.join(manifest::FEATURE_META_SEED);
+        if !self.fs.exists(&seed) {
+            return Err(KaizenError::FeaturesDirNotFound { path: seed });
         }
         Ok(source)
     }
@@ -238,7 +234,7 @@ mod tests {
     }
 
     #[test]
-    fn init_errors_when_source_has_no_kaizen_features() {
+    fn init_errors_when_source_has_no_feature_meta_seed() {
         use crate::{chezmoi_client::SourceBackup, RemoveFilesReport};
         struct FakeClient {
             source: PathBuf,

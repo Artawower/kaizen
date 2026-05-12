@@ -90,7 +90,7 @@ impl NixSyncBackend {
     fn run_darwin_rebuild(&self) -> Result<(), KaizenError> {
         let flake = self.nix_config_dir()?.to_string_lossy().into_owned();
         let cmd = if self.darwin_rebuild_available() {
-            ProcessCommand::run("darwin-rebuild", ["switch", "--flake", &flake])
+            ProcessCommand::run("darwin-rebuild", ["switch", "--flake", &flake, "--impure"])
                 .sudo()
                 .with_path_prefix(self.nix_path_prefix())
         } else {
@@ -105,6 +105,7 @@ impl NixSyncBackend {
                     "switch",
                     "--flake",
                     &flake,
+                    "--impure",
                 ],
             )
             .sudo()
@@ -495,9 +496,9 @@ impl NixSyncBackend {
         let mut steps = vec![];
         if self.os == TargetOs::Darwin {
             let cmd = if self.darwin_rebuild_available() {
-                "sudo darwin-rebuild switch --flake ~/.config/nix".into()
+                "sudo darwin-rebuild switch --flake ~/.config/nix --impure".into()
             } else {
-                "sudo nix run github:LnL7/nix-darwin/master#darwin-rebuild -- switch --flake ~/.config/nix".into()
+                "sudo nix run github:LnL7/nix-darwin/master#darwin-rebuild -- switch --flake ~/.config/nix --impure".into()
             };
             steps.push(cmd);
         }
