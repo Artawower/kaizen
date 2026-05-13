@@ -99,9 +99,14 @@ No changes needed to =manifest.toml=, =options.nix=, =darwin.nix=,
 
 Two mechanisms let users add packages without forking the dotfiles repo.
 
-** =[extra]= in =data.toml=
+** =[extra]= in =config.toml=
 
-Edit =~/.config/kaizen/config.toml= manually after running =kaizen configure=:
+Edit =~/.config/kaizen/config.toml= manually after running =kaizen configure=.
+On the next =kaizen sync= the section is propagated into =data.toml= which Nix reads:
+
+#+begin_example
+config.toml → kaizen sync → data.toml → Nix eval
+#+end_example
 
 #+begin_src toml
 [extra]
@@ -111,7 +116,9 @@ brew_formulas = ["ffmpeg"]               # homebrew formulas (macOS)
 brew_taps     = ["homebrew/cask-fonts"]  # homebrew taps (macOS)
 #+end_src
 
-- =nix_packages= entries must be valid top-level =nixpkgs= attribute names.
+- =nix_packages= must be valid top-level =nixpkgs= attribute names
+  (e.g. =nodejs_22=, not =nodePackages.prettier=). An unknown name produces
+  a clear Nix eval error pointing to the exact attribute.
 - The wizard never modifies =[extra]=: the section survives =kaizen configure=
   re-runs.
 - Changes take effect on the next =kaizen sync=.

@@ -231,10 +231,15 @@ Kaizen CLI priority when showing the wizard:
 Kaizen provides two escape hatches for user-specific customisation that survive
 `kaizen configure` re-runs and dotfiles updates.
 
-### `[extra]` in `data.toml`
+### `[extra]` in `config.toml`
 
 For quick additions without writing Nix. Edit `~/.config/kaizen/config.toml`
-manually after running the wizard:
+manually after running the wizard. On the next `kaizen sync` the section is
+propagated into `data.toml` (which Nix reads):
+
+```
+config.toml  →  kaizen sync (merge_kaizen_data_with)  →  data.toml  →  Nix eval
+```
 
 ```toml
 [extra]
@@ -245,7 +250,8 @@ brew_taps     = ["homebrew/cask-fonts"]   # homebrew taps (macOS)
 ```
 
 `nix_packages` entries must be valid top-level `nixpkgs` attribute names
-(e.g. `"nodejs_22"`, not `"nodePackages.prettier"`). The wizard never touches
+(e.g. `"nodejs_22"`, not `"nodePackages.prettier"`). An unknown name produces
+a clear Nix eval error with the attribute name. The wizard never touches
 `[extra]` — it is preserved verbatim across `kaizen configure` re-runs.
 
 ### `user-features/*.nix`

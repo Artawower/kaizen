@@ -88,13 +88,21 @@ struct ChezmoidataFile<'a> {
 }
 
 /// Generate kaizen data content from scratch (used in tests and first-time setup).
+/// Equivalent to `merge_kaizen_data_with` on a non-existent file.
 pub fn generate_kaizen_data(plan: &ConfigPlan) -> Result<String, KaizenError> {
     let layout = plan.settings.layout.as_deref().unwrap_or("qwerty");
-    let data = ChezmoidataFile {
-        layout,
-        features: &plan.features_data,
-    };
-    Ok(toml::to_string_pretty(&data)?)
+    let mut table = toml::map::Map::new();
+    table.insert("layout".to_owned(), toml::Value::String(layout.to_owned()));
+    let features: toml::map::Map<_, _> = plan
+        .features_data
+        .iter()
+        .map(|(k, v)| (k.clone(), toml::Value::Boolean(*v)))
+        .collect();
+    table.insert("features".to_owned(), toml::Value::Table(features));
+    if !plan.extra.is_empty() {
+        table.insert("extra".to_owned(), toml::Value::try_from(&plan.extra)?);
+    }
+    Ok(toml::to_string_pretty(&toml::Value::Table(table))?)
 }
 
 /// Merge kaizen-managed keys into existing kaizen data using an injected FileSystem.
@@ -136,10 +144,7 @@ pub fn merge_kaizen_data_with(
     if plan.extra.is_empty() {
         table.remove("extra");
     } else {
-        let extra = toml::to_string_pretty(&plan.extra)
-            .map(|s| toml::from_str::<toml::Value>(&s).unwrap_or(toml::Value::Table(Default::default())))
-            .unwrap_or(toml::Value::Table(Default::default()));
-        table.insert("extra".to_owned(), extra);
+        table.insert("extra".to_owned(), toml::Value::try_from(&plan.extra)?);
     }
 
     Ok(toml::to_string_pretty(&toml::Value::Table(table))?)
@@ -216,6 +221,32 @@ mod tests {
         let plan = make_plan(&[], Some("colemak"));
         let toml = generate_kaizen_data(&plan).unwrap();
         let _: toml::Value = toml::from_str(&toml).expect("must be valid toml");
+    }
+
+    #[test]
+    fn generate_includes_extra_when_non_empty() {
+        use crate::config::ExtraConfig;
+        let mut plan = make_plan(&[("core", true)], Some("qwerty"));
+        plan.extra = ExtraConfig {
+            brew_casks: vec!["zed".into()],
+            ..Default::default()
+        };
+        let toml = generate_kaizen_data(&plan).unwrap();
+        let val: toml::Value = toml::from_str(&toml).unwrap();
+        assert_eq!(
+            val["extra"]["brew_casks"].as_array().unwrap()[0]
+                .as_str()
+                .unwrap(),
+            "zed"
+        );
+    }
+
+    #[test]
+    fn generate_omits_extra_when_empty() {
+        let plan = make_plan(&[], Some("qwerty"));
+        let toml = generate_kaizen_data(&plan).unwrap();
+        let val: toml::Value = toml::from_str(&toml).unwrap();
+        assert!(val.get("extra").is_none());
     }
 
     // ── merge — uses MemFileSystem (no disk I/O) ──────────────────────────────
@@ -397,19 +428,34 @@ mod tests {
         let merged = merge_kaizen_data_with(&path, &plan, &fs).unwrap();
         let val: toml::Value = toml::from_str(&merged).unwrap();
         let extra = val.get("extra").expect("[extra] should be in data.toml");
-        assert_eq!(extra.get("brew_casks").unwrap().as_array().unwrap()[0].as_str().unwrap(), "zed");
-        assert_eq!(extra.get("nix_packages").unwrap().as_array().unwrap()[0].as_str().unwrap(), "ripgrep");
+        assert_eq!(
+            extra.get("brew_casks").unwrap().as_array().unwrap()[0]
+                .as_str()
+                .unwrap(),
+            "zed"
+        );
+        assert_eq!(
+            extra.get("nix_packages").unwrap().as_array().unwrap()[0]
+                .as_str()
+                .unwrap(),
+            "ripgrep"
+        );
     }
 
     #[test]
     fn merge_removes_extra_when_empty() {
-        use crate::config::ExtraConfig;
         let path = PathBuf::from("/tmp/kaizen-data.toml");
-        let fs = mem_fs_with(&path, "layout = \"qwerty\"\n[extra]\nbrew_casks = [\"zed\"]\n");
+        let fs = mem_fs_with(
+            &path,
+            "layout = \"qwerty\"\n[extra]\nbrew_casks = [\"zed\"]\n",
+        );
         let plan = make_plan(&[], Some("qwerty")); // extra is default = empty
         let merged = merge_kaizen_data_with(&path, &plan, &fs).unwrap();
         let val: toml::Value = toml::from_str(&merged).unwrap();
-        assert!(val.get("extra").is_none(), "empty extra should not appear in data.toml");
+        assert!(
+            val.get("extra").is_none(),
+            "empty extra should not appear in data.toml"
+        );
     }
 
     #[test]
