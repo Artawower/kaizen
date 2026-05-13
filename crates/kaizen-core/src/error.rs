@@ -91,6 +91,25 @@ pub enum KaizenError {
     #[error("command `{cmd}` failed with exit code {code:?}")]
     CommandFailed { cmd: String, code: Option<i32> },
 
+    /// Like `CommandFailed` but stderr was captured (and already streamed to
+    /// the terminal). Callers can inspect `stderr` to produce richer errors.
+    #[error("command `{cmd}` failed with exit code {code:?}")]
+    CommandFailedWithStderr {
+        cmd: String,
+        code: Option<i32>,
+        stderr: String,
+    },
+
+    #[error(
+        "[extra].nix_packages: \"{name}\" is not a valid nixpkgs attribute\n\
+         \n\
+         To fix: edit ~/.config/kaizen/config.toml\n\
+         Replace \"{name}\" with the correct top-level nixpkgs attribute name.\n\
+         Hint: run \"nix search nixpkgs {name}\" to find the right spelling.\n\
+         Note: for nested packages (e.g. nodePackages.X) use user-features/*.nix instead."
+    )]
+    ExtraPackageNotFound { name: String },
+
     #[error("cannot determine home directory — $HOME is not set")]
     HomeDirUnavailable,
 

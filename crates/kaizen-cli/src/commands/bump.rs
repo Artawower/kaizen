@@ -151,6 +151,7 @@ capture = ["/tmp/flake.lock"]
             );
             Ok(ProcessOutput {
                 stdout: String::new(),
+                stderr: String::new(),
             })
         }
     }

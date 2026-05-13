@@ -7,6 +7,9 @@ pub struct ProcessCommand {
     pub args: Vec<String>,
     pub sudo: bool,
     pub capture_stdout: bool,
+    /// Capture stderr while still streaming it to the terminal (tee behaviour).
+    /// On failure the captured text is returned in `CommandFailedWithStderr`.
+    pub capture_stderr: bool,
     /// Extra directories prepended to PATH for this subprocess.
     pub path_prefix: Vec<String>,
     /// Additional environment variables passed only to this subprocess.
@@ -21,6 +24,7 @@ impl ProcessCommand {
             args: args.into_iter().map(Into::into).collect(),
             sudo: false,
             capture_stdout: false,
+            capture_stderr: false,
             path_prefix: vec![],
             env: vec![],
         }
@@ -49,6 +53,12 @@ impl ProcessCommand {
         self.capture_stdout = true;
         self
     }
+
+    /// Tee stderr: stream to terminal in real time AND capture for error parsing.
+    pub fn capturing_stderr(mut self) -> Self {
+        self.capture_stderr = true;
+        self
+    }
 }
 
 /// Output returned by a successful `ProcessExecutor::execute` call.
@@ -56,6 +66,8 @@ impl ProcessCommand {
 pub struct ProcessOutput {
     /// Captured stdout (only populated when `capture_stdout = true`).
     pub stdout: String,
+    /// Captured stderr (only populated when `capture_stderr = true`).
+    pub stderr: String,
 }
 
 /// Port for running OS processes.

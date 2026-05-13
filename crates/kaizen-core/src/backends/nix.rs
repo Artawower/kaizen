@@ -13,6 +13,15 @@ use crate::{
     KaizenError, SyncBackend, TargetOs, WorkflowPlan,
 };
 
+/// Scan captured stderr for the [extra].nix_packages validation error produced
+/// by `adapters/home-manager.nix` and extract the bad package name.
+fn parse_extra_package_error(stderr: &str) -> Option<String> {
+    stderr
+        .lines()
+        .find(|l| l.contains("[extra].nix_packages:") && l.contains("is not a top-level nixpkgs"))
+        .and_then(|line| line.split('"').nth(1).map(str::to_owned))
+}
+
 pub struct NixSyncBackend {
     os: TargetOs,
     runtime: Runtime,
@@ -152,10 +161,23 @@ impl NixSyncBackend {
             )
         };
 
-        self.runtime
-            .executor
-            .execute(ProcessCommand::run(cmd, args).with_path_prefix(self.nix_path_prefix()))?;
-        Ok(())
+        let result = self.runtime.executor.execute(
+            ProcessCommand::run(cmd, args)
+                .with_path_prefix(self.nix_path_prefix())
+                .capturing_stderr(),
+        );
+
+        match result {
+            Ok(_) => Ok(()),
+            Err(KaizenError::CommandFailedWithStderr { ref stderr, .. }) => {
+                if let Some(name) = parse_extra_package_error(stderr) {
+                    Err(KaizenError::ExtraPackageNotFound { name })
+                } else {
+                    result.map(|_| ())
+                }
+            }
+            Err(e) => Err(e),
+        }
     }
 
     fn run_nix_flake_update(&self, dry_run: bool) -> Result<(), KaizenError> {
@@ -758,6 +780,21 @@ mod tests {
     #[test]
     fn flake_host_is_linux_on_ubuntu() {
         assert_eq!(mock_backend(TargetOs::Ubuntu).flake_host(), "linux");
+    }
+
+    #[test]
+    fn parse_extra_package_error_extracts_name() {
+        let stderr = "error: [extra].nix_packages: \"nvim\" is not a top-level nixpkgs attribute. Check spelling.";
+        assert_eq!(
+            super::parse_extra_package_error(stderr),
+            Some("nvim".into())
+        );
+    }
+
+    #[test]
+    fn parse_extra_package_error_returns_none_on_unrelated_error() {
+        let stderr = "error: undefined variable 'something'\nat /nix/store/...";
+        assert_eq!(super::parse_extra_package_error(stderr), None);
     }
 
     #[test]

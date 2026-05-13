@@ -10,11 +10,12 @@ pub struct StdProcessExecutor;
 
 impl ProcessExecutor for StdProcessExecutor {
     fn execute(&self, cmd: ProcessCommand) -> Result<ProcessOutput, KaizenError> {
-        match (cmd.sudo, cmd.capture_stdout) {
-            (true, true) => run_sudo_capturing(cmd),
-            (true, false) => run_sudo(cmd),
-            (false, true) => run_capturing(cmd),
-            (false, false) => run_status(cmd),
+        match (cmd.sudo, cmd.capture_stdout, cmd.capture_stderr) {
+            (true, true, _) => run_sudo_capturing(cmd),
+            (true, false, _) => run_sudo(cmd),
+            (false, true, _) => run_capturing(cmd),
+            (false, false, true) => run_tee_stderr(cmd),
+            (false, false, false) => run_status(cmd),
         }
     }
 }
@@ -105,6 +106,7 @@ fn run_capturing(cmd: ProcessCommand) -> Result<ProcessOutput, KaizenError> {
     }
     Ok(ProcessOutput {
         stdout: String::from_utf8_lossy(&out.stdout).trim().to_owned(),
+        stderr: String::new(),
     })
 }
 
@@ -119,6 +121,54 @@ fn run_sudo_capturing(cmd: ProcessCommand) -> Result<ProcessOutput, KaizenError>
     }
     Ok(ProcessOutput {
         stdout: String::from_utf8_lossy(&out.stdout).trim().to_owned(),
+        stderr: String::new(),
+    })
+}
+
+/// Stream stderr to the terminal in real time while also capturing it.
+/// On failure returns `CommandFailedWithStderr` for richer error handling.
+#[allow(clippy::result_large_err)]
+fn run_tee_stderr(cmd: ProcessCommand) -> Result<ProcessOutput, KaizenError> {
+    use std::io::{BufRead as _, BufReader, Write as _};
+    use std::sync::{Arc, Mutex};
+
+    let mut child = base_command(&cmd)
+        .stderr(std::process::Stdio::piped())
+        .spawn()?;
+
+    let pipe = child.stderr.take().expect("stderr was piped");
+    let captured = Arc::new(Mutex::new(String::new()));
+    let captured_clone = Arc::clone(&captured);
+
+    let tee = std::thread::spawn(move || {
+        let reader = BufReader::new(pipe);
+        let stderr_sink = std::io::stderr();
+        let mut sink = stderr_sink.lock();
+        for line in reader.lines().flatten() {
+            let _ = writeln!(sink, "{line}");
+            let mut buf = captured_clone.lock().unwrap();
+            buf.push_str(&line);
+            buf.push('\n');
+        }
+    });
+
+    let status = child.wait()?;
+    let _ = tee.join();
+    let stderr = Arc::try_unwrap(captured)
+        .unwrap_or_default()
+        .into_inner()
+        .unwrap_or_default();
+
+    if !status.success() {
+        return Err(KaizenError::CommandFailedWithStderr {
+            cmd: cmd_label(&cmd),
+            code: status.code(),
+            stderr,
+        });
+    }
+    Ok(ProcessOutput {
+        stdout: String::new(),
+        stderr,
     })
 }
 
