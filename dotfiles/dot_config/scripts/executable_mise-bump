@@ -6,24 +6,14 @@ import sys
 
 TEMPLATE = os.path.expanduser("~/.local/share/chezmoi/dot_config/mise.toml.tmpl")
 CONFIG = os.path.expanduser("~/.config/mise.toml")
-DEFAULT_EXCLUDES = ["pnpm"]
 
 
-def exclusions():
-    raw = os.environ.get("KAIZEN_MISE_BUMP_EXCLUDE")
-    if raw is None:
-        return DEFAULT_EXCLUDES
-    return [item.strip() for item in raw.split(",") if item.strip()]
-
-
-def run_mise_upgrade(excludes):
-    command = ["mise", "upgrade", "--bump"]
-    if excludes:
-        command.extend(["--exclude", ",".join(excludes)])
-    result = subprocess.run(command, capture_output=True, text=True)
+def run_mise_upgrade():
+    result = subprocess.run(["mise", "upgrade", "--bump", "--interactive"])
     if result.returncode == 0:
         return
-    print(result.stderr, file=sys.stderr)
+    if result.returncode == 130:
+        sys.exit(0)
     sys.exit(result.returncode)
 
 
@@ -54,7 +44,6 @@ def update_template(bumped):
         template.write(content)
 
 
-excludes = exclusions()
-run_mise_upgrade(excludes)
+run_mise_upgrade()
 update_template(read_bumped_versions())
 subprocess.run(["chezmoi", "apply"], check=True)

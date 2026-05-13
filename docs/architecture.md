@@ -155,24 +155,16 @@ capture = ["~/.config/nix/flake.lock"]
 paths beginning with `~/` are expanded to the user's home directory.
 
 The mise step calls `~/.config/scripts/mise-bump` instead of plain
-`mise upgrade`. The script runs `mise upgrade --bump` with an explicit deny-list,
-reads the bumped deployed `~/.config/mise.toml`, writes concrete bumped versions
-back into the chezmoi template `~/.local/share/chezmoi/dot_config/mise.toml.tmpl`,
-skips `latest` and `lts` selectors, then runs `chezmoi apply` so the rendered
-config matches the updated template.
+`mise upgrade`. The script runs `mise upgrade --bump --interactive`, which opens
+a checklist of tools with available updates. The user chooses what to bump each
+time, so no hidden deny-list has to be maintained.
 
-This gives an all-except-explicit-deny policy: exact pins can be bumped when they
-are not denied, while known-broken tools stay locked. The deny-list comes from
-`KAIZEN_MISE_BUMP_EXCLUDE`, a comma-separated list with default `pnpm` when the
-environment variable is unset:
-
-```bash
-KAIZEN_MISE_BUMP_EXCLUDE="pnpm,go:golang.org/x/tools/gopls" kaizen bump
-```
-
-For version selectors, `latest` and `lts` remain as selectors in the template;
-concrete versions such as `gopls = "0.20.0"` may be rewritten to the newly bumped
-version unless that tool appears in the deny-list.
+After mise updates the rendered `~/.config/mise.toml`, the script reads the
+selected bumped versions, writes concrete versions back into the chezmoi template
+`~/.local/share/chezmoi/dot_config/mise.toml.tmpl`, skips `latest` and `lts`
+selectors, then runs `chezmoi apply` so the rendered config matches the updated
+template. Exact pins such as `gopls = "0.20.0"` are bumped only when selected in
+the interactive checklist.
 
 After all manifest steps finish, `kaizen bump` loads the current config and runs
 `updateHooks` from `conf.featureRegistry.<feature>` for enabled features only:
