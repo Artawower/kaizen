@@ -8,11 +8,9 @@
 
 let
   dataPath = "${user.homeDirectory}/.config/kaizen/data.toml";
-  features =
-    if builtins.pathExists dataPath then
-      (builtins.fromTOML (builtins.readFile dataPath)).features or { }
-    else
-      { };
+  data = if builtins.pathExists dataPath then builtins.fromTOML (builtins.readFile dataPath) else { };
+  features = data.features or { };
+  extra = data.extra or { };
   f = name: features.${name} or false;
 
   featuresDir = ./modules/features;
@@ -20,16 +18,6 @@ let
     builtins.readDir featuresDir
   );
 
-  # Import a feature file and read its darwin-specific top-level exports.
-  # Nix laziness ensures home-manager-only attrs (options/config) are never
-  # evaluated here — only the darwin export attrs are accessed.
-  #
-  # Feature files may declare:
-  #   darwinCasks                :: list of (string | attrset)
-  #   darwinBrews                :: list of (string | attrset)
-  #   darwinTaps                 :: list of string
-  #   darwinBrewFormulas         :: string  (appended to homebrew.extraConfig)
-  #   darwinActivationScripts    :: attrset of name -> string
   importDarwin =
     fileName:
     let
@@ -44,6 +32,23 @@ let
   featureTaps = lib.concatMap (m: m.darwinTaps or [ ]) loaded;
   featureFormulas = lib.concatStrings (map (m: m.darwinBrewFormulas or "") loaded);
   featureActivation = lib.foldl' (acc: m: acc // (m.darwinActivationScripts or { })) { } loaded;
+
+  userFeaturesPath = "${user.homeDirectory}/.config/kaizen/user-features";
+  userDarwinFiles =
+    if builtins.pathExists userFeaturesPath then
+      builtins.filter (n: lib.hasSuffix ".darwin.nix" n) (
+        builtins.attrNames (builtins.readDir userFeaturesPath)
+      )
+    else
+      [ ];
+  importUserDarwin = fileName: import (userFeaturesPath + "/${fileName}") { inherit lib pkgs user; };
+  userLoaded = map importUserDarwin userDarwinFiles;
+
+  userCasks = lib.concatMap (m: m.darwinCasks or [ ]) userLoaded;
+  userBrews = lib.concatMap (m: m.darwinBrews or [ ]) userLoaded;
+  userTaps = lib.concatMap (m: m.darwinTaps or [ ]) userLoaded;
+  userFormulas = lib.concatStrings (map (m: m.darwinBrewFormulas or "") userLoaded);
+  userActivation = lib.foldl' (acc: m: acc // (m.darwinActivationScripts or { })) { } userLoaded;
 in
 
 {
@@ -123,7 +128,7 @@ in
         fi
       '';
     }
-    (lib.mapAttrs (_: text: { inherit text; }) featureActivation)
+    (lib.mapAttrs (_: text: { inherit text; }) (featureActivation // userActivation))
   ];
 
   security.pam.services.sudo_local.touchIdAuth = true;
@@ -145,7 +150,7 @@ in
       upgrade = true;
     };
 
-    taps = lib.unique ([ "Artawower/tap" ] ++ featureTaps);
+    taps = lib.unique ([ "Artawower/tap" ] ++ featureTaps ++ (extra.brew_taps or [ ]) ++ userTaps);
 
     brews = [
       "chezmoi"
@@ -155,11 +160,13 @@ in
       "Artawower/tap/wallboy"
       "ntfy"
     ]
-    ++ featureBrews;
+    ++ featureBrews
+    ++ (extra.brew_formulas or [ ])
+    ++ userBrews;
 
-    casks = lib.unique ([ "chia" ] ++ featureCasks);
+    casks = lib.unique ([ "chia" ] ++ featureCasks ++ (extra.brew_casks or [ ]) ++ userCasks);
 
-    extraConfig = featureFormulas;
+    extraConfig = featureFormulas + userFormulas;
 
     masApps = { };
   };

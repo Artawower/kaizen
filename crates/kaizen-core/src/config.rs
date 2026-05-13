@@ -8,6 +8,30 @@ use crate::KaizenError;
 pub const CURRENT_SCHEMA_VERSION: u32 = 1;
 pub const DEFAULT_DOTFILES_SOURCE: &str = "https://github.com/Artawower/kaizen";
 
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct ExtraConfig {
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub nix_packages: Vec<String>,
+
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub brew_casks: Vec<String>,
+
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub brew_formulas: Vec<String>,
+
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub brew_taps: Vec<String>,
+}
+
+impl ExtraConfig {
+    pub fn is_empty(&self) -> bool {
+        self.nix_packages.is_empty()
+            && self.brew_casks.is_empty()
+            && self.brew_formulas.is_empty()
+            && self.brew_taps.is_empty()
+    }
+}
+
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct UserConfig {
     #[serde(default)]
@@ -21,6 +45,9 @@ pub struct UserConfig {
 
     #[serde(default)]
     pub dotfiles: DotfilesConfig,
+
+    #[serde(default, skip_serializing_if = "ExtraConfig::is_empty")]
+    pub extra: ExtraConfig,
 }
 
 impl UserConfig {

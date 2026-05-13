@@ -133,6 +133,15 @@ pub fn merge_kaizen_data_with(
     }
     table.insert("features".to_owned(), toml::Value::Table(features));
 
+    if plan.extra.is_empty() {
+        table.remove("extra");
+    } else {
+        let extra = toml::to_string_pretty(&plan.extra)
+            .map(|s| toml::from_str::<toml::Value>(&s).unwrap_or(toml::Value::Table(Default::default())))
+            .unwrap_or(toml::Value::Table(Default::default()));
+        table.insert("extra".to_owned(), extra);
+    }
+
     Ok(toml::to_string_pretty(&toml::Value::Table(table))?)
 }
 
@@ -180,6 +189,7 @@ mod tests {
             settings: UserSettings {
                 layout: layout.map(str::to_owned),
             },
+            extra: Default::default(),
         }
     }
 
@@ -372,6 +382,35 @@ mod tests {
     // ── remotes ───────────────────────────────────────────────────────────────
 
     use super::remotes_match;
+
+    #[test]
+    fn merge_writes_extra_section_to_data_toml() {
+        use crate::config::ExtraConfig;
+        let path = PathBuf::from("/tmp/kaizen-data.toml");
+        let fs = MemFileSystem::new();
+        let mut plan = make_plan(&[("core", true)], Some("qwerty"));
+        plan.extra = ExtraConfig {
+            brew_casks: vec!["zed".into()],
+            nix_packages: vec!["ripgrep".into()],
+            ..Default::default()
+        };
+        let merged = merge_kaizen_data_with(&path, &plan, &fs).unwrap();
+        let val: toml::Value = toml::from_str(&merged).unwrap();
+        let extra = val.get("extra").expect("[extra] should be in data.toml");
+        assert_eq!(extra.get("brew_casks").unwrap().as_array().unwrap()[0].as_str().unwrap(), "zed");
+        assert_eq!(extra.get("nix_packages").unwrap().as_array().unwrap()[0].as_str().unwrap(), "ripgrep");
+    }
+
+    #[test]
+    fn merge_removes_extra_when_empty() {
+        use crate::config::ExtraConfig;
+        let path = PathBuf::from("/tmp/kaizen-data.toml");
+        let fs = mem_fs_with(&path, "layout = \"qwerty\"\n[extra]\nbrew_casks = [\"zed\"]\n");
+        let plan = make_plan(&[], Some("qwerty")); // extra is default = empty
+        let merged = merge_kaizen_data_with(&path, &plan, &fs).unwrap();
+        let val: toml::Value = toml::from_str(&merged).unwrap();
+        assert!(val.get("extra").is_none(), "empty extra should not appear in data.toml");
+    }
 
     #[test]
     fn ssh_and_https_remotes_match() {

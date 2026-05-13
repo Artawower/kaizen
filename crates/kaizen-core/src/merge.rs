@@ -163,6 +163,7 @@ fn build_config_plan(config: &UserConfig) -> ConfigPlan {
             .map(|(k, v)| (k.clone(), v.enabled))
             .collect(),
         settings: config.settings.clone(),
+        extra: config.extra.clone(),
     }
 }
 

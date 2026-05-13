@@ -1,7 +1,7 @@
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 
-use crate::{TargetOs, UserSettings};
+use crate::{config::ExtraConfig, TargetOs, UserSettings};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WorkflowPlan {
@@ -38,6 +38,8 @@ pub struct ConfigPlan {
     pub dotfiles_source: Option<String>,
     pub features_data: IndexMap<String, bool>,
     pub settings: UserSettings,
+    #[serde(default)]
+    pub extra: ExtraConfig,
 }
 
 impl WorkflowPlan {

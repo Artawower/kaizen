@@ -59,22 +59,78 @@ modules and is mapped to =home.packages= by =adapters/home-manager.nix=.
 conf.packages.nix = with pkgs; [ go gopls go-tools ];
 #+end_src
 
-** =conf.packages.brewCasks= (macOS)
-Brew cask identifiers. Currently, brew casks live in =darwin.nix= keyed on
-=data.toml= feature flags. This option is the future home for them once the
-nix-darwin and home-manager evaluation trees are merged.
+** =*.darwin.nix= (macOS, optional sibling file)
+Darwin-specific exports for a feature live in a sibling file
+=features/<name>.darwin.nix=. It is a plain Nix file (not a module) that
+returns an attrset. =darwin.nix= auto-discovers and imports it when the
+feature is enabled.
+
+#+begin_src nix
+# features/mytool.darwin.nix
+{ lib, pkgs, user, ... }:
+{
+  darwinCasks             = [ "mytool" ];
+  darwinBrews             = [ ];
+  darwinTaps              = [ ];
+  darwinBrewFormulas      = "";
+  darwinActivationScripts = {
+    setupMytool = ''echo "setting up mytool"'';
+  };
+}
+#+end_src
+
+All keys are optional — omit what you don't need.
 
 * Adding a new feature
 
 1. Create =dotfiles/dot_config/nix/modules/features/<name>.nix= following the
    structure above.
-2. Add an entry to the seed file:
+2. Optionally create =features/<name>.darwin.nix= for macOS brew / activation
+   script extras.
+3. Add an entry to the seed file:
    =dotfiles/dot_config/kaizen/feature-meta.json=.
-3. Run =kaizen sync= — =feature-loader.nix= picks up the new module
-   automatically.
+4. Run =kaizen sync= — =feature-loader.nix= and =darwin.nix= pick up both
+   files automatically.
 
 No changes needed to =manifest.toml=, =options.nix=, =darwin.nix=,
 =linux.nix=, or =hosts/*.nix=.
+
+* User extensibility
+
+Two mechanisms let users add packages without forking the dotfiles repo.
+
+** =[extra]= in =data.toml=
+
+Edit =~/.config/kaizen/config.toml= manually after running =kaizen configure=:
+
+#+begin_src toml
+[extra]
+nix_packages  = ["ripgrep", "bat"]        # top-level nixpkgs attribute names
+brew_casks    = ["istat-menus"]           # homebrew casks (macOS)
+brew_formulas = ["ffmpeg"]               # homebrew formulas (macOS)
+brew_taps     = ["homebrew/cask-fonts"]  # homebrew taps (macOS)
+#+end_src
+
+- =nix_packages= entries must be valid top-level =nixpkgs= attribute names.
+- The wizard never modifies =[extra]=: the section survives =kaizen configure=
+  re-runs.
+- Changes take effect on the next =kaizen sync=.
+
+** User feature modules
+
+For users comfortable with Nix. Place files in
+=~/.config/kaizen/user-features/=. They are auto-discovered alongside
+built-in feature modules.
+
+#+begin_src
+~/.config/kaizen/user-features/
+  mytools.nix          ← standard home-manager module
+  mytools.darwin.nix   ← darwin attrset (same contract as features/*.darwin.nix)
+#+end_src
+
+=*.nix= files receive the full ={ config, lib, pkgs, ... }= module arguments
+and can set any home-manager options. =*.darwin.nix= files receive
+={ lib, pkgs, user }= and return the darwin attrset described above.
 
 * Infrastructure modules
 

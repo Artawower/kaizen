@@ -266,6 +266,7 @@ mod tests {
                 dotfiles_source: None,
                 features_data: IndexMap::new(),
                 settings: UserSettings { layout: None },
+                extra: Default::default(),
             },
             HookPlan::default(),
             vec![],

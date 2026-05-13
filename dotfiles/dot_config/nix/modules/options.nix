@@ -32,5 +32,25 @@
       type = lib.types.listOf lib.types.package;
       default = [ ];
     };
+
+    extra = {
+      nixPackages = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
+        default = [ ];
+        description = "Top-level nixpkgs attribute names from data.toml [extra].nix_packages";
+      };
+      brewCasks = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
+        default = [ ];
+      };
+      brewFormulas = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
+        default = [ ];
+      };
+      brewTaps = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
+        default = [ ];
+      };
+    };
   };
 }

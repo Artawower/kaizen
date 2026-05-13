@@ -47,7 +47,17 @@ pub fn run(
     };
     let layout = pick_layout(existing.as_ref())?;
 
-    let toml = render_config(&features, &selected, &layout, &dotfiles_url);
+    let existing_extra = existing
+        .as_ref()
+        .map(|c| c.extra.clone())
+        .unwrap_or_default();
+    let toml = render_config(
+        &features,
+        &selected,
+        &layout,
+        &dotfiles_url,
+        &existing_extra,
+    );
     if write_config(config_path, &toml)? && prompt_next {
         prompt_next_action(&engine, config_path)?;
     }

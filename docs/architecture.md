@@ -154,7 +154,9 @@ their only shared runtime input.
 
 ```mermaid
 graph TD
-    data["~/.config/kaizen/data.toml<br/>(feature enables, written by kaizen)"]
+    data["~/.config/kaizen/data.toml<br/>(feature enables + [extra], written by kaizen)"]
+    user_nix["~/.config/kaizen/user-features/*.nix<br/>user home-manager modules"]
+    user_darwin["~/.config/kaizen/user-features/*.darwin.nix<br/>user darwin attrs"]
 
     subgraph flake["flake.nix"]
         darwin_cfg["darwinConfigurations<br/>(nix-darwin, macOS only)"]
@@ -164,17 +166,17 @@ graph TD
 
     subgraph darwin_tree["nix-darwin eval tree"]
         darwin_nix["darwin.nix<br/>system defaults, pam, loginItems"]
-        brew["homebrew.casks/brews<br/>feature-conditional"]
+        brew["homebrew.casks/brews<br/>feature-conditional + extra + user-features"]
         darwin_nix --> brew
     end
 
     subgraph hm_tree["home-manager eval tree (shared modules)"]
-        host["hosts/mac.nix or linux.nix<br/>stateVersion, username, homeDir"]
+        host["hosts/mac.nix or linux.nix<br/>stateVersion, username, homeDir, conf.extra"]
         mod["modules/darwin.nix or linux.nix"]
-        options["options.nix<br/>conf.features · conf.packages · conf.featureRegistry"]
-        loader["feature-loader.nix<br/>readDir ./features → imports all *.nix<br/>activation → feature-meta.json"]
+        options["options.nix<br/>conf.features · conf.packages · conf.featureRegistry · conf.extra"]
+        loader["feature-loader.nix<br/>readDir ./features → imports all *.nix<br/>readDir user-features → imports user *.nix<br/>activation → feature-meta.json"]
         features["features/*.nix<br/>core · helix · vcs · terminal · …"]
-        adapter["adapters/home-manager.nix<br/>conf.packages.nix → home.packages"]
+        adapter["adapters/home-manager.nix<br/>conf.packages.nix + conf.extra.nixPackages → home.packages"]
         system["system/*.nix<br/>fonts · darkman · battery"]
 
         host --> mod
@@ -186,7 +188,11 @@ graph TD
     end
 
     data -- "lib.mapAttrs → conf.features.*.enable" --> host
-    data -- "features.X or false → homebrew.casks" --> darwin_nix
+    data -- "[extra] → conf.extra.*" --> host
+    data -- "features.X or false → homebrew.casks/brews" --> darwin_nix
+    data -- "[extra].brew_* → homebrew" --> darwin_nix
+    user_nix -- "auto-imported" --> loader
+    user_darwin -- "auto-imported" --> darwin_nix
 
     darwin_cfg --> darwin_nix
     hm_mac --> host
@@ -219,6 +225,47 @@ Kaizen CLI priority when showing the wizard:
 1. ~/.config/kaizen/feature-meta.json   ← live, written by HM activation on every switch
 2. dot_config/kaizen/feature-meta.json  ← seed committed in dotfiles, refreshed on configure
 ```
+
+## User Extensibility
+
+Kaizen provides two escape hatches for user-specific customisation that survive
+`kaizen configure` re-runs and dotfiles updates.
+
+### `[extra]` in `data.toml`
+
+For quick additions without writing Nix. Edit `~/.config/kaizen/config.toml`
+manually after running the wizard:
+
+```toml
+[extra]
+nix_packages  = ["ripgrep", "bat"]         # top-level nixpkgs attribute names
+brew_casks    = ["istat-menus"]            # homebrew casks (macOS)
+brew_formulas = ["ffmpeg"]                # homebrew formulas (macOS)
+brew_taps     = ["homebrew/cask-fonts"]   # homebrew taps (macOS)
+```
+
+`nix_packages` entries must be valid top-level `nixpkgs` attribute names
+(e.g. `"nodejs_22"`, not `"nodePackages.prettier"`). The wizard never touches
+`[extra]` — it is preserved verbatim across `kaizen configure` re-runs.
+
+### `user-features/*.nix`
+
+For users comfortable with Nix. Place modules in
+`~/.config/kaizen/user-features/`. They are auto-discovered alongside built-in
+feature modules and receive the same `{ config, lib, pkgs, ... }` arguments.
+
+```
+~/.config/kaizen/user-features/
+  mytools.nix          ← home-manager module (packages, programs, dotfiles)
+  mytools.darwin.nix   ← darwin attrs (darwinCasks, darwinActivationScripts, …)
+```
+
+`*.darwin.nix` files follow the same contract as built-in `*.darwin.nix`:
+return an attrset with any combination of `darwinCasks`, `darwinBrews`,
+`darwinTaps`, `darwinBrewFormulas`, `darwinActivationScripts`.
+
+Both mechanisms require `home-manager switch` / `darwin-rebuild switch` to
+take effect (`kaizen sync` triggers this automatically).
 
 ## WorkflowPlan
 
