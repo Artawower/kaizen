@@ -103,7 +103,11 @@ impl KaizenEngine {
     /// Engine that reads exclusively from the Nix feature cache.
     /// Returns `FeaturesDirNotFound` if the cache is unavailable.
     pub fn cache_only(fs: Arc<dyn FileSystem>) -> Self {
-        Self { features_dir: None, fs, nix_cache_path: None }
+        Self {
+            features_dir: None,
+            fs,
+            nix_cache_path: None,
+        }
     }
 
     pub fn with_nix_cache(mut self, path: PathBuf) -> Self {
@@ -124,9 +128,12 @@ impl KaizenEngine {
     }
 
     fn feature_store(&self) -> Result<FeatureStore, KaizenError> {
-        let dir = self.features_dir.as_deref().ok_or_else(|| KaizenError::FeaturesDirNotFound {
-            path: PathBuf::from(manifest::KAIZEN_DIR).join(manifest::FEATURES_SUBDIR),
-        })?;
+        let dir = self
+            .features_dir
+            .as_deref()
+            .ok_or_else(|| KaizenError::FeaturesDirNotFound {
+                path: PathBuf::from(manifest::KAIZEN_DIR).join(manifest::FEATURES_SUBDIR),
+            })?;
         Ok(FeatureStore::new(dir, Arc::clone(&self.fs)))
     }
 
@@ -167,16 +174,28 @@ impl KaizenEngine {
         config: &UserConfig,
         target_os: TargetOs,
     ) -> Result<WorkflowPlan, KaizenError> {
+        // Feature names used only to scope the install plan.
+        // For the Nix backend packages come from home-manager, so an empty
+        // list is safe — sync still runs chezmoi + home-manager correctly.
         let all_names: Vec<String> = if let Some(ref cache_path) = self.nix_cache_path {
             if let Some(map) = nix_feature_cache::load(cache_path, self.fs.as_ref())? {
                 map.into_keys().collect()
             } else {
-                self.feature_store()?.list()?
+                self.feature_store()
+                    .and_then(|s| s.list())
+                    .unwrap_or_default()
             }
         } else {
-            self.feature_store()?.list()?
+            self.feature_store()
+                .and_then(|s| s.list())
+                .unwrap_or_default()
         };
-        let store = self.feature_store()?;
+        let store = self.feature_store().unwrap_or_else(|_| {
+            FeatureStore::new(
+                PathBuf::from(manifest::KAIZEN_DIR).join(manifest::FEATURES_SUBDIR),
+                Arc::clone(&self.fs),
+            )
+        });
         merge::build_plan(config, &store, &all_names, target_os)
     }
 }
@@ -305,6 +324,34 @@ mod tests {
                 ("vcs".to_owned(), Some("version control tooling".to_owned())),
             ]
         );
+    }
+
+    #[test]
+    fn cache_only_build_workflow_plan_without_cache_returns_empty_plan() {
+        let fs = Arc::new(MemFileSystem::new());
+        let engine = KaizenEngine::cache_only(fs);
+        let config: UserConfig = toml::from_str("").unwrap();
+        let plan = engine
+            .build_workflow_plan(&config, TargetOs::Linux)
+            .unwrap();
+        assert!(plan.install_plan.programs.is_empty());
+    }
+
+    #[test]
+    fn cache_only_build_workflow_plan_with_valid_cache_returns_empty_plan() {
+        let fs = Arc::new(MemFileSystem::new());
+        let cache = PathBuf::from("/cache/feature-meta.json");
+        fs.add_file(
+            &cache,
+            r#"{"core":{"description":"Core","category":"system"}}""}"#.trim_end_matches("\"\"}"),
+        );
+        // cache loads, plan builds without programs (no feature toml files)
+        let engine = KaizenEngine::cache_only(fs).with_nix_cache(cache);
+        let config: UserConfig = toml::from_str("").unwrap();
+        let plan = engine
+            .build_workflow_plan(&config, TargetOs::Linux)
+            .unwrap();
+        assert!(plan.install_plan.programs.is_empty());
     }
 
     #[test]
