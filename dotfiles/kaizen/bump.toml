@@ -1,6 +1,6 @@
 [[steps]]
 name = "mise"
-run = ["mise", "upgrade"]
+run = ["~/.config/scripts/mise-bump"]
 capture = ["~/.config/mise.lock"]
 
 [[steps]]

@@ -1,0 +1,60 @@
+#!/usr/bin/env python3
+import os
+import re
+import subprocess
+import sys
+
+TEMPLATE = os.path.expanduser("~/.local/share/chezmoi/dot_config/mise.toml.tmpl")
+CONFIG = os.path.expanduser("~/.config/mise.toml")
+DEFAULT_EXCLUDES = ["pnpm"]
+
+
+def exclusions():
+    raw = os.environ.get("KAIZEN_MISE_BUMP_EXCLUDE")
+    if raw is None:
+        return DEFAULT_EXCLUDES
+    return [item.strip() for item in raw.split(",") if item.strip()]
+
+
+def run_mise_upgrade(excludes):
+    command = ["mise", "upgrade", "--bump"]
+    if excludes:
+        command.extend(["--exclude", ",".join(excludes)])
+    result = subprocess.run(command, capture_output=True, text=True)
+    if result.returncode == 0:
+        return
+    print(result.stderr, file=sys.stderr)
+    sys.exit(result.returncode)
+
+
+def read_bumped_versions():
+    bumped = {}
+    with open(CONFIG) as config:
+        for line in config:
+            match = re.match(r'^("?[^"={}\n]+"?)\s*=\s*"([^"]+)"', line.strip())
+            if match:
+                bumped[match.group(1).strip()] = match.group(2)
+    return bumped
+
+
+def update_template(bumped):
+    with open(TEMPLATE) as template:
+        content = template.read()
+
+    for tool, version in bumped.items():
+        if version in ("latest", "lts"):
+            continue
+        content = re.sub(
+            rf'({re.escape(tool)}\s*=\s*")([^"]+)(")',
+            rf'\g<1>{version}\g<3>',
+            content,
+        )
+
+    with open(TEMPLATE, "w") as template:
+        template.write(content)
+
+
+excludes = exclusions()
+run_mise_upgrade(excludes)
+update_template(read_bumped_versions())
+subprocess.run(["chezmoi", "apply"], check=True)
