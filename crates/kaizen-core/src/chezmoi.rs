@@ -1,8 +1,5 @@
 use std::path::{Path, PathBuf};
 
-use indexmap::IndexMap;
-use serde::Serialize;
-
 use crate::{ConfigPlan, KaizenError};
 
 // ── Data types ───────────────────────────────────────────────────────────────
@@ -80,12 +77,6 @@ pub fn parse_source_path_output(raw: &str) -> Option<PathBuf> {
 }
 
 // ── Pure kaizen data generation and merge ────────────────────────────────────
-
-#[derive(Serialize)]
-struct ChezmoidataFile<'a> {
-    layout: &'a str,
-    features: &'a IndexMap<String, bool>,
-}
 
 /// Generate kaizen data content from scratch (used in tests and first-time setup).
 /// Equivalent to `merge_kaizen_data_with` on a non-existent file.

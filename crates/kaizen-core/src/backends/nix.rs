@@ -169,11 +169,11 @@ impl NixSyncBackend {
 
         match result {
             Ok(_) => Ok(()),
-            Err(KaizenError::CommandFailedWithStderr { ref stderr, .. }) => {
-                if let Some(name) = parse_extra_package_error(stderr) {
+            Err(KaizenError::CommandFailedWithStderr { cmd, code, stderr }) => {
+                if let Some(name) = parse_extra_package_error(&stderr) {
                     Err(KaizenError::ExtraPackageNotFound { name })
                 } else {
-                    result.map(|_| ())
+                    Err(KaizenError::CommandFailedWithStderr { cmd, code, stderr })
                 }
             }
             Err(e) => Err(e),

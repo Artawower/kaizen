@@ -10,6 +10,14 @@ pub struct StdProcessExecutor;
 
 impl ProcessExecutor for StdProcessExecutor {
     fn execute(&self, cmd: ProcessCommand) -> Result<ProcessOutput, KaizenError> {
+        // capture_stderr is only implemented for the non-sudo, non-capturing
+        // path.  sudo and capture_stdout pipelines are more complex; assert
+        // here so callers notice immediately in tests rather than silently
+        // losing the flag.
+        debug_assert!(
+            !cmd.capture_stderr || (!cmd.sudo && !cmd.capture_stdout),
+            "capture_stderr is not implemented for sudo or capture_stdout mode"
+        );
         match (cmd.sudo, cmd.capture_stdout, cmd.capture_stderr) {
             (true, true, _) => run_sudo_capturing(cmd),
             (true, false, _) => run_sudo(cmd),
@@ -144,7 +152,7 @@ fn run_tee_stderr(cmd: ProcessCommand) -> Result<ProcessOutput, KaizenError> {
         let reader = BufReader::new(pipe);
         let stderr_sink = std::io::stderr();
         let mut sink = stderr_sink.lock();
-        for line in reader.lines().flatten() {
+        for line in reader.lines().map_while(Result::ok) {
             let _ = writeln!(sink, "{line}");
             let mut buf = captured_clone.lock().unwrap();
             buf.push_str(&line);
@@ -153,6 +161,8 @@ fn run_tee_stderr(cmd: ProcessCommand) -> Result<ProcessOutput, KaizenError> {
     });
 
     let status = child.wait()?;
+    // If the tee thread panicked, partial stderr is still usable — don't
+    // propagate the panic; the real error is the non-zero exit below.
     let _ = tee.join();
     let stderr = Arc::try_unwrap(captured)
         .unwrap_or_default()
