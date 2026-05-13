@@ -12,13 +12,13 @@ backend = "cargo:gitu"
 version = "0.1.6"
 backend = "cargo:kdlfmt"
 
+[[tools."go:github.com/umputun/ralphex/cmd/ralphex"]]
+version = "1.2.0"
+backend = "go:github.com/umputun/ralphex/cmd/ralphex"
+
 [[tools."go:golang.org/x/tools/gopls"]]
 version = "0.20.0"
 backend = "go:golang.org/x/tools/gopls"
-
-[[tools."go:github.com/umputun/ralphex/cmd/ralphex"]]
-version = "1.1.1"
-backend = "go:github.com/umputun/ralphex/cmd/ralphex"
 
 [[tools.node]]
 version = "24.15.0"
@@ -105,11 +105,11 @@ version = "2.1.0"
 backend = "npm:@tobilu/qmd"
 
 [[tools."npm:@vue/language-server"]]
-version = "3.2.8"
+version = "2.2.12"
 backend = "npm:@vue/language-server"
 
 [[tools."npm:bun"]]
-version = "1.3.13"
+version = "1.3.14"
 backend = "npm:bun"
 
 [[tools."npm:context-mode"]]
@@ -205,7 +205,7 @@ version = "6.0.3"
 backend = "npm:typescript"
 
 [[tools."npm:typescript-language-server"]]
-version = "5.1.3"
+version = "5.2.0"
 backend = "npm:typescript-language-server"
 
 [[tools."npm:vscode-langservers-extracted"]]
@@ -221,7 +221,7 @@ version = "1.23.0"
 backend = "npm:yaml-language-server"
 
 [[tools."pipx:basedpyright"]]
-version = "1.39.3"
+version = "1.39.4"
 backend = "pipx:basedpyright"
 
 [[tools."pipx:http-prompt"]]
@@ -237,7 +237,7 @@ version = "0.3.3"
 backend = "pipx:rassumfrassum"
 
 [[tools."pipx:ty"]]
-version = "0.0.34"
+version = "0.0.35"
 backend = "pipx:ty"
 
 [[tools.pnpm]]

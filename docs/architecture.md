@@ -119,6 +119,72 @@ Each CLI command depends only on the narrowest sub-trait it needs.
 | `install`   | CLI orchestration (configure → sync) |
 | `configure` | `ChezmoiBootstrapper` + wizard       |
 
+## kaizen bump
+
+`kaizen bump` is the repository update command for lock files and tool caches.
+It runs declarative manifest steps first, then runs enabled feature update hooks.
+
+```mermaid
+flowchart TD
+    start([kaizen bump]) --> manifest["Load ~/.config/kaizen/bump.toml"]
+    manifest --> steps["Run selected [[steps]] in order"]
+    steps --> capture["chezmoi re-add every captured path"]
+    capture --> only{"--only set?"}
+    only -- yes --> done([done])
+    only -- no --> config["Load config.toml enabled features"]
+    config --> hooks["Run enabled feature updateHooks"]
+    hooks --> done
+```
+
+Manifest steps live in `bump.toml` and have three fields:
+
+```toml
+[[steps]]
+name = "mise"
+run = ["mise", "upgrade"]
+capture = ["~/.config/mise.lock"]
+
+[[steps]]
+name = "nix"
+run = ["nix", "flake", "update", "--flake", "~/.config/nix"]
+capture = ["~/.config/nix/flake.lock"]
+```
+
+`name` is the stable selector used by `--only`. `run` is the command argv.
+`capture` lists paths to run through `chezmoi re-add` after the command succeeds;
+paths beginning with `~/` are expanded to the user's home directory.
+
+The mise step intentionally uses `mise upgrade` without `--bump`. Plain
+`mise upgrade` respects the version constraints in `mise.toml`: exact pins stay
+pinned, while floating selectors can move. For example, `gopls = "0.20.0"` is
+an intentional pin and remains `0.20.0`; `node = "latest"`, `tool = "^1.2.0"`,
+or `tool = "~1.2.0"` may advance within their selector. `mise upgrade --bump`
+would rewrite exact pins too, which is not wanted for intentionally locked
+dependencies.
+
+After all manifest steps finish, `kaizen bump` loads the current config and runs
+`updateHooks` from `conf.featureRegistry.<feature>` for enabled features only:
+
+```nix
+conf.featureRegistry.ai = {
+  description = "AI coding agents and tooling";
+  category = "ai";
+  updateHooks = [
+    { run = [ "pi" "update" "--extensions" ]; onFailure = "warn"; }
+  ];
+};
+```
+
+`onFailure = "warn"` prints a warning and continues with the next hook.
+`onFailure = "fail"` prints an error and stops running further hooks. Hooks are
+not run when any `--only <step>` filter is set, because that mode is scoped to
+manifest steps.
+
+`--dry-run` prints the manifest commands, `chezmoi re-add` captures, and feature
+hook commands without executing them. `--only <step>` runs only matching
+manifest steps by `name`; unknown names are an error, and feature hooks are
+skipped whenever the filter is present.
+
 ## Feature Declaration and Package Flow
 
 ### The cycle

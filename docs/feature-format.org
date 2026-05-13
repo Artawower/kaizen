@@ -50,6 +50,7 @@ machine where nothing is enabled yet.
 
 | =description= | Human-readable label shown in =kaizen configure= wizard |
 | =category=    | Group key (=editor=, =dev=, =terminal=, =system=, ...)  |
+| =updateHooks= | Optional commands for =kaizen bump= after manifest steps     |
 
 ** =conf.packages.nix=
 List of =nixpkgs= attribute paths. Accumulates across all enabled feature
@@ -80,6 +81,42 @@ feature is enabled.
 #+end_src
 
 All keys are optional — omit what you don't need.
+
+* kaizen bump
+
+Features can declare update hooks in their always-active
+=conf.featureRegistry.<name>= metadata. =kaizen bump= runs these hooks after the
+manifest steps from =bump.toml=, but only for features enabled in the current
+=kaizen= config.
+
+Example from =ai.nix=:
+
+#+begin_src nix
+conf.featureRegistry.ai = {
+  description = "AI coding agents and tooling";
+  category = "ai";
+  updateHooks = [
+    {
+      run = [
+        "pi"
+        "update"
+        "--extensions"
+      ];
+      onFailure = "warn";
+    }
+  ];
+};
+#+end_src
+
+Each hook has a =run= argv list and an optional =onFailure= policy. The default
+policy is =warn=.
+
+- =onFailure = "warn"= prints a warning and continues with the next hook.
+- =onFailure = "fail"= prints an error and stops running further hooks.
+
+Hooks are skipped when =kaizen bump --only <step>= is used, because =--only=
+selects named =bump.toml= manifest steps and intentionally avoids feature-level
+updates.
 
 * Adding a new feature
 
