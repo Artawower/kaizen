@@ -63,6 +63,7 @@ in
           ''}
 
           /System/Library/PrivateFrameworks/SystemAdministration.framework/Resources/activateSettings -u
+          killall cfprefsd 2>/dev/null || true
         ''
       );
     })
