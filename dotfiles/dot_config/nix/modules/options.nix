@@ -22,6 +22,25 @@
               type = lib.types.str;
               default = "";
             };
+            updateHooks = lib.mkOption {
+              type = lib.types.listOf (
+                lib.types.submodule {
+                  options = {
+                    run = lib.mkOption {
+                      type = lib.types.listOf lib.types.str;
+                    };
+                    onFailure = lib.mkOption {
+                      type = lib.types.enum [
+                        "warn"
+                        "fail"
+                      ];
+                      default = "warn";
+                    };
+                  };
+                }
+              );
+              default = [ ];
+            };
           };
         }
       );

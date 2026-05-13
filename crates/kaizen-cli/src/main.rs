@@ -171,6 +171,8 @@ fn main() -> Result<()> {
                 dry_run,
                 &StdProcessExecutor,
                 &StdPathProvider,
+                &engine,
+                &config_path,
                 &StderrReporter,
             )?;
         }

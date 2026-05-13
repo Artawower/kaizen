@@ -1,27 +1,112 @@
 {
-  "ai":           { "description": "AI coding agents and tooling",                          "category": "ai"          },
-  "android":      { "description": "Android development: Android Studio",                   "category": "dev"         },
-  "api":          { "description": "API client tools: Hoppscotch",                          "category": "dev"         },
-  "battery-thresholds": { "description": "Battery charge threshold management",            "category": "system"      },
-  "browser":      { "description": "Web browser: Zen",                                      "category": "desktop"     },
-  "containers":   { "description": "Container and VM tooling: OrbStack",                    "category": "dev"         },
-  "core":         { "description": "Core CLI utilities",                                    "category": "system"      },
-  "database":     { "description": "Database GUI tools: SQLite Browser, MongoDB Compass",   "category": "dev"         },
-  "desktop":      { "description": "Desktop utilities: launcher, menu bar, file manager",   "category": "desktop"     },
-  "emacs":        { "description": "Emacs editor",                                          "category": "editor"      },
-  "fonts":        { "description": "Fonts and Nerd Fonts",                                  "category": "system"      },
-  "frontend":     { "description": "Frontend development tooling",                          "category": "dev"         },
-  "go":           { "description": "Go development tooling",                                "category": "dev"         },
-  "helix":        { "description": "Helix editor + marksman LSP",                           "category": "editor"      },
-  "keyboard":     { "description": "Keyboard layout tooling",                               "category": "system"      },
-  "media":        { "description": "Media players: VLC, Spotube",                           "category": "media"       },
-  "productivity": { "description": "Productivity tools: notes, tasks, time-tracking, voice","category": "productivity" },
-  "python":       { "description": "Python development tooling",                            "category": "dev"         },
-  "rust":         { "description": "Rust toolchain + cargo utilities",                      "category": "dev"         },
-  "screencast":   { "description": "Screencasting and demo tools: LICEcap, KeyCastr",       "category": "dev"         },
-  "security":     { "description": "Security and privacy: firewall, passwords, VPN",        "category": "security"    },
-  "social":       { "description": "Social and communication: Discord, Telegram, Mattermost, WhatsApp", "category": "social" },
-  "terminal":     { "description": "Terminal, TUI tools, and shell",                        "category": "terminal"    },
-  "tiling":       { "description": "Tiling window manager",                                 "category": "desktop"     },
-  "vcs":          { "description": "Version control tooling",                               "category": "vcs"         }
+  "ai": {
+    "description": "AI coding agents and tooling",
+    "category": "ai",
+    "updateHooks": [
+      {
+        "run": [
+          "pi",
+          "update",
+          "--extensions"
+        ],
+        "onFailure": "warn"
+      }
+    ]
+  },
+  "android": {
+    "description": "Android development: Android Studio",
+    "category": "dev"
+  },
+  "api": {
+    "description": "API client tools: Hoppscotch",
+    "category": "dev"
+  },
+  "battery-thresholds": {
+    "description": "Battery charge threshold management",
+    "category": "system"
+  },
+  "browser": {
+    "description": "Web browser: Zen",
+    "category": "desktop"
+  },
+  "containers": {
+    "description": "Container and VM tooling: OrbStack",
+    "category": "dev"
+  },
+  "core": {
+    "description": "Core CLI utilities",
+    "category": "system"
+  },
+  "database": {
+    "description": "Database GUI tools: SQLite Browser, MongoDB Compass",
+    "category": "dev"
+  },
+  "desktop": {
+    "description": "Desktop utilities: launcher, menu bar, file manager",
+    "category": "desktop"
+  },
+  "emacs": {
+    "description": "Emacs editor",
+    "category": "editor"
+  },
+  "fonts": {
+    "description": "Fonts and Nerd Fonts",
+    "category": "system"
+  },
+  "frontend": {
+    "description": "Frontend development tooling",
+    "category": "dev"
+  },
+  "go": {
+    "description": "Go development tooling",
+    "category": "dev"
+  },
+  "helix": {
+    "description": "Helix editor + marksman LSP",
+    "category": "editor"
+  },
+  "keyboard": {
+    "description": "Keyboard layout tooling",
+    "category": "system"
+  },
+  "media": {
+    "description": "Media players: VLC, Spotube",
+    "category": "media"
+  },
+  "productivity": {
+    "description": "Productivity tools: notes, tasks, time-tracking, voice",
+    "category": "productivity"
+  },
+  "python": {
+    "description": "Python development tooling",
+    "category": "dev"
+  },
+  "rust": {
+    "description": "Rust toolchain + cargo utilities",
+    "category": "dev"
+  },
+  "screencast": {
+    "description": "Screencasting and demo tools: LICEcap, KeyCastr",
+    "category": "dev"
+  },
+  "security": {
+    "description": "Security and privacy: firewall, passwords, VPN",
+    "category": "security"
+  },
+  "social": {
+    "description": "Social and communication: Discord, Telegram, Mattermost, WhatsApp",
+    "category": "social"
+  },
+  "terminal": {
+    "description": "Terminal, TUI tools, and shell",
+    "category": "terminal"
+  },
+  "tiling": {
+    "description": "Tiling window manager",
+    "category": "desktop"
+  },
+  "vcs": {
+    "description": "Version control tooling",
+    "category": "vcs"
+  }
 }

@@ -41,6 +41,7 @@ pub use feature_store::FeatureStore;
 pub use fs::FileSystem;
 pub use hooks::HookRunner;
 pub use installer::{Installer, PackageInstaller, Remover, Updater};
+pub use nix_feature_cache::{OnFailure, UpdateHook};
 pub use os::{PackageManagerKind, TargetOs};
 pub use paths::PathProvider;
 pub use plan::{ConfigPlan, HookPlan, InstallPlan, WorkflowPlan};
@@ -197,6 +198,33 @@ impl KaizenEngine {
             )
         });
         merge::build_plan(config, &store, &all_names, target_os)
+    }
+
+    /// Return update hooks declared by enabled features in `config`.
+    ///
+    /// Reads from the Nix feature cache (`feature-meta.json`). Returns an
+    /// empty list when the cache is absent (fresh machine / non-Nix backend).
+    pub fn update_hooks_for_enabled_features(
+        &self,
+        config: &UserConfig,
+    ) -> Result<Vec<nix_feature_cache::UpdateHook>, KaizenError> {
+        let Some(ref cache_path) = self.nix_cache_path else {
+            return Ok(vec![]);
+        };
+        let Some(meta) = nix_feature_cache::load(cache_path, self.fs.as_ref())? else {
+            return Ok(vec![]);
+        };
+        let hooks = config
+            .features
+            .iter()
+            .filter(|(_, sel)| sel.enabled)
+            .flat_map(|(name, _)| {
+                meta.get(name.as_str())
+                    .map(|m| m.update_hooks.clone())
+                    .unwrap_or_default()
+            })
+            .collect();
+        Ok(hooks)
     }
 }
 

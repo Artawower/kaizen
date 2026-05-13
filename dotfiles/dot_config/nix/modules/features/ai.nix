@@ -1,6 +1,12 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
-let cfg = config.conf.features.ai;
+let
+  cfg = config.conf.features.ai;
 in
 
 {
@@ -10,7 +16,17 @@ in
     {
       conf.featureRegistry.ai = {
         description = "AI coding agents and tooling";
-        category    = "ai";
+        category = "ai";
+        updateHooks = [
+          {
+            run = [
+              "pi"
+              "update"
+              "--extensions"
+            ];
+            onFailure = "warn";
+          }
+        ];
       };
     }
     (lib.mkIf cfg.enable {
