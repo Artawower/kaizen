@@ -42,20 +42,24 @@ pub fn run(
     for step in steps {
         output::header(&step.name);
 
-        let (bin, args) = step
+        let expanded_run = step
             .run
+            .iter()
+            .map(|part| expand_home(part, home.as_deref()))
+            .collect::<Vec<_>>();
+        let (bin, args) = expanded_run
             .split_first()
             .with_context(|| format!("step '{}': run list is empty", step.name))?;
 
         if dry_run {
-            println!("  {}  {}", "→".dimmed(), step.run.join(" ").dimmed());
+            println!("  {}  {}", "→".dimmed(), expanded_run.join(" ").dimmed());
             for path in &step.capture {
                 println!("  {}  chezmoi re-add {}", "→".dimmed(), path.dimmed());
             }
             continue;
         }
 
-        reporter.step(&format!("→ {}", step.run.join(" ")));
+        reporter.step(&format!("→ {}", expanded_run.join(" ")));
         executor
             .execute(ProcessCommand::run(bin, args.iter().map(String::as_str)))
             .with_context(|| format!("step '{}': command failed", step.name))?;
@@ -219,9 +223,13 @@ capture = ["/tmp/flake.lock"]
     }
 
     fn write_manifest(dir: &std::path::Path) {
+        write_manifest_content(dir, SAMPLE_MANIFEST);
+    }
+
+    fn write_manifest_content(dir: &std::path::Path, content: &str) {
         let kaizen_dir = dir.join("kaizen");
         std::fs::create_dir_all(&kaizen_dir).unwrap();
-        std::fs::write(kaizen_dir.join(BUMP_MANIFEST_FILE), SAMPLE_MANIFEST).unwrap();
+        std::fs::write(kaizen_dir.join(BUMP_MANIFEST_FILE), content).unwrap();
     }
 
     #[test]
@@ -286,6 +294,33 @@ capture = ["/tmp/flake.lock"]
                 .any(|c| c.contains("re-add") && c.contains("flake.lock")),
             "{cmds:?}"
         );
+    }
+
+    #[test]
+    fn run_argv_expands_home() {
+        let tmp = tempfile::tempdir().unwrap();
+        write_manifest_content(
+            tmp.path(),
+            r#"
+[[steps]]
+name = "home"
+run = ["foo", "~/x/y"]
+capture = []
+"#,
+        );
+        let ex = Recording::new();
+        run(
+            &[],
+            false,
+            &ex,
+            &FixedPaths(Some(tmp.path().to_owned())),
+            &empty_engine(),
+            no_config(),
+            &StderrReporter,
+        )
+        .unwrap();
+        let expected = format!("foo {}/x/y", dirs::home_dir().unwrap().display());
+        assert_eq!(ex.cmds(), vec![expected]);
     }
 
     #[test]
