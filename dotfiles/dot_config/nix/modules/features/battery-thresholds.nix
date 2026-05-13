@@ -15,6 +15,4 @@ in
       };
     }
   ];
-
-  darwinCasks = [ "aldente" ];
 }

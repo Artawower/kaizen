@@ -1,7 +1,12 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 let
-  cfg     = config.conf.features.media;
+  cfg = config.conf.features.media;
   isLinux = pkgs.stdenv.isLinux;
 in
 
@@ -12,14 +17,11 @@ in
     {
       conf.featureRegistry.media = {
         description = "Media players: VLC, Spotube";
-        category    = "media";
+        category = "media";
       };
     }
     (lib.mkIf (cfg.enable && isLinux) {
       conf.packages.nix = with pkgs; [ vlc ];
     })
   ];
-
-  darwinTaps  = [ "krtirtho/apps" ];
-  darwinCasks = [ "vlc" "krtirtho/apps/spotube" ];
 }

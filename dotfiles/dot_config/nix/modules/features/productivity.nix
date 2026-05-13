@@ -15,19 +15,4 @@ in
       };
     }
   ];
-
-  darwinCasks = [
-    "shottr"
-    "chatgpt"
-    "voiceink"
-    "wakatime"
-    "loom"
-    "obsidian"
-    "ticktick"
-    "raycast"
-    {
-      name = "stretchly";
-      args.no_quarantine = true;
-    }
-  ];
 }

@@ -17,7 +17,6 @@ mod paths;
 mod reporter;
 mod selector;
 
-use engine::resolve_features_dir_lenient;
 use executor::StdProcessExecutor;
 use paths::StdPathProvider;
 use reporter::StderrReporter;
@@ -126,7 +125,7 @@ fn main() -> Result<()> {
         .config
         .unwrap_or_else(|| kaizen_core::KaizenEngine::default_config_path(&StdPathProvider));
 
-    let reporter = StderrReporter;
+    let _reporter = StderrReporter;
 
     if matches!(cli.command, Command::Configure | Command::Install { .. }) {
         let features_dir_path = cli.features_dir.clone();
@@ -134,19 +133,20 @@ fn main() -> Result<()> {
         return match cli.command {
             Command::Configure => commands::configure::run(features_dir_opt, &config_path, true),
             Command::Install { dry_run } => {
-                let use_cache = cli.features_dir.is_none();
-                let features_dir =
-                    resolve_features_dir_lenient(cli.features_dir, &reporter, use_cache);
-                let engine = engine::build(features_dir, use_cache);
+                let engine = match cli.features_dir {
+                    Some(dir) => engine::build(dir, false),
+                    None => engine::build_cache_only(),
+                };
                 commands::install::run(&engine, features_dir_opt, &config_path, dry_run)
             }
             _ => unreachable!(),
         };
     }
 
-    let use_cache = cli.features_dir.is_none();
-    let features_dir = resolve_features_dir_lenient(cli.features_dir, &reporter, use_cache);
-    let engine = engine::build(features_dir, use_cache);
+    let engine = match cli.features_dir {
+        Some(dir) => engine::build(dir, false),
+        None => engine::build_cache_only(),
+    };
 
     match cli.command {
         Command::Configure | Command::Install { .. } => unreachable!(),

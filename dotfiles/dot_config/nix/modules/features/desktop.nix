@@ -15,12 +15,4 @@ in
       };
     }
   ];
-
-  darwinCasks = [
-    "jordanbaird-ice"
-    "stats"
-    "clop"
-    "marta"
-    "pearcleaner"
-  ];
 }

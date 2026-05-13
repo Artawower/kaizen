@@ -19,6 +19,4 @@ in
       conf.packages.nix = with pkgs; [ bitwarden-cli ];
     })
   ];
-
-  darwinCasks = [ "lulu" "bitwarden" "openvpn-connect" "amneziavpn" "rustdesk" ];
 }

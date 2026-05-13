@@ -14,6 +14,4 @@ in
       };
     }
   ];
-
-  darwinCasks = [ "db-browser-for-sqlite" "mongodb-compass" ];
 }

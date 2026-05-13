@@ -23,6 +23,4 @@ in
       ];
     })
   ];
-
-  darwinCasks = [ "ghostty" "wezterm" "neohtop" "cmux" ];
 }

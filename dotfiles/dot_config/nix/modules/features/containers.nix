@@ -19,6 +19,4 @@ in
       conf.packages.nix = with pkgs; [ podman ];
     })
   ];
-
-  darwinCasks = [ "orbstack" ];
 }

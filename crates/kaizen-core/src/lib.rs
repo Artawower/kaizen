@@ -86,7 +86,7 @@ pub fn resolve_features_dir(
 }
 
 pub struct KaizenEngine {
-    features_dir: PathBuf,
+    features_dir: Option<PathBuf>,
     fs: Arc<dyn FileSystem>,
     nix_cache_path: Option<PathBuf>,
 }
@@ -94,10 +94,16 @@ pub struct KaizenEngine {
 impl KaizenEngine {
     pub fn new(features_dir: impl Into<PathBuf>, fs: Arc<dyn FileSystem>) -> Self {
         Self {
-            features_dir: features_dir.into(),
+            features_dir: Some(features_dir.into()),
             fs,
             nix_cache_path: None,
         }
+    }
+
+    /// Engine that reads exclusively from the Nix feature cache.
+    /// Returns `FeaturesDirNotFound` if the cache is unavailable.
+    pub fn cache_only(fs: Arc<dyn FileSystem>) -> Self {
+        Self { features_dir: None, fs, nix_cache_path: None }
     }
 
     pub fn with_nix_cache(mut self, path: PathBuf) -> Self {
@@ -117,8 +123,15 @@ impl KaizenEngine {
             .join("config.toml")
     }
 
+    fn feature_store(&self) -> Result<FeatureStore, KaizenError> {
+        let dir = self.features_dir.as_deref().ok_or_else(|| KaizenError::FeaturesDirNotFound {
+            path: PathBuf::from(manifest::KAIZEN_DIR).join(manifest::FEATURES_SUBDIR),
+        })?;
+        Ok(FeatureStore::new(dir, Arc::clone(&self.fs)))
+    }
+
     pub fn list_features(&self) -> Result<Vec<String>, KaizenError> {
-        FeatureStore::new(&self.features_dir, Arc::clone(&self.fs)).list()
+        self.feature_store()?.list()
     }
 
     /// Returns `(name, description)` pairs.
@@ -138,7 +151,7 @@ impl KaizenEngine {
                     .collect());
             }
         }
-        let store = FeatureStore::new(&self.features_dir, Arc::clone(&self.fs));
+        let store = self.feature_store()?;
         store
             .list()?
             .into_iter()
@@ -154,19 +167,16 @@ impl KaizenEngine {
         config: &UserConfig,
         target_os: TargetOs,
     ) -> Result<WorkflowPlan, KaizenError> {
-        let store = FeatureStore::new(&self.features_dir, Arc::clone(&self.fs));
-        // Priority for the canonical feature name set:
-        // 1. Nix cache (feature-meta.json) — Nix machines after first switch.
-        // 2. Scan features/*.toml — fresh machines / non-Nix fallback.
         let all_names: Vec<String> = if let Some(ref cache_path) = self.nix_cache_path {
             if let Some(map) = nix_feature_cache::load(cache_path, self.fs.as_ref())? {
                 map.into_keys().collect()
             } else {
-                store.list()?
+                self.feature_store()?.list()?
             }
         } else {
-            store.list()?
+            self.feature_store()?.list()?
         };
+        let store = self.feature_store()?;
         merge::build_plan(config, &store, &all_names, target_os)
     }
 }

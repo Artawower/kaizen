@@ -31,9 +31,4 @@ in
       fonts.fontconfig.enable = lib.mkIf isLinux true;
     })
   ];
-
-  darwinCasks = [
-    "font-liga-comic-mono"
-    "font-monaspace-nf"
-  ];
 }

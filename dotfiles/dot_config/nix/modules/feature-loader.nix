@@ -1,9 +1,11 @@
 { config, lib, ... }:
 
 let
-  featureDir   = ./features;
+  featureDir = ./features;
   featureFiles = builtins.attrNames (builtins.readDir featureDir);
-  nixFiles     = builtins.filter (f: lib.hasSuffix ".nix" f) featureFiles;
+  nixFiles = builtins.filter (
+    f: lib.hasSuffix ".nix" f && !lib.hasSuffix ".darwin.nix" f
+  ) featureFiles;
   featurePaths = map (f: featureDir + "/${f}") nixFiles;
 in
 

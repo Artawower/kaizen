@@ -14,6 +14,4 @@ in
       };
     }
   ];
-
-  darwinCasks = [ "zen" ];
 }

@@ -17,6 +17,4 @@ in
       conf.packages.nix = with pkgs; [ podman ];
     })
   ];
-
-  darwinCasks = [ "claude-code" ];
 }

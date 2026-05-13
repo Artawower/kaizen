@@ -16,7 +16,7 @@ let
   f = name: features.${name} or false;
 
   featuresDir = ./modules/features;
-  featureFiles = lib.filterAttrs (n: t: t == "regular" && lib.hasSuffix ".nix" n) (
+  featureFiles = lib.filterAttrs (n: t: t == "regular" && lib.hasSuffix ".darwin.nix" n) (
     builtins.readDir featuresDir
   );
 
@@ -33,15 +33,9 @@ let
   importDarwin =
     fileName:
     let
-      name = lib.removeSuffix ".nix" fileName;
+      name = lib.removeSuffix ".darwin.nix" fileName;
     in
-    if !(f name) then
-      { }
-    else
-      import (featuresDir + "/${fileName}") {
-        inherit lib pkgs user;
-        config = { };
-      };
+    if !(f name) then { } else import (featuresDir + "/${fileName}") { inherit lib pkgs user; };
 
   loaded = map importDarwin (builtins.attrNames featureFiles);
 
@@ -147,7 +141,7 @@ in
     enable = true;
     onActivation = {
       autoUpdate = true;
-      cleanup = "uninstall";
+      cleanup = "check";
       upgrade = true;
     };
 
