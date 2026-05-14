@@ -89,6 +89,36 @@
       "space /": "workspace::NewSearch",
     },
   },
+{{- if eq .layout "colemak" }}
+  {
+    "context": "(vim_mode == helix_normal || vim_mode == helix_select) && !menu",
+    "bindings": {
+      "n": ["vim::Down", { "display_lines": true }],
+      "e": ["vim::Up", { "display_lines": true }],
+      "i": "vim::WrappingRight",
+      "j": "vim::HelixSelectNext",
+      "k": "vim::NextWordEnd",
+      "l": "vim::HelixInsert",
+      "shift-j": "vim::HelixSelectPrevious",
+      "shift-k": ["vim::NextWordEnd", { "ignore_punctuation": true }],
+      "shift-l": "vim::InsertFirstNonWhitespace",
+      "shift-e": "editor::Hover",
+      "g n": "vim::Down",
+      "g e": "vim::Up",
+      "ctrl-n": "editor::GoToDiagnostic",
+      "ctrl-e": "editor::GoToPreviousDiagnostic",
+      "space w n": "workspace::ActivatePaneDown",
+      "space w e": "workspace::ActivatePaneUp",
+      "space w i": "workspace::ActivatePaneRight",
+    },
+  },
+  {
+    "context": "ProjectPanel",
+    "bindings": {
+      "i": "project_panel::Open",
+    },
+  },
+{{- end }}
   {
     "context": "Terminal",
     "bindings": {
