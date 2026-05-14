@@ -6,6 +6,8 @@ on:
       - master
     paths:
       - crates/kaizen-cli/Cargo.toml
+      - .github/workflows/release.yml
+  workflow_dispatch:
 
 permissions:
   contents: write
