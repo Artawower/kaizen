@@ -35,7 +35,7 @@ pub fn render(
     let decisions_dir = decisions_dir(dir, paths)?;
     let decisions = load_decisions_dir(&decisions_dir, fs)?;
 
-    if all {
+    if all || (md && category.is_none()) {
         if md {
             return render_all_md(decisions);
         }
@@ -282,6 +282,30 @@ speed = 8
 
         assert!(output.contains("terminal"));
         assert!(output.contains("Terminal emulator"));
+    }
+
+    #[test]
+    fn rank_md_without_category_renders_all() {
+        let tmp = tempfile::tempdir().unwrap();
+        let decisions = tmp.path().join("kaizen/decisions");
+        std::fs::create_dir_all(&decisions).unwrap();
+        std::fs::write(decisions.join("terminal.toml"), TERMINAL).unwrap();
+        std::fs::write(
+            decisions.join("editor.toml"),
+            TERMINAL.replace("Terminal emulator", "Editor"),
+        )
+        .unwrap();
+        let paths = FixedPaths {
+            config: tmp.path().to_owned(),
+        };
+
+        let implicit_all = render(None, true, false, None, &paths, &StdFileSystem).unwrap();
+        let explicit_all = render(None, true, true, None, &paths, &StdFileSystem).unwrap();
+
+        assert_eq!(implicit_all, explicit_all);
+        assert!(implicit_all.contains("# Kaizen rankings"));
+        assert!(implicit_all.contains("## Terminal emulator"));
+        assert!(implicit_all.contains("## Editor"));
     }
 
     #[test]
