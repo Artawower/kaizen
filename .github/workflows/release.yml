@@ -71,7 +71,10 @@ jobs:
       - uses: Swatinem/rust-cache@v2
 
       - name: Build kaizen
-        run: cargo build --release --bin kaizen --target ${{ matrix.target }}
+        shell: bash
+        run: |
+          export PATH="$HOME/.cargo/bin:$PATH"
+          cargo build --release --bin kaizen --target ${{ matrix.target }}
 
       - name: Package artifact
         shell: bash
