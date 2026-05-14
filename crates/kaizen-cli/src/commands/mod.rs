@@ -6,6 +6,7 @@ pub mod doctor;
 pub mod features;
 pub mod install;
 pub mod plan;
+pub mod rank;
 pub mod self_update;
 pub mod sync;
 pub mod uninstall;

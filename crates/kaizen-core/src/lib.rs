@@ -21,6 +21,7 @@ pub mod os;
 pub mod paths;
 pub mod plan;
 pub mod progress;
+pub mod rank;
 pub mod runtime;
 pub mod setup;
 pub mod sync_backend;
@@ -46,6 +47,7 @@ pub use os::{PackageManagerKind, TargetOs};
 pub use paths::PathProvider;
 pub use plan::{ConfigPlan, HookPlan, InstallPlan, WorkflowPlan};
 pub use progress::{NoopReporter, ProgressReporter};
+pub use rank::{Alternative, Criterion, DecisionMatrix, Direction, Ranked, Ranking};
 pub use runtime::Runtime;
 pub use setup::{
     render_config, resolve_features_dir_from_source, BootstrapStatus, ChezmoiBootstrapper,

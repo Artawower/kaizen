@@ -1,0 +1,37 @@
+schema_version = 1
+title = "Terminal emulator"
+
+[criteria]
+startup_time = { weight = 0.30, direction = "max", description = "Boot speed (1-10)" }
+ligatures = { weight = 0.15, direction = "max" }
+ram_usage = { weight = 0.20, direction = "min" }
+gpu_accel = { weight = 0.20, direction = "max" }
+custom = { weight = 0.15, direction = "max" }
+
+[alternatives.ghostty]
+startup_time = 9.5
+ligatures = 10
+ram_usage = 4
+gpu_accel = 10
+custom = 9
+
+[alternatives.wezterm]
+startup_time = 7
+ligatures = 10
+ram_usage = 7
+gpu_accel = 10
+custom = 10
+
+[alternatives.kitty]
+startup_time = 8
+ligatures = 9
+ram_usage = 6
+gpu_accel = 9
+custom = 8
+
+[alternatives.alacritty]
+startup_time = 9
+ligatures = 4
+ram_usage = 3
+gpu_accel = 9
+custom = 6

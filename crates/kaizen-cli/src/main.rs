@@ -115,6 +115,18 @@ enum Command {
         #[arg(long, help = "Preview without executing")]
         dry_run: bool,
     },
+
+    /// Rank alternatives from decisions/*.toml via TOPSIS.
+    Rank {
+        #[arg(help = "Decision category to rank")]
+        category: Option<String>,
+        #[arg(long, help = "Render markdown")]
+        md: bool,
+        #[arg(long, help = "Render all decision categories")]
+        all: bool,
+        #[arg(long, value_name = "DIR", help = "Override decisions directory")]
+        dir: Option<std::path::PathBuf>,
+    },
 }
 
 fn main() -> Result<()> {
@@ -176,6 +188,19 @@ fn main() -> Result<()> {
                 &StderrReporter,
             )?;
         }
+        Command::Rank {
+            category,
+            md,
+            all,
+            dir,
+        } => commands::rank::run(
+            category,
+            md,
+            all,
+            dir,
+            &StdPathProvider,
+            &filesystem::StdFileSystem,
+        )?,
     }
 
     Ok(())
