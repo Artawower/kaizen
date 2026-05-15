@@ -6,7 +6,7 @@ use std::sync::Arc;
 
 use kaizen_core::{
     render_config, resolve_features_dir_from_source, BootstrapStatus, ChezmoiBootstrapper,
-    KaizenEngine, UserConfig,
+    KaizenEngine, UiSettings, UserConfig, UserSettings,
 };
 
 use crate::{engine, ensure, filesystem::StdFileSystem, output, paths::StdPathProvider, selector};
@@ -46,6 +46,13 @@ pub fn run(
         return Ok(());
     };
     let layout = pick_layout(existing.as_ref())?;
+    let font_size = pick_font_size(existing.as_ref())?;
+    let settings = UserSettings {
+        layout: Some(layout),
+        ui: UiSettings {
+            font_size: Some(font_size),
+        },
+    };
 
     let existing_extra = existing
         .as_ref()
@@ -54,7 +61,7 @@ pub fn run(
     let toml = render_config(
         &features,
         &selected,
-        &layout,
+        &settings,
         &dotfiles_url,
         &existing_extra,
     );
@@ -173,6 +180,17 @@ fn pick_layout(existing: Option<&UserConfig>) -> Result<String> {
         .default(default_idx)
         .interact()?;
     Ok(layouts[idx].to_owned())
+}
+
+fn pick_font_size(existing: Option<&UserConfig>) -> Result<f64> {
+    let default = existing
+        .and_then(|c| c.settings.ui.font_size)
+        .unwrap_or(14.0);
+    let font_size = Input::with_theme(&ColorfulTheme::default())
+        .with_prompt("UI font size")
+        .with_initial_text(default.to_string())
+        .interact_text()?;
+    Ok(font_size)
 }
 
 /// Copy the committed `feature-meta.json` seed from the chezmoi source to

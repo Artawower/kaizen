@@ -84,6 +84,11 @@ pub fn generate_kaizen_data(plan: &ConfigPlan) -> Result<String, KaizenError> {
     let layout = plan.settings.layout.as_deref().unwrap_or("qwerty");
     let mut table = toml::map::Map::new();
     table.insert("layout".to_owned(), toml::Value::String(layout.to_owned()));
+    if let Some(font_size) = plan.settings.ui.font_size {
+        let mut ui = toml::map::Map::new();
+        ui.insert("font_size".to_owned(), toml::Value::Float(font_size));
+        table.insert("ui".to_owned(), toml::Value::Table(ui));
+    }
     let features: toml::map::Map<_, _> = plan
         .features_data
         .iter()
@@ -119,6 +124,15 @@ pub fn merge_kaizen_data_with(
     };
 
     table.insert("layout".to_owned(), toml::Value::String(layout.to_owned()));
+    if let Some(font_size) = plan.settings.ui.font_size {
+        let mut ui = table
+            .get("ui")
+            .and_then(|v| v.as_table())
+            .cloned()
+            .unwrap_or_default();
+        ui.insert("font_size".to_owned(), toml::Value::Float(font_size));
+        table.insert("ui".to_owned(), toml::Value::Table(ui));
+    }
 
     // Start with existing feature values so unknown features (e.g. "vcs") are
     // preserved. Kaizen-managed features are then overlaid on top.
@@ -184,6 +198,7 @@ mod tests {
             features_data: features.iter().map(|(k, v)| (k.to_string(), *v)).collect(),
             settings: UserSettings {
                 layout: layout.map(str::to_owned),
+                ..Default::default()
             },
             extra: Default::default(),
         }
@@ -198,6 +213,17 @@ mod tests {
         assert!(toml.contains("core = true"));
         assert!(toml.contains("emacs = false"));
         assert!(toml.contains("layout = \"colemak\""));
+    }
+
+    #[test]
+    fn generates_ui_font_size() {
+        let mut plan = make_plan(&[("core", true)], Some("colemak"));
+        plan.settings.ui = crate::UiSettings {
+            font_size: Some(15.0),
+        };
+        let toml = generate_kaizen_data(&plan).unwrap();
+        let val: toml::Value = toml::from_str(&toml).unwrap();
+        assert_eq!(val["ui"]["font_size"].as_float(), Some(15.0));
     }
 
     #[test]
@@ -291,6 +317,23 @@ mod tests {
         let merged = merge_kaizen_data_with(&path, &plan, &fs).unwrap();
         assert!(merged.contains("layout = \"qwerty\""));
         assert!(merged.contains("username = \"bob\""));
+    }
+
+    #[test]
+    fn merge_updates_ui_font_size() {
+        let path = PathBuf::from("/tmp/kaizen-data.toml");
+        let fs = mem_fs_with(
+            &path,
+            "layout = \"colemak\"\n\n[ui]\nfont_size = 12.0\nunknown = \"keep\"\n\n[features]\ncore = true\n",
+        );
+        let mut plan = make_plan(&[("core", true)], Some("colemak"));
+        plan.settings.ui = crate::UiSettings {
+            font_size: Some(16.0),
+        };
+        let merged = merge_kaizen_data_with(&path, &plan, &fs).unwrap();
+        let val: toml::Value = toml::from_str(&merged).unwrap();
+        assert_eq!(val["ui"]["font_size"].as_float(), Some(16.0));
+        assert_eq!(val["ui"]["unknown"].as_str(), Some("keep"));
     }
 
     #[test]

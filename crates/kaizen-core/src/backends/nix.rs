@@ -759,7 +759,7 @@ mod tests {
                 backend: "chezmoi".into(),
                 dotfiles_source: None,
                 features_data: IndexMap::new(),
-                settings: UserSettings { layout: None },
+                settings: UserSettings::default(),
                 extra: Default::default(),
             },
             HookPlan::default(),

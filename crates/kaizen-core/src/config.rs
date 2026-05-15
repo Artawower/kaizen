@@ -67,6 +67,20 @@ pub struct FeatureSelection {
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
 pub struct UserSettings {
     pub layout: Option<String>,
+
+    #[serde(default, skip_serializing_if = "UiSettings::is_empty")]
+    pub ui: UiSettings,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+pub struct UiSettings {
+    pub font_size: Option<f64>,
+}
+
+impl UiSettings {
+    pub fn is_empty(&self) -> bool {
+        self.font_size.is_none()
+    }
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]

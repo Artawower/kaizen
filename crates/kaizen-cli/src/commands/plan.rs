@@ -43,6 +43,9 @@ pub fn run(engine: &KaizenEngine, config_path: &Path, json: bool) -> Result<()> 
     if let Some(layout) = &plan.config_plan.settings.layout {
         output::kv("layout", layout);
     }
+    if let Some(font_size) = plan.config_plan.settings.ui.font_size {
+        output::kv("ui.font_size", &font_size.to_string());
+    }
     if let Some(source) = &plan.config_plan.dotfiles_source {
         output::kv("dotfiles source", source);
     }

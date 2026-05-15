@@ -1,4 +1,4 @@
-use crate::{config::ExtraConfig, CURRENT_SCHEMA_VERSION};
+use crate::{config::ExtraConfig, UserSettings, CURRENT_SCHEMA_VERSION};
 
 /// Render a kaizen `config.toml` from selected features, layout, and dotfiles source.
 /// `extra` is preserved verbatim — the wizard never modifies user-managed packages.
@@ -7,7 +7,7 @@ use crate::{config::ExtraConfig, CURRENT_SCHEMA_VERSION};
 pub fn render_config(
     all_features: &[(String, Option<String>)],
     selected: &[String],
-    layout: &str,
+    settings: &UserSettings,
     dotfiles_source: &str,
     extra: &ExtraConfig,
 ) -> String {
@@ -17,7 +17,15 @@ pub fn render_config(
         let enabled = selected.contains(name);
         out.push_str(&format!("[features.{name}]\nenabled = {enabled}\n\n"));
     }
-    out.push_str(&format!("[settings]\nlayout = {}\n\n", toml_string(layout)));
+    let layout = settings.layout.as_deref().unwrap_or("qwerty");
+    out.push_str(&format!("[settings]\nlayout = {}\n", toml_string(layout)));
+    if let Some(font_size) = settings.ui.font_size {
+        out.push_str(&format!(
+            "\n[settings.ui]\nfont_size = {}\n",
+            toml_float(font_size)
+        ));
+    }
+    out.push('\n');
     out.push_str("[dotfiles]\nbackend = \"chezmoi\"\n");
     out.push_str(&format!("source = {}\n", toml_string(dotfiles_source)));
     if !extra.is_empty() {
@@ -53,6 +61,14 @@ fn toml_string(s: &str) -> String {
     toml::Value::String(s.to_owned()).to_string()
 }
 
+fn toml_float(value: f64) -> String {
+    let rendered = value.to_string();
+    if rendered.contains('.') {
+        return rendered;
+    }
+    format!("{rendered}.0")
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -65,9 +81,22 @@ mod tests {
         ExtraConfig::default()
     }
 
+    fn settings(layout: &str, font_size: Option<f64>) -> UserSettings {
+        UserSettings {
+            layout: Some(layout.to_owned()),
+            ui: crate::UiSettings { font_size },
+        }
+    }
+
     #[test]
     fn render_includes_schema_version() {
-        let out = render_config(&[], &[], "qwerty", "https://example.com", &empty_extra());
+        let out = render_config(
+            &[],
+            &[],
+            &settings("qwerty", None),
+            "https://example.com",
+            &empty_extra(),
+        );
         assert!(out.contains(&format!("schema_version = {CURRENT_SCHEMA_VERSION}")));
     }
 
@@ -77,7 +106,7 @@ mod tests {
         let out = render_config(
             &all,
             &["git".into()],
-            "qwerty",
+            &settings("qwerty", None),
             "https://example.com",
             &empty_extra(),
         );
@@ -87,8 +116,26 @@ mod tests {
 
     #[test]
     fn render_includes_layout() {
-        let out = render_config(&[], &[], "colemak", "https://example.com", &empty_extra());
+        let out = render_config(
+            &[],
+            &[],
+            &settings("colemak", None),
+            "https://example.com",
+            &empty_extra(),
+        );
         assert!(out.contains("layout = \"colemak\""));
+    }
+
+    #[test]
+    fn render_includes_ui_font_size() {
+        let out = render_config(
+            &[],
+            &[],
+            &settings("colemak", Some(15.0)),
+            "https://example.com",
+            &empty_extra(),
+        );
+        assert!(out.contains("[settings.ui]\nfont_size = 15.0"));
     }
 
     #[test]
@@ -96,7 +143,7 @@ mod tests {
         let out = render_config(
             &[],
             &[],
-            "qwerty",
+            &settings("qwerty", None),
             "https://github.com/user/dots",
             &empty_extra(),
         );
@@ -105,7 +152,13 @@ mod tests {
 
     #[test]
     fn render_dotfiles_section_has_chezmoi_backend() {
-        let out = render_config(&[], &[], "qwerty", "https://example.com", &empty_extra());
+        let out = render_config(
+            &[],
+            &[],
+            &settings("qwerty", None),
+            "https://example.com",
+            &empty_extra(),
+        );
         assert!(out.contains("[dotfiles]\nbackend = \"chezmoi\""));
     }
 
@@ -115,14 +168,26 @@ mod tests {
             nix_packages: vec!["ripgrep".into(), "fd".into()],
             ..Default::default()
         };
-        let out = render_config(&[], &[], "qwerty", "https://example.com", &extra);
+        let out = render_config(
+            &[],
+            &[],
+            &settings("qwerty", None),
+            "https://example.com",
+            &extra,
+        );
         assert!(out.contains("[extra]"));
         assert!(out.contains("nix_packages = [\"ripgrep\", \"fd\"]"));
     }
 
     #[test]
     fn render_skips_extra_section_when_empty() {
-        let out = render_config(&[], &[], "qwerty", "https://example.com", &empty_extra());
+        let out = render_config(
+            &[],
+            &[],
+            &settings("qwerty", None),
+            "https://example.com",
+            &empty_extra(),
+        );
         assert!(!out.contains("[extra]"));
     }
 }

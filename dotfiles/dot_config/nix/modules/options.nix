@@ -52,6 +52,12 @@
       default = [ ];
     };
 
+    ui.fontSize = lib.mkOption {
+      type = lib.types.float;
+      default = 14.0;
+      description = "Global UI font size from data.toml [ui].font_size";
+    };
+
     extra = {
       nixPackages = lib.mkOption {
         type = lib.types.listOf lib.types.str;

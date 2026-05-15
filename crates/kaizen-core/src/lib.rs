@@ -31,7 +31,7 @@ pub use backends::{NixSyncBackend, UptSyncBackend};
 pub use chezmoi::{ModifiedFile, RemoveFilesReport};
 pub use chezmoi_client::{ChezmoiClient, NoopChezmoiClient, SourceBackup};
 pub use config::{
-    DotfilesConfig, FeatureSelection, UserConfig, UserSettings, CURRENT_SCHEMA_VERSION,
+    DotfilesConfig, FeatureSelection, UiSettings, UserConfig, UserSettings, CURRENT_SCHEMA_VERSION,
     DEFAULT_DOTFILES_SOURCE,
 };
 pub use container::{ContainerCleaner, NoopContainerCleaner};

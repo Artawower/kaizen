@@ -11,6 +11,7 @@ let
         features = { };
       };
   extra = data.extra or { };
+  ui = data.ui or { };
 in
 
 {
@@ -22,6 +23,7 @@ in
   programs.home-manager.enable = true;
 
   conf.layout = data.layout;
+  conf.ui.fontSize = ui.font_size or 14.0;
   conf.features = lib.mapAttrs (_: enabled: { enable = enabled; }) data.features;
 
   conf.extra = {
