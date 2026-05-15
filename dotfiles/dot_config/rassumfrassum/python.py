@@ -2,7 +2,7 @@
 
 def servers():
     return [
-        ['basedpyright-langserver', '--stdio'],
-        ['ty', '--server'],
+        ['pyrefly', 'lsp'],
+        # ['ty', 'server'],
         ['codebook-lsp', 'serve'],
     ]

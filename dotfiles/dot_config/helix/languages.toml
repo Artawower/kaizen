@@ -44,7 +44,7 @@ indent = { tab-width = 2, unit = "  " }
 
 [[language]]
 name = "python"
-language-servers = ["pyright", "copilot", "codebook"]
+language-servers = ["pyrefly", "copilot", "codebook"]
 auto-format = true
 formatter = { command = "black", args = ["--quiet", "-"] }
 indent = { tab-width = 4, unit = "    " }
@@ -153,11 +153,9 @@ preferences.importModuleSpecifier = "non-relative"
 preferences.importModuleSpecifierEnding = "auto"
 tsserver.pluginPaths = ["./node_modules"]
 
-[language-server.pyright]
-command = "pyright-langserver"
-args = ["--stdio"]
-config.python.analysis.autoSearchPaths = true
-config.python.analysis.typeCheckingMode = "basic"
+[language-server.pyrefly]
+command = "pyrefly"
+args = ["lsp"]
 
 [language-server.ruff-lsp]
 command = "ruff-lsp"
