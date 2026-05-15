@@ -43,41 +43,7 @@ fn render_md_with_level(
         ));
     }
 
-    out.push_str(&format!("\n{section} Raw scores\n\n"));
-    out.push_str("| Alternative |");
-    for name in matrix.criteria.keys() {
-        out.push_str(&format!(" {} |", name));
-    }
-    out.push('\n');
-    out.push_str("|-------------|");
-    for _ in matrix.criteria.keys() {
-        out.push_str("------:|");
-    }
-    out.push('\n');
-    for (alternative_name, alternative) in &matrix.alternatives {
-        out.push_str(&format!("| {} |", alternative_name));
-        for criterion_name in matrix.criteria.keys() {
-            let score = alternative
-                .scores
-                .get(criterion_name)
-                .copied()
-                .unwrap_or(0.0);
-            out.push_str(&format!(" {} |", format_score(score)));
-        }
-        out.push('\n');
-    }
-
     out
-}
-
-fn format_score(score: f64) -> String {
-    if score.fract() == 0.0 {
-        return format!("{score:.0}");
-    }
-    format!("{score:.3}")
-        .trim_end_matches('0')
-        .trim_end_matches('.')
-        .to_owned()
 }
 
 #[cfg(test)]
@@ -125,7 +91,9 @@ mod tests {
         let output = render_md("Terminal", &matrix, &ranking);
 
         assert!(output.contains("# Terminal"));
+        assert!(output.contains("## Criteria"));
         assert!(output.contains("## Ranking (TOPSIS)"));
         assert!(output.contains("| 1 | ghostty | 1.000 |"));
+        assert!(!output.contains("Raw scores"));
     }
 }
