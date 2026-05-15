@@ -177,7 +177,7 @@ version = "0.1.14"
 backend = "npm:pi-link"
 
 [[tools."npm:playwright"]]
-version = "1.59.1"
+version = "^1.59.1"
 backend = "npm:playwright"
 
 [[tools."npm:prettier"]]

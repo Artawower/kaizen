@@ -29,3 +29,42 @@ kaizen_dir := justfile_directory()
 dev-link:
     ln -s "{{kaizen_dir}}" ~/.local/share/chezmoi
 
+# Pull mutable deployed dotfile state back into this repo's dotfiles source
+capture:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    source_dir="{{kaizen_dir}}/dotfiles"
+
+    readd_if_exists() {
+        if [ -e "$1" ]; then
+            chezmoi --source "$source_dir" re-add "$1"
+        fi
+    }
+
+    capture_dir_if_exists() {
+        if [ ! -d "$1" ]; then
+            return
+        fi
+        chezmoi --source "$source_dir" re-add "$1"
+        while IFS= read -r -d '' path; do
+            chezmoi --source "$source_dir" add "$path"
+        done < <(chezmoi --source "$source_dir" unmanaged --path-style absolute --nul-path-separator "$1")
+    }
+
+    readd_if_exists "$HOME/.config/nix/flake.lock"
+    readd_if_exists "$HOME/.config/mise.lock"
+    readd_if_exists "$HOME/.config/kaizen/feature-meta.json"
+    capture_dir_if_exists "$HOME/.config/kaizen/decisions"
+    capture_dir_if_exists "$HOME/.config/kaizen/user-features"
+    readd_if_exists "$HOME/.emacs.d/elpaca.lock"
+
+    readd_if_exists "$HOME/.pi/agent/settings.json"
+    readd_if_exists "$HOME/.pi/agent/mcp.json"
+    capture_dir_if_exists "$HOME/.pi/agent/agents"
+    capture_dir_if_exists "$HOME/.pi/agent/prompts"
+    capture_dir_if_exists "$HOME/.pi/themes"
+
+    readd_if_exists "$HOME/.agents/skill-lock.json"
+    readd_if_exists "$HOME/skills-lock.json"
+    capture_dir_if_exists "$HOME/.agents/skills"
+
