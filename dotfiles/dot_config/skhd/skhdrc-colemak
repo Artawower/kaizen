@@ -158,8 +158,6 @@ ralt + rshift - o : /opt/homebrew/bin/yabai -m space --focus other
 lcmd + ralt + rshift - return : /opt/homebrew/bin/wezterm
 ralt + rshift - return : open -na Ghostty.app
 
-cmd + ralt + rshift - return : open -a kitty.app
-
 cmd + ralt + rshift - f : /opt/homebrew/bin/yabai -m space --focus 3;\
                 open -a firefox.app;\
                 /opt/homebrew/bin/yabai -m window --space 3 && /opt/homebrew/bin/yabai -m space --focus 3

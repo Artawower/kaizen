@@ -5,7 +5,7 @@ use crossterm::{
     cursor::{Hide, MoveUp, Show},
     event::{read, Event, KeyCode, KeyModifiers},
     execute, queue,
-    terminal::{disable_raw_mode, enable_raw_mode, Clear, ClearType},
+    terminal::{disable_raw_mode, enable_raw_mode, size, Clear, ClearType},
 };
 use owo_colors::OwoColorize;
 
@@ -119,7 +119,12 @@ impl State {
     }
 }
 
-fn render(state: &mut State, stdout: &mut impl Write, prompt: &str) -> io::Result<()> {
+fn render(
+    state: &mut State,
+    stdout: &mut impl Write,
+    prompt: &str,
+    max_items: usize,
+) -> io::Result<()> {
     if state.lines_drawn > 0 {
         queue!(
             stdout,
@@ -129,6 +134,7 @@ fn render(state: &mut State, stdout: &mut impl Write, prompt: &str) -> io::Resul
     }
 
     let visible = state.visible();
+    let (start, end) = visible_window(state.cursor, visible.len(), max_items);
     let mut lines = 0;
 
     let search_tag = if !state.query.is_empty() || state.mode == Mode::Search {
@@ -147,7 +153,8 @@ fn render(state: &mut State, stdout: &mut impl Write, prompt: &str) -> io::Resul
     )?;
     lines += 1;
 
-    for (vis_idx, &item_idx) in visible.iter().enumerate() {
+    for (offset, &item_idx) in visible[start..end].iter().enumerate() {
+        let vis_idx = start + offset;
         let (item, selected) = &state.items[item_idx];
         let cursor_ch = if vis_idx == state.cursor {
             "❯".cyan().to_string()
@@ -179,9 +186,14 @@ fn render(state: &mut State, stdout: &mut impl Write, prompt: &str) -> io::Resul
     }
 
     let hint = if state.mode == Mode::Search {
-        "esc=clear  enter=apply filter"
+        "esc=clear  enter=apply filter".to_owned()
     } else {
-        "j/k:move  space:toggle  a:all  i:invert  /:search  enter:confirm"
+        "j/k:move  space:toggle  a:all  i:invert  /:search  enter:confirm".to_owned()
+    };
+    let hint = if visible.len() > end - start {
+        format!("{hint}  {}-{}/{}", start + 1, end, visible.len())
+    } else {
+        hint
     };
     write!(stdout, "  {}\r\n", hint.dimmed())?;
     lines += 1;
@@ -191,12 +203,23 @@ fn render(state: &mut State, stdout: &mut impl Write, prompt: &str) -> io::Resul
     Ok(())
 }
 
+fn visible_window(cursor: usize, len: usize, max_items: usize) -> (usize, usize) {
+    if len == 0 {
+        return (0, 0);
+    }
+    let window_len = len.min(max_items.max(1));
+    let half = window_len / 2;
+    let start = cursor.saturating_sub(half).min(len - window_len);
+    (start, start + window_len)
+}
+
 fn event_loop(
     state: &mut State,
     stdout: &mut impl Write,
     prompt: &str,
+    max_items: usize,
 ) -> Result<Option<Vec<String>>> {
-    render(state, stdout, prompt)?;
+    render(state, stdout, prompt, max_items)?;
     loop {
         let Event::Key(key) = read()? else {
             continue;
@@ -237,7 +260,7 @@ fn event_loop(
                 _ => {}
             },
         }
-        render(state, stdout, prompt)?;
+        render(state, stdout, prompt, max_items)?;
     }
 }
 
@@ -249,7 +272,21 @@ pub fn multi_select(prompt: &str, items: Vec<Item>) -> Result<Option<Vec<String>
     let _guard = TerminalGuard;
     execute!(stdout, Hide)?;
 
-    let result = event_loop(&mut state, &mut stdout, prompt);
+    let (_, term_height) = size().unwrap_or((80, 24));
+    let max_items = (term_height as usize).saturating_sub(4).max(1);
+
+    // Pre-allocate vertical space before the first render.
+    // Without this, if items exceed the remaining rows in the terminal,
+    // the first render scrolls the viewport and subsequent MoveUp calls
+    // can no longer reach the start of the block, leaving ghost header lines.
+    let reserved = state.visible().len().min(max_items) + 2;
+    for _ in 0..reserved {
+        writeln!(stdout)?;
+    }
+    execute!(stdout, MoveUp(reserved as u16))?;
+    stdout.flush()?;
+
+    let result = event_loop(&mut state, &mut stdout, prompt, max_items);
 
     if state.lines_drawn > 0 {
         execute!(

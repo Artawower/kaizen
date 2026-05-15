@@ -3762,6 +3762,12 @@ Clone this repo for js debug git@github.com:microsoft/vscode-js-debug.git
 
 * Programming languages
 ** Python
+*** Python ts mode
+#+BEGIN_SRC emacs-lisp :results silent
+(use-package rust-ts-mode
+  :ensure nil
+  :mode "\\.py\\'")
+#+END_SRC
 *** Repl
 #+BEGIN_SRC emacs-lisp
 (defun my/open-ipython-repl-here ()
