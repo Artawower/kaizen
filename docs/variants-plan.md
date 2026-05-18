@@ -392,3 +392,56 @@ Steps 1–8 are MVP. 9–12 are polish.
   mechanism rather than overlay. Document captures this state.
 - **Round 4.** TBD — user requested this plan be recorded for further
   discussion.
+
+---
+
+## 10. MVP delivered
+
+Revision `feat(variants): introduce slot/variant model with aerospace as experimental tiling.wm`
+implements steps 1–8 of the roadmap.
+
+### What was built
+
+| Layer                                                        | What changed                                                                                                                                                                                     |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `kaizen-core/src/variants.rs`                                | New module: `Slot`, `VariantManifest`, `Stability`, `VariantResolver`, `discover_variants`. Unit tests: list slots, filter by OS/stability, default resolution, inactive dotfile paths.          |
+| `kaizen-core/src/config.rs`                                  | `UserConfig.variants: BTreeMap<String,String>` (slot fqn → variant id).                                                                                                                          |
+| `kaizen-core/src/plan.rs`                                    | `ConfigPlan.variants` propagated through workflow.                                                                                                                                               |
+| `kaizen-core/src/chezmoi.rs`                                 | `merge_kaizen_data_with` handles `[variants]` section with preserve-unknown semantics. +3 tests.                                                                                                 |
+| `kaizen-core/src/backends/common.rs`                         | `write_variant_data_to_chezmoi` writes active variant selections back to `.chezmoidata.toml` (e.g. `tilingWm = "aerospace"`). `slot_to_chezmoi_key` converts `tiling.wm` → `tilingWm`. +3 tests. |
+| `kaizen-cli/src/commands/variant.rs`                         | New CLI subcommand: `kaizen variant list/show/set/reset`.                                                                                                                                        |
+| `kaizen-cli/src/main.rs`                                     | `Command::Variant` + `VariantAction` enum registered.                                                                                                                                            |
+| `features/tiling/`                                           | `feature.toml` declares `wm` slot. `variants/yabai/variant.toml` (stable, default). `variants/aerospace/variant.toml` (experimental). Nix modules per variant.                                   |
+| `dotfiles/.chezmoiignore.tmpl`                               | Branches on `tilingWm`: deploys only the active variant's dotfiles.                                                                                                                              |
+| `dotfiles/.chezmoidata.toml`                                 | `tilingWm = "yabai"` default for chezmoi-only users.                                                                                                                                             |
+| `dotfiles/dot_config/nix/modules/features/tiling.darwin.nix` | Branches on `user.tilingWm` for brew casks/formulas/taps/activation.                                                                                                                             |
+| `dotfiles/dot_config/nix/user.nix.tmpl`                      | Exposes `tilingWm` to Nix evaluation.                                                                                                                                                            |
+| `dotfiles/dot_config/aerospace/aerospace.toml`               | Minimal working aerospace config.                                                                                                                                                                |
+
+### End-to-end flow
+
+```
+kaizen variant list                             ← shows yabai (stable, active), aerospace (experimental)
+kaizen variant set tiling.wm aerospace          ← fails: experimental, missing --experimental
+kaizen variant set tiling.wm aerospace --experimental  ← writes data.toml [variants] + .chezmoidata.toml
+kaizen sync                                     ← chezmoi apply uses tilingWm=aerospace:
+                                                   • deploys dot_config/aerospace/
+                                                   • ignores dot_config/yabai/, dot_config/skhd/
+                                                   • darwin.nix installs aerospace cask, not yabai
+```
+
+### Remaining steps (post-MVP)
+
+| #   | Step                                          | Notes                                                          |
+| --- | --------------------------------------------- | -------------------------------------------------------------- |
+| 9   | `configure --experimental` walks slots        | wizard UX                                                      |
+| 10  | `kaizen doctor` checks for variants           | validate active variant exists, OS matches, requires satisfied |
+| 11  | E2E test                                      | needs macOS runner; Darwin-only feature                        |
+| 12  | `feature-format.org` Slots & Variants section | user documentation                                             |
+| 13  | Contributions / drop-fragment mechanism       | variant adds to another feature's config                       |
+| 14  | Migrate `layout = colemak\|qwerty` to slots   | uniformity                                                     |
+| 15  | Windows support                               | `TargetOs::Windows` deferred                                   |
+
+> Known limitation: variant nix-modules duplicated between `tiling.darwin.nix` (active) and `features/tiling/variants/*/module.darwin.nix` (declared but not loaded). Will be unified when `feature-loader.nix` learns to consume variants from `features/` tree (step #16, post-MVP).
+
+> Status: **MVP implemented**. Pending review.

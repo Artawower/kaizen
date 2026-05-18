@@ -22,6 +22,7 @@ terminal_size = "0.4.4"
 crossterm = "0.29.0"
 dialoguer = "0.12.0"
 toml.workspace = true
+indexmap = { workspace = true }
 
 [dev-dependencies]
 tempfile = "3"

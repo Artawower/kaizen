@@ -8,6 +8,14 @@ kaizen/
 .config/noctalia/
 .config/vicinae/
 .config/systemd/
+{{- $wm := .tiling.wm | default "yabai" }}
+{{- if ne $wm "yabai" }}
+.config/yabai/
+.config/skhd/
+{{- end }}
+{{- if ne $wm "aerospace" }}
+.config/aerospace/
+{{- end }}
 {{- else if eq .chezmoi.os "linux" }}
 .config/skhd/
 .config/aerospace/

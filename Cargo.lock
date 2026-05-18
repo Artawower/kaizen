@@ -469,6 +469,7 @@ dependencies = [
  "crossterm",
  "dialoguer",
  "dirs",
+ "indexmap",
  "kaizen-core",
  "libc",
  "log",

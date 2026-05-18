@@ -26,9 +26,10 @@ pub mod runtime;
 pub mod setup;
 pub mod sync_backend;
 pub mod toolchain;
+pub mod variants;
 
 pub use backends::{NixSyncBackend, UptSyncBackend};
-pub use chezmoi::{ModifiedFile, RemoveFilesReport};
+pub use chezmoi::{read_kaizen_data, KaizenData, ModifiedFile, RemoveFilesReport};
 pub use chezmoi_client::{ChezmoiClient, NoopChezmoiClient, SourceBackup};
 pub use config::{
     DotfilesConfig, FeatureSelection, UiSettings, UserConfig, UserSettings, CURRENT_SCHEMA_VERSION,
@@ -58,6 +59,10 @@ pub use sync_backend::{
     UpdateBackend, UpdateOpts, UpdateReport,
 };
 pub use toolchain::{DevToolsManager, NoopDevTools, ToolStep};
+pub use variants::{
+    discover_variants, Slot, Stability, VariantManifest, VariantProvides, VariantRequires,
+    VariantResolver,
+};
 
 pub fn resolve_features_dir(
     explicit: Option<PathBuf>,

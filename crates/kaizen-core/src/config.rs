@@ -1,3 +1,4 @@
+use std::collections::BTreeMap;
 use std::path::Path;
 
 use indexmap::IndexMap;
@@ -32,7 +33,7 @@ impl ExtraConfig {
     }
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
 pub struct UserConfig {
     #[serde(default)]
     pub schema_version: u32,
@@ -48,6 +49,9 @@ pub struct UserConfig {
 
     #[serde(default, skip_serializing_if = "ExtraConfig::is_empty")]
     pub extra: ExtraConfig,
+
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub variants: BTreeMap<String, String>,
 }
 
 impl UserConfig {

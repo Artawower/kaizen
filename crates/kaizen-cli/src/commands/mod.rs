@@ -11,3 +11,4 @@ pub mod self_update;
 pub mod sync;
 pub mod uninstall;
 pub mod update;
+pub mod variant;

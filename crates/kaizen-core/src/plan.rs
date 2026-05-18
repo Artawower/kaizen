@@ -1,3 +1,5 @@
+use std::collections::BTreeMap;
+
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 
@@ -40,6 +42,9 @@ pub struct ConfigPlan {
     pub settings: UserSettings,
     #[serde(default)]
     pub extra: ExtraConfig,
+
+    #[serde(default)]
+    pub variants: BTreeMap<String, String>,
 }
 
 impl WorkflowPlan {

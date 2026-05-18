@@ -3,30 +3,21 @@
   pkgs,
   user,
 }:
-let
-  wm = user.tilingWm or "yabai";
-in
 {
   darwinTaps = [
-    "FelixKratz/formulae"
     "koekeishiya/formulae"
-    "nikitabobko/tap"
+    "FelixKratz/formulae"
   ];
-
-  darwinBrews = lib.flatten [
+  darwinBrews = [
+    { name = "koekeishiya/formulae/yabai"; }
+    { name = "koekeishiya/formulae/skhd"; }
     {
       name = "FelixKratz/formulae/borders";
       restart_service = false;
     }
-    (lib.optionals (wm == "yabai") [
-      { name = "koekeishiya/formulae/yabai"; }
-      { name = "koekeishiya/formulae/skhd"; }
-    ])
   ];
-
-  darwinCasks = lib.optionals (wm == "aerospace") [ "nikitabobko/tap/aerospace" ];
-
-  darwinActivationScripts = lib.optionalAttrs (wm == "yabai") {
+  darwinCasks = [ ];
+  darwinActivationScripts = {
     yabaiSudoExtra = ''
       if ! sudo grep -q 'yabai --load-sa' /private/etc/sudoers.d/yabai 2>/dev/null; then
         echo "$(whoami) ALL=(root) NOPASSWD: /opt/homebrew/bin/yabai --load-sa" \

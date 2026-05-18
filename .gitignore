@@ -25,6 +25,7 @@ release/*
 plans/*
 
 .pi/
+.pi-lens/
 
 .DS_Store
 **/.DS_Store

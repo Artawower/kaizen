@@ -164,6 +164,7 @@ fn build_config_plan(config: &UserConfig) -> ConfigPlan {
             .collect(),
         settings: config.settings.clone(),
         extra: config.extra.clone(),
+        variants: config.variants.clone(),
     }
 }
 

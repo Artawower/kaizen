@@ -1,0 +1,10 @@
+id = "yabai"
+slot = "tiling.wm"
+title = "yabai (scripting addition WM)"
+stability = "stable"
+platforms = ["darwin"]
+default = true
+
+[provides]
+nix_modules = ["module.darwin.nix"]
+dotfile_paths = ["dot_config/yabai/", "dot_config/skhd/"]

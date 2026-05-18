@@ -127,6 +127,43 @@ enum Command {
         #[arg(long, value_name = "DIR", help = "Override decisions directory")]
         dir: Option<std::path::PathBuf>,
     },
+
+    /// Manage slot/variant selections (e.g. tiling window manager).
+    Variant {
+        #[command(subcommand)]
+        action: VariantAction,
+    },
+}
+
+#[derive(Debug, clap::Subcommand)]
+enum VariantAction {
+    /// List available variants for all slots (or a specific slot).
+    List {
+        #[arg(long, value_name = "SLOT", help = "Filter to a specific slot")]
+        slot: Option<String>,
+        #[arg(long, help = "Include experimental variants")]
+        experimental: bool,
+        #[arg(long, value_name = "DIR", help = "Override features directory")]
+        dir: Option<std::path::PathBuf>,
+    },
+    /// Show details for a specific variant.
+    Show {
+        slot: String,
+        variant: String,
+        #[arg(long, value_name = "DIR")]
+        dir: Option<std::path::PathBuf>,
+    },
+    /// Activate a variant for a slot.
+    Set {
+        slot: String,
+        variant: String,
+        #[arg(long, help = "Required for experimental variants")]
+        experimental: bool,
+        #[arg(long, value_name = "DIR")]
+        dir: Option<std::path::PathBuf>,
+    },
+    /// Reset a slot to its default variant.
+    Reset { slot: String },
 }
 
 fn main() -> Result<()> {
@@ -201,6 +238,25 @@ fn main() -> Result<()> {
             &StdPathProvider,
             &filesystem::StdFileSystem,
         )?,
+        Command::Variant { action } => match action {
+            VariantAction::List {
+                slot,
+                experimental,
+                dir,
+            } => commands::variant::run_list(slot.as_deref(), experimental, dir.as_deref())?,
+            VariantAction::Show { slot, variant, dir } => {
+                commands::variant::run_show(&slot, &variant, dir.as_deref())?;
+            }
+            VariantAction::Set {
+                slot,
+                variant,
+                experimental,
+                dir,
+            } => commands::variant::run_set(&slot, &variant, experimental, dir.as_deref())?,
+            VariantAction::Reset { slot } => {
+                commands::variant::run_reset(&slot)?;
+            }
+        },
     }
 
     Ok(())

@@ -43,6 +43,16 @@ impl TargetOs {
         }
     }
 
+    /// Broad platform family for variant `platforms` matching.
+    /// Maps all Linux distros to `"linux"` so `platforms = ["linux"]` covers Fedora, Ubuntu, etc.
+    pub fn platform_family(&self) -> &str {
+        match self {
+            TargetOs::Darwin => "darwin",
+            TargetOs::Fedora | TargetOs::Ubuntu | TargetOs::Linux => "linux",
+            TargetOs::Unknown(_) => "unknown",
+        }
+    }
+
     pub fn is_linux(&self) -> bool {
         matches!(self, TargetOs::Fedora | TargetOs::Ubuntu | TargetOs::Linux)
     }

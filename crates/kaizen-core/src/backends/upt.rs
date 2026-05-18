@@ -267,6 +267,7 @@ mod tests {
                 features_data: IndexMap::new(),
                 settings: UserSettings::default(),
                 extra: Default::default(),
+                variants: Default::default(),
             },
             HookPlan::default(),
             vec![],

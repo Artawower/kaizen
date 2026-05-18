@@ -5,4 +5,5 @@
   email         = "{{ .email }}";
   gpgKey        = "{{ .gpg_key_darwin }}";
   homeDirectory = "/Users/{{ .username }}";
+  tilingWm      = "{{ .tiling.wm | default "yabai" }}";
 }

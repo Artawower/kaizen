@@ -1,6 +1,62 @@
-use std::path::{Path, PathBuf};
+use std::{
+    collections::BTreeMap,
+    path::{Path, PathBuf},
+};
 
-use crate::{ConfigPlan, KaizenError};
+use serde::Deserialize;
+
+use crate::{config::ExtraConfig, ConfigPlan, KaizenError, UserSettings};
+
+// ── KaizenData ──────────────────────────────────────────────────────────────
+
+/// Read-only view of `~/.config/kaizen/data.toml`.
+///
+/// The runtime format written by [`merge_kaizen_data_with`]: features are
+/// plain booleans, settings live at the top level — different from the
+/// user-editable `config.toml` which uses `UserConfig`.
+#[derive(Debug, Default, Deserialize)]
+pub struct KaizenData {
+    #[serde(default)]
+    pub layout: String,
+    #[serde(default)]
+    pub features: BTreeMap<String, bool>,
+    #[serde(default)]
+    pub variants: BTreeMap<String, String>,
+    #[serde(default)]
+    pub extra: ExtraConfig,
+}
+
+impl KaizenData {
+    pub fn to_plan(&self) -> ConfigPlan {
+        ConfigPlan {
+            backend: "chezmoi".to_owned(),
+            dotfiles_source: None,
+            features_data: self.features.iter().map(|(k, v)| (k.clone(), *v)).collect(),
+            settings: UserSettings {
+                layout: Some(self.layout.clone()),
+                ..Default::default()
+            },
+            extra: self.extra.clone(),
+            variants: self.variants.clone(),
+        }
+    }
+}
+
+/// Load `data.toml` from `path` using the injected filesystem.
+/// Returns a default (empty) [`KaizenData`] when the file does not exist.
+pub fn read_kaizen_data(
+    path: &Path,
+    fs: &dyn crate::FileSystem,
+) -> Result<KaizenData, KaizenError> {
+    if !fs.exists(path) {
+        return Ok(KaizenData::default());
+    }
+    let raw = fs.read_to_string(path)?;
+    toml::from_str(&raw).map_err(|source| KaizenError::ConfigParse {
+        path: path.to_owned(),
+        source,
+    })
+}
 
 // ── Data types ───────────────────────────────────────────────────────────────
 
@@ -152,6 +208,21 @@ pub fn merge_kaizen_data_with(
         table.insert("extra".to_owned(), toml::Value::try_from(&plan.extra)?);
     }
 
+    // Merge [variants] — preserve existing keys and overlay new selections.
+    let mut variants: toml::map::Map<String, toml::Value> = table
+        .get("variants")
+        .and_then(|v| v.as_table())
+        .cloned()
+        .unwrap_or_default();
+    for (slot, variant_id) in &plan.variants {
+        variants.insert(slot.clone(), toml::Value::String(variant_id.clone()));
+    }
+    if variants.is_empty() {
+        table.remove("variants");
+    } else {
+        table.insert("variants".to_owned(), toml::Value::Table(variants));
+    }
+
     Ok(toml::to_string_pretty(&toml::Value::Table(table))?)
 }
 
@@ -201,6 +272,7 @@ mod tests {
                 ..Default::default()
             },
             extra: Default::default(),
+            variants: Default::default(),
         }
     }
 
@@ -490,6 +562,55 @@ mod tests {
             val.get("extra").is_none(),
             "empty extra should not appear in data.toml"
         );
+    }
+
+    #[test]
+    fn merge_writes_variants_section_to_data_toml() {
+        let path = PathBuf::from("/tmp/kaizen-data.toml");
+        let fs = MemFileSystem::new();
+        let mut plan = make_plan(&[], Some("qwerty"));
+        plan.variants
+            .insert("tiling.wm".to_owned(), "aerospace".to_owned());
+        let merged = merge_kaizen_data_with(&path, &plan, &fs).unwrap();
+        let val: toml::Value = toml::from_str(&merged).unwrap();
+        let variants = val
+            .get("variants")
+            .expect("[variants] should be in data.toml");
+        assert_eq!(
+            variants.get("tiling.wm").and_then(|v| v.as_str()),
+            Some("aerospace")
+        );
+    }
+
+    #[test]
+    fn merge_preserves_existing_variant_keys_not_in_plan() {
+        let path = PathBuf::from("/tmp/kaizen-data.toml");
+        let fs = mem_fs_with(
+            &path,
+            "layout = \"qwerty\"\n[variants]\n\"other.slot\" = \"foo\"\n",
+        );
+        let plan = make_plan(&[], Some("qwerty")); // variants is empty in plan
+        let merged = merge_kaizen_data_with(&path, &plan, &fs).unwrap();
+        let val: toml::Value = toml::from_str(&merged).unwrap();
+        let variants = val.get("variants").expect("existing variants preserved");
+        assert_eq!(
+            variants.get("other.slot").and_then(|v| v.as_str()),
+            Some("foo")
+        );
+    }
+
+    #[test]
+    fn merge_preserves_existing_variants_when_plan_empty() {
+        let path = PathBuf::from("/tmp/kaizen-data.toml");
+        let fs = mem_fs_with(
+            &path,
+            "layout = \"qwerty\"\n[variants]\n\"tiling.wm\" = \"yabai\"\n",
+        );
+        let plan = make_plan(&[], Some("qwerty")); // no variants in plan
+        let merged = merge_kaizen_data_with(&path, &plan, &fs).unwrap();
+        let val: toml::Value = toml::from_str(&merged).unwrap();
+        // existing entry preserved (plan doesn't clear what it doesn't own)
+        assert!(val.get("variants").is_some());
     }
 
     #[test]
