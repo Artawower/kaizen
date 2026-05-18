@@ -140,7 +140,7 @@ pub fn run(
         }
         println!();
         output::page_header("install — configure");
-        commands::configure::run(features_dir, config_path, false)?;
+        commands::configure::run(features_dir, config_path, false, false)?;
         println!();
     } else {
         output::item_ok("config and dotfiles found — skipping configure");

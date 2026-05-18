@@ -228,6 +228,37 @@ pub fn merge_kaizen_data_with(
 
 // ── Remote URL comparison ────────────────────────────────────────────────────
 
+/// Replace the [variants] block in data.toml with the provided selections.
+/// All other keys are preserved unchanged. When selections is empty the section is removed.
+pub fn write_variant_selections(
+    path: &Path,
+    selections: &BTreeMap<String, String>,
+    fs: &dyn crate::FileSystem,
+) -> Result<(), KaizenError> {
+    let mut table: toml::map::Map<String, toml::Value> = if fs.exists(path) {
+        let raw = fs.read_to_string(path)?;
+        match toml::from_str::<toml::Value>(&raw) {
+            Ok(toml::Value::Table(t)) => t,
+            _ => toml::map::Map::new(),
+        }
+    } else {
+        toml::map::Map::new()
+    };
+    if selections.is_empty() {
+        table.remove("variants");
+    } else {
+        let variants: toml::map::Map<String, toml::Value> = selections
+            .iter()
+            .map(|(k, v)| (k.clone(), toml::Value::String(v.clone())))
+            .collect();
+        table.insert("variants".to_owned(), toml::Value::Table(variants));
+    }
+    let content =
+        toml::to_string_pretty(&toml::Value::Table(table)).map_err(KaizenError::TomlSerialize)?;
+    fs.write(path, content.as_bytes())?;
+    Ok(())
+}
+
 pub fn remotes_match(a: &str, b: &str) -> bool {
     normalize_remote(a) == normalize_remote(b)
 }

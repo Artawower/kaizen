@@ -48,7 +48,11 @@ enum Command {
     },
 
     /// Interactively configure kaizen: pick features, dotfiles URL, keyboard layout.
-    Configure,
+    Configure {
+        /// Show and allow selection of experimental variants.
+        #[arg(long)]
+        experimental: bool,
+    },
 
     /// List available workflow features.
     Features,
@@ -137,22 +141,6 @@ enum Command {
 
 #[derive(Debug, clap::Subcommand)]
 enum VariantAction {
-    /// List available variants for all slots (or a specific slot).
-    List {
-        #[arg(long, value_name = "SLOT", help = "Filter to a specific slot")]
-        slot: Option<String>,
-        #[arg(long, help = "Include experimental variants")]
-        experimental: bool,
-        #[arg(long, value_name = "DIR", help = "Override features directory")]
-        dir: Option<std::path::PathBuf>,
-    },
-    /// Show details for a specific variant.
-    Show {
-        slot: String,
-        variant: String,
-        #[arg(long, value_name = "DIR")]
-        dir: Option<std::path::PathBuf>,
-    },
     /// Activate a variant for a slot.
     Set {
         slot: String,
@@ -176,11 +164,16 @@ fn main() -> Result<()> {
 
     let _reporter = StderrReporter;
 
-    if matches!(cli.command, Command::Configure | Command::Install { .. }) {
+    if matches!(
+        cli.command,
+        Command::Configure { .. } | Command::Install { .. }
+    ) {
         let features_dir_path = cli.features_dir.clone();
         let features_dir_opt = features_dir_path.as_deref();
         return match cli.command {
-            Command::Configure => commands::configure::run(features_dir_opt, &config_path, true),
+            Command::Configure { experimental } => {
+                commands::configure::run(features_dir_opt, &config_path, true, experimental)
+            }
             Command::Install { dry_run } => {
                 let engine = match cli.features_dir {
                     Some(dir) => engine::build(dir, false),
@@ -198,7 +191,7 @@ fn main() -> Result<()> {
     };
 
     match cli.command {
-        Command::Configure | Command::Install { .. } => unreachable!(),
+        Command::Configure { .. } | Command::Install { .. } => unreachable!(),
         Command::Features => commands::features::run(&engine)?,
         Command::Sync { dry_run } => commands::sync::run(&engine, &config_path, dry_run, true)?,
         Command::Apply { dry_run } => commands::apply::run(&engine, &config_path, dry_run)?,
@@ -239,22 +232,16 @@ fn main() -> Result<()> {
             &filesystem::StdFileSystem,
         )?,
         Command::Variant { action } => match action {
-            VariantAction::List {
-                slot,
-                experimental,
-                dir,
-            } => commands::variant::run_list(slot.as_deref(), experimental, dir.as_deref())?,
-            VariantAction::Show { slot, variant, dir } => {
-                commands::variant::run_show(&slot, &variant, dir.as_deref())?;
-            }
             VariantAction::Set {
                 slot,
                 variant,
                 experimental,
                 dir,
-            } => commands::variant::run_set(&slot, &variant, experimental, dir.as_deref())?,
+            } => {
+                commands::variant::run_set(&slot, &variant, experimental, dir.as_deref(), &engine)?
+            }
             VariantAction::Reset { slot } => {
-                commands::variant::run_reset(&slot)?;
+                commands::variant::run_reset(&slot, &engine)?;
             }
         },
     }

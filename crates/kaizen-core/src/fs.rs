@@ -83,9 +83,13 @@ pub mod mem {
                 )));
             }
             let files = self.files.lock().unwrap();
+            let dirs = self.dirs.lock().unwrap();
+            let mut seen = std::collections::HashSet::new();
             let mut paths: Vec<PathBuf> = files
                 .keys()
+                .chain(dirs.iter())
                 .filter(|p| p.parent() == Some(path))
+                .filter(|p| seen.insert((*p).clone()))
                 .cloned()
                 .collect();
             paths.sort();

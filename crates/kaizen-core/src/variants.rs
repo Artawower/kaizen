@@ -5,6 +5,36 @@ use serde::{Deserialize, Serialize};
 
 use crate::{FileSystem, KaizenError, TargetOs};
 
+// ── Wizard feature list ──────────────────────────────────────────────────────
+
+/// One selectable variant within a feature slot.
+#[derive(Debug, Clone)]
+pub struct VariantChoice {
+    pub id: String,
+    pub title: String,
+    pub stability: Stability,
+    pub is_default: bool,
+}
+
+/// Slot data attached to a feature when the unified wizard runs in experimental mode.
+#[derive(Debug, Clone)]
+pub struct WizardFeatureSlot {
+    pub slot_fqn: String,
+    /// All OS-compatible choices (no stability filter — caller handles E state).
+    pub choices: Vec<VariantChoice>,
+    pub selected_id: Option<String>,
+}
+
+/// One row in the unified feature+variants wizard list.
+#[derive(Debug, Clone)]
+pub struct WizardFeature {
+    pub id: String,
+    pub description: String,
+    pub enabled: bool,
+    /// Populated only when `include_experimental=true` and the feature has variants.
+    pub slot: Option<WizardFeatureSlot>,
+}
+
 // ── Domain types ──────────────────────────────────────────────────────────────
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
@@ -38,6 +68,8 @@ pub struct Slot {
     pub description: Option<String>,
 }
 
+// ── Domain types ──────────────────────────────────────────────────────────────
+
 /// Parsed from `features/<feature>/variants/<id>/variant.toml`.
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct VariantManifest {
@@ -55,10 +87,12 @@ pub struct VariantManifest {
     pub provides: VariantProvides,
     #[serde(default)]
     pub requires: VariantRequires,
-    /// Absolute path to the variant's directory (populated by the loader, not
-    /// present in the TOML file itself).
+    /// Absolute path to the variant's directory (populated by the loader).
     #[serde(skip)]
     pub dir: PathBuf,
+    /// Description of the parent slot, loaded from `feature.toml [[slots]]`.
+    #[serde(skip)]
+    pub slot_description: Option<String>,
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
@@ -77,7 +111,46 @@ pub struct VariantRequires {
 
 // ── Discovery ─────────────────────────────────────────────────────────────────
 
+/// Minimal view of `features/<feature>/feature.toml` used to extract slot descriptions.
+#[derive(Debug, Deserialize)]
+struct FeatureSlotFile {
+    #[serde(default)]
+    slots: Vec<FeatureSlotDef>,
+}
+
+#[derive(Debug, Deserialize)]
+struct FeatureSlotDef {
+    id: String,
+    #[serde(default)]
+    description: Option<String>,
+}
+
+/// Build a map of slot_fqn → description from `<feature_dir>/feature.toml`.
+fn load_feature_slot_descs(feature_dir: &Path, fs: &dyn FileSystem) -> BTreeMap<String, String> {
+    let feature_name = feature_dir
+        .file_name()
+        .and_then(|n| n.to_str())
+        .unwrap_or("")
+        .to_owned();
+    let path = feature_dir.join("feature.toml");
+    if !fs.exists(&path) {
+        return BTreeMap::new();
+    }
+    let raw = fs.read_to_string(&path).unwrap_or_default();
+    let Ok(fm) = toml::from_str::<FeatureSlotFile>(&raw) else {
+        return BTreeMap::new();
+    };
+    fm.slots
+        .into_iter()
+        .filter_map(|s| {
+            s.description
+                .map(|d| (format!("{}.{}", feature_name, s.id), d))
+        })
+        .collect()
+}
+
 /// Discover all variants under `features_dir/<feature>/variants/*/variant.toml`.
+/// Also loads `<feature>/feature.toml` to populate `slot_description` on each manifest.
 pub fn discover_variants(
     features_dir: &Path,
     fs: &dyn FileSystem,
@@ -88,6 +161,7 @@ pub fn discover_variants(
     let mut out = Vec::new();
     let feature_entries = fs.read_dir_paths(features_dir).unwrap_or_default();
     for feature_dir in feature_entries {
+        let slot_descs = load_feature_slot_descs(&feature_dir, fs);
         let variants_dir = feature_dir.join("variants");
         if !fs.exists(&variants_dir) {
             continue;
@@ -109,6 +183,7 @@ pub fn discover_variants(
                     source,
                 })?;
             manifest.dir = variant_dir;
+            manifest.slot_description = slot_descs.get(&manifest.slot).cloned();
             out.push(manifest);
         }
     }
@@ -265,6 +340,7 @@ mod tests {
             },
             requires: VariantRequires::default(),
             dir: PathBuf::new(),
+            slot_description: None,
         }
     }
 

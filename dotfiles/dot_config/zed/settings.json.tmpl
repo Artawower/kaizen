@@ -7,6 +7,11 @@
 // custom settings, run the `open default settings` command
 // from the command palette or from `Zed` application menu.
 {
+  "agent_servers": {
+    "pi-acp": {
+      "type": "registry"
+    }
+  },
   "edit_predictions": {
     "provider": "copilot",
     "mode": "subtle",
@@ -74,7 +79,7 @@
   },
   "theme": {
     "light": "Catppuccin Latte",
-    "dark": "Tokyo Night Storm",
+    "dark": "Catppuccin Mocha (Blur) [Heavy]",
   },
   "vim_mode": true,
   // "helix_mode": true,
@@ -92,6 +97,8 @@
     "HTML": {
       "language_servers": ["angular"],
     },
+    "Plain Text": {
+      "language_servers": ["bookmark-language-server"]
+    }
   },
 }
-

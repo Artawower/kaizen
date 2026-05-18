@@ -148,7 +148,9 @@ fn write_variant_data_to_chezmoi(
 
     for slot in &slots {
         let effective_id = match &resolver {
-            Some(r) => r.effective(slot, os, &current_selections).map(|v| v.id.as_str()),
+            Some(r) => r
+                .effective(slot, os, &current_selections)
+                .map(|v| v.id.as_str()),
             None => current_selections.get(slot.as_str()).map(|s| s.as_str()),
         };
         set_slot_in_chezmoidata(&mut table, slot, effective_id);
@@ -384,7 +386,10 @@ mod tests {
                 _: &[std::path::PathBuf],
                 _: bool,
             ) -> Result<crate::chezmoi::RemoveFilesReport, KaizenError> {
-                Ok(crate::chezmoi::RemoveFilesReport { removed: vec![], skipped: vec![] })
+                Ok(crate::chezmoi::RemoveFilesReport {
+                    removed: vec![],
+                    skipped: vec![],
+                })
             }
             fn backup_source_dir(
                 &self,

@@ -1,16 +1,16 @@
 [
   {
-    "label": "Open lazygit",
-    "command": "lazygit",
+    "label": "Open jujutsu",
+    "command": "jjui",
     "use_new_terminal": true,
     "allow_concurrent_runs": false,
-    "reveal": "always"
+    "reveal": "always",
   },
   {
-    "label": "Open gitu",
-    "command": "gitu",
-    "use_new_terminal": true,
-    "allow_concurrent_runs": false,
-    "reveal": "always"
-  }
+    "label": "copy selection with path wrapper",
+    "command": "python3 /Users/darkawower/.config/zed/copy-selection-wrapper.py",
+    "reveal": "never",
+    "hide": "always",
+    "save": "none",
+  },
 ]

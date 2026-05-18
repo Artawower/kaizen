@@ -1,3 +1,14 @@
-{ lib, ... }: {
-  darwinCasks = [ "shottr" "chatgpt" "voiceink" "wakatime" "loom" "obsidian" "ticktick" "stretchly" ];
+{ lib, ... }:
+{
+  darwinCasks = [
+    "shottr"
+    "chatgpt"
+    "voiceink"
+    "wakatime"
+    "loom"
+    "obsidian"
+    "ticktick"
+    "stretchly"
+    "blankie"
+  ];
 }

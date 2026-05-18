@@ -44,7 +44,19 @@
     "context": "VimControl",
     "bindings": {
       "space o p": "pane::RevealInProjectPanel",
-      "space f f": "command_palette::Toggle",
+      "shift-n": [
+        "action::Sequence",
+        [
+          "editor::CopyFileLocation",
+          [
+            "task::Spawn",
+            {
+              "task_name": "copy selection with path wrapper"
+            }
+          ]
+        ]
+        ],
+       "space f f": "command_palette::Toggle",
       "space space": "file_finder::Toggle",
       "space p o": "projects::OpenRecent",
       "ctrl-p": "command_palette::Toggle",

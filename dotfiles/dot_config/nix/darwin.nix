@@ -146,7 +146,7 @@ in
     enable = true;
     onActivation = {
       autoUpdate = true;
-      cleanup = "check";
+      cleanup = "uninstall";
       upgrade = true;
     };
 

@@ -20,6 +20,7 @@ pub fn run(
     explicit_features_dir: Option<&Path>,
     config_path: &Path,
     prompt_next: bool,
+    allow_experimental: bool,
 ) -> Result<()> {
     output::page_header("configure");
     ensure::ensure_chezmoi()?;
@@ -41,10 +42,32 @@ pub fn run(
     let use_cache = explicit_features_dir.is_none();
     let engine = engine::build(features_dir, use_cache);
 
-    let features = engine.list_features_with_meta()?;
-    let Some(selected) = pick_features(&features, existing.as_ref())? else {
+    let wizard_features = engine.list_wizard_features(allow_experimental)?;
+    // Keep a meta list for render_config (needs all features, not just enabled ones)
+    let all_features_meta: Vec<(String, Option<String>)> = wizard_features
+        .iter()
+        .map(|f| {
+            (
+                f.id.clone(),
+                Some(f.description.clone()).filter(|d| !d.is_empty()),
+            )
+        })
+        .collect();
+
+    let Some((selected, variant_selections)) = selector::pick_features_with_variants(
+        "Select features",
+        wizard_features,
+        allow_experimental,
+        |incl| engine.list_wizard_features(incl).map_err(Into::into),
+    )?
+    else {
         return Ok(());
     };
+
+    if !variant_selections.is_empty() {
+        engine.apply_variant_selections(variant_selections)?;
+    }
+
     let layout = pick_layout(existing.as_ref())?;
     let font_size = pick_font_size(existing.as_ref())?;
     let settings = UserSettings {
@@ -59,7 +82,7 @@ pub fn run(
         .map(|c| c.extra.clone())
         .unwrap_or_default();
     let toml = render_config(
-        &features,
+        &all_features_meta,
         &selected,
         &settings,
         &dotfiles_url,
@@ -146,26 +169,6 @@ fn bootstrap_chezmoi(url: &str) -> Result<PathBuf> {
             Ok(expected_source)
         }
     }
-}
-
-fn pick_features(
-    features: &[(String, Option<String>)],
-    existing: Option<&UserConfig>,
-) -> Result<Option<Vec<String>>> {
-    let items = features
-        .iter()
-        .map(|(name, desc)| {
-            let selected = existing
-                .map(|c| c.features.get(name.as_str()).is_none_or(|f| f.enabled))
-                .unwrap_or(true);
-            selector::Item {
-                name: name.clone(),
-                desc: desc.clone(),
-                selected,
-            }
-        })
-        .collect();
-    selector::multi_select("Select features", items)
 }
 
 fn pick_layout(existing: Option<&UserConfig>) -> Result<String> {

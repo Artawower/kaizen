@@ -29,7 +29,9 @@ pub mod toolchain;
 pub mod variants;
 
 pub use backends::{NixSyncBackend, UptSyncBackend};
-pub use chezmoi::{read_kaizen_data, KaizenData, ModifiedFile, RemoveFilesReport};
+pub use chezmoi::{
+    read_kaizen_data, write_variant_selections, KaizenData, ModifiedFile, RemoveFilesReport,
+};
 pub use chezmoi_client::{ChezmoiClient, NoopChezmoiClient, SourceBackup};
 pub use config::{
     DotfilesConfig, FeatureSelection, UiSettings, UserConfig, UserSettings, CURRENT_SCHEMA_VERSION,
@@ -60,8 +62,8 @@ pub use sync_backend::{
 };
 pub use toolchain::{DevToolsManager, NoopDevTools, ToolStep};
 pub use variants::{
-    discover_variants, Slot, Stability, VariantManifest, VariantProvides, VariantRequires,
-    VariantResolver,
+    discover_variants, Slot, Stability, VariantChoice, VariantManifest, VariantProvides,
+    VariantRequires, VariantResolver, WizardFeature, WizardFeatureSlot,
 };
 
 pub fn resolve_features_dir(
@@ -94,17 +96,25 @@ pub fn resolve_features_dir(
 }
 
 pub struct KaizenEngine {
+    /// Directory containing `*.toml` feature manifests (for `FeatureStore`).
     features_dir: Option<PathBuf>,
+    /// Root of the variants tree: `<repo>/features/<feature>/variants/*/variant.toml`.
+    /// Separate from `features_dir` because features and variants live in different repo paths.
+    variants_dir: Option<PathBuf>,
     fs: Arc<dyn FileSystem>,
     nix_cache_path: Option<PathBuf>,
+    /// Path to `~/.config/kaizen/data.toml`.
+    data_toml_path: Option<PathBuf>,
 }
 
 impl KaizenEngine {
     pub fn new(features_dir: impl Into<PathBuf>, fs: Arc<dyn FileSystem>) -> Self {
         Self {
             features_dir: Some(features_dir.into()),
+            variants_dir: None,
             fs,
             nix_cache_path: None,
+            data_toml_path: None,
         }
     }
 
@@ -113,13 +123,25 @@ impl KaizenEngine {
     pub fn cache_only(fs: Arc<dyn FileSystem>) -> Self {
         Self {
             features_dir: None,
+            variants_dir: None,
             fs,
             nix_cache_path: None,
+            data_toml_path: None,
         }
     }
 
     pub fn with_nix_cache(mut self, path: PathBuf) -> Self {
         self.nix_cache_path = Some(path);
+        self
+    }
+
+    pub fn with_data_toml_path(mut self, path: PathBuf) -> Self {
+        self.data_toml_path = Some(path);
+        self
+    }
+
+    pub fn with_variants_dir(mut self, path: PathBuf) -> Self {
+        self.variants_dir = Some(path);
         self
     }
 
@@ -232,6 +254,130 @@ impl KaizenEngine {
             })
             .collect();
         Ok(hooks)
+    }
+
+    /// Build the unified feature+variants list for the wizard screen.
+    ///
+    /// When `include_experimental=false` every feature has `slot = None` (E=off flat list).
+    /// When `include_experimental=true` features that have OS-compatible variants get
+    /// `slot = Some(WizardFeatureSlot { choices, selected_id })` (E=on inline variant rows).
+    pub fn list_wizard_features(
+        &self,
+        include_experimental: bool,
+    ) -> Result<Vec<WizardFeature>, KaizenError> {
+        let feature_meta = self.list_features_with_meta()?;
+
+        let enabled_map: std::collections::BTreeMap<String, bool> =
+            if let Some(ref path) = self.data_toml_path {
+                read_kaizen_data(path, self.fs.as_ref())?.features
+            } else {
+                Default::default()
+            };
+
+        if !include_experimental {
+            return Ok(feature_meta
+                .into_iter()
+                .map(|(id, desc)| WizardFeature {
+                    enabled: enabled_map.get(&id).copied().unwrap_or(true),
+                    description: desc.unwrap_or_default(),
+                    id,
+                    slot: None,
+                })
+                .collect());
+        }
+
+        // Build a per-feature-name slot index from the variants dir.
+        let slot_by_feature: std::collections::HashMap<String, WizardFeatureSlot> =
+            if let Some(ref variants_dir) = self.variants_dir {
+                let os = TargetOs::detect();
+                let selections = self.current_variant_selections()?;
+                let all_variants = discover_variants(variants_dir, self.fs.as_ref())?;
+                let resolver = VariantResolver::new(all_variants);
+                resolver
+                    .list_slots()
+                    .into_iter()
+                    .filter_map(|slot_fqn| {
+                        let feature_name =
+                            slot_fqn.split('.').next().unwrap_or(&slot_fqn).to_owned();
+                        let all = resolver.list_variants(&slot_fqn);
+                        // Filter by OS only — stability is not filtered here; UI handles E.
+                        let candidates = resolver.filter_by_os(&os, all);
+                        if candidates.is_empty() {
+                            return None;
+                        }
+                        let mut choices: Vec<VariantChoice> = candidates
+                            .iter()
+                            .map(|v| VariantChoice {
+                                id: v.id.clone(),
+                                title: v.title.clone().unwrap_or_else(|| v.id.clone()),
+                                stability: v.stability.clone(),
+                                is_default: v.default,
+                            })
+                            .collect();
+                        // stable-first, lexicographic within same stability
+                        choices.sort_by_key(|c| {
+                            let ord: u8 = if c.stability == Stability::Stable {
+                                0
+                            } else {
+                                1
+                            };
+                            (ord, c.id.clone())
+                        });
+                        let selected_id = selections
+                            .get(&slot_fqn)
+                            .cloned()
+                            .or_else(|| resolver.default_for(&slot_fqn, &os).map(|v| v.id.clone()));
+                        Some((
+                            feature_name,
+                            WizardFeatureSlot {
+                                slot_fqn,
+                                choices,
+                                selected_id,
+                            },
+                        ))
+                    })
+                    .collect()
+            } else {
+                Default::default()
+            };
+
+        Ok(feature_meta
+            .into_iter()
+            .map(|(id, desc)| {
+                let slot = slot_by_feature.get(&id).cloned();
+                WizardFeature {
+                    enabled: enabled_map.get(&id).copied().unwrap_or(true),
+                    description: desc.unwrap_or_default(),
+                    id,
+                    slot,
+                }
+            })
+            .collect())
+    }
+
+    /// Read the current `[variants]` block from `data.toml`.
+    /// Returns an empty map when `data_toml_path` is unset or the file does not exist.
+    pub fn current_variant_selections(
+        &self,
+    ) -> Result<std::collections::BTreeMap<String, String>, KaizenError> {
+        let Some(ref path) = self.data_toml_path else {
+            return Ok(std::collections::BTreeMap::new());
+        };
+        let data = read_kaizen_data(path, self.fs.as_ref())?;
+        Ok(data.variants)
+    }
+
+    /// Replace the `[variants]` block in `data.toml` with `selections`.
+    /// All other keys are preserved. Requires `data_toml_path` to be set.
+    pub fn apply_variant_selections(
+        &self,
+        selections: std::collections::BTreeMap<String, String>,
+    ) -> Result<(), KaizenError> {
+        let path = self
+            .data_toml_path
+            .as_deref()
+            .ok_or(KaizenError::HomeDirUnavailable)?;
+        write_variant_selections(path, &selections, self.fs.as_ref())
     }
 }
 
@@ -401,5 +547,205 @@ mod tests {
             resolve_features_dir(None, &NoopReporter, &SourceClient { source: None }, &fs).unwrap();
 
         assert_eq!(result, monorepo_features);
+    }
+
+    // ── engine variant methods ──────────────────────────────────────────────
+
+    fn make_variant_files(fs: &MemFileSystem, features_dir: &Path) {
+        let tiling = features_dir.join("tiling");
+        fs.add_dir(&tiling);
+        fs.add_file(
+            tiling.join("feature.toml"),
+            "title = \"Tiling WM\"\n[[slots]]\nid = \"wm\"\ndescription = \"Window manager\"\n",
+        );
+        let variants_dir = tiling.join("variants");
+        fs.add_dir(&variants_dir);
+        let yabai = variants_dir.join("yabai");
+        fs.add_dir(&yabai);
+        fs.add_file(
+            yabai.join("variant.toml"),
+            "id = \"yabai\"\nslot = \"tiling.wm\"\nstability = \"stable\"\nplatforms = [\"darwin\"]\ndefault = true\n",
+        );
+        let aerospace = variants_dir.join("aerospace");
+        fs.add_dir(&aerospace);
+        fs.add_file(
+            aerospace.join("variant.toml"),
+            "id = \"aerospace\"\nslot = \"tiling.wm\"\nstability = \"experimental\"\nplatforms = [\"darwin\"]\ndefault = false\n",
+        );
+    }
+
+    #[test]
+    fn engine_current_variant_selections_returns_empty_when_no_data_file() {
+        let fs = Arc::new(MemFileSystem::new());
+        let features_dir = PathBuf::from("/features");
+        fs.add_dir(&features_dir);
+        let engine = KaizenEngine::new(features_dir, fs);
+        let sel = engine.current_variant_selections().unwrap();
+        assert!(sel.is_empty());
+    }
+
+    #[test]
+    fn engine_apply_and_read_variant_selections() {
+        let fs = Arc::new(MemFileSystem::new());
+        let data_path = PathBuf::from("/kaizen/data.toml");
+        fs.add_file(&data_path, "layout = \"qwerty\"\n");
+        let features_dir = PathBuf::from("/features");
+        fs.add_dir(&features_dir);
+        let engine = KaizenEngine::new(features_dir, Arc::clone(&fs) as Arc<dyn FileSystem>)
+            .with_data_toml_path(data_path.clone());
+
+        let mut sel = std::collections::BTreeMap::new();
+        sel.insert("tiling.wm".to_owned(), "aerospace".to_owned());
+        engine.apply_variant_selections(sel.clone()).unwrap();
+
+        let read_back = engine.current_variant_selections().unwrap();
+        assert_eq!(read_back, sel);
+    }
+
+    #[test]
+    fn engine_apply_variant_selections_preserves_other_keys() {
+        let fs = Arc::new(MemFileSystem::new());
+        let data_path = PathBuf::from("/kaizen/data.toml");
+        fs.add_file(&data_path, "layout = \"colemak\"\nusername = \"alice\"\n");
+        let features_dir = PathBuf::from("/features");
+        fs.add_dir(&features_dir);
+        let engine = KaizenEngine::new(features_dir, Arc::clone(&fs) as Arc<dyn FileSystem>)
+            .with_data_toml_path(data_path.clone());
+
+        let mut sel = std::collections::BTreeMap::new();
+        sel.insert("tiling.wm".to_owned(), "yabai".to_owned());
+        engine.apply_variant_selections(sel).unwrap();
+
+        let raw = fs.read_to_string(&data_path).unwrap();
+        assert!(raw.contains("layout = \"colemak\""), "layout preserved");
+        assert!(raw.contains("username = \"alice\""), "username preserved");
+        assert!(raw.contains("\"tiling.wm\" = \"yabai\""), "variant written");
+    }
+
+    #[test]
+    fn engine_apply_variant_selections_replaces_existing_variants() {
+        let fs = Arc::new(MemFileSystem::new());
+        let data_path = PathBuf::from("/kaizen/data.toml");
+        fs.add_file(
+            &data_path,
+            "layout = \"qwerty\"\n[variants]\n\"tiling.wm\" = \"aerospace\"\n",
+        );
+        let features_dir = PathBuf::from("/features");
+        fs.add_dir(&features_dir);
+        let engine = KaizenEngine::new(features_dir, Arc::clone(&fs) as Arc<dyn FileSystem>)
+            .with_data_toml_path(data_path.clone());
+
+        // Reset: pass empty selections
+        engine
+            .apply_variant_selections(std::collections::BTreeMap::new())
+            .unwrap();
+
+        let raw = fs.read_to_string(&data_path).unwrap();
+        assert!(
+            !raw.contains("aerospace"),
+            "old selection should be removed"
+        );
+        assert!(
+            !raw.contains("[variants]"),
+            "empty variants section removed"
+        );
+    }
+
+    #[test]
+    fn wizard_features_no_experimental_all_slots_none() {
+        let fs = Arc::new(MemFileSystem::new());
+        let variants_dir = PathBuf::from("/variants");
+        fs.add_dir(&variants_dir);
+        make_variant_files(&fs, &variants_dir);
+        let features_dir = PathBuf::from("/feats");
+        fs.add_dir(&features_dir);
+        fs.add_file(
+            features_dir.join("tiling.toml"),
+            "[meta]\ndescription = \"Tiling WM\"\n",
+        );
+        let engine = KaizenEngine::new(features_dir, Arc::clone(&fs) as Arc<dyn FileSystem>)
+            .with_variants_dir(variants_dir);
+        let features = engine.list_wizard_features(false).unwrap();
+        assert_eq!(features.len(), 1);
+        assert!(features[0].slot.is_none(), "E=off → slot = None");
+    }
+
+    #[test]
+    fn wizard_features_with_experimental_tiling_gets_slot() {
+        let fs = Arc::new(MemFileSystem::new());
+        let variants_dir = PathBuf::from("/variants");
+        fs.add_dir(&variants_dir);
+        make_variant_files(&fs, &variants_dir);
+        let features_dir = PathBuf::from("/feats");
+        fs.add_dir(&features_dir);
+        fs.add_file(
+            features_dir.join("tiling.toml"),
+            "[meta]\ndescription = \"Tiling WM\"\n",
+        );
+        let engine = KaizenEngine::new(features_dir, Arc::clone(&fs) as Arc<dyn FileSystem>)
+            .with_variants_dir(variants_dir);
+        let features = engine.list_wizard_features(true).unwrap();
+        assert_eq!(features.len(), 1);
+        let slot = features[0].slot.as_ref().expect("E=on → slot present");
+        assert_eq!(slot.slot_fqn, "tiling.wm");
+        assert_eq!(slot.choices.len(), 2);
+        assert_eq!(slot.choices[0].id, "yabai", "stable first");
+        assert_eq!(slot.choices[1].id, "aerospace");
+    }
+
+    #[test]
+    fn wizard_features_no_variants_dir_all_slots_none() {
+        let fs = Arc::new(MemFileSystem::new());
+        let features_dir = PathBuf::from("/feats");
+        fs.add_dir(&features_dir);
+        fs.add_file(
+            features_dir.join("core.toml"),
+            "[meta]\ndescription = \"Core\"\n",
+        );
+        let engine = KaizenEngine::new(features_dir, Arc::clone(&fs) as Arc<dyn FileSystem>);
+        let features = engine.list_wizard_features(true).unwrap();
+        assert_eq!(features.len(), 1);
+        assert!(features[0].slot.is_none(), "no variants_dir → slot = None");
+    }
+
+    #[test]
+    fn wizard_features_platform_filter_linux_absent_on_darwin() {
+        // komorebi is linux-only — should not appear in choices on darwin
+        let fs = Arc::new(MemFileSystem::new());
+        let variants_dir = PathBuf::from("/variants");
+        fs.add_dir(&variants_dir);
+        // Add tiling with yabai (darwin) + komorebi (linux)
+        let tiling = variants_dir.join("tiling");
+        fs.add_dir(&tiling);
+        fs.add_file(
+            tiling.join("feature.toml"),
+            "title = \"Tiling\"\n[[slots]]\nid=\"wm\"\n",
+        );
+        let vdir = tiling.join("variants");
+        fs.add_dir(&vdir);
+        let yabai = vdir.join("yabai");
+        fs.add_dir(&yabai);
+        fs.add_file(yabai.join("variant.toml"),
+            "id=\"yabai\"\nslot=\"tiling.wm\"\nstability=\"stable\"\nplatforms=[\"darwin\"]\ndefault=true\n");
+        let komorebi = vdir.join("komorebi");
+        fs.add_dir(&komorebi);
+        fs.add_file(komorebi.join("variant.toml"),
+            "id=\"komorebi\"\nslot=\"tiling.wm\"\nstability=\"experimental\"\nplatforms=[\"linux\"]\ndefault=false\n");
+        let features_dir = PathBuf::from("/feats");
+        fs.add_dir(&features_dir);
+        fs.add_file(
+            features_dir.join("tiling.toml"),
+            "[meta]\ndescription=\"\"\n",
+        );
+        let engine = KaizenEngine::new(features_dir, Arc::clone(&fs) as Arc<dyn FileSystem>)
+            .with_variants_dir(variants_dir);
+        // With darwin OS (detected), komorebi should be filtered out
+        // tiling.wm has only yabai (darwin) → choices=[yabai], slot present
+        let features = engine.list_wizard_features(true).unwrap();
+        let slot = features[0].slot.as_ref().expect("slot present");
+        assert!(
+            !slot.choices.iter().any(|c| c.id == "komorebi"),
+            "linux-only filtered"
+        );
     }
 }

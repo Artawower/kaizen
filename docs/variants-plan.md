@@ -445,3 +445,36 @@ kaizen sync                                     ← chezmoi apply uses tilingWm=
 > Known limitation: variant nix-modules duplicated between `tiling.darwin.nix` (active) and `features/tiling/variants/*/module.darwin.nix` (declared but not loaded). Will be unified when `feature-loader.nix` learns to consume variants from `features/` tree (step #16, post-MVP).
 
 > Status: **MVP implemented**. Pending review.
+
+## 11. Wizard integration delivered
+
+### What was added
+
+- **`WizardTree` / `WizardNode`** — tree model in core. `WizardNode::Slot` contains `Vec<WizardNode::VariantOption>` children sorted stable-first then lexicographic. Slot only appears when it has **≥ 2** candidates after OS+stability filter.
+- **`VariantResolver::build_wizard_tree(os, include_experimental, current_selections)`** — pure headless method that builds the tree. UI does zero filtering.
+- **`KaizenEngine::build_wizard_tree(include_experimental)`** — single public entry point: detects OS, discovers variants, reads current selections, delegates to resolver.
+- **`KaizenEngine::current_variant_selections()`** — reads `[variants]` from `data.toml`.
+- **`KaizenEngine::apply_variant_selections(selections)`** — replaces `[variants]` block entirely (preserves all other keys).
+- **`write_variant_selections(path, selections, fs)`** in core — full-replace semantics (not merge-append).
+- **`selector::pick_tree(prompt, init_experimental, tree_builder)`** — tree TUI with fold/unfold (`Tab`), radio select (`Space`), experimental toggle (`E`), `j/k` navigation, `Enter` confirm, `q`/`Esc` cancel.
+- **Pure state helpers** (`flatten_visible`, `apply_selection`, `is_changed`, `toggle_fold`, `initial_selections_from_tree`) — all unit-tested without TUI.
+- **`kaizen configure --experimental`** flag — initial value for `E` toggle.
+- **Variant step in wizard** — placed between `pick_features` and `pick_layout`; silently skipped when initial tree is empty.
+- **`kaizen variant list` / `show` removed** — overlap with wizard. `set` / `reset` retained for CI/scripting.
+
+### UX decisions
+
+- **Tree model**: slots are foldable headers, variants are radio children. All unfolded by default.
+- **`E` toggle**: runtime switch between stable-only and all variants. Rebuilds tree on each toggle, preserves fold state and selections.
+- **`--experimental` = initial E state**: `kaizen configure` starts with E=off (stable only), `kaizen configure --experimental` starts with E=on.
+- **Slot visibility rule**: slot hidden when `< 2` candidates remain after filtering. Recalculated on each E-toggle.
+- **Silent skip**: if initial tree (with `--experimental` preset) is empty → `pick_tree` not called.
+- **No-op on unchanged selection**: `Enter` without mutation → `data.toml` not written.
+- **Full replace semantics**: `apply_variant_selections` replaces entire `[variants]` block.
+
+### Post-MVP backlog
+
+- Scrolling when slots grow beyond terminal height.
+- `kaizen doctor` checks: active variant exists, OS matches, required features enabled.
+- E2E wizard test (needs interactive runner).
+- `feature-loader.nix` consuming variants from `features/` tree (step #16) — eliminates dual-store.
