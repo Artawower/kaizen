@@ -29,6 +29,11 @@ kaizen_dir := justfile_directory()
 dev-link:
     ln -s "{{kaizen_dir}}" ~/.local/share/chezmoi
 
+# Apply dotfiles source → home, then upgrade all tools and dependencies
+deploy:
+    kaizen apply
+    kaizen update
+
 # Pull mutable deployed dotfile state back into this repo's dotfiles source
 capture:
     #!/usr/bin/env bash

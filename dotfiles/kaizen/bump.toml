@@ -1,11 +1,7 @@
 [[steps]]
 name = "mise"
 run = ["~/.config/scripts/mise-bump"]
-capture = [
-  "~/.config/mise.lock",
-  "~/.config/mise.toml",
-  "~/.pi/agent/settings.json",
-]
+capture = ["~/.config/mise.lock", "~/.pi/agent/settings.json"]
 
 [[steps]]
 name = "nix"

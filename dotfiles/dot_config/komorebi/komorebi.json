@@ -128,7 +128,6 @@
     { "kind": "Exe", "id": "Raycast", "matching_strategy": "Equals" },
     { "kind": "Exe", "id": "Shottr", "matching_strategy": "Equals" },
     { "kind": "Exe", "id": "LICEcap", "matching_strategy": "Equals" },
-    { "kind": "Exe", "id": "Finder", "matching_strategy": "Equals" },
     { "kind": "Exe", "id": "Simulator", "matching_strategy": "Equals" },
     { "kind": "Exe", "id": "Bitwarden", "matching_strategy": "Equals" },
     { "kind": "Exe", "id": "zoom.us", "matching_strategy": "Equals" },
@@ -158,6 +157,7 @@
   "floating_applications": [
     { "kind": "Exe", "id": "Bitwarden", "matching_strategy": "Equals" },
     { "kind": "Exe", "id": "Marta", "matching_strategy": "Equals" },
-    { "kind": "Exe", "id": "Pearcleaner", "matching_strategy": "Equals" }
+    { "kind": "Exe", "id": "Pearcleaner", "matching_strategy": "Equals" },
+    { "kind": "Exe", "id": "Finder", "matching_strategy": "Equals" }
   ]
 }

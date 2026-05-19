@@ -17,7 +17,9 @@ mod paths;
 mod reporter;
 mod selector;
 
+use chezmoi::StdChezmoiClient;
 use executor::StdProcessExecutor;
+use kaizen_core::chezmoi_client::ChezmoiClient as _;
 use paths::StdPathProvider;
 use reporter::StderrReporter;
 
@@ -208,11 +210,13 @@ fn main() -> Result<()> {
         Command::Doctor => commands::doctor::run(&engine, &config_path)?,
         Command::SelfUpdate { dry_run } => commands::self_update::run(dry_run)?,
         Command::Bump { only, dry_run } => {
+            let source_path = StdChezmoiClient.source_path()?;
             commands::bump::run(
                 &only,
                 dry_run,
                 &StdProcessExecutor,
                 &StdPathProvider,
+                source_path.as_deref(),
                 &engine,
                 &config_path,
                 &StderrReporter,

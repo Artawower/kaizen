@@ -70,7 +70,7 @@ Function for getting config related paths
 ** UI variables
 #+BEGIN_SRC emacs-lisp
 (setq split-width-threshold 150) 
-(setq my/font-height (if (eq system-type 'darwin) 15 14))
+(setq my/font-height (if (eq system-type 'darwin) 18 14))
 (setq my/font-default "Myna Nerd Font")
 (setq my/font-comic   "Myna Nerd Font")
 (setq my/ui-box-padding 6)

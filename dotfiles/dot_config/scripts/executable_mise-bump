@@ -9,9 +9,7 @@ def _chezmoi_source() -> str:
     return result.stdout.strip()
 
 TEMPLATE         = os.path.join(_chezmoi_source(), "dot_config", "mise.toml.tmpl")
-PI_SETTINGS      = os.path.join(_chezmoi_source(), "dot_pi", "agent", "settings.json")
 CONFIG           = os.path.expanduser("~/.config/mise.toml")
-PI_TOOL_KEY      = '"npm:@earendil-works/pi-coding-agent"'
 
 
 def run_mise_upgrade():

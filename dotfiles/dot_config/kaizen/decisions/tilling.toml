@@ -2,13 +2,13 @@ schema_version = 1
 title = "Macos tilling window manager"
 
 [criteria]
-performance = { weight = 0.80, direction = "max", description }
+performance = { weight = 0.80, direction = "max" }
 stacking = { weight = 0.60, direction = "max" }
 native_macos_workspaces = { weight = 0.05, direction = "min" }
 scripting = { weight = 0.40, direction = "max" }
 native_full_screen_management = { weight = 0.15, direction = "max" }
 installation_simplicity = { weight = 0.35, direction = "max" }
-stability ={ weight = 0.9, direction = "max" }
+stability = { weight = 0.9, direction = "max" }
 
 [alternatives.yabai]
 performance = 9.5
