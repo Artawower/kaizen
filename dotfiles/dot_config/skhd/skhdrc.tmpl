@@ -1,4 +1,7 @@
-{{- if eq .layout "colemak" -}}
+{{- $wm := .tiling.wm | default "yabai" -}}
+{{- if eq $wm "komorebi" -}}
+{{ include "dot_config/skhd/skhdrc-komorebi" }}
+{{- else if eq .layout "colemak" -}}
 {{ include "dot_config/skhd/skhdrc-colemak" }}
 {{- else -}}
 {{ include "dot_config/skhd/skhdrc-qwerty" }}

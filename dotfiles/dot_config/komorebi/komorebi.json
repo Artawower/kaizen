@@ -1,0 +1,137 @@
+{
+  "default_workspace_padding": 20,
+  "default_container_padding": 20,
+  "mouse_follows_focus": true,
+  "focus_follows_mouse": null,
+
+  "border_colours": {
+    "single":    { "r": 139, "g": 92,  "b": 246 },
+    "stack":     { "r": 91,  "g": 33,  "b": 182 },
+    "monocle":   { "r": 139, "g": 92,  "b": 246 },
+    "floating":  { "r": 46,  "g": 42,  "b": 58  },
+    "unfocused": { "r": 46,  "g": 42,  "b": 58  }
+  },
+
+  "monitors": [
+    {
+      "workspaces": [
+        {
+          "name": "social",
+          "layout": "BSP",
+          "initial_workspace_rules": [
+            { "kind": "Exe", "id": "Telegram",   "matching_strategy": "Equals" },
+            { "kind": "Exe", "id": "Discord",    "matching_strategy": "Equals" },
+            { "kind": "Exe", "id": "Mattermost", "matching_strategy": "Equals" },
+            { "kind": "Exe", "id": "Slack",      "matching_strategy": "Equals" }
+          ]
+        },
+        {
+          "name": "term",
+          "layout": "BSP",
+          "initial_workspace_rules": [
+            { "kind": "Exe", "id": "Ghostty", "matching_strategy": "Equals" },
+            { "kind": "Exe", "id": "kitty",   "matching_strategy": "Equals" }
+          ]
+        },
+        {
+          "name": "dev",
+          "layout": "BSP",
+          "initial_workspace_rules": [
+            { "kind": "Exe", "id": "Emacs",          "matching_strategy": "Equals" },
+            { "kind": "Exe", "id": "Android Studio", "matching_strategy": "Equals" },
+            { "kind": "Exe", "id": "Xcode",          "matching_strategy": "Equals" }
+          ]
+        },
+        {
+          "name": "other",
+          "layout": "BSP"
+        },
+        {
+          "name": "www",
+          "layout": "BSP",
+          "initial_workspace_rules": [
+            { "kind": "Exe", "id": "Firefox",      "matching_strategy": "Equals" },
+            { "kind": "Exe", "id": "Arc",          "matching_strategy": "Equals" },
+            { "kind": "Exe", "id": "Brave Browser","matching_strategy": "Equals" },
+            { "kind": "Exe", "id": "Safari",       "matching_strategy": "Equals" },
+            { "kind": "Exe", "id": "Google Chrome","matching_strategy": "Equals" }
+          ]
+        },
+        {
+          "name": "entertainment",
+          "layout": "BSP",
+          "initial_workspace_rules": [
+            { "kind": "Exe", "id": "Spotify", "matching_strategy": "Equals" }
+          ]
+        },
+        {
+          "name": "thrash",
+          "layout": "BSP",
+          "initial_workspace_rules": [
+            { "kind": "Exe", "id": "Session",  "matching_strategy": "Equals" },
+            { "kind": "Exe", "id": "TickTick", "matching_strategy": "Equals" }
+          ]
+        },
+        {
+          "name": "study",
+          "layout": "BSP",
+          "workspace_padding": 64,
+          "container_padding": 32,
+          "initial_workspace_rules": [
+            { "kind": "Exe", "id": "Obsidian", "matching_strategy": "Equals" }
+          ]
+        },
+        {
+          "name": "ai",
+          "layout": "BSP",
+          "workspace_padding": 64,
+          "container_padding": 64,
+          "initial_workspace_rules": [
+            { "kind": "Exe", "id": "ChatGPT",          "matching_strategy": "Equals" },
+            { "kind": "Exe", "id": "MongoDB Compass",  "matching_strategy": "Equals" }
+          ]
+        },
+        {
+          "name": "load",
+          "layout": "BSP",
+          "initial_workspace_rules": [
+            { "kind": "Exe", "id": "WebTorrent", "matching_strategy": "Equals" }
+          ]
+        }
+      ]
+    }
+  ],
+
+  "ignore_rules": [
+    { "kind": "Exe", "id": "Raycast",          "matching_strategy": "Equals" },
+    { "kind": "Exe", "id": "Shottr",           "matching_strategy": "Equals" },
+    { "kind": "Exe", "id": "LICEcap",          "matching_strategy": "Equals" },
+    { "kind": "Exe", "id": "Finder",           "matching_strategy": "Equals" },
+    { "kind": "Exe", "id": "Simulator",        "matching_strategy": "Equals" },
+    { "kind": "Exe", "id": "Bitwarden",        "matching_strategy": "Equals" },
+    { "kind": "Exe", "id": "zoom.us",          "matching_strategy": "Equals" },
+    { "kind": "Exe", "id": "Kap",              "matching_strategy": "Equals" },
+    { "kind": "Exe", "id": "Spark",            "matching_strategy": "Equals" },
+    { "kind": "Exe", "id": "System Preferences","matching_strategy": "Equals" },
+    { "kind": "Exe", "id": "System Settings",  "matching_strategy": "Equals" },
+    { "kind": "Exe", "id": "Pika",             "matching_strategy": "Equals" },
+    { "kind": "Exe", "id": "Grammarly Desktop","matching_strategy": "Equals" },
+    { "kind": "Exe", "id": "Xnip",             "matching_strategy": "Equals" },
+    { "kind": "Exe", "id": "Flameshot",        "matching_strategy": "Equals" },
+    { "kind": "Exe", "id": "Loom",             "matching_strategy": "Equals" },
+    { "kind": "Exe", "id": "App Store",        "matching_strategy": "Equals" },
+    { "kind": "Exe", "id": "Preview",          "matching_strategy": "Equals" },
+    { "kind": "Exe", "id": "OrbStack",         "matching_strategy": "Equals" },
+    { "kind": "Exe", "id": "Hearthstone",      "matching_strategy": "Equals" },
+    { "kind": "Exe", "id": "Authy Desktop",    "matching_strategy": "Equals" },
+    { "kind": "Exe", "id": "OpenVPN Connect",  "matching_strategy": "Equals" }
+  ],
+
+  "tabbed_applications": ["Ghostty"],
+
+  "floating_applications": [
+    { "kind": "Exe", "id": "Bitwarden", "matching_strategy": "Equals" },
+    { "kind": "Exe", "id": "Marta",     "matching_strategy": "Equals" },
+    { "kind": "Exe", "id": "Pearcleaner","matching_strategy": "Equals" }
+  ]
+}

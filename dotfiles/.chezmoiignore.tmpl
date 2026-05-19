@@ -11,6 +11,8 @@ kaizen/
 {{- $wm := .tiling.wm | default "yabai" }}
 {{- if ne $wm "yabai" }}
 .config/yabai/
+{{- end }}
+{{- if and (ne $wm "yabai") (ne $wm "komorebi") }}
 .config/skhd/
 {{- end }}
 {{- if ne $wm "aerospace" }}
@@ -18,6 +20,9 @@ kaizen/
 {{- end }}
 {{- if ne $wm "glazewm" }}
 .glzr/glazewm/
+{{- end }}
+{{- if ne $wm "komorebi" }}
+.config/komorebi/
 {{- end }}
 {{- else if eq .chezmoi.os "linux" }}
 .config/skhd/

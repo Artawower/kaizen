@@ -1,0 +1,97 @@
+:: default : PATH=/opt/homebrew/bin:/Users/darkawower/.nix-profile/bin:$PATH
+
+# ── FOCUS ─────────────────────────────────────────────────────────────────────
+ralt + rshift - h : komorebic focus left
+ralt + rshift - n : komorebic focus down
+ralt + rshift - e : komorebic focus up
+ralt + rshift - i : komorebic focus right
+
+# ── MOVE WINDOW (direction) ───────────────────────────────────────────────────
+ralt + rshift + lcmd - h : komorebic move left
+ralt + rshift + lcmd - n : komorebic move down
+ralt + rshift + lcmd - e : komorebic move up
+ralt + rshift + lcmd - i : komorebic move right
+
+# ── RESIZE (vertical only; h/i taken by workspace nav) ───────────────────────
+lctrl + ralt + rshift - n : komorebic resize-axis vertical increase
+lctrl + ralt + rshift - e : komorebic resize-axis vertical decrease
+
+# ── WORKSPACE FOCUS prev/next ─────────────────────────────────────────────────
+lctrl + ralt + rshift - h : komorebic cycle-workspace previous
+lctrl + ralt + rshift - i : komorebic cycle-workspace next
+
+# ── STACK ─────────────────────────────────────────────────────────────────────
+lalt + ralt + rshift - h : komorebic stack left
+lalt + ralt + rshift - i : komorebic stack right
+lalt + ralt + rshift - n : komorebic cycle-stack next
+lalt + ralt + rshift - e : komorebic cycle-stack previous
+lalt + ralt + rshift - q : komorebic unstack
+lalt + ralt + rshift - y : komorebic stack-all
+
+# ── FLOAT ─────────────────────────────────────────────────────────────────────
+lcmd + ralt + rshift - c     : komorebic toggle-float
+lcmd + ralt + rshift - space : komorebic toggle-float
+
+# ── MONOCLE ───────────────────────────────────────────────────────────────────
+ralt + rshift - f       : komorebic toggle-monocle
+lcmd + ralt + rshift - f : komorebic toggle-monocle
+
+# ── LAYOUT CYCLE ─────────────────────────────────────────────────────────────
+lcmd + ralt + rshift - v : komorebic cycle-layout next
+
+# ── WORKSPACE FOCUS by number ────────────────────────────────────────────────
+ralt + rshift - 1 : komorebic focus-workspace 0
+ralt + rshift - 2 : komorebic focus-workspace 1
+ralt + rshift - 3 : komorebic focus-workspace 2
+ralt + rshift - 4 : komorebic focus-workspace 3
+ralt + rshift - 5 : komorebic focus-workspace 4
+ralt + rshift - 6 : komorebic focus-workspace 5
+ralt + rshift - 7 : komorebic focus-workspace 6
+ralt + rshift - 8 : komorebic focus-workspace 7
+ralt + rshift - 9 : komorebic focus-workspace 8
+ralt + rshift - 0 : komorebic focus-workspace 9
+
+# ── WORKSPACE FOCUS by letter ────────────────────────────────────────────────
+ralt + rshift - a : komorebic focus-named-workspace ai
+ralt + rshift - s : komorebic focus-named-workspace social
+ralt + rshift - w : komorebic focus-named-workspace www
+ralt + rshift - d : komorebic focus-named-workspace dev
+ralt + rshift - u : komorebic focus-named-workspace thrash
+ralt + rshift - t : komorebic focus-named-workspace term
+ralt + rshift - r : komorebic focus-named-workspace entertainment
+ralt + rshift - l : komorebic focus-named-workspace study
+ralt + rshift - o : komorebic focus-named-workspace other
+
+# ── MOVE WINDOW to workspace by number ───────────────────────────────────────
+lcmd + ralt + rshift - 1 : komorebic move-to-workspace 0
+lcmd + ralt + rshift - 2 : komorebic move-to-workspace 1
+lcmd + ralt + rshift - 3 : komorebic move-to-workspace 2
+lcmd + ralt + rshift - 4 : komorebic move-to-workspace 3
+lcmd + ralt + rshift - 5 : komorebic move-to-workspace 4
+lcmd + ralt + rshift - 6 : komorebic move-to-workspace 5
+lcmd + ralt + rshift - 7 : komorebic move-to-workspace 6
+lcmd + ralt + rshift - 8 : komorebic move-to-workspace 7
+lcmd + ralt + rshift - 9 : komorebic move-to-workspace 8
+lcmd + ralt + rshift - 0 : komorebic move-to-workspace 9
+
+# ── MOVE WINDOW to workspace by letter ───────────────────────────────────────
+lcmd + ralt + rshift - a : komorebic move-to-named-workspace ai
+lcmd + ralt + rshift - s : komorebic move-to-named-workspace social
+lcmd + ralt + rshift - w : komorebic move-to-named-workspace www
+lcmd + ralt + rshift - d : komorebic move-to-named-workspace dev
+lcmd + ralt + rshift - u : komorebic move-to-named-workspace thrash
+lcmd + ralt + rshift - t : komorebic move-to-named-workspace term
+lcmd + ralt + rshift - r : komorebic move-to-named-workspace entertainment
+lcmd + ralt + rshift - l : komorebic move-to-named-workspace study
+lcmd + ralt + rshift - o : komorebic move-to-named-workspace other
+
+# ── MOVE WINDOW prev/next workspace ──────────────────────────────────────────
+lcmd + ralt + rshift - n : komorebic cycle-move-to-workspace next
+lcmd + ralt + rshift - p : komorebic cycle-move-to-workspace previous
+
+# ── RELOAD ────────────────────────────────────────────────────────────────────
+lalt + ralt + rshift - r : komorebic reload-configuration
+
+# ── APP LAUNCHERS ─────────────────────────────────────────────────────────────
+ralt + rshift        - return : open -na Ghostty.app
+lcmd + ralt + rshift - return : open -na WezTerm.app

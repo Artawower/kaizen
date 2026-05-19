@@ -12,6 +12,7 @@ in
     "koekeishiya/formulae"
     "nikitabobko/tap"
     "glzr-io/tap"
+    "lgug2z/tap"
   ];
 
   darwinBrews = lib.flatten [
@@ -22,6 +23,10 @@ in
     (lib.optionals (wm == "yabai") [
       { name = "koekeishiya/formulae/yabai"; }
       { name = "koekeishiya/formulae/skhd"; }
+    ])
+    (lib.optionals (wm == "komorebi") [
+      { name = "koekeishiya/formulae/skhd"; }
+      { name = "lgug2z/tap/komorebi-for-mac"; }
     ])
   ];
 

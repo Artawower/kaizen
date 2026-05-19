@@ -28,4 +28,4 @@ research = "openai/gpt-5.4"
 reviewer = "anthropic/claude-sonnet-4-6"
 
 [tiling]
-wm = "glazewm"
+wm = "komorebi"

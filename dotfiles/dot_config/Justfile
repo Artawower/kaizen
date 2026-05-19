@@ -34,6 +34,7 @@ nix:
     #!/usr/bin/env bash
     set -euo pipefail
     chezmoi apply --force
+    git -C "$HOME/.config" add -A
     case "$(uname -s)" in
         Darwin)
             sudo -v

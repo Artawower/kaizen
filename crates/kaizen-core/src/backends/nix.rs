@@ -574,6 +574,16 @@ impl InstallBackend for NixSyncBackend {
         }
 
         if self.os == TargetOs::Darwin {
+            // Nix flakes require files to be git-tracked. After chezmoi apply
+            // deploys new files to ~/.config they are untracked — stage them
+            // so darwin-rebuild can see the flake.
+            if let Some(home) = self.runtime.paths.home_dir() {
+                reporter.step("→ git add ~/.config");
+                let _ = self.runtime.executor.execute(
+                    ProcessCommand::run("git", ["-C", home.join(".config").to_str().unwrap_or(""), "add", "-A"])
+                );
+            }
+
             // Unlink source formulas before darwin-rebuild so brew bundle can
             // relink cleanly without "already exists" symlink conflicts from
             // previous installations (e.g. share/info/emacs/dir).

@@ -1,0 +1,13 @@
+id = "komorebi"
+slot = "tiling.wm"
+title = "komorebi-for-mac (yabai-like, skhd-native)"
+stability = "experimental"
+platforms = ["darwin"]
+default = false
+
+[provides]
+nix_modules = ["module.darwin.nix"]
+dotfile_paths = ["dot_config/komorebi/", "dot_config/skhd/skhdrc-komorebi"]
+
+[hooks]
+post_apply = ["komorebic start --bar || true"]
