@@ -19,8 +19,10 @@ result = subprocess.run(
 )
 
 if result.returncode != 0:
+    # Print errors but continue — partial failures (broken npm packages etc.)
+    # should not block version bumping for everything else.
     print(result.stderr, file=sys.stderr)
-    sys.exit(1)
+    print("Warning: some tools failed to upgrade, continuing with version bump...", file=sys.stderr)
 
 bumped = {}
 with open(CONFIG) as f:

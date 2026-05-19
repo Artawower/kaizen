@@ -1,9 +1,18 @@
 [[steps]]
 name = "mise"
 run = ["~/.config/scripts/mise-bump"]
-capture = ["~/.config/mise.lock"]
+capture = [
+  "~/.config/mise.lock",
+  "~/.config/mise.toml",
+  "~/.pi/agent/settings.json",
+]
 
 [[steps]]
 name = "nix"
 run = ["nix", "flake", "update", "--flake", "~/.config/nix"]
 capture = ["~/.config/nix/flake.lock"]
+
+[[steps]]
+name = "apply"
+run = ["chezmoi", "apply", "--force"]
+capture = []

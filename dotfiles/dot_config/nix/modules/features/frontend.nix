@@ -18,6 +18,7 @@ in
       conf.packages.nix = with pkgs; [
         lua-language-server
         google-java-format
+        mermaid-cli
       ];
     })
   ];

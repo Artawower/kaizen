@@ -1,0 +1,47 @@
+schema_version = 1
+title = "Macos tilling window manager"
+
+[criteria]
+performance = { weight = 0.80, direction = "max", description }
+stacking = { weight = 0.60, direction = "max" }
+native_macos_workspaces = { weight = 0.05, direction = "min" }
+scripting = { weight = 0.40, direction = "max" }
+native_full_screen_management = { weight = 0.15, direction = "max" }
+installation_simplicity = { weight = 0.35, direction = "max" }
+stability ={ weight = 0.9, direction = "max" }
+
+[alternatives.yabai]
+performance = 9.5
+stacking = 10
+native_macos_workspaces = 10
+scripting = 10
+native_full_screen_management = 10
+installation_simplicity = 2
+stability = 3.0
+
+[alternatives.aerospace]
+performance = 8
+stacking = 10
+native_macos_workspaces = 0
+scripting = 3
+native_full_screen_management = 0
+installation_simplicity = 9
+stability = 8
+
+[alternatives.komorebi]
+performance = 6
+stacking = 10
+native_macos_workspaces = 0
+scripting = 9
+native_full_screen_management = 0
+installation_simplicity = 7
+stability = 4
+
+[alternatives.glazewm]
+performance = 6
+stacking = 0
+native_macos_workspaces = 0
+scripting = 8
+native_full_screen_management = 0
+installation_simplicity = 4
+stability = 4
