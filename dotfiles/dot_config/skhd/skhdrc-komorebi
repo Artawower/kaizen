@@ -1,10 +1,10 @@
 :: default : PATH=/opt/homebrew/bin:/Users/darkawower/.nix-profile/bin:$PATH
 
 # ── FOCUS ─────────────────────────────────────────────────────────────────────
-ralt + rshift - h : komorebic focus left
-ralt + rshift - n : komorebic focus down
-ralt + rshift - e : komorebic focus up
-ralt + rshift - i : komorebic focus right
+ralt + rshift - h : ~/.config/komorebi/scripts/focus.sh left
+ralt + rshift - n : ~/.config/komorebi/scripts/stack-cycle.sh next
+ralt + rshift - e : ~/.config/komorebi/scripts/stack-cycle.sh previous
+ralt + rshift - i : ~/.config/komorebi/scripts/focus.sh right
 
 # ── MOVE WINDOW (direction) ───────────────────────────────────────────────────
 ralt + rshift + lcmd - h : komorebic move left
