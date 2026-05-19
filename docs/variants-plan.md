@@ -417,6 +417,9 @@ implements steps 1–8 of the roadmap.
 | `dotfiles/dot_config/nix/modules/features/tiling.darwin.nix` | Branches on `user.tilingWm` for brew casks/formulas/taps/activation.                                                                                                                             |
 | `dotfiles/dot_config/nix/user.nix.tmpl`                      | Exposes `tilingWm` to Nix evaluation.                                                                                                                                                            |
 | `dotfiles/dot_config/aerospace/aerospace.toml`               | Minimal working aerospace config.                                                                                                                                                                |
+| `features/tiling/variants/glazewm/variant.toml`              | Third variant: GlazeWM (i3-like, cross-platform, experimental). Installs via `glzr-io/tap` cask alongside Zebar status bar.                                                                      |
+| `features/tiling/variants/glazewm/module.darwin.nix`         | Homebrew tap `glzr-io/tap`, casks `glazewm` + `zebar`. No brews.                                                                                                                                 |
+| `dotfiles/dot_config/glazewm/config.yaml`                    | Full GlazeWM config adapted from yabai+skhd: 10 named workspaces, app rules, Colemak keybindings (h=left, n=down, e=up, i=right), purple focus borders.                                          |
 
 ### End-to-end flow
 

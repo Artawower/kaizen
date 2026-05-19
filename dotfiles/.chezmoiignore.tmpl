@@ -16,6 +16,9 @@ kaizen/
 {{- if ne $wm "aerospace" }}
 .config/aerospace/
 {{- end }}
+{{- if ne $wm "glazewm" }}
+.glzr/glazewm/
+{{- end }}
 {{- else if eq .chezmoi.os "linux" }}
 .config/skhd/
 .config/aerospace/

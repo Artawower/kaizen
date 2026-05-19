@@ -1,0 +1,331 @@
+# GlazeWM config — from skhdrc-colemak, physical QWERTY keys
+#
+# GlazeWM uses physical key positions (QWERTY), skhd used typed characters (Colemak).
+# Every key name here is the QWERTY label on the physical key the user presses.
+#
+# Navigation: Colemak h/n/e/i = physical QWERTY h/j/k/l
+# Workspaces : Colemak s/d/u/t/r/l = physical QWERTY d/g/i/f/s/u
+#
+# Skipped (no GlazeWM equivalent): rotate, mirror, stack, borders,
+#   wallboy, python scripts, opacity, yabai service restart.
+
+general:
+  startup_commands: ["shell-exec zebar"]
+  shutdown_commands: ["shell-exec pkill zebar"]
+  config_reload_commands: []
+  cursor_jump:
+    enabled: true
+    trigger: "window_focus"
+  focus_follows_cursor: false
+  toggle_workspace_on_refocus: false
+
+gaps:
+  scale_with_dpi: true
+  inner_gap: "20px"
+  outer_gap:
+    top: "20px"
+    right: "20px"
+    bottom: "20px"
+    left: "20px"
+
+window_effects:
+  focused_window:
+    border:
+      enabled: true
+      color: "#8b5cf6"
+      width: "2px"
+      radius: "8px"
+  other_windows:
+    border:
+      enabled: true
+      color: "#2e2a3a"
+      width: "2px"
+      radius: "8px"
+
+workspaces:
+  - name: "1"
+    display_name: "social"
+    keep_alive: true
+  - name: "2"
+    display_name: "term"
+    keep_alive: true
+  - name: "3"
+    display_name: "dev"
+    keep_alive: true
+  - name: "4"
+    display_name: "other"
+    keep_alive: true
+  - name: "5"
+    display_name: "www"
+    keep_alive: true
+  - name: "6"
+    display_name: "entertainment"
+    keep_alive: true
+  - name: "7"
+    display_name: "thrash"
+    keep_alive: true
+  - name: "8"
+    display_name: "study"
+    keep_alive: true
+  - name: "9"
+    display_name: "ai"
+    keep_alive: true
+  - name: "10"
+    display_name: "load"
+    keep_alive: true
+
+window_rules:
+  - commands: ["ignore"]
+    match:
+      - window_process: { regex: "^Raycast$" }
+  - commands: ["ignore"]
+    match:
+      - window_process: { regex: "^Shottr$" }
+  - commands: ["ignore"]
+    match:
+      - window_process: { regex: "^LICEcap$" }
+  - commands: ["ignore"]
+    match:
+      - window_process: { regex: "^Finder$" }
+  - commands: ["ignore"]
+    match:
+      - window_process: { regex: "^Simulator$" }
+  - commands: ["ignore"]
+    match:
+      - window_process: { regex: "^Bitwarden$" }
+  - commands: ["ignore"]
+    match:
+      - window_process: { regex: '^zoom\.us$' }
+  - commands: ["ignore"]
+    match:
+      - window_process: { regex: "^Kap$" }
+  - commands: ["ignore"]
+    match:
+      - window_process: { regex: "^Spark$" }
+  - commands: ["ignore"]
+    match:
+      - window_process: { regex: "^System (Preferences|Settings)$" }
+  - commands: ["ignore"]
+    match:
+      - window_process: { regex: "^Pika$" }
+  - commands: ["ignore"]
+    match:
+      - window_process: { regex: "^Loom$" }
+  - commands: ["ignore"]
+    match:
+      - window_process: { regex: "^App Store$" }
+  - commands: ["ignore"]
+    match:
+      - window_process: { regex: "^Preview$" }
+  - commands: ["ignore"]
+    match:
+      - window_process: { regex: "^OrbStack$" }
+
+  - commands: ["move --workspace 1"]
+    match:
+      - window_process: { regex: "^Telegram$" }
+  - commands: ["move --workspace 1"]
+    match:
+      - window_process: { regex: "^Discord$" }
+  - commands: ["move --workspace 1"]
+    match:
+      - window_process: { regex: "^Mattermost$" }
+  - commands: ["move --workspace 1"]
+    match:
+      - window_process: { regex: "^Slack$" }
+  - commands: ["move --workspace 2"]
+    match:
+      - window_process: { regex: "^Ghostty$" }
+  - commands: ["move --workspace 3"]
+    match:
+      - window_process: { regex: "^Emacs$" }
+  - commands: ["move --workspace 3"]
+    match:
+      - window_process: { regex: "^Xcode$" }
+  - commands: ["move --workspace 5"]
+    match:
+      - window_process: { regex: "^Firefox$" }
+  - commands: ["move --workspace 5"]
+    match:
+      - window_process: { regex: "^Arc$" }
+  - commands: ["move --workspace 5"]
+    match:
+      - window_process: { regex: "^Brave Browser$" }
+  - commands: ["move --workspace 5"]
+    match:
+      - window_process: { regex: "^Safari$" }
+  - commands: ["move --workspace 6"]
+    match:
+      - window_process: { regex: "^Spotify$" }
+  - commands: ["move --workspace 8"]
+    match:
+      - window_process: { regex: "^Obsidian$" }
+  - commands: ["move --workspace 9"]
+    match:
+      - window_process: { regex: "^ChatGPT$" }
+  - commands: ["move --workspace 10"]
+    match:
+      - window_process: { regex: "^WebTorrent$" }
+
+keybindings:
+  # ── FOCUS (skhd: ralt+rshift - {i,h,n,e}) ───────────────────
+  # i=east  h=west  n=cycle-next≈down  e=cycle-prev≈up
+  # Colemak i=phys l  n=phys j  e=phys k  h=phys h
+  - commands: ["focus --direction right"]
+    bindings: ["ralt+rshift+l"] # skhd: ralt+rshift-i  (Colemak i = phys l)
+  - commands: ["focus --direction left"]
+    bindings: ["ralt+rshift+h"] # skhd: ralt+rshift-h  (same)
+  - commands: ["focus --direction down"]
+    bindings: ["ralt+rshift+j"] # skhd: ralt+rshift-n  (Colemak n = phys j)
+  - commands: ["focus --direction up"]
+    bindings: ["ralt+rshift+k"] # skhd: ralt+rshift-e  (Colemak e = phys k)
+
+  # ── MOVE WINDOW direction (skhd: ralt+rshift+lshift-i / ralt+rshift+lcmd-{h,n,e}) ──
+  - commands: ["move --direction right"]
+    bindings: ["ralt+rshift+lcmd+l"]     # lshift replaced: macOS rshift also sets lshift flag, causing focus/move collision
+  - commands: ["move --direction left"]
+    bindings: ["ralt+rshift+lcmd+h"] # skhd: ralt+rshift+lcmd-h    (same)
+  - commands: ["move --direction down"]
+    bindings: ["ralt+rshift+lcmd+j"] # skhd: ralt+rshift+lcmd-n    (phys j)
+  - commands: ["move --direction up"]
+    bindings: ["ralt+rshift+lcmd+k"] # skhd: ralt+rshift+lcmd-e    (phys k)
+
+  # ── RESIZE (skhd: lctrl+ralt+rshift - {h,n,e,i}) ────────────
+  - commands: ["resize --width -2%"]
+    bindings: ["lctrl+ralt+rshift+h"] # skhd: lctrl+ralt+rshift-h  (same)
+  - commands: ["resize --height +2%"]
+    bindings: ["lctrl+ralt+rshift+j"] # skhd: lctrl+ralt+rshift-n  (phys j)
+  - commands: ["resize --height -2%"]
+    bindings: ["lctrl+ralt+rshift+k"] # skhd: lctrl+ralt+rshift-e  (phys k)
+  - commands: ["resize --width +2%"]
+    bindings: ["lctrl+ralt+rshift+l"] # skhd: lctrl+ralt+rshift-i  (phys l)
+
+  # ── LAYOUT TOGGLE (skhd: ralt+rshift+lcmd-v) ─────────────────
+  # v=same in Colemak
+  - commands: ["toggle-tiling-direction"]
+    bindings: ["ralt+rshift+lcmd+v", "ralt+rshift+v"]
+
+  # ── FLOAT (skhd: lcmd+ralt+rshift-c  and  lcmd+ralt+rshift-space) ──
+  # c=same in Colemak
+  - commands: ["toggle-floating"]
+    bindings: ["lcmd+ralt+rshift+c"]
+  - commands: ["toggle-floating"]
+    bindings: ["lcmd+ralt+rshift+space"]
+
+  # ── FULLSCREEN (skhd: ralt+rshift-f  and  lcmd+ralt+rshift-f) ──
+  # Colemak f = phys e
+  - commands: ["toggle-fullscreen"]
+    bindings: ["ralt+rshift+e"] # skhd: ralt+rshift-f  (Colemak f = phys e)
+  - commands: ["toggle-fullscreen"]
+    bindings: ["lcmd+ralt+rshift+e"] # skhd: lcmd+ralt+rshift-f
+
+  # ── CLOSE (skhd: ralt+rshift-q  and  cmd+ralt+rshift-x) ─────
+  # q=same, x=same
+  - commands: ["close"]
+    bindings: ["ralt+rshift+q"]
+  - commands: ["close"]
+    bindings: ["lcmd+ralt+rshift+x"]
+
+  # ── RELOAD (skhd: lalt+ralt+rshift-r → restart yabai) ───────
+  # Colemak r = phys s
+  - commands: ["wm-reload-config"]
+    bindings: ["lalt+ralt+rshift+s"] # skhd: lalt+ralt+rshift-r  (Colemak r = phys s)
+
+  # ── WORKSPACE FOCUS — number (skhd: ralt+rshift-{1..9,0}) ───
+  - commands: ["focus --workspace 1"]
+    bindings: ["ralt+rshift+1"]
+  - commands: ["focus --workspace 2"]
+    bindings: ["ralt+rshift+2"]
+  - commands: ["focus --workspace 3"]
+    bindings: ["ralt+rshift+3"]
+  - commands: ["focus --workspace 4"]
+    bindings: ["ralt+rshift+4"]
+  - commands: ["focus --workspace 5"]
+    bindings: ["ralt+rshift+5"]
+  - commands: ["focus --workspace 6"]
+    bindings: ["ralt+rshift+6"]
+  - commands: ["focus --workspace 7"]
+    bindings: ["ralt+rshift+7"]
+  - commands: ["focus --workspace 8"]
+    bindings: ["ralt+rshift+8"]
+  - commands: ["focus --workspace 9"]
+    bindings: ["ralt+rshift+9"]
+  - commands: ["focus --workspace 10"]
+    bindings: ["ralt+rshift+0"]
+
+  # ── WORKSPACE FOCUS — letter (skhd: ralt+rshift-{a,s,w,d,u,t,r,l,o}) ──
+  # Each: skhd-key (Colemak-char) → physical QWERTY → GlazeWM key
+  - commands: ["focus --workspace 9"]
+    bindings: ["ralt+rshift+a"] # skhd: a  (a=a, same)
+  - commands: ["focus --workspace 1"]
+    bindings: ["ralt+rshift+d"] # skhd: s  (Colemak s = phys d)
+  - commands: ["focus --workspace 5"]
+    bindings: ["ralt+rshift+w"] # skhd: w  (w=w, same)
+  - commands: ["focus --workspace 3"]
+    bindings: ["ralt+rshift+g"] # skhd: d  (Colemak d = phys g)
+  - commands: ["focus --workspace 7"]
+    bindings: ["ralt+rshift+i"] # skhd: u  (Colemak u = phys i)
+  - commands: ["focus --workspace 2"]
+    bindings: ["ralt+rshift+f"] # skhd: t  (Colemak t = phys f)
+  - commands: ["focus --workspace 6"]
+    bindings: ["ralt+rshift+s"] # skhd: r  (Colemak r = phys s)
+  - commands: ["focus --workspace 8"]
+    bindings: ["ralt+rshift+u"] # skhd: l  (Colemak l = phys u)
+  - commands: ["focus --workspace 4"]
+    bindings: ["ralt+rshift+oem_semicolon"] # skhd: o  (Colemak o = phys ;)
+
+  # ── WORKSPACE FOCUS — prev/next (skhd: lctrl+ralt+rshift-left/right) ──
+  - commands: ["focus --prev-active-workspace"]
+    bindings: ["lctrl+ralt+rshift+left"]
+  - commands: ["focus --next-active-workspace"]
+    bindings: ["lctrl+ralt+rshift+right"]
+
+  # ── MOVE WINDOW to workspace — number (skhd: lcmd+ralt+rshift-{1..9,0}) ──
+  - commands: ["move --workspace 1", "focus --workspace 1"]
+    bindings: ["lcmd+ralt+rshift+1"]
+  - commands: ["move --workspace 2", "focus --workspace 2"]
+    bindings: ["lcmd+ralt+rshift+2"]
+  - commands: ["move --workspace 3", "focus --workspace 3"]
+    bindings: ["lcmd+ralt+rshift+3"]
+  - commands: ["move --workspace 4", "focus --workspace 4"]
+    bindings: ["lcmd+ralt+rshift+4"]
+  - commands: ["move --workspace 5", "focus --workspace 5"]
+    bindings: ["lcmd+ralt+rshift+5"]
+  - commands: ["move --workspace 6", "focus --workspace 6"]
+    bindings: ["lcmd+ralt+rshift+6"]
+  - commands: ["move --workspace 7", "focus --workspace 7"]
+    bindings: ["lcmd+ralt+rshift+7"]
+  - commands: ["move --workspace 8", "focus --workspace 8"]
+    bindings: ["lcmd+ralt+rshift+8"]
+  - commands: ["move --workspace 9", "focus --workspace 9"]
+    bindings: ["lcmd+ralt+rshift+9"]
+  - commands: ["move --workspace 10", "focus --workspace 10"]
+    bindings: ["lcmd+ralt+rshift+0"]
+
+  # ── MOVE WINDOW to workspace — letter (skhd: lcmd+ralt+rshift-{d,w,s,u,t,r,a,o,l}) ──
+  - commands: ["move --workspace 3", "focus --workspace 3"]
+    bindings: ["lcmd+ralt+rshift+g"] # skhd: d  (Colemak d = phys g)
+  - commands: ["move --workspace 5", "focus --workspace 5"]
+    bindings: ["lcmd+ralt+rshift+w"] # skhd: w  (same)
+  - commands: ["move --workspace 1", "focus --workspace 1"]
+    bindings: ["lcmd+ralt+rshift+d"] # skhd: s  (Colemak s = phys d)
+  - commands: ["move --workspace 7", "focus --workspace 7"]
+    bindings: ["lcmd+ralt+rshift+i"] # skhd: u  (Colemak u = phys i)
+  - commands: ["move --workspace 2", "focus --workspace 2"]
+    bindings: ["lcmd+ralt+rshift+f"] # skhd: t  (Colemak t = phys f)
+  - commands: ["move --workspace 6", "focus --workspace 6"]
+    bindings: ["lcmd+ralt+rshift+s"] # skhd: r  (Colemak r = phys s)
+  - commands: ["move --workspace 9", "focus --workspace 9"]
+    bindings: ["lcmd+ralt+rshift+a"] # skhd: a  (same)
+  - commands: ["move --workspace 4", "focus --workspace 4"]
+    bindings: ["lcmd+ralt+rshift+oem_semicolon"] # skhd: o (Colemak o = phys ;)
+  - commands: ["move --workspace 8", "focus --workspace 8"]
+    bindings: ["lcmd+ralt+rshift+u"] # skhd: l  (Colemak l = phys u)
+
+  # ── MOVE WINDOW — prev/next: GlazeWM has no relative move, use lcmd+ralt+rshift+{1..9}
+
+  # ── APP LAUNCHERS ─────────────────────────────────────────────
+  - commands: ["shell-exec open -na Ghostty.app"]
+    bindings: ["ralt+rshift+return"]
+  - commands: ["shell-exec open -na WezTerm.app"]
+    bindings: ["lcmd+ralt+rshift+return"]

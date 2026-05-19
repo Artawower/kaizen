@@ -11,6 +11,7 @@ in
     "FelixKratz/formulae"
     "koekeishiya/formulae"
     "nikitabobko/tap"
+    "glzr-io/tap"
   ];
 
   darwinBrews = lib.flatten [
@@ -24,7 +25,13 @@ in
     ])
   ];
 
-  darwinCasks = lib.optionals (wm == "aerospace") [ "nikitabobko/tap/aerospace" ];
+  darwinCasks = lib.flatten [
+    (lib.optionals (wm == "aerospace") [ "nikitabobko/tap/aerospace" ])
+    (lib.optionals (wm == "glazewm") [
+      "glzr-io/tap/glazewm"
+      "glzr-io/tap/zebar"
+    ])
+  ];
 
   darwinActivationScripts = lib.optionalAttrs (wm == "yabai") {
     yabaiSudoExtra = ''
