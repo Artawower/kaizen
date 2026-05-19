@@ -2,6 +2,7 @@ use std::path::Path;
 
 use anyhow::Result;
 use kaizen_core::{KaizenEngine, SyncBackend, SyncOpts, TargetOs};
+use owo_colors::OwoColorize;
 
 use crate::backend::detect_backend;
 
@@ -37,6 +38,13 @@ fn run_with(
         for step in &preview.steps {
             println!("  {:<25} {}", step.label, step.command);
         }
+        if !plan.hook_plan.post_apply.is_empty() {
+            println!();
+            output::header("post_apply hooks (dry-run)");
+            for cmd in &plan.hook_plan.post_apply {
+                println!("  {}  {}", "$".dimmed(), cmd);
+            }
+        }
         println!();
         println!("  Run without --dry-run to apply.");
         return Ok(());
@@ -49,6 +57,12 @@ fn run_with(
             force,
         },
         &StderrReporter,
+    )?;
+
+    crate::hooks::run(
+        &plan.hook_plan.post_apply,
+        dry_run,
+        &crate::hooks::ShellHookRunner,
     )?;
 
     println!();

@@ -8,3 +8,6 @@ default = false
 [provides]
 nix_modules = ["module.darwin.nix"]
 dotfile_paths = ["dot_config/aerospace/"]
+
+[hooks]
+post_apply = ["open -a AeroSpace || true"]

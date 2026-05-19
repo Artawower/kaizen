@@ -93,6 +93,9 @@ pub struct VariantManifest {
     /// Description of the parent slot, loaded from `feature.toml [[slots]]`.
     #[serde(skip)]
     pub slot_description: Option<String>,
+    /// Hooks executed after the variant is applied.
+    #[serde(default)]
+    pub hooks: crate::feature::HooksSection,
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
@@ -341,6 +344,7 @@ mod tests {
             requires: VariantRequires::default(),
             dir: PathBuf::new(),
             slot_description: None,
+            hooks: crate::feature::HooksSection::default(),
         }
     }
 

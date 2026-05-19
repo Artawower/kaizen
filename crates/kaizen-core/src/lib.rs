@@ -226,7 +226,22 @@ impl KaizenEngine {
                 Arc::clone(&self.fs),
             )
         });
-        merge::build_plan(config, &store, &all_names, target_os)
+        let mut plan = merge::build_plan(config, &store, &all_names, target_os)?;
+        // Append post_apply hooks from the active variant for each slot.
+        if let Some(ref variants_dir) = self.variants_dir {
+            let os = TargetOs::detect();
+            let current_selections = self.current_variant_selections()?;
+            let variants = discover_variants(variants_dir, self.fs.as_ref())?;
+            let resolver = VariantResolver::new(variants);
+            for slot in resolver.list_slots() {
+                if let Some(variant) = resolver.effective(&slot, &os, &current_selections) {
+                    plan.hook_plan
+                        .post_apply
+                        .extend(variant.hooks.post_apply.iter().cloned());
+                }
+            }
+        }
+        Ok(plan)
     }
 
     /// Return update hooks declared by enabled features in `config`.
