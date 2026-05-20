@@ -1,1 +1,11 @@
-{ lib, ... }: { darwinCasks = [ "ghostty" "wezterm" "neohtop" "cmux" ]; }
+{ lib, ... }:
+{
+  darwinCasks = [
+    "ghostty"
+    "wezterm"
+    "neohtop"
+    "cmux"
+    "muxy"
+  ];
+  darwinTaps = [ "muxy-app/tap" ];
+}
