@@ -1,0 +1,214 @@
+{
+  "version": 3,
+  "workspaces": [
+    {
+      "id": "w6525a650a8c6b1",
+      "custom_name": "orgnote",
+      "identity_cwd": "/Users/darkawower",
+      "tabs": [
+        {
+          "custom_name": "ai",
+          "layout": {
+            "Split": {
+              "direction": "Horizontal",
+              "ratio": 0.5,
+              "first": {
+                "Pane": 1
+              },
+              "second": {
+                "Split": {
+                  "direction": "Vertical",
+                  "ratio": 0.5,
+                  "first": {
+                    "Pane": 2
+                  },
+                  "second": {
+                    "Pane": 3
+                  }
+                }
+              }
+            }
+          },
+          "panes": {
+            "2": {
+              "cwd": "/Users/darkawower"
+            },
+            "1": {
+              "cwd": "/Users/darkawower"
+            },
+            "3": {
+              "cwd": "/Users/darkawower"
+            }
+          },
+          "zoomed": false,
+          "focused": 1,
+          "root_pane": 1
+        },
+        {
+          "custom_name": "git",
+          "layout": {
+            "Pane": 4
+          },
+          "panes": {
+            "4": {
+              "cwd": "/Users/darkawower"
+            }
+          },
+          "zoomed": false,
+          "focused": 4,
+          "root_pane": 4
+        }
+      ],
+      "active_tab": 0
+    },
+    {
+      "id": "w6525ba82074635",
+      "custom_name": "orgnote-client",
+      "identity_cwd": "/Users/darkawower",
+      "tabs": [
+        {
+          "custom_name": null,
+          "layout": {
+            "Pane": 5
+          },
+          "panes": {
+            "5": {
+              "cwd": "/Users/darkawower"
+            }
+          },
+          "zoomed": false,
+          "focused": 5,
+          "root_pane": 5
+        }
+      ],
+      "active_tab": 0
+    },
+    {
+      "id": "w6525ba9c55e736",
+      "custom_name": "org-ast",
+      "identity_cwd": "/Users/darkawower",
+      "tabs": [
+        {
+          "custom_name": null,
+          "layout": {
+            "Pane": 6
+          },
+          "panes": {
+            "6": {
+              "cwd": "/Users/darkawower"
+            }
+          },
+          "zoomed": false,
+          "focused": 6,
+          "root_pane": 6
+        }
+      ],
+      "active_tab": 0
+    },
+    {
+      "id": "w6525baa7be3d27",
+      "custom_name": "kaizen",
+      "identity_cwd": "/Users/darkawower",
+      "tabs": [
+        {
+          "custom_name": null,
+          "layout": {
+            "Split": {
+              "direction": "Horizontal",
+              "ratio": 0.5,
+              "first": {
+                "Pane": 7
+              },
+              "second": {
+                "Pane": 10
+              }
+            }
+          },
+          "panes": {
+            "7": {
+              "cwd": "/Users/darkawower"
+            },
+            "10": {
+              "cwd": "/Users/darkawower"
+            }
+          },
+          "zoomed": false,
+          "focused": 7,
+          "root_pane": 7
+        }
+      ],
+      "active_tab": 0
+    },
+    {
+      "id": "w6525bac984fa18",
+      "custom_name": "~ui",
+      "identity_cwd": "/Users/darkawower",
+      "tabs": [
+        {
+          "custom_name": null,
+          "layout": {
+            "Pane": 8
+          },
+          "panes": {
+            "8": {
+              "cwd": "/Users/darkawower"
+            }
+          },
+          "zoomed": false,
+          "focused": 8,
+          "root_pane": 8
+        }
+      ],
+      "active_tab": 0
+    },
+    {
+      "id": "w6525bc969028c9",
+      "custom_name": "Config",
+      "identity_cwd": "/Users/darkawower",
+      "tabs": [
+        {
+          "custom_name": null,
+          "layout": {
+            "Pane": 9
+          },
+          "panes": {
+            "9": {
+              "cwd": "/Users/darkawower"
+            }
+          },
+          "zoomed": false,
+          "focused": 9,
+          "root_pane": 9
+        }
+      ],
+      "active_tab": 0
+    },
+    {
+      "id": "w6526afbcc835b1",
+      "custom_name": null,
+      "identity_cwd": "/Users/darkawower",
+      "tabs": [
+        {
+          "custom_name": null,
+          "layout": {
+            "Pane": 11
+          },
+          "panes": {
+            "11": {
+              "cwd": "/Users/darkawower"
+            }
+          },
+          "zoomed": false,
+          "focused": 11,
+          "root_pane": 11
+        }
+      ],
+      "active_tab": 0
+    }
+  ],
+  "active": 5,
+  "selected": 5,
+  "agent_panel_scope": "AllWorkspaces",
+  "sidebar_width": 27,
+  "sidebar_section_split": 0.5
+}

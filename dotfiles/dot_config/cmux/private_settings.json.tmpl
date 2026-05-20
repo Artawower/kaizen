@@ -126,10 +126,14 @@
       "findNext": "cmd+g",
       "findPrevious": "cmd+opt+g",
       "focusBrowserAddressBar": "cmd+l",
-      "focusDown": "cmd+opt+↓",
-      "focusLeft": "cmd+opt+←",
-      "focusRight": "cmd+opt+→",
-      "focusUp": "cmd+opt+↑",
+{{ $fd := index .kaizen.shortcuts "pane.focus.down" -}}
+      "focusDown": "{{ index $fd 0 | lower }}+{{ index $fd 1 | lower }}+↓",
+{{ $fl := index .kaizen.shortcuts "pane.focus.left" -}}
+      "focusLeft": "{{ index $fl 0 | lower }}+{{ index $fl 1 | lower }}+←",
+{{ $fr := index .kaizen.shortcuts "pane.focus.right" -}}
+      "focusRight": "{{ index $fr 0 | lower }}+{{ index $fr 1 | lower }}+→",
+{{ $fu := index .kaizen.shortcuts "pane.focus.up" -}}
+      "focusUp": "{{ index $fu 0 | lower }}+{{ index $fu 1 | lower }}+↑",
       "goToWorkspace": "cmd+p",
       "hideFind": "cmd+shift+f",
       "jumpToUnread": "cmd+shift+u",

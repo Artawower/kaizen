@@ -1,0 +1,38 @@
+# Kaizen unified shortcut catalog.
+#
+# Each entry is an array of tokens. Tokens matching a key in [modifiers.*]
+# are resolved to their platform-native name at export time. All other
+# elements are passed through as-is (literal keys, directions, layer prefixes).
+#
+# First batch (accepted):
+#   projects.pick      ["p","p"]          modal leader + p + p (no token resolution)
+#   pane.split.right   ["w","v"]          modal leader + w + v
+#   pane.split.down    ["w","s"]          modal leader + w + s
+#   vcs.ui             ["g","g"]          modal leader + g + g
+#   pane.focus.*       ["CTRL","ALT",…]   global shortcuts; CTRL+ALT passes through to terminal apps
+#
+# Deferred: window.focus.* nav tokens, files.find, vcs.status/diff/log
+
+[modifiers.darwin]
+SUPER = "Cmd"
+ALT = "Opt"
+WM = "ralt + rshift"
+SHIFT = "Shift"
+CTRL = "Ctrl"
+
+[modifiers.linux]
+SUPER = "Super"
+ALT = "Alt"
+WM = "Alt+Shift"
+SHIFT = "Shift"
+CTRL = "Ctrl"
+
+[shortcuts]
+"projects.pick" = ["p", "p"]
+"pane.split.right" = ["w", "v"]
+"pane.split.down" = ["w", "s"]
+"vcs.ui" = ["g", "g"]
+"pane.focus.left" = ["CTRL", "ALT", "Left"]
+"pane.focus.right" = ["CTRL", "ALT", "Right"]
+"pane.focus.up" = ["CTRL", "ALT", "Up"]
+"pane.focus.down" = ["CTRL", "ALT", "Down"]

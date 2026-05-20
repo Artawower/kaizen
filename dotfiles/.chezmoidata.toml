@@ -20,6 +20,44 @@ terminal = true
 tiling = true
 vcs = true
 
+[kaizen.shortcuts]
+"pane.focus.down" = [
+    "Ctrl",
+    "Opt",
+    "Down",
+]
+"pane.focus.left" = [
+    "Ctrl",
+    "Opt",
+    "Left",
+]
+"pane.focus.right" = [
+    "Ctrl",
+    "Opt",
+    "Right",
+]
+"pane.focus.up" = [
+    "Ctrl",
+    "Opt",
+    "Up",
+]
+"pane.split.down" = [
+    "w",
+    "s",
+]
+"pane.split.right" = [
+    "w",
+    "v",
+]
+"projects.pick" = [
+    "p",
+    "p",
+]
+"vcs.ui" = [
+    "g",
+    "g",
+]
+
 [models]
 coder = "openai/gpt-5.5"
 default = "anthropic/claude-sonnet-4-6"
@@ -28,4 +66,4 @@ research = "openai/gpt-5.4"
 reviewer = "anthropic/claude-sonnet-4-6"
 
 [tiling]
-wm = "komorebi"
+wm = "yabai"

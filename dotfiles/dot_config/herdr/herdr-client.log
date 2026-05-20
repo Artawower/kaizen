@@ -1,0 +1,19 @@
+2026-05-21T21:12:52.405243Z  INFO herdr::logging: herdr starting event="app.startup" subsystem="client" outcome="started" pid=78611
+2026-05-21T21:12:52.405313Z  INFO herdr::client: connecting to server path=/Users/darkawower/.config/herdr/herdr-client.sock
+2026-05-21T21:12:52.616276Z  INFO herdr::client: handshake succeeded version=8 encoding=SemanticFrame
+2026-05-21T21:14:03.909266Z  INFO herdr::logging: herdr exiting event="app.shutdown" subsystem="client" outcome="completed" pid=78611
+2026-05-21T21:14:05.174599Z  INFO herdr::logging: herdr starting event="app.startup" subsystem="client" outcome="started" pid=90565
+2026-05-21T21:14:05.174640Z  INFO herdr::client: connecting to server path=/Users/darkawower/.config/herdr/herdr-client.sock
+2026-05-21T21:14:05.181207Z  INFO herdr::client: handshake succeeded version=8 encoding=SemanticFrame
+2026-05-21T22:39:57.275410Z  INFO herdr::logging: herdr starting event="app.startup" subsystem="client" outcome="started" pid=14271
+2026-05-21T22:39:57.275560Z  INFO herdr::client: connecting to server path=/Users/darkawower/.config/herdr/herdr-client.sock
+2026-05-21T22:39:57.390244Z  INFO herdr::client: handshake succeeded version=8 encoding=SemanticFrame
+2026-05-21T22:43:18.680280Z  INFO herdr::logging: herdr starting event="app.startup" subsystem="client" outcome="started" pid=46039
+2026-05-21T22:43:18.680541Z  INFO herdr::client: connecting to server path=/Users/darkawower/.config/herdr/herdr-client.sock
+2026-05-21T22:43:18.712416Z  INFO herdr::client: handshake succeeded version=8 encoding=SemanticFrame
+2026-05-22T09:45:08.778654Z  INFO herdr::logging: herdr starting event="app.startup" subsystem="client" outcome="started" pid=40332
+2026-05-22T09:45:08.778840Z  INFO herdr::client: connecting to server path=/Users/darkawower/.config/herdr/herdr-client.sock
+2026-05-22T09:45:08.886934Z  INFO herdr::client: handshake succeeded version=8 encoding=SemanticFrame
+2026-05-22T16:45:58.501500Z  INFO herdr::logging: herdr starting event="app.startup" subsystem="client" outcome="started" pid=62184
+2026-05-22T16:45:58.501642Z  INFO herdr::client: connecting to server path=/Users/darkawower/.config/herdr/herdr-client.sock
+2026-05-22T16:45:58.743738Z  INFO herdr::client: handshake succeeded version=8 encoding=SemanticFrame

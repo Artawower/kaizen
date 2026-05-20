@@ -172,8 +172,10 @@ esc = ["collapse_selection", "keep_primary_selection"]
 "q" = ":buffer-close"
 
 [keys.normal.space.w]
-"v" = "vsplit"
-"s" = "hsplit"
+{{ $split_r := last (index .kaizen.shortcuts "pane.split.right") -}}
+"{{ $split_r }}" = "vsplit"
+{{ $split_d := last (index .kaizen.shortcuts "pane.split.down") -}}
+"{{ $split_d }}" = "hsplit"
 {{- if eq .layout "colemak" }}
 i = [":toggle-option soft-wrap.enable", ":redraw"]
 {{- else }}
@@ -206,7 +208,8 @@ l = [":toggle-option soft-wrap.enable", ":redraw"]
 ]
 
 [keys.normal.space.g]
-"g" = [
+{{ $vcs_ui := last (index .kaizen.shortcuts "vcs.ui") -}}
+"{{ $vcs_ui }}" = [
     ":write-all",
     ":insert-output gitu >/dev/tty",
     ":redraw",

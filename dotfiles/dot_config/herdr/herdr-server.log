@@ -1,0 +1,404 @@
+2026-05-21T21:12:52.357022Z  INFO herdr::api: api server listening path=/Users/darkawower/.config/herdr/herdr.sock
+2026-05-21T21:12:52.359063Z  INFO herdr::app: using pane scrollback configuration pane_scrollback_limit_bytes=10000000
+2026-05-21T21:12:52.360771Z  INFO herdr::logging: checking for updates event="update.check.start" subsystem="update" outcome="started"
+2026-05-21T21:12:52.360890Z  INFO herdr::server::headless: client protocol socket listening path=/Users/darkawower/.config/herdr/herdr-client.sock
+2026-05-21T21:12:52.360909Z  INFO herdr::server::headless: herdr server started api_socket=/Users/darkawower/.config/herdr/herdr.sock client_socket=/Users/darkawower/.config/herdr/herdr-client.sock
+2026-05-21T21:12:52.360924Z  INFO herdr::logging: herdr starting event="app.startup" subsystem="server" outcome="started" pid=78612
+2026-05-21T21:12:52.616366Z  INFO herdr::server::headless: client connected client_id=2 cols=86 rows=43 cell_width_px=0 cell_height_px=0 render_encoding=SemanticFrame
+2026-05-21T21:12:53.546036Z  INFO herdr::server::headless: client resize client_id=2 cols=89 rows=43 cell_width_px=0 cell_height_px=0
+2026-05-21T21:12:53.650899Z  INFO herdr::server::headless: client resize client_id=2 cols=180 rows=43 cell_width_px=0 cell_height_px=0
+2026-05-21T21:13:31.721523Z  INFO herdr::logging: session cleared event="persist.clear" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json
+2026-05-21T21:14:03.908531Z  INFO herdr::server::headless: client detach requested via keybind client_id=2
+2026-05-21T21:14:03.910956Z  INFO herdr::server::headless: client disconnected client_id=2
+2026-05-21T21:14:05.181184Z  INFO herdr::server::headless: client connected client_id=4 cols=180 rows=43 cell_width_px=0 cell_height_px=0 render_encoding=SemanticFrame
+2026-05-21T21:14:15.985183Z  INFO herdr::logging: spawning pane terminal event="pane.spawn.start" subsystem="pane" outcome="started" pane_id=1 rows=24 cols=80 scrollback_limit_bytes=10000000
+2026-05-21T21:14:15.988393Z  INFO herdr::logging: workspace created event="workspace.create" subsystem="workspace" outcome="ok" workspace_id="w6525a650a8c6b1" pane_id=1
+2026-05-21T21:14:15.988435Z  INFO herdr::logging: workspace focused event="workspace.focus" subsystem="workspace" outcome="ok" workspace_id="w6525a650a8c6b1"
+2026-05-21T21:14:15.988449Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525a650a8c6b1" tab_id="w6525a650a8c6b1:1"
+2026-05-21T21:14:15.992559Z  INFO herdr::logging: pane child spawned event="pane.spawned" subsystem="pane" outcome="ok" pane_id=1 pid=92284
+2026-05-21T21:14:20.998087Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=1
+2026-05-21T21:15:14.813206Z  INFO herdr::logging: integration action finished event="integration.action" subsystem="integration" outcome="ok" action="install" target="pi"
+2026-05-21T21:15:14.814902Z  INFO herdr::logging: integration action finished event="integration.action" subsystem="integration" outcome="ok" action="install" target="claude"
+2026-05-21T21:15:14.817561Z  INFO herdr::logging: integration action finished event="integration.action" subsystem="integration" outcome="ok" action="install" target="codex"
+2026-05-21T21:15:14.817955Z  INFO herdr::logging: integration action finished event="integration.action" subsystem="integration" outcome="ok" action="install" target="opencode"
+2026-05-21T21:15:19.821359Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=1
+2026-05-21T21:15:27.402722Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525a650a8c6b1" tab_id="w6525a650a8c6b1:1"
+2026-05-21T21:15:32.405362Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=1
+2026-05-21T21:15:42.569123Z  INFO herdr::logging: workspace renamed event="workspace.rename" subsystem="workspace" outcome="ok" workspace_id="w6525a650a8c6b1"
+2026-05-21T21:15:47.573937Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=1
+2026-05-21T21:16:24.342956Z  INFO herdr::logging: tab renamed event="tab.rename" subsystem="tab" outcome="ok" workspace_id="w6525a650a8c6b1" tab_id="w6525a650a8c6b1:1"
+2026-05-21T21:16:29.346521Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=1
+2026-05-21T21:17:39.348370Z  INFO herdr::logging: spawning pane terminal event="pane.spawn.start" subsystem="pane" outcome="started" pane_id=2 rows=42 cols=154 scrollback_limit_bytes=10000000
+2026-05-21T21:17:39.348949Z  INFO herdr::logging: tab created event="tab.create" subsystem="tab" outcome="ok" workspace_id="w6525a650a8c6b1" tab_id="w6525a650a8c6b1:2" pane_id=2
+2026-05-21T21:17:39.354377Z  INFO herdr::logging: pane child spawned event="pane.spawned" subsystem="pane" outcome="ok" pane_id=2 pid=24136
+2026-05-21T21:17:43.919439Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525a650a8c6b1" tab_id="w6525a650a8c6b1:1"
+2026-05-21T21:17:45.375822Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525a650a8c6b1" tab_id="w6525a650a8c6b1:2"
+2026-05-21T21:17:46.097506Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525a650a8c6b1" tab_id="w6525a650a8c6b1:1"
+2026-05-21T21:17:51.107298Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=1
+2026-05-21T21:17:52.115571Z  INFO herdr::logging: spawning pane terminal event="pane.spawn.start" subsystem="pane" outcome="started" pane_id=3 rows=21 cols=77 scrollback_limit_bytes=10000000
+2026-05-21T21:17:52.119794Z  INFO herdr::logging: pane child spawned event="pane.spawned" subsystem="pane" outcome="ok" pane_id=3 pid=25936
+2026-05-21T21:17:57.125474Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=1
+2026-05-21T21:18:00.792149Z  INFO herdr::server::headless: client resize client_id=4 cols=180 rows=20 cell_width_px=0 cell_height_px=0
+2026-05-21T21:18:02.039796Z  INFO herdr::server::headless: client resize client_id=4 cols=180 rows=43 cell_width_px=0 cell_height_px=0
+2026-05-21T21:18:18.054083Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525a650a8c6b1" tab_id="w6525a650a8c6b1:2"
+2026-05-21T21:18:23.056416Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=1
+2026-05-21T21:18:24.308261Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525a650a8c6b1" tab_id="w6525a650a8c6b1:1"
+2026-05-21T21:18:29.314305Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=1
+2026-05-21T21:19:27.062115Z  INFO herdr::logging: spawning pane terminal event="pane.spawn.start" subsystem="pane" outcome="started" pane_id=4 rows=42 cols=77 scrollback_limit_bytes=10000000
+2026-05-21T21:19:27.062569Z  INFO herdr::logging: workspace created event="workspace.create" subsystem="workspace" outcome="ok" workspace_id="w6525a779529eb2" pane_id=4
+2026-05-21T21:19:27.062579Z  INFO herdr::logging: workspace focused event="workspace.focus" subsystem="workspace" outcome="ok" workspace_id="w6525a779529eb2"
+2026-05-21T21:19:27.062589Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525a779529eb2" tab_id="w6525a779529eb2:1"
+2026-05-21T21:19:27.065707Z  INFO herdr::logging: pane child spawned event="pane.spawned" subsystem="pane" outcome="ok" pane_id=4 pid=40776
+2026-05-21T21:19:28.507438Z  INFO herdr::logging: workspace focused event="workspace.focus" subsystem="workspace" outcome="ok" workspace_id="w6525a650a8c6b1"
+2026-05-21T21:19:28.507527Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525a650a8c6b1" tab_id="w6525a650a8c6b1:1"
+2026-05-21T21:19:28.988154Z  INFO herdr::logging: workspace focused event="workspace.focus" subsystem="workspace" outcome="ok" workspace_id="w6525a779529eb2"
+2026-05-21T21:19:28.988227Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525a779529eb2" tab_id="w6525a779529eb2:1"
+2026-05-21T21:19:32.780452Z  INFO herdr::logging: workspace closed event="workspace.close" subsystem="workspace" outcome="ok" workspace_id="w6525a779529eb2"
+2026-05-21T21:19:32.783179Z  INFO herdr::logging: pane child exited event="pane.exit" subsystem="pane" outcome="completed" pane_id=4 status="ExitStatus { code: 1, signal: None }"
+2026-05-21T21:19:32.802014Z  INFO herdr::pane: pane session terminated pane=4 pid=40776 signal=Hangup
+2026-05-21T21:19:32.802197Z  INFO herdr::pane: pane session terminated pane=4 pid=40776 signal=Hangup
+2026-05-21T21:19:32.803133Z  WARN herdr::app::actions: PaneDied for unknown pane pane=4
+2026-05-21T21:19:39.590288Z  INFO herdr::pane: agent changed pane=1 previous_agent=None agent=Some(Pi) process=pi pgid=Some(42869)
+2026-05-21T21:19:41.250765Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=1
+2026-05-21T21:19:44.296765Z  INFO herdr::logging: workspace focused event="workspace.focus" subsystem="workspace" outcome="ok" workspace_id="w6525a650a8c6b1"
+2026-05-21T21:19:44.296872Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525a650a8c6b1" tab_id="w6525a650a8c6b1:1"
+2026-05-21T21:19:44.296889Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525a650a8c6b1" tab_id="w6525a650a8c6b1:1"
+2026-05-21T21:19:58.986253Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=1
+2026-05-21T21:20:08.466693Z  INFO herdr::pane: agent changed pane=1 previous_agent=Some(Pi) agent=None pgid=Some(93080)
+2026-05-21T21:21:23.702157Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=1
+2026-05-21T21:21:35.229629Z  INFO herdr::server::headless: client resize client_id=4 cols=86 rows=43 cell_width_px=0 cell_height_px=0
+2026-05-21T21:21:37.369413Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=1
+2026-05-21T21:21:38.349985Z  INFO herdr::server::headless: client resize client_id=4 cols=180 rows=43 cell_width_px=0 cell_height_px=0
+2026-05-21T21:32:56.324060Z  INFO herdr::server::headless: client resize client_id=4 cols=86 rows=43 cell_width_px=0 cell_height_px=0
+2026-05-21T21:33:03.067721Z  INFO herdr::server::headless: client resize client_id=4 cols=180 rows=43 cell_width_px=0 cell_height_px=0
+2026-05-21T21:33:05.228333Z  INFO herdr::app::actions: copied selection to clipboard
+2026-05-21T21:35:02.540937Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=1
+2026-05-21T21:35:54.999334Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=1
+2026-05-21T21:42:52.365679Z  INFO herdr::logging: checking for updates event="update.check.start" subsystem="update" outcome="started"
+2026-05-21T21:55:38.239786Z  INFO herdr::server::headless: client resize client_id=4 cols=86 rows=43 cell_width_px=0 cell_height_px=0
+2026-05-21T21:55:40.718689Z  INFO herdr::server::headless: client resize client_id=4 cols=180 rows=43 cell_width_px=0 cell_height_px=0
+2026-05-21T21:55:42.185834Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=1
+2026-05-21T21:56:16.246328Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=1
+2026-05-21T21:56:41.884982Z  INFO herdr::server::headless: client resize client_id=4 cols=86 rows=43 cell_width_px=0 cell_height_px=0
+2026-05-21T21:56:43.651258Z  INFO herdr::server::headless: client resize client_id=4 cols=180 rows=43 cell_width_px=0 cell_height_px=0
+2026-05-21T21:56:46.481520Z  INFO herdr::server::headless: client resize client_id=4 cols=86 rows=43 cell_width_px=0 cell_height_px=0
+2026-05-21T21:57:09.662120Z  INFO herdr::server::headless: client resize client_id=4 cols=180 rows=43 cell_width_px=0 cell_height_px=0
+2026-05-21T21:57:15.303018Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=1
+2026-05-21T22:01:27.031228Z  INFO herdr::logging: spawning pane terminal event="pane.spawn.start" subsystem="pane" outcome="started" pane_id=5 rows=21 cols=38 scrollback_limit_bytes=10000000
+2026-05-21T22:01:27.035457Z  INFO herdr::logging: pane child spawned event="pane.spawned" subsystem="pane" outcome="ok" pane_id=5 pid=46241
+2026-05-21T22:01:28.961127Z  INFO herdr::logging: pane child exited event="pane.exit" subsystem="pane" outcome="completed" pane_id=5 status="ExitStatus { code: 1, signal: None }"
+2026-05-21T22:01:28.982369Z  INFO herdr::pane: pane session terminated pane=5 pid=46241 signal=Hangup
+2026-05-21T22:01:28.982577Z  INFO herdr::pane: pane session terminated pane=5 pid=46241 signal=Hangup
+2026-05-21T22:01:28.984176Z  WARN herdr::app::actions: PaneDied for unknown pane pane=5
+2026-05-21T22:01:40.721409Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=1
+2026-05-21T22:01:56.991713Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=1
+2026-05-21T22:02:15.256199Z  INFO herdr::logging: spawning pane terminal event="pane.spawn.start" subsystem="pane" outcome="started" pane_id=6 rows=21 cols=38 scrollback_limit_bytes=10000000
+2026-05-21T22:02:15.258650Z  INFO herdr::logging: pane child spawned event="pane.spawned" subsystem="pane" outcome="ok" pane_id=6 pid=53829
+2026-05-21T22:02:20.275067Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=1
+2026-05-21T22:02:34.277574Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=1
+2026-05-21T22:02:46.219704Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=1
+2026-05-21T22:12:52.423136Z  INFO herdr::logging: checking for updates event="update.check.start" subsystem="update" outcome="started"
+2026-05-21T22:24:53.292365Z  INFO herdr::server::headless: client resize client_id=4 cols=86 rows=43 cell_width_px=0 cell_height_px=0
+2026-05-21T22:25:04.948856Z  INFO herdr::server::headless: client resize client_id=4 cols=180 rows=43 cell_width_px=0 cell_height_px=0
+2026-05-21T22:26:13.888047Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525a650a8c6b1" tab_id="w6525a650a8c6b1:2"
+2026-05-21T22:26:18.896040Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=1
+2026-05-21T22:26:53.941013Z  INFO herdr::logging: spawning pane terminal event="pane.spawn.start" subsystem="pane" outcome="started" pane_id=7 rows=42 cols=153 scrollback_limit_bytes=10000000
+2026-05-21T22:26:53.942278Z  INFO herdr::logging: workspace created event="workspace.create" subsystem="workspace" outcome="ok" workspace_id="w6525b68cba5e73" pane_id=7
+2026-05-21T22:26:53.942300Z  INFO herdr::logging: workspace focused event="workspace.focus" subsystem="workspace" outcome="ok" workspace_id="w6525b68cba5e73"
+2026-05-21T22:26:53.942340Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525b68cba5e73" tab_id="w6525b68cba5e73:1"
+2026-05-21T22:26:53.944703Z  INFO herdr::logging: pane child spawned event="pane.spawned" subsystem="pane" outcome="ok" pane_id=7 pid=89188
+2026-05-21T22:26:58.950093Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=2
+2026-05-21T22:27:07.919376Z  INFO herdr::logging: workspace renamed event="workspace.rename" subsystem="workspace" outcome="ok" workspace_id="w6525b68cba5e73"
+2026-05-21T22:27:12.924109Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=2
+2026-05-21T22:27:14.665134Z  INFO herdr::logging: spawning pane terminal event="pane.spawn.start" subsystem="pane" outcome="started" pane_id=8 rows=42 cols=153 scrollback_limit_bytes=10000000
+2026-05-21T22:27:14.667285Z  INFO herdr::logging: pane child spawned event="pane.spawned" subsystem="pane" outcome="ok" pane_id=8 pid=92461
+2026-05-21T22:27:16.127502Z  INFO herdr::server::headless: client resize client_id=4 cols=86 rows=43 cell_width_px=0 cell_height_px=0
+2026-05-21T22:27:17.925767Z  INFO herdr::logging: pane child exited event="pane.exit" subsystem="pane" outcome="completed" pane_id=8 status="ExitStatus { code: 0, signal: None }"
+2026-05-21T22:27:17.925843Z  INFO herdr::pane: pane session terminated pane=8 pid=92461 signal=Hangup
+2026-05-21T22:27:17.925853Z  INFO herdr::pane: pane session terminated pane=8 pid=92461 signal=Hangup
+2026-05-21T22:27:17.997984Z  INFO herdr::server::headless: client resize client_id=4 cols=180 rows=43 cell_width_px=0 cell_height_px=0
+2026-05-21T22:27:22.931446Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=2
+2026-05-21T22:27:25.717235Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525b68cba5e73" tab_id="w6525b68cba5e73:1"
+2026-05-21T22:27:30.721348Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=2
+2026-05-21T22:27:49.879343Z  INFO herdr::logging: workspace focused event="workspace.focus" subsystem="workspace" outcome="ok" workspace_id="w6525b68cba5e73"
+2026-05-21T22:27:49.879394Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525b68cba5e73" tab_id="w6525b68cba5e73:1"
+2026-05-21T22:27:54.712755Z  INFO herdr::logging: spawning pane terminal event="pane.spawn.start" subsystem="pane" outcome="started" pane_id=9 rows=42 cols=153 scrollback_limit_bytes=10000000
+2026-05-21T22:27:54.714797Z  INFO herdr::logging: pane child spawned event="pane.spawned" subsystem="pane" outcome="ok" pane_id=9 pid=99022
+2026-05-21T22:27:54.884048Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=2
+2026-05-21T22:27:54.975231Z  INFO herdr::server::headless: client resize client_id=4 cols=86 rows=43 cell_width_px=0 cell_height_px=0
+2026-05-21T22:27:56.614033Z  INFO herdr::logging: pane child exited event="pane.exit" subsystem="pane" outcome="completed" pane_id=9 status="ExitStatus { code: 0, signal: None }"
+2026-05-21T22:27:56.614138Z  INFO herdr::pane: pane session terminated pane=9 pid=99022 signal=Hangup
+2026-05-21T22:27:56.614153Z  INFO herdr::pane: pane session terminated pane=9 pid=99022 signal=Hangup
+2026-05-21T22:27:56.633420Z  INFO herdr::server::headless: client resize client_id=4 cols=180 rows=43 cell_width_px=0 cell_height_px=0
+2026-05-21T22:28:01.618737Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=2
+2026-05-21T22:28:18.943371Z  INFO herdr::logging: workspace focused event="workspace.focus" subsystem="workspace" outcome="ok" workspace_id="w6525b68cba5e73"
+2026-05-21T22:28:18.943751Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525b68cba5e73" tab_id="w6525b68cba5e73:1"
+2026-05-21T22:28:23.949999Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=2
+2026-05-21T22:28:24.028055Z  INFO herdr::logging: workspace focused event="workspace.focus" subsystem="workspace" outcome="ok" workspace_id="w6525a650a8c6b1"
+2026-05-21T22:28:24.028159Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525a650a8c6b1" tab_id="w6525a650a8c6b1:2"
+2026-05-21T22:28:29.032381Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=2
+2026-05-21T22:28:29.319647Z  INFO herdr::logging: workspace focused event="workspace.focus" subsystem="workspace" outcome="ok" workspace_id="w6525b68cba5e73"
+2026-05-21T22:28:29.319739Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525b68cba5e73" tab_id="w6525b68cba5e73:1"
+2026-05-21T22:28:30.610270Z  INFO herdr::logging: workspace focused event="workspace.focus" subsystem="workspace" outcome="ok" workspace_id="w6525a650a8c6b1"
+2026-05-21T22:28:30.610355Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525a650a8c6b1" tab_id="w6525a650a8c6b1:2"
+2026-05-21T22:28:31.392543Z  INFO herdr::logging: workspace focused event="workspace.focus" subsystem="workspace" outcome="ok" workspace_id="w6525b68cba5e73"
+2026-05-21T22:28:31.392620Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525b68cba5e73" tab_id="w6525b68cba5e73:1"
+2026-05-21T22:28:36.394640Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=2
+2026-05-21T22:28:42.104922Z  INFO herdr::logging: workspace focused event="workspace.focus" subsystem="workspace" outcome="ok" workspace_id="w6525a650a8c6b1"
+2026-05-21T22:28:42.105017Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525a650a8c6b1" tab_id="w6525a650a8c6b1:2"
+2026-05-21T22:28:47.110543Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=2
+2026-05-21T22:28:48.351048Z  INFO herdr::logging: workspace focused event="workspace.focus" subsystem="workspace" outcome="ok" workspace_id="w6525b68cba5e73"
+2026-05-21T22:28:48.351126Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525b68cba5e73" tab_id="w6525b68cba5e73:1"
+2026-05-21T22:28:53.356089Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=2
+2026-05-21T22:39:50.587196Z  INFO herdr::logging: pane child exited event="pane.exit" subsystem="pane" outcome="completed" pane_id=7 status="ExitStatus { code: 0, signal: None }"
+2026-05-21T22:39:50.587855Z  INFO herdr::pane: pane session terminated pane=7 pid=89188 signal=Hangup
+2026-05-21T22:39:50.587927Z  INFO herdr::pane: pane session terminated pane=7 pid=89188 signal=Hangup
+2026-05-21T22:39:55.595249Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=1
+2026-05-21T22:39:57.390236Z  INFO herdr::server::headless: client connected client_id=6 cols=180 rows=43 cell_width_px=0 cell_height_px=0 render_encoding=SemanticFrame
+2026-05-21T22:39:57.497075Z  INFO herdr::server::headless: client disconnected client_id=4
+2026-05-21T22:40:10.233795Z  INFO herdr::logging: spawning pane terminal event="pane.spawn.start" subsystem="pane" outcome="started" pane_id=10 rows=42 cols=153 scrollback_limit_bytes=10000000
+2026-05-21T22:40:10.239999Z  INFO herdr::logging: workspace created event="workspace.create" subsystem="workspace" outcome="ok" workspace_id="w6525b98421a974" pane_id=10
+2026-05-21T22:40:10.240092Z  INFO herdr::logging: workspace focused event="workspace.focus" subsystem="workspace" outcome="ok" workspace_id="w6525b98421a974"
+2026-05-21T22:40:10.240114Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525b98421a974" tab_id="w6525b98421a974:1"
+2026-05-21T22:40:10.241323Z  INFO herdr::logging: pane child spawned event="pane.spawned" subsystem="pane" outcome="ok" pane_id=10 pid=16377
+2026-05-21T22:40:15.247130Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=2
+2026-05-21T22:40:16.827248Z  INFO herdr::logging: workspace focused event="workspace.focus" subsystem="workspace" outcome="ok" workspace_id="w6525a650a8c6b1"
+2026-05-21T22:40:16.828224Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525a650a8c6b1" tab_id="w6525a650a8c6b1:2"
+2026-05-21T22:40:21.834554Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=2
+2026-05-21T22:42:52.436793Z  INFO herdr::logging: checking for updates event="update.check.start" subsystem="update" outcome="started"
+2026-05-21T22:43:12.328700Z  INFO herdr::server::headless: client disconnected client_id=6
+2026-05-21T22:43:18.712424Z  INFO herdr::server::headless: client connected client_id=8 cols=86 rows=43 cell_width_px=0 cell_height_px=0 render_encoding=SemanticFrame
+2026-05-21T22:43:19.756082Z  INFO herdr::server::headless: client resize client_id=8 cols=180 rows=43 cell_width_px=0 cell_height_px=0
+2026-05-21T22:43:20.797946Z  INFO herdr::logging: workspace focused event="workspace.focus" subsystem="workspace" outcome="ok" workspace_id="w6525b98421a974"
+2026-05-21T22:43:20.798036Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525b98421a974" tab_id="w6525b98421a974:1"
+2026-05-21T22:43:25.802015Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=2
+2026-05-21T22:44:36.463612Z  INFO herdr::logging: spawning pane terminal event="pane.spawn.start" subsystem="pane" outcome="started" pane_id=11 rows=42 cols=153 scrollback_limit_bytes=10000000
+2026-05-21T22:44:36.464805Z  INFO herdr::logging: workspace created event="workspace.create" subsystem="workspace" outcome="ok" workspace_id="w6525ba82074635" pane_id=11
+2026-05-21T22:44:36.464828Z  INFO herdr::logging: workspace focused event="workspace.focus" subsystem="workspace" outcome="ok" workspace_id="w6525ba82074635"
+2026-05-21T22:44:36.464851Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525ba82074635" tab_id="w6525ba82074635:1"
+2026-05-21T22:44:36.473425Z  INFO herdr::logging: pane child spawned event="pane.spawned" subsystem="pane" outcome="ok" pane_id=11 pid=58110
+2026-05-21T22:44:41.237309Z  INFO herdr::logging: workspace focused event="workspace.focus" subsystem="workspace" outcome="ok" workspace_id="w6525b98421a974"
+2026-05-21T22:44:41.237396Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525b98421a974" tab_id="w6525b98421a974:1"
+2026-05-21T22:44:42.861804Z  INFO herdr::logging: workspace focused event="workspace.focus" subsystem="workspace" outcome="ok" workspace_id="w6525a650a8c6b1"
+2026-05-21T22:44:42.861916Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525a650a8c6b1" tab_id="w6525a650a8c6b1:2"
+2026-05-21T22:44:43.478777Z  INFO herdr::logging: workspace focused event="workspace.focus" subsystem="workspace" outcome="ok" workspace_id="w6525b98421a974"
+2026-05-21T22:44:43.478845Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525b98421a974" tab_id="w6525b98421a974:1"
+2026-05-21T22:44:48.485251Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=3
+2026-05-21T22:44:49.703239Z  INFO herdr::logging: workspace closed event="workspace.close" subsystem="workspace" outcome="ok" workspace_id="w6525b98421a974"
+2026-05-21T22:44:49.707816Z  INFO herdr::logging: pane child exited event="pane.exit" subsystem="pane" outcome="completed" pane_id=10 status="ExitStatus { code: 1, signal: None }"
+2026-05-21T22:44:49.725204Z  INFO herdr::pane: pane session terminated pane=10 pid=16377 signal=Hangup
+2026-05-21T22:44:49.725306Z  INFO herdr::pane: pane session terminated pane=10 pid=16377 signal=Hangup
+2026-05-21T22:44:49.725643Z  WARN herdr::app::actions: PaneDied for unknown pane pane=10
+2026-05-21T22:44:54.731258Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=2
+2026-05-21T22:45:01.232190Z  INFO herdr::logging: workspace renamed event="workspace.rename" subsystem="workspace" outcome="ok" workspace_id="w6525ba82074635"
+2026-05-21T22:45:04.048246Z  INFO herdr::logging: spawning pane terminal event="pane.spawn.start" subsystem="pane" outcome="started" pane_id=12 rows=42 cols=153 scrollback_limit_bytes=10000000
+2026-05-21T22:45:04.049970Z  INFO herdr::logging: workspace created event="workspace.create" subsystem="workspace" outcome="ok" workspace_id="w6525ba9c55e736" pane_id=12
+2026-05-21T22:45:04.050055Z  INFO herdr::logging: workspace focused event="workspace.focus" subsystem="workspace" outcome="ok" workspace_id="w6525ba9c55e736"
+2026-05-21T22:45:04.050079Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525ba9c55e736" tab_id="w6525ba9c55e736:1"
+2026-05-21T22:45:04.060871Z  INFO herdr::logging: pane child spawned event="pane.spawned" subsystem="pane" outcome="ok" pane_id=12 pid=62414
+2026-05-21T22:45:09.073769Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=3
+2026-05-21T22:45:11.394515Z  INFO herdr::logging: workspace renamed event="workspace.rename" subsystem="workspace" outcome="ok" workspace_id="w6525ba9c55e736"
+2026-05-21T22:45:16.010445Z  INFO herdr::logging: spawning pane terminal event="pane.spawn.start" subsystem="pane" outcome="started" pane_id=13 rows=42 cols=153 scrollback_limit_bytes=10000000
+2026-05-21T22:45:16.011579Z  INFO herdr::logging: workspace created event="workspace.create" subsystem="workspace" outcome="ok" workspace_id="w6525baa7be3d27" pane_id=13
+2026-05-21T22:45:16.011607Z  INFO herdr::logging: workspace focused event="workspace.focus" subsystem="workspace" outcome="ok" workspace_id="w6525baa7be3d27"
+2026-05-21T22:45:16.011629Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525baa7be3d27" tab_id="w6525baa7be3d27:1"
+2026-05-21T22:45:16.019131Z  INFO herdr::logging: pane child spawned event="pane.spawned" subsystem="pane" outcome="ok" pane_id=13 pid=64362
+2026-05-21T22:45:21.031856Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=4
+2026-05-21T22:45:24.443527Z  INFO herdr::logging: workspace focused event="workspace.focus" subsystem="workspace" outcome="ok" workspace_id="w6525ba9c55e736"
+2026-05-21T22:45:24.443578Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525ba9c55e736" tab_id="w6525ba9c55e736:1"
+2026-05-21T22:45:30.097599Z  INFO herdr::logging: workspace focused event="workspace.focus" subsystem="workspace" outcome="ok" workspace_id="w6525baa7be3d27"
+2026-05-21T22:45:30.097674Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525baa7be3d27" tab_id="w6525baa7be3d27:1"
+2026-05-21T22:45:35.101826Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=4
+2026-05-21T22:45:48.750051Z  INFO herdr::logging: workspace renamed event="workspace.rename" subsystem="workspace" outcome="ok" workspace_id="w6525baa7be3d27"
+2026-05-21T22:45:51.427894Z  INFO herdr::logging: spawning pane terminal event="pane.spawn.start" subsystem="pane" outcome="started" pane_id=14 rows=42 cols=153 scrollback_limit_bytes=10000000
+2026-05-21T22:45:51.428619Z  INFO herdr::logging: workspace created event="workspace.create" subsystem="workspace" outcome="ok" workspace_id="w6525bac984fa18" pane_id=14
+2026-05-21T22:45:51.428662Z  INFO herdr::logging: workspace focused event="workspace.focus" subsystem="workspace" outcome="ok" workspace_id="w6525bac984fa18"
+2026-05-21T22:45:51.428692Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525bac984fa18" tab_id="w6525bac984fa18:1"
+2026-05-21T22:45:51.436207Z  INFO herdr::logging: pane child spawned event="pane.spawned" subsystem="pane" outcome="ok" pane_id=14 pid=69829
+2026-05-21T22:45:56.445316Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=5
+2026-05-21T22:46:02.657292Z  INFO herdr::logging: workspace renamed event="workspace.rename" subsystem="workspace" outcome="ok" workspace_id="w6525bac984fa18"
+2026-05-21T22:46:07.661545Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=5
+2026-05-21T22:46:07.769521Z  INFO herdr::logging: workspace focused event="workspace.focus" subsystem="workspace" outcome="ok" workspace_id="w6525a650a8c6b1"
+2026-05-21T22:46:07.769997Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525a650a8c6b1" tab_id="w6525a650a8c6b1:2"
+2026-05-21T22:46:12.772882Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=5
+2026-05-21T22:51:49.604479Z  WARN herdr::config::keybinds: config diagnostic prefix+p: kept keys.workspace_picker, disabled keys.previous_tab
+2026-05-21T22:52:46.910896Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525a650a8c6b1" tab_id="w6525a650a8c6b1:1"
+2026-05-21T22:52:51.919933Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=5
+2026-05-21T22:52:53.427911Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525a650a8c6b1" tab_id="w6525a650a8c6b1:2"
+2026-05-21T22:52:55.045475Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525a650a8c6b1" tab_id="w6525a650a8c6b1:1"
+2026-05-21T22:52:55.835272Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525a650a8c6b1" tab_id="w6525a650a8c6b1:2"
+2026-05-21T22:53:00.841043Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=5
+2026-05-21T22:53:33.103858Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525a650a8c6b1" tab_id="w6525a650a8c6b1:1"
+2026-05-21T22:53:33.656875Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525a650a8c6b1" tab_id="w6525a650a8c6b1:2"
+2026-05-21T22:53:34.045225Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525a650a8c6b1" tab_id="w6525a650a8c6b1:1"
+2026-05-21T22:53:34.222644Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525a650a8c6b1" tab_id="w6525a650a8c6b1:2"
+2026-05-21T22:53:34.719593Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525a650a8c6b1" tab_id="w6525a650a8c6b1:1"
+2026-05-21T22:53:34.967560Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525a650a8c6b1" tab_id="w6525a650a8c6b1:2"
+2026-05-21T22:53:39.973241Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=5
+2026-05-21T22:53:54.865530Z  INFO herdr::logging: spawning pane terminal event="pane.spawn.start" subsystem="pane" outcome="started" pane_id=15 rows=42 cols=153 scrollback_limit_bytes=10000000
+2026-05-21T22:53:54.867956Z  INFO herdr::logging: workspace created event="workspace.create" subsystem="workspace" outcome="ok" workspace_id="w6525bc969028c9" pane_id=15
+2026-05-21T22:53:54.867994Z  INFO herdr::logging: workspace focused event="workspace.focus" subsystem="workspace" outcome="ok" workspace_id="w6525bc969028c9"
+2026-05-21T22:53:54.868021Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525bc969028c9" tab_id="w6525bc969028c9:1"
+2026-05-21T22:53:54.877056Z  INFO herdr::logging: pane child spawned event="pane.spawned" subsystem="pane" outcome="ok" pane_id=15 pid=46285
+2026-05-21T22:53:57.251292Z  INFO herdr::logging: workspace focused event="workspace.focus" subsystem="workspace" outcome="ok" workspace_id="w6525a650a8c6b1"
+2026-05-21T22:53:57.251396Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525a650a8c6b1" tab_id="w6525a650a8c6b1:2"
+2026-05-21T22:54:02.260497Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=6
+2026-05-21T22:56:48.808637Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525a650a8c6b1" tab_id="w6525a650a8c6b1:1"
+2026-05-21T22:56:49.359214Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525a650a8c6b1" tab_id="w6525a650a8c6b1:2"
+2026-05-21T22:56:50.697245Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525a650a8c6b1" tab_id="w6525a650a8c6b1:1"
+2026-05-21T22:56:51.575771Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525a650a8c6b1" tab_id="w6525a650a8c6b1:2"
+2026-05-21T22:56:51.983814Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525a650a8c6b1" tab_id="w6525a650a8c6b1:1"
+2026-05-21T22:56:52.226246Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525a650a8c6b1" tab_id="w6525a650a8c6b1:2"
+2026-05-21T22:56:57.236086Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=6
+2026-05-21T23:40:30.115345Z  INFO herdr::logging: checking for updates event="update.check.start" subsystem="update" outcome="started"
+2026-05-22T00:41:16.895865Z  INFO herdr::logging: checking for updates event="update.check.start" subsystem="update" outcome="started"
+2026-05-22T01:33:20.007828Z  INFO herdr::logging: checking for updates event="update.check.start" subsystem="update" outcome="started"
+2026-05-22T02:03:19.992652Z  INFO herdr::logging: checking for updates event="update.check.start" subsystem="update" outcome="started"
+2026-05-22T04:02:07.425653Z  INFO herdr::logging: checking for updates event="update.check.start" subsystem="update" outcome="started"
+2026-05-22T04:32:07.451824Z  INFO herdr::logging: checking for updates event="update.check.start" subsystem="update" outcome="started"
+2026-05-22T05:55:14.061616Z  INFO herdr::logging: checking for updates event="update.check.start" subsystem="update" outcome="started"
+2026-05-22T06:25:14.095585Z  INFO herdr::logging: checking for updates event="update.check.start" subsystem="update" outcome="started"
+2026-05-22T06:55:14.018377Z  INFO herdr::logging: checking for updates event="update.check.start" subsystem="update" outcome="started"
+2026-05-22T07:25:13.988870Z  INFO herdr::logging: checking for updates event="update.check.start" subsystem="update" outcome="started"
+2026-05-22T07:30:21.039843Z  INFO herdr::server::headless: client resize client_id=8 cols=86 rows=43 cell_width_px=0 cell_height_px=0
+2026-05-22T07:30:21.872824Z  INFO herdr::server::headless: client resize client_id=8 cols=180 rows=43 cell_width_px=0 cell_height_px=0
+2026-05-22T07:30:47.070639Z  INFO herdr::server::headless: client resize client_id=8 cols=86 rows=43 cell_width_px=0 cell_height_px=0
+2026-05-22T07:50:15.571869Z  INFO herdr::server::headless: client resize client_id=8 cols=180 rows=43 cell_width_px=0 cell_height_px=0
+2026-05-22T07:55:13.962166Z  INFO herdr::logging: checking for updates event="update.check.start" subsystem="update" outcome="started"
+2026-05-22T08:25:13.923232Z  INFO herdr::logging: checking for updates event="update.check.start" subsystem="update" outcome="started"
+2026-05-22T09:02:15.637141Z  INFO herdr::logging: checking for updates event="update.check.start" subsystem="update" outcome="started"
+2026-05-22T09:45:03.484258Z  INFO herdr::server::headless: client disconnected client_id=8
+2026-05-22T09:45:08.887061Z  INFO herdr::server::headless: client connected client_id=10 cols=180 rows=43 cell_width_px=0 cell_height_px=0 render_encoding=SemanticFrame
+2026-05-22T09:45:13.566659Z  INFO herdr::server::headless: client resize client_id=10 cols=86 rows=43 cell_width_px=0 cell_height_px=0
+2026-05-22T09:45:15.744294Z  INFO herdr::server::headless: client resize client_id=10 cols=180 rows=43 cell_width_px=0 cell_height_px=0
+2026-05-22T09:46:11.451546Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525a650a8c6b1" tab_id="w6525a650a8c6b1:1"
+2026-05-22T09:46:16.461580Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=6
+2026-05-22T09:48:31.852806Z  INFO herdr::logging: checking for updates event="update.check.start" subsystem="update" outcome="started"
+2026-05-22T10:18:31.972524Z  INFO herdr::logging: checking for updates event="update.check.start" subsystem="update" outcome="started"
+2026-05-22T10:57:56.650080Z  INFO herdr::logging: checking for updates event="update.check.start" subsystem="update" outcome="started"
+2026-05-22T11:04:22.098975Z  INFO herdr::server::headless: client resize client_id=10 cols=180 rows=20 cell_width_px=0 cell_height_px=0
+2026-05-22T11:04:22.932007Z  INFO herdr::server::headless: client resize client_id=10 cols=180 rows=43 cell_width_px=0 cell_height_px=0
+2026-05-22T11:04:37.566419Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525a650a8c6b1" tab_id="w6525a650a8c6b1:2"
+2026-05-22T11:04:38.451672Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525a650a8c6b1" tab_id="w6525a650a8c6b1:1"
+2026-05-22T11:04:39.572091Z  INFO herdr::logging: workspace focused event="workspace.focus" subsystem="workspace" outcome="ok" workspace_id="w6525ba82074635"
+2026-05-22T11:04:39.572176Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525ba82074635" tab_id="w6525ba82074635:1"
+2026-05-22T11:04:40.143395Z  INFO herdr::logging: workspace focused event="workspace.focus" subsystem="workspace" outcome="ok" workspace_id="w6525a650a8c6b1"
+2026-05-22T11:04:40.143472Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525a650a8c6b1" tab_id="w6525a650a8c6b1:1"
+2026-05-22T11:04:45.150290Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=6
+2026-05-22T11:05:03.018291Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525a650a8c6b1" tab_id="w6525a650a8c6b1:2"
+2026-05-22T11:05:03.922933Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525a650a8c6b1" tab_id="w6525a650a8c6b1:1"
+2026-05-22T11:05:05.031850Z  INFO herdr::logging: workspace focused event="workspace.focus" subsystem="workspace" outcome="ok" workspace_id="w6525ba82074635"
+2026-05-22T11:05:05.031931Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525ba82074635" tab_id="w6525ba82074635:1"
+2026-05-22T11:05:05.563922Z  INFO herdr::logging: workspace focused event="workspace.focus" subsystem="workspace" outcome="ok" workspace_id="w6525a650a8c6b1"
+2026-05-22T11:05:05.564027Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525a650a8c6b1" tab_id="w6525a650a8c6b1:1"
+2026-05-22T11:05:10.568414Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=6
+2026-05-22T11:05:13.630069Z  INFO herdr::server::headless: client resize client_id=10 cols=86 rows=43 cell_width_px=0 cell_height_px=0
+2026-05-22T11:05:22.661058Z  INFO herdr::server::headless: client resize client_id=10 cols=180 rows=43 cell_width_px=0 cell_height_px=0
+2026-05-22T11:05:30.510186Z  INFO herdr::logging: workspace focused event="workspace.focus" subsystem="workspace" outcome="ok" workspace_id="w6525ba82074635"
+2026-05-22T11:05:30.510295Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525ba82074635" tab_id="w6525ba82074635:1"
+2026-05-22T11:05:32.419429Z  INFO herdr::logging: workspace focused event="workspace.focus" subsystem="workspace" outcome="ok" workspace_id="w6525a650a8c6b1"
+2026-05-22T11:05:32.419528Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525a650a8c6b1" tab_id="w6525a650a8c6b1:1"
+2026-05-22T11:05:33.776301Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525a650a8c6b1" tab_id="w6525a650a8c6b1:2"
+2026-05-22T11:05:34.641675Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525a650a8c6b1" tab_id="w6525a650a8c6b1:1"
+2026-05-22T11:05:36.643246Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525a650a8c6b1" tab_id="w6525a650a8c6b1:2"
+2026-05-22T11:05:37.750483Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525a650a8c6b1" tab_id="w6525a650a8c6b1:1"
+2026-05-22T11:05:38.286137Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525a650a8c6b1" tab_id="w6525a650a8c6b1:2"
+2026-05-22T11:05:38.590986Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525a650a8c6b1" tab_id="w6525a650a8c6b1:1"
+2026-05-22T11:05:38.918448Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525a650a8c6b1" tab_id="w6525a650a8c6b1:2"
+2026-05-22T11:05:39.152991Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525a650a8c6b1" tab_id="w6525a650a8c6b1:1"
+2026-05-22T11:05:39.353883Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525a650a8c6b1" tab_id="w6525a650a8c6b1:2"
+2026-05-22T11:05:39.557109Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525a650a8c6b1" tab_id="w6525a650a8c6b1:1"
+2026-05-22T11:05:39.770045Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525a650a8c6b1" tab_id="w6525a650a8c6b1:2"
+2026-05-22T11:05:40.050213Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525a650a8c6b1" tab_id="w6525a650a8c6b1:1"
+2026-05-22T11:05:46.410710Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525a650a8c6b1" tab_id="w6525a650a8c6b1:2"
+2026-05-22T11:05:47.193997Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525a650a8c6b1" tab_id="w6525a650a8c6b1:1"
+2026-05-22T11:05:50.872708Z  INFO herdr::logging: workspace focused event="workspace.focus" subsystem="workspace" outcome="ok" workspace_id="w6525ba9c55e736"
+2026-05-22T11:05:50.872786Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525ba9c55e736" tab_id="w6525ba9c55e736:1"
+2026-05-22T11:05:52.681992Z  INFO herdr::logging: workspace focused event="workspace.focus" subsystem="workspace" outcome="ok" workspace_id="w6525bc969028c9"
+2026-05-22T11:05:52.682052Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525bc969028c9" tab_id="w6525bc969028c9:1"
+2026-05-22T11:05:54.641564Z  INFO herdr::logging: workspace focused event="workspace.focus" subsystem="workspace" outcome="ok" workspace_id="w6525a650a8c6b1"
+2026-05-22T11:05:54.641629Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525a650a8c6b1" tab_id="w6525a650a8c6b1:1"
+2026-05-22T11:05:59.648051Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=6
+2026-05-22T14:07:42.444902Z  INFO herdr::server::headless: client disconnected client_id=10
+2026-05-22T14:07:46.529558Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=6
+2026-05-22T14:14:59.536031Z  INFO herdr::logging: checking for updates event="update.check.start" subsystem="update" outcome="started"
+2026-05-22T14:44:59.602174Z  INFO herdr::logging: checking for updates event="update.check.start" subsystem="update" outcome="started"
+2026-05-22T15:14:59.602682Z  INFO herdr::logging: checking for updates event="update.check.start" subsystem="update" outcome="started"
+2026-05-22T16:45:58.446531Z  INFO herdr::api: api server listening path=/Users/darkawower/.config/herdr/herdr.sock
+2026-05-22T16:45:58.450113Z  INFO herdr::logging: spawning pane terminal event="pane.spawn.start" subsystem="pane" outcome="started" pane_id=1 rows=24 cols=80 scrollback_limit_bytes=10000000
+2026-05-22T16:45:58.452578Z  INFO herdr::logging: pane child spawned event="pane.spawned" subsystem="pane" outcome="ok" pane_id=1 pid=62186
+2026-05-22T16:45:58.452721Z  INFO herdr::logging: spawning pane terminal event="pane.spawn.start" subsystem="pane" outcome="started" pane_id=2 rows=24 cols=80 scrollback_limit_bytes=10000000
+2026-05-22T16:45:58.453805Z  INFO herdr::logging: spawning pane terminal event="pane.spawn.start" subsystem="pane" outcome="started" pane_id=3 rows=24 cols=80 scrollback_limit_bytes=10000000
+2026-05-22T16:45:58.453828Z  INFO herdr::logging: pane child spawned event="pane.spawned" subsystem="pane" outcome="ok" pane_id=2 pid=62187
+2026-05-22T16:45:58.454848Z  INFO herdr::logging: pane child spawned event="pane.spawned" subsystem="pane" outcome="ok" pane_id=3 pid=62188
+2026-05-22T16:45:58.455271Z  INFO herdr::logging: spawning pane terminal event="pane.spawn.start" subsystem="pane" outcome="started" pane_id=4 rows=24 cols=80 scrollback_limit_bytes=10000000
+2026-05-22T16:45:58.456072Z  INFO herdr::logging: pane child spawned event="pane.spawned" subsystem="pane" outcome="ok" pane_id=4 pid=62189
+2026-05-22T16:45:58.456538Z  INFO herdr::logging: spawning pane terminal event="pane.spawn.start" subsystem="pane" outcome="started" pane_id=5 rows=24 cols=80 scrollback_limit_bytes=10000000
+2026-05-22T16:45:58.457333Z  INFO herdr::logging: pane child spawned event="pane.spawned" subsystem="pane" outcome="ok" pane_id=5 pid=62190
+2026-05-22T16:45:58.458003Z  INFO herdr::logging: spawning pane terminal event="pane.spawn.start" subsystem="pane" outcome="started" pane_id=6 rows=24 cols=80 scrollback_limit_bytes=10000000
+2026-05-22T16:45:58.459198Z  INFO herdr::logging: pane child spawned event="pane.spawned" subsystem="pane" outcome="ok" pane_id=6 pid=62191
+2026-05-22T16:45:58.459423Z  INFO herdr::logging: spawning pane terminal event="pane.spawn.start" subsystem="pane" outcome="started" pane_id=7 rows=24 cols=80 scrollback_limit_bytes=10000000
+2026-05-22T16:45:58.460789Z  INFO herdr::logging: spawning pane terminal event="pane.spawn.start" subsystem="pane" outcome="started" pane_id=8 rows=24 cols=80 scrollback_limit_bytes=10000000
+2026-05-22T16:45:58.460973Z  INFO herdr::logging: pane child spawned event="pane.spawned" subsystem="pane" outcome="ok" pane_id=7 pid=62192
+2026-05-22T16:45:58.462187Z  INFO herdr::logging: spawning pane terminal event="pane.spawn.start" subsystem="pane" outcome="started" pane_id=9 rows=24 cols=80 scrollback_limit_bytes=10000000
+2026-05-22T16:45:58.462198Z  INFO herdr::logging: pane child spawned event="pane.spawned" subsystem="pane" outcome="ok" pane_id=8 pid=62193
+2026-05-22T16:45:58.462339Z  INFO herdr::logging: session restore evaluated event="persist.restore" subsystem="persist" outcome="ok" workspaces=6
+2026-05-22T16:45:58.462916Z  INFO herdr::app: using pane scrollback configuration pane_scrollback_limit_bytes=10000000
+2026-05-22T16:45:58.463566Z  INFO herdr::logging: pane child spawned event="pane.spawned" subsystem="pane" outcome="ok" pane_id=9 pid=62194
+2026-05-22T16:45:58.465864Z  INFO herdr::logging: checking for updates event="update.check.start" subsystem="update" outcome="started"
+2026-05-22T16:45:58.466176Z  INFO herdr::server::headless: client protocol socket listening path=/Users/darkawower/.config/herdr/herdr-client.sock
+2026-05-22T16:45:58.466240Z  INFO herdr::server::headless: herdr server started api_socket=/Users/darkawower/.config/herdr/herdr.sock client_socket=/Users/darkawower/.config/herdr/herdr-client.sock
+2026-05-22T16:45:58.466272Z  INFO herdr::logging: herdr starting event="app.startup" subsystem="server" outcome="started" pid=62185
+2026-05-22T16:45:58.743834Z  INFO herdr::server::headless: client connected client_id=2 cols=180 rows=43 cell_width_px=0 cell_height_px=0 render_encoding=SemanticFrame
+2026-05-22T16:48:39.418730Z  INFO herdr::logging: workspace focused event="workspace.focus" subsystem="workspace" outcome="ok" workspace_id="w6525ba82074635"
+2026-05-22T16:48:39.419051Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525ba82074635" tab_id="w6525ba82074635:1"
+2026-05-22T16:48:40.021421Z  INFO herdr::logging: workspace focused event="workspace.focus" subsystem="workspace" outcome="ok" workspace_id="w6525a650a8c6b1"
+2026-05-22T16:48:40.021506Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525a650a8c6b1" tab_id="w6525a650a8c6b1:1"
+2026-05-22T16:48:45.029556Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=6
+2026-05-22T16:48:46.102017Z  INFO herdr::logging: workspace focused event="workspace.focus" subsystem="workspace" outcome="ok" workspace_id="w6525baa7be3d27"
+2026-05-22T16:48:46.102345Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525baa7be3d27" tab_id="w6525baa7be3d27:1"
+2026-05-22T16:48:51.109719Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=6
+2026-05-22T16:53:16.711154Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525baa7be3d27" tab_id="w6525baa7be3d27:1"
+2026-05-22T16:53:17.109490Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525baa7be3d27" tab_id="w6525baa7be3d27:1"
+2026-05-22T16:53:17.371536Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525baa7be3d27" tab_id="w6525baa7be3d27:1"
+2026-05-22T16:53:17.559936Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525baa7be3d27" tab_id="w6525baa7be3d27:1"
+2026-05-22T16:53:17.776734Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525baa7be3d27" tab_id="w6525baa7be3d27:1"
+2026-05-22T16:53:18.085718Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525baa7be3d27" tab_id="w6525baa7be3d27:1"
+2026-05-22T16:53:23.094146Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=6
+2026-05-22T16:56:24.274276Z  INFO herdr::server::headless: client resize client_id=2 cols=86 rows=43 cell_width_px=0 cell_height_px=0
+2026-05-22T16:58:54.059340Z  INFO herdr::server::headless: client resize client_id=2 cols=86 rows=20 cell_width_px=0 cell_height_px=0
+2026-05-22T16:58:55.606342Z  INFO herdr::server::headless: client resize client_id=2 cols=86 rows=43 cell_width_px=0 cell_height_px=0
+2026-05-22T16:58:58.814440Z  INFO herdr::server::headless: client resize client_id=2 cols=121 rows=43 cell_width_px=0 cell_height_px=0
+2026-05-22T16:59:00.993145Z  INFO herdr::server::headless: client resize client_id=2 cols=180 rows=43 cell_width_px=0 cell_height_px=0
+2026-05-22T16:59:07.415590Z  WARN herdr::config::keybinds: config diagnostic ctrl+alt+n: kept keys.new_workspace, disabled keys.focus_pane_down
+2026-05-22T16:59:07.415796Z  WARN herdr::config::keybinds: config diagnostic prefix+e: kept keys.edit_scrollback, disabled keys.focus_pane_up
+2026-05-22T17:00:02.748381Z  WARN herdr::config::keybinds: config diagnostic prefix+e: kept keys.edit_scrollback, disabled keys.focus_pane_up
+2026-05-22T17:00:47.803253Z  INFO herdr::logging: spawning pane terminal event="pane.spawn.start" subsystem="pane" outcome="started" pane_id=10 rows=21 cols=76 scrollback_limit_bytes=10000000
+2026-05-22T17:00:47.809664Z  INFO herdr::logging: pane child spawned event="pane.spawned" subsystem="pane" outcome="ok" pane_id=10 pid=66448
+2026-05-22T17:00:52.163517Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525baa7be3d27" tab_id="w6525baa7be3d27:1"
+2026-05-22T17:00:52.574204Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525baa7be3d27" tab_id="w6525baa7be3d27:1"
+2026-05-22T17:00:52.787404Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525baa7be3d27" tab_id="w6525baa7be3d27:1"
+2026-05-22T17:00:57.796845Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=6
+2026-05-22T17:01:44.758649Z  INFO herdr::logging: spawning pane terminal event="pane.spawn.start" subsystem="pane" outcome="started" pane_id=11 rows=42 cols=77 scrollback_limit_bytes=10000000
+2026-05-22T17:01:44.759161Z  INFO herdr::logging: workspace created event="workspace.create" subsystem="workspace" outcome="ok" workspace_id="w6526afbcc835b1" pane_id=11
+2026-05-22T17:01:44.759172Z  INFO herdr::logging: workspace focused event="workspace.focus" subsystem="workspace" outcome="ok" workspace_id="w6526afbcc835b1"
+2026-05-22T17:01:44.759182Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6526afbcc835b1" tab_id="w6526afbcc835b1:1"
+2026-05-22T17:01:44.763175Z  INFO herdr::logging: pane child spawned event="pane.spawned" subsystem="pane" outcome="ok" pane_id=11 pid=66802
+2026-05-22T17:01:49.767995Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=7
+2026-05-22T17:01:53.066100Z  INFO herdr::logging: workspace focused event="workspace.focus" subsystem="workspace" outcome="ok" workspace_id="w6525a650a8c6b1"
+2026-05-22T17:01:53.066341Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525a650a8c6b1" tab_id="w6525a650a8c6b1:1"
+2026-05-22T17:01:58.070330Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=7
+2026-05-22T17:02:07.234990Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=7
+2026-05-22T17:03:08.466741Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525a650a8c6b1" tab_id="w6525a650a8c6b1:2"
+2026-05-22T17:03:09.514296Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525a650a8c6b1" tab_id="w6525a650a8c6b1:1"
+2026-05-22T17:03:14.521449Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=7
+2026-05-22T17:04:46.116168Z  INFO herdr::logging: workspace focused event="workspace.focus" subsystem="workspace" outcome="ok" workspace_id="w6525bc969028c9"
+2026-05-22T17:04:46.116942Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525bc969028c9" tab_id="w6525bc969028c9:1"
+2026-05-22T17:04:50.755372Z  INFO herdr::logging: workspace renamed event="workspace.rename" subsystem="workspace" outcome="ok" workspace_id="w6525bc969028c9"
+2026-05-22T17:04:51.652952Z  INFO herdr::logging: workspace focused event="workspace.focus" subsystem="workspace" outcome="ok" workspace_id="w6526afbcc835b1"
+2026-05-22T17:04:51.653190Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6526afbcc835b1" tab_id="w6526afbcc835b1:1"
+2026-05-22T17:04:53.357725Z  INFO herdr::logging: workspace focused event="workspace.focus" subsystem="workspace" outcome="ok" workspace_id="w6525bc969028c9"
+2026-05-22T17:04:53.357781Z  INFO herdr::logging: tab focused event="tab.focus" subsystem="tab" outcome="ok" workspace_id="w6525bc969028c9" tab_id="w6525bc969028c9:1"
+2026-05-22T17:04:58.364717Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=7
+2026-05-22T17:05:27.063785Z  INFO herdr::logging: workspace renamed event="workspace.rename" subsystem="workspace" outcome="ok" workspace_id="w6525bc969028c9"
+2026-05-22T17:05:32.070146Z  INFO herdr::logging: session saved event="persist.save" subsystem="persist" outcome="ok" path=/Users/darkawower/.config/herdr/session.json workspaces=7

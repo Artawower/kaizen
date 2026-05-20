@@ -1,0 +1,41 @@
+onboarding = false
+
+[terminal]
+default_shell = "xonsh"
+
+[theme]
+name = "catppuccin"
+
+[ui.toast]
+delivery = "system"
+
+[ui]
+show_agent_labels_on_pane_borders = true
+agent_panel_scope = "all"
+
+[keys]
+detach = "prefix+q"
+workspace_picker = ["prefix+w", "prefix+p", "super+p"]
+new_workspace = ["prefix+n",]
+rename_workspace = ["super+shift+r"]
+close_workspace = ["super+shift+d"]
+new_tab = ["prefix+t", "super+t"]
+previous_tab = ["super+["]
+next_tab = ["super+]"]
+switch_tab = "super+1..9"
+switch_workspace = "ctrl+1..9"
+rename_tab = "super+r"
+close_tab = "super+x"
+focus_pane_left = ["ctrl+alt+h"]
+focus_pane_down = ["prefix+j", "ctrl+alt+n"]
+focus_pane_up = ["ctrl+alt+e"]
+focus_pane_right = ["prefix+i", "ctrl+alt+i"]
+split_vertical = "prefix+v"
+split_horizontal = "prefix+h"
+close_pane = "prefix+x"
+zoom = ["prefix+z", "super+f"]
+resize_mode = "prefix+r"
+toggle_sidebar = ["prefix+b", "super+b"]
+previous_workspace = ["super+alt+e"]
+next_workspace = ["super+alt+n"]
+open_worktree = "prefix+shift+o"

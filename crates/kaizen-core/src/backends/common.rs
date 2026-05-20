@@ -51,6 +51,7 @@ pub fn chezmoi_write_and_apply(
     let data_path = write_kaizen_data(plan, paths, fs)?;
     write_variant_data_to_chezmoi(plan, &data_path, client, fs, &TargetOs::detect())?;
     copy_bump_manifest_to_config(client, paths, fs)?;
+    export_shortcuts_to_chezmoi(client, fs, &TargetOs::detect())?;
 
     reporter.step("→ chezmoi apply");
     client.apply(force)?;
@@ -201,6 +202,103 @@ fn set_slot_in_chezmoidata(
         },
         _ => {}
     }
+}
+
+/// Export the unified shortcut catalog into `.chezmoidata.toml` under `[kaizen.shortcuts]`.
+///
+/// Reads `kaizen/mnemonics.toml`.  Each `[shortcuts]` entry is an array of tokens;
+/// any token that matches a key in `[modifiers.darwin]` or `[modifiers.linux]` (chosen
+/// by `os`) is replaced with its platform-native value.  Literal elements pass through
+/// unchanged.
+///
+/// No-op when `mnemonics.toml` is absent.  Returns `KaizenError::ConfigParse` when
+/// the file or an existing `.chezmoidata.toml` is invalid TOML.
+/// Preserves all unrelated `.chezmoidata.toml` keys.
+fn export_shortcuts_to_chezmoi(
+    client: &dyn crate::chezmoi_client::ChezmoiClient,
+    fs: &dyn FileSystem,
+    os: &TargetOs,
+) -> Result<(), KaizenError> {
+    let Some(source) = client.source_path()? else {
+        return Ok(());
+    };
+
+    let catalog_path = source
+        .join(crate::manifest::KAIZEN_DIR)
+        .join("mnemonics.toml");
+    if !fs.exists(&catalog_path) {
+        return Ok(());
+    }
+
+    let raw = fs.read_to_string(&catalog_path)?;
+    let val: toml::Value = toml::from_str(&raw).map_err(|e| KaizenError::ConfigParse {
+        path: catalog_path.clone(),
+        source: e,
+    })?;
+
+    let platform_key = match os {
+        TargetOs::Darwin => "darwin",
+        _ => "linux",
+    };
+
+    let modifiers = val
+        .get("modifiers")
+        .and_then(|m| m.get(platform_key))
+        .and_then(|t| t.as_table())
+        .cloned()
+        .unwrap_or_default();
+
+    let shortcuts_table = match val.get("shortcuts").and_then(|s| s.as_table()) {
+        Some(t) => t.clone(),
+        None => return Ok(()),
+    };
+
+    let mut resolved: toml::map::Map<String, toml::Value> = toml::map::Map::new();
+    for (id, tokens_val) in &shortcuts_table {
+        if let Some(arr) = tokens_val.as_array() {
+            let resolved_arr: Vec<toml::Value> = arr
+                .iter()
+                .map(|t| {
+                    if let Some(s) = t.as_str() {
+                        let native = modifiers.get(s).and_then(|v| v.as_str()).unwrap_or(s);
+                        toml::Value::String(native.to_owned())
+                    } else {
+                        t.clone()
+                    }
+                })
+                .collect();
+            resolved.insert(id.clone(), toml::Value::Array(resolved_arr));
+        }
+    }
+
+    let chezmoidata_path = source.join(".chezmoidata.toml");
+    let mut table: toml::map::Map<String, toml::Value> = if fs.exists(&chezmoidata_path) {
+        let existing = fs.read_to_string(&chezmoidata_path)?;
+        match toml::from_str::<toml::Value>(&existing) {
+            Ok(toml::Value::Table(t)) => t,
+            Ok(_) => toml::map::Map::new(),
+            Err(e) => {
+                return Err(KaizenError::ConfigParse {
+                    path: chezmoidata_path.clone(),
+                    source: e,
+                })
+            }
+        }
+    } else {
+        toml::map::Map::new()
+    };
+
+    let kaizen = table
+        .entry("kaizen".to_owned())
+        .or_insert_with(|| toml::Value::Table(Default::default()));
+    if let toml::Value::Table(kaizen_tbl) = kaizen {
+        kaizen_tbl.insert("shortcuts".to_owned(), toml::Value::Table(resolved));
+    }
+
+    let content =
+        toml::to_string_pretty(&toml::Value::Table(table)).map_err(KaizenError::TomlSerialize)?;
+    fs.write(&chezmoidata_path, content.as_bytes())?;
+    Ok(())
 }
 
 /// Copy `bump.toml` from the chezmoi source to `~/.config/kaizen/bump.toml`
@@ -438,6 +536,254 @@ mod tests {
         assert!(
             !result.contains("yabai"),
             "must not fall back to default when data.toml has an explicit selection"
+        );
+    }
+
+    // ── export_shortcuts_to_chezmoi ────────────────────────────────────────────
+
+    const SAMPLE_CATALOG: &str = r#"
+[modifiers.darwin]
+SUPER = "Cmd"
+ALT   = "Opt"
+
+[modifiers.linux]
+SUPER = "Super"
+ALT   = "Alt"
+
+[shortcuts]
+"projects.pick"   = ["p", "p"]
+"pane.focus.left" = ["SUPER", "ALT", "Left"]
+"#;
+
+    use std::path::Path;
+
+    struct SourceStub(std::path::PathBuf);
+    impl crate::chezmoi_client::ChezmoiClient for SourceStub {
+        fn managed_files(&self) -> Result<Vec<std::path::PathBuf>, KaizenError> {
+            Ok(vec![])
+        }
+        fn locally_modified_files(&self) -> Result<Vec<std::path::PathBuf>, KaizenError> {
+            Ok(vec![])
+        }
+        fn source_path(&self) -> Result<Option<std::path::PathBuf>, KaizenError> {
+            Ok(Some(self.0.clone()))
+        }
+        fn raw_source_path(&self) -> Result<Option<std::path::PathBuf>, KaizenError> {
+            Ok(Some(self.0.clone()))
+        }
+        fn resolve_source_root(&self, e: &Path) -> std::path::PathBuf {
+            e.to_owned()
+        }
+        fn pull_source(&self, _: &Path) -> Result<(), KaizenError> {
+            Ok(())
+        }
+        fn current_remote(&self, _: &Path) -> Result<Option<String>, KaizenError> {
+            Ok(None)
+        }
+        fn init_source(&self, _: &str) -> Result<(), KaizenError> {
+            Ok(())
+        }
+        fn apply(&self, _: bool) -> Result<(), KaizenError> {
+            Ok(())
+        }
+        fn remove_files(
+            &self,
+            _: &[std::path::PathBuf],
+            _: bool,
+        ) -> Result<crate::chezmoi::RemoveFilesReport, KaizenError> {
+            Ok(crate::chezmoi::RemoveFilesReport {
+                removed: vec![],
+                skipped: vec![],
+            })
+        }
+        fn backup_source_dir(
+            &self,
+            _: &Path,
+        ) -> Result<crate::chezmoi_client::SourceBackup, KaizenError> {
+            unimplemented!()
+        }
+    }
+
+    fn shortcut_entry(raw: &str, id: &str) -> toml::Value {
+        toml::from_str::<toml::Value>(raw)
+            .expect("chezmoidata must parse")
+            .get("kaizen")
+            .and_then(|v| v.get("shortcuts"))
+            .and_then(|v| v.get(id))
+            .cloned()
+            .unwrap_or_else(|| panic!("[kaizen.shortcuts.{id}] must be present"))
+    }
+
+    fn setup_catalog(fs: &crate::fs::mem::MemFileSystem, source: &std::path::Path) {
+        let kaizen_dir = source.join("kaizen");
+        fs.add_dir(&kaizen_dir);
+        fs.add_file(&kaizen_dir.join("mnemonics.toml"), SAMPLE_CATALOG);
+    }
+
+    #[test]
+    fn export_shortcuts_writes_resolved_tokens() {
+        use crate::fs::mem::MemFileSystem;
+        use std::sync::Arc;
+
+        let fs = Arc::new(MemFileSystem::new());
+        let source = std::path::PathBuf::from("/src/dotfiles");
+        fs.add_dir(&source);
+        setup_catalog(&fs, &source);
+
+        export_shortcuts_to_chezmoi(&SourceStub(source.clone()), fs.as_ref(), &TargetOs::Darwin)
+            .unwrap();
+
+        let raw = fs
+            .read_to_string(&source.join(".chezmoidata.toml"))
+            .unwrap();
+
+        let focus = shortcut_entry(&raw, "pane.focus.left");
+        let arr = focus.as_array().expect("must be array");
+        assert_eq!(arr[0].as_str(), Some("Cmd"), "SUPER → Cmd on darwin");
+        assert_eq!(arr[1].as_str(), Some("Opt"), "ALT → Opt on darwin");
+        assert_eq!(arr[2].as_str(), Some("Left"), "literal unchanged");
+
+        let pick = shortcut_entry(&raw, "projects.pick");
+        let arr_p = pick.as_array().expect("must be array");
+        assert_eq!(arr_p[0].as_str(), Some("p"), "literal p unchanged");
+        assert_eq!(arr_p[1].as_str(), Some("p"));
+    }
+
+    #[test]
+    fn export_shortcuts_linux_modifiers() {
+        use crate::fs::mem::MemFileSystem;
+        use std::sync::Arc;
+
+        let fs = Arc::new(MemFileSystem::new());
+        let source = std::path::PathBuf::from("/src/dotfiles");
+        fs.add_dir(&source);
+        setup_catalog(&fs, &source);
+
+        export_shortcuts_to_chezmoi(&SourceStub(source.clone()), fs.as_ref(), &TargetOs::Linux)
+            .unwrap();
+
+        let raw = fs
+            .read_to_string(&source.join(".chezmoidata.toml"))
+            .unwrap();
+        let focus = shortcut_entry(&raw, "pane.focus.left");
+        let arr = focus.as_array().expect("must be array");
+        assert_eq!(arr[0].as_str(), Some("Super"), "SUPER → Super on linux");
+        assert_eq!(arr[1].as_str(), Some("Alt"), "ALT → Alt on linux");
+        assert_eq!(arr[2].as_str(), Some("Left"));
+    }
+
+    #[test]
+    fn export_shortcuts_literal_keys_unchanged() {
+        use crate::fs::mem::MemFileSystem;
+        use std::sync::Arc;
+
+        let fs = Arc::new(MemFileSystem::new());
+        let source = std::path::PathBuf::from("/src/dotfiles");
+        fs.add_dir(&source);
+        setup_catalog(&fs, &source);
+
+        export_shortcuts_to_chezmoi(&SourceStub(source.clone()), fs.as_ref(), &TargetOs::Darwin)
+            .unwrap();
+
+        let raw = fs
+            .read_to_string(&source.join(".chezmoidata.toml"))
+            .unwrap();
+        let pick = shortcut_entry(&raw, "projects.pick");
+        let arr = pick.as_array().expect("must be array");
+        assert_eq!(arr[0].as_str(), Some("p"));
+        assert_eq!(arr[1].as_str(), Some("p"));
+    }
+
+    #[test]
+    fn export_shortcuts_preserves_unrelated_keys() {
+        use crate::fs::mem::MemFileSystem;
+        use std::sync::Arc;
+
+        let fs = Arc::new(MemFileSystem::new());
+        let source = std::path::PathBuf::from("/src/dotfiles");
+        fs.add_dir(&source);
+        setup_catalog(&fs, &source);
+
+        let chezmoidata_path = source.join(".chezmoidata.toml");
+        fs.add_file(
+            &chezmoidata_path,
+            "username = \"alice\"\n[tiling]\nwm = \"komorebi\"\n[kaizen.other]\nkeep = \"yes\"\n",
+        );
+
+        export_shortcuts_to_chezmoi(&SourceStub(source.clone()), fs.as_ref(), &TargetOs::Darwin)
+            .unwrap();
+
+        let raw = fs.read_to_string(&chezmoidata_path).unwrap();
+        let val: toml::Value = toml::from_str(&raw).expect("must parse");
+        assert_eq!(
+            val.get("username").and_then(|v| v.as_str()),
+            Some("alice"),
+            "top-level key preserved"
+        );
+        assert_eq!(
+            val.get("tiling")
+                .and_then(|v| v.get("wm"))
+                .and_then(|v| v.as_str()),
+            Some("komorebi"),
+            "tiling.wm preserved"
+        );
+        assert_eq!(
+            val.get("kaizen")
+                .and_then(|v| v.get("other"))
+                .and_then(|v| v.get("keep"))
+                .and_then(|v| v.as_str()),
+            Some("yes"),
+            "kaizen.other.keep preserved alongside kaizen.shortcuts"
+        );
+        let _ = shortcut_entry(&raw, "pane.focus.left");
+    }
+
+    #[test]
+    fn export_shortcuts_missing_file_is_noop() {
+        use crate::fs::mem::MemFileSystem;
+        use std::sync::Arc;
+
+        let fs = Arc::new(MemFileSystem::new());
+        let source = std::path::PathBuf::from("/src/dotfiles");
+        fs.add_dir(&source);
+
+        export_shortcuts_to_chezmoi(&SourceStub(source.clone()), fs.as_ref(), &TargetOs::Darwin)
+            .unwrap();
+
+        assert!(
+            !fs.exists(&source.join(".chezmoidata.toml")),
+            ".chezmoidata.toml must not be created when catalog is absent"
+        );
+    }
+
+    #[test]
+    fn export_shortcuts_invalid_chezmoidata_returns_error() {
+        use crate::fs::mem::MemFileSystem;
+        use std::sync::Arc;
+
+        let fs = Arc::new(MemFileSystem::new());
+        let source = std::path::PathBuf::from("/src/dotfiles");
+        fs.add_dir(&source);
+        setup_catalog(&fs, &source);
+
+        let chezmoidata_path = source.join(".chezmoidata.toml");
+        fs.add_file(&chezmoidata_path, "not [ valid toml =");
+        let original = fs.read_to_string(&chezmoidata_path).unwrap();
+
+        let result = export_shortcuts_to_chezmoi(
+            &SourceStub(source.clone()),
+            fs.as_ref(),
+            &TargetOs::Darwin,
+        );
+
+        assert!(
+            matches!(result, Err(KaizenError::ConfigParse { .. })),
+            "expected ConfigParse; got: {result:?}"
+        );
+        assert_eq!(
+            fs.read_to_string(&chezmoidata_path).unwrap(),
+            original,
+            ".chezmoidata.toml must not be modified on parse error"
         );
     }
 }

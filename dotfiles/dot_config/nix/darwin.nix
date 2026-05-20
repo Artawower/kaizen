@@ -55,6 +55,7 @@ in
   environment.systemPackages = with pkgs; [
     vim
     nixfmt-rfc-style
+    nixd
   ];
 
   environment.variables = {
