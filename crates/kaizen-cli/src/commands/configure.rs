@@ -1,108 +1,279 @@
+use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
 use dialoguer::{theme::ColorfulTheme, Confirm, Input, Select};
-use std::sync::Arc;
 
 use kaizen_core::{
-    render_config, resolve_features_dir_from_source, BootstrapStatus, ChezmoiBootstrapper,
-    KaizenEngine, UiSettings, UserConfig, UserSettings,
+    steel_module::{
+        discover_modules, read_enabled_list, write_enabled_list, ModuleDecl, SteelEngine,
+    },
+    BootstrapStatus, ChezmoiBootstrapper,
 };
 
-use crate::{engine, ensure, filesystem::StdFileSystem, output, paths::StdPathProvider, selector};
+use crate::{ensure, filesystem::StdFileSystem, output, selector};
 
 /// Run the interactive configuration wizard.
 ///
-/// When `prompt_next` is `true` (standalone `kaizen configure`) the user is
-/// offered a "What next?" prompt at the end.  When called from `kaizen install`
-/// pass `false` — install handles syncing itself (with `--force`).
-pub fn run(
-    explicit_features_dir: Option<&Path>,
-    config_path: &Path,
-    prompt_next: bool,
-    allow_experimental: bool,
-) -> Result<()> {
+/// `prompt_next=true` (standalone `kaizen configure`) offers a "What next?"
+/// prompt at the end.  `kaizen install` passes `false`.
+/// `allow_experimental=true` shows modules with `stability = 'experimental'`.
+pub fn run(prompt_next: bool, allow_experimental: bool) -> Result<()> {
     output::page_header("configure");
     ensure::ensure_chezmoi()?;
 
-    let fs = Arc::new(StdFileSystem);
-    let existing = if config_path.exists() {
-        kaizen_core::config::load_with(config_path, fs.as_ref()).ok()
-    } else {
-        None
-    };
-
-    let dotfiles_url = pick_dotfiles_url(existing.as_ref())?;
+    let dotfiles_url = pick_dotfiles_url()?;
     let source_dir = bootstrap_chezmoi(&dotfiles_url)?;
+    let features_dir = source_dir.join("kaizen").join("features");
 
-    refresh_feature_cache_from_seed(&source_dir);
-
-    let features_dir =
-        resolve_features_dir_from_source(explicit_features_dir, &source_dir, fs.as_ref());
-    let use_cache = explicit_features_dir.is_none();
-    let engine = engine::build(features_dir, use_cache);
-
-    let wizard_features = engine.list_wizard_features(allow_experimental)?;
-    // Keep a meta list for render_config (needs all features, not just enabled ones)
-    let all_features_meta: Vec<(String, Option<String>)> = wizard_features
-        .iter()
-        .map(|f| {
-            (
-                f.id.clone(),
-                Some(f.description.clone()).filter(|d| !d.is_empty()),
-            )
-        })
-        .collect();
-
-    let Some((selected, variant_selections)) = selector::pick_features_with_variants(
-        "Select features",
-        wizard_features,
-        allow_experimental,
-        |incl| engine.list_wizard_features(incl).map_err(Into::into),
-    )?
-    else {
-        return Ok(());
-    };
-
-    if !variant_selections.is_empty() {
-        engine.apply_variant_selections(variant_selections)?;
+    if features_dir.exists() {
+        let engine = load_all_modules(&features_dir);
+        configure_features(&engine, &features_dir, allow_experimental)?;
+        configure_settings(&engine, &features_dir)?;
     }
 
-    let layout = pick_layout(existing.as_ref())?;
-    let font_size = pick_font_size(existing.as_ref())?;
-    let settings = UserSettings {
-        layout: Some(layout),
-        ui: UiSettings {
-            font_size: Some(font_size),
-        },
-    };
+    if prompt_next {
+        prompt_next_action()?;
+    }
 
-    let existing_extra = existing
-        .as_ref()
-        .map(|c| c.extra.clone())
-        .unwrap_or_default();
-    let toml = render_config(
-        &all_features_meta,
-        &selected,
-        &settings,
-        &dotfiles_url,
-        &existing_extra,
+    Ok(())
+}
+
+// ── Feature selection (Steel-based) ──────────────────────────────────────────
+
+/// Present the feature wizard in two passes:
+/// 1. For each declared group: `Select` prompt → exactly one module (or none).
+/// 2. For ungrouped modules: `MultiSelect`.
+/// Writes the final set to `enabled.toml`.
+fn configure_features(
+    engine: &SteelEngine,
+    features_dir: &Path,
+    allow_experimental: bool,
+) -> Result<()> {
+    let current_enabled = read_enabled_list(features_dir);
+    let current_enabled = current_enabled.as_deref().unwrap_or(&[]);
+
+    let (groups, ungrouped) = partition_modules(engine, allow_experimental);
+
+    if groups.is_empty() && ungrouped.is_empty() {
+        output::item_warn("no features found in features directory");
+        return Ok(());
+    }
+
+    let mut selected: Vec<String> = vec![];
+
+    if !groups.is_empty() {
+        output::header("feature groups");
+        for (group, members) in &groups {
+            let chosen = pick_group_module(group, members, current_enabled)?;
+            if let Some(name) = chosen {
+                selected.push(name);
+            }
+        }
+    }
+
+    if !ungrouped.is_empty() {
+        output::header("features");
+        let items = ungrouped
+            .iter()
+            .map(|m| selector::Item {
+                name: m.name.clone(),
+                desc: Some(module_desc(m)),
+                selected: current_enabled.contains(&m.name),
+            })
+            .collect();
+        if let Some(extras) = selector::multi_select("Select features to enable", items)? {
+            selected.extend(extras);
+        }
+    }
+
+    write_enabled_list(features_dir, &selected)
+        .map_err(|e| anyhow::anyhow!("failed to write enabled.toml: {e}"))?;
+    output::item_ok(&format!(
+        "saved enabled.toml ({} features enabled)",
+        selected.len()
+    ));
+    Ok(())
+}
+
+/// Partition loaded modules into (sorted groups, ungrouped).
+/// Modules with `stability = "experimental"` are excluded unless the flag is set.
+fn partition_modules(
+    engine: &SteelEngine,
+    allow_experimental: bool,
+) -> (Vec<(String, Vec<ModuleDecl>)>, Vec<ModuleDecl>) {
+    engine.with_state(|s| {
+        let mut by_group: HashMap<String, Vec<ModuleDecl>> = HashMap::new();
+        let mut ungrouped: Vec<ModuleDecl> = vec![];
+
+        for m in &s.modules {
+            if m.stability == "experimental" && !allow_experimental {
+                continue;
+            }
+            match &m.group {
+                Some(g) => by_group.entry(g.clone()).or_default().push(m.clone()),
+                None => ungrouped.push(m.clone()),
+            }
+        }
+
+        let mut groups: Vec<(String, Vec<ModuleDecl>)> = by_group.into_iter().collect();
+        groups.sort_by(|a, b| a.0.cmp(&b.0));
+        (groups, ungrouped)
+    })
+}
+
+/// Prompt the user to pick exactly one module from `members` for `group`.
+/// Returns `None` if the user picks "none".
+fn pick_group_module(
+    group: &str,
+    members: &[ModuleDecl],
+    current_enabled: &[String],
+) -> Result<Option<String>> {
+    let none_label = "none (skip this group)".to_string();
+    let labels: Vec<String> = members
+        .iter()
+        .map(|m| {
+            if m.description.is_empty() {
+                m.name.clone()
+            } else {
+                format!("{}  — {}", m.name, m.description)
+            }
+        })
+        .chain(std::iter::once(none_label))
+        .collect();
+
+    let none_idx = labels.len() - 1;
+    let default_idx = members
+        .iter()
+        .position(|m| current_enabled.contains(&m.name))
+        .unwrap_or(none_idx);
+
+    let idx = Select::with_theme(&ColorfulTheme::default())
+        .with_prompt(format!("  {group}"))
+        .items(&labels)
+        .default(default_idx)
+        .interact()?;
+
+    Ok((idx < members.len()).then(|| members[idx].name.clone()))
+}
+
+/// Build a short description string shown next to a feature in the multiselect.
+fn module_desc(m: &ModuleDecl) -> String {
+    let mut parts = Vec::new();
+    if !m.description.is_empty() {
+        parts.push(m.description.clone());
+    }
+    if m.stability != "stable" {
+        parts.push(format!("({})", m.stability));
+    }
+    parts.join("  ")
+}
+
+// ── Settings ──────────────────────────────────────────────────────────────────
+
+/// Read current layout / font-size from Steel globals (set by `settings/module.scm`),
+/// prompt the user for overrides, then regenerate `settings/module.scm`.
+fn configure_settings(engine: &SteelEngine, features_dir: &Path) -> Result<()> {
+    output::header("settings");
+
+    let default_layout = engine.with_state(|s| {
+        s.globals
+            .get("layout")
+            .cloned()
+            .unwrap_or_else(|| "colemak".to_string())
+    });
+    let default_font: f64 = engine.with_state(|s| {
+        s.globals
+            .get("ui/font-size")
+            .and_then(|v| v.parse().ok())
+            .unwrap_or(14.0)
+    });
+
+    let layout = pick_layout(&default_layout)?;
+    let font_size = pick_font_size(default_font)?;
+    write_settings_module(features_dir, &layout, font_size)?;
+    output::item_ok("settings saved to features/settings/module.scm");
+    Ok(())
+}
+
+fn write_settings_module(features_dir: &Path, layout: &str, font_size: f64) -> Result<()> {
+    let path = features_dir.join("settings").join("module.scm");
+    std::fs::create_dir_all(path.parent().expect("path has parent"))?;
+    let content = format!(
+        r#"(declare-module "settings" :group 'system :description "Global settings")
+
+(set-global! :layout       "{layout}")
+(set-global! :ui/font-size "{font_size}")
+(set-global! :ui/theme     "catppuccin-mocha")
+
+(on-bump!
+  (lambda ()
+    (shell! "~/.config/scripts/mise-bump")))
+
+(on-re-add!
+  (lambda ()
+    (chezmoi-re-add! "~/.config/mise.lock")))
+"#
     );
-    if write_config(config_path, &toml)? && prompt_next {
-        prompt_next_action(&engine, config_path)?;
+    std::fs::write(&path, content)?;
+    Ok(())
+}
+
+// ── Module loading ────────────────────────────────────────────────────────────
+
+/// Load every `module.scm` under `features_dir/*/module.scm` into a fresh engine.
+/// Ignores `enabled.toml` — all modules are loaded for metadata discovery.
+/// Soft-warns on load failures; does not bail.
+fn load_all_modules(features_dir: &Path) -> SteelEngine {
+    let mut engine = SteelEngine::new(Default::default());
+    for (path, name) in discover_modules(features_dir) {
+        if let Err(e) = engine.load_module(&path, &name) {
+            output::item_warn(&format!("module '{name}' failed to load: {e}"));
+        }
+    }
+    engine
+}
+
+// ── Next-action prompt ────────────────────────────────────────────────────────
+
+fn prompt_next_action() -> Result<()> {
+    let choices = &[
+        "apply  — apply dotfiles now",
+        "skip   — I'll do it manually",
+    ];
+    let idx = Select::with_theme(&ColorfulTheme::default())
+        .with_prompt("What next?")
+        .items(choices)
+        .default(0)
+        .interact()?;
+
+    if idx == 0 {
+        use kaizen_core::chezmoi_client::ChezmoiClient as _;
+        crate::chezmoi::StdChezmoiClient
+            .apply(false)
+            .map_err(|e| anyhow::anyhow!("{e}"))?;
     }
     Ok(())
 }
 
-fn pick_dotfiles_url(existing: Option<&UserConfig>) -> Result<String> {
-    let default = existing
-        .and_then(|c| c.dotfiles.source.as_deref())
-        .unwrap_or(kaizen_core::DEFAULT_DOTFILES_SOURCE);
+// ── Pickers ───────────────────────────────────────────────────────────────────
+
+/// Prompt for the dotfiles repository URL.
+/// The default is the current chezmoi remote (if available) or the project default.
+fn pick_dotfiles_url() -> Result<String> {
+    let default = chezmoi_current_remote()
+        .unwrap_or_else(|| kaizen_core::DEFAULT_DOTFILES_SOURCE.to_string());
     let url: String = Input::with_theme(&ColorfulTheme::default())
         .with_prompt("Dotfiles repository URL")
-        .with_initial_text(default)
+        .with_initial_text(&default)
         .interact_text()?;
     Ok(url)
+}
+
+fn chezmoi_current_remote() -> Option<String> {
+    use kaizen_core::chezmoi_client::ChezmoiClient as _;
+    let src = crate::chezmoi::StdChezmoiClient.source_path().ok()??;
+    crate::chezmoi::StdChezmoiClient.current_remote(&src).ok()?
 }
 
 fn bootstrap_chezmoi(url: &str) -> Result<PathBuf> {
@@ -121,9 +292,7 @@ fn bootstrap_chezmoi(url: &str) -> Result<PathBuf> {
         } => {
             let prompt = match &current_remote {
                 Some(r) => format!("chezmoi source uses {r:?} — replace with {url:?}?"),
-                None => {
-                    format!("chezmoi source exists without a remote — replace with {url:?}?")
-                }
+                None => format!("chezmoi source exists without a remote — replace with {url:?}?"),
             };
             let confirmed = Confirm::with_theme(&ColorfulTheme::default())
                 .with_prompt(prompt)
@@ -156,7 +325,7 @@ fn bootstrap_chezmoi(url: &str) -> Result<PathBuf> {
             ));
             use kaizen_core::ChezmoiClient as _;
             crate::chezmoi::StdChezmoiClient
-                .pull_source(&git_root) // adapter locates git root & handles symlink check
+                .pull_source(&git_root)
                 .context("failed to update dotfiles source")?;
             if !expected_source.exists() {
                 anyhow::bail!(
@@ -171,12 +340,9 @@ fn bootstrap_chezmoi(url: &str) -> Result<PathBuf> {
     }
 }
 
-fn pick_layout(existing: Option<&UserConfig>) -> Result<String> {
+fn pick_layout(default: &str) -> Result<String> {
     let layouts = &["colemak", "qwerty"];
-    let default_idx = existing
-        .and_then(|c| c.settings.layout.as_deref())
-        .and_then(|l| layouts.iter().position(|&x| x == l))
-        .unwrap_or(0);
+    let default_idx = layouts.iter().position(|&x| x == default).unwrap_or(0);
     let idx = Select::with_theme(&ColorfulTheme::default())
         .with_prompt("Keyboard layout")
         .items(layouts)
@@ -185,66 +351,10 @@ fn pick_layout(existing: Option<&UserConfig>) -> Result<String> {
     Ok(layouts[idx].to_owned())
 }
 
-fn pick_font_size(existing: Option<&UserConfig>) -> Result<f64> {
-    let default = existing
-        .and_then(|c| c.settings.ui.font_size)
-        .unwrap_or(14.0);
+fn pick_font_size(default: f64) -> Result<f64> {
     let font_size = Input::with_theme(&ColorfulTheme::default())
         .with_prompt("UI font size")
         .with_initial_text(default.to_string())
         .interact_text()?;
     Ok(font_size)
-}
-
-/// Copy the committed `feature-meta.json` seed from the chezmoi source to
-/// `~/.config/kaizen/feature-meta.json`. Always overwrites the existing cache
-/// so that switching dotfiles sources never leaves a stale feature list in the
-/// wizard. The live home-manager activation will overwrite this seed again
-/// after the first `home-manager switch`.
-fn refresh_feature_cache_from_seed(source_dir: &Path) {
-    use kaizen_core::PathProvider as _;
-    let Some(config_dir) = StdPathProvider.config_dir() else {
-        return;
-    };
-    let target = config_dir.join("kaizen").join("feature-meta.json");
-    let seed = source_dir
-        .join("dot_config")
-        .join("kaizen")
-        .join("feature-meta.json");
-    if !seed.exists() {
-        return;
-    }
-    let _ = std::fs::create_dir_all(target.parent().unwrap());
-    let _ = std::fs::copy(&seed, &target);
-}
-
-fn write_config(path: &Path, content: &str) -> Result<bool> {
-    if let Some(parent) = path.parent() {
-        std::fs::create_dir_all(parent)?;
-    }
-    std::fs::write(path, content)?;
-    Ok(true)
-}
-
-fn prompt_next_action(engine: &KaizenEngine, config_path: &Path) -> Result<()> {
-    output::item_ok(&format!("Config written to {}", config_path.display()));
-    println!();
-
-    let choices = &[
-        "sync   — install packages + apply dotfiles",
-        "plan   — preview what would happen",
-        "skip   — I'll do it manually",
-    ];
-    let idx = Select::with_theme(&ColorfulTheme::default())
-        .with_prompt("What next?")
-        .items(choices)
-        .default(0)
-        .interact()?;
-
-    println!();
-    match idx {
-        0 => super::sync::run(engine, config_path, false, true),
-        1 => super::plan::run(engine, config_path, false),
-        _ => Ok(()),
-    }
 }

@@ -3,8 +3,7 @@ use std::sync::Arc;
 
 use kaizen_core::{KaizenEngine, PathProvider as _};
 
-use crate::{chezmoi::StdChezmoiClient, filesystem::StdFileSystem, paths::StdPathProvider};
-use kaizen_core::chezmoi_client::ChezmoiClient as _;
+use crate::{filesystem::StdFileSystem, paths::StdPathProvider};
 
 fn nix_cache_path() -> Option<PathBuf> {
     StdPathProvider
@@ -32,14 +31,6 @@ pub fn build_cache_only() -> KaizenEngine {
     attach_paths(KaizenEngine::cache_only(Arc::new(StdFileSystem)), true)
 }
 
-fn variants_dir() -> Option<PathBuf> {
-    // Variants live at <chezmoi-source-parent>/features/
-    // e.g. ~/.local/share/chezmoi/features/ (one level above dotfiles/)
-    let source = StdChezmoiClient.source_path().ok()??;
-    let candidate = source.parent()?.join("features");
-    candidate.exists().then_some(candidate)
-}
-
 fn attach_paths(engine: KaizenEngine, use_nix_cache: bool) -> KaizenEngine {
     let engine = if use_nix_cache {
         match nix_cache_path() {
@@ -48,10 +39,6 @@ fn attach_paths(engine: KaizenEngine, use_nix_cache: bool) -> KaizenEngine {
         }
     } else {
         engine
-    };
-    let engine = match variants_dir() {
-        Some(p) => engine.with_variants_dir(p),
-        None => engine,
     };
     match data_toml_path() {
         Some(p) => engine.with_data_toml_path(p),

@@ -4,9 +4,7 @@ use anyhow::Result;
 use kaizen_core::{KaizenEngine, SyncBackend, SyncOpts, TargetOs};
 use owo_colors::OwoColorize;
 
-use crate::backend::detect_backend;
-
-use crate::{output, reporter::StderrReporter};
+use crate::{backend::detect_backend, output, reporter::StderrReporter, steel_phase};
 
 pub fn run(engine: &KaizenEngine, config_path: &Path, dry_run: bool, force: bool) -> Result<()> {
     let os = TargetOs::detect();
@@ -31,6 +29,13 @@ fn run_with(
 
     output::kv("backend", backend.id());
     println!();
+
+    // Steel pre-phase — runs in both dry-run and normal mode.
+    // dry_run is forwarded so generate-file! / config-dir! skip disk writes.
+    if let Some(features_dir) = steel_phase::steel_features_dir() {
+        steel_phase::run_steel_phase(&features_dir, dry_run)
+            .map_err(|e| anyhow::anyhow!("Steel pre-phase failed: {e}"))?;
+    }
 
     if dry_run {
         let preview = backend.preview(&plan);

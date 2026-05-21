@@ -16,10 +16,9 @@ mod output;
 mod paths;
 mod reporter;
 mod selector;
+mod steel_phase;
 
 use chezmoi::StdChezmoiClient;
-use executor::StdProcessExecutor;
-use kaizen_core::chezmoi_client::ChezmoiClient as _;
 use paths::StdPathProvider;
 use reporter::StderrReporter;
 
@@ -101,6 +100,9 @@ enum Command {
     /// Check system readiness and tool availability.
     Doctor,
 
+    /// Load and validate all Steel feature modules.
+    Check,
+
     /// Upgrade kaizen binary to the latest GitHub release.
     SelfUpdate {
         #[arg(long, help = "Show what would change without downloading")]
@@ -109,51 +111,20 @@ enum Command {
 
     /// Upgrade version pins and save lock files back to the chezmoi source.
     ///
-    /// Steps are defined in ~/.config/kaizen/bump.toml.
+    /// on-bump! callbacks in Steel feature modules are executed.
     /// After bumping, commit the changed lock files with your VCS.
     Bump {
-        #[arg(
-            long,
-            value_name = "STEP",
-            help = "Run only the named step(s) (e.g. --only mise --only nix)"
-        )]
-        only: Vec<String>,
         #[arg(long, help = "Preview without executing")]
         dry_run: bool,
     },
 
-    /// Rank alternatives from decisions/*.toml via TOPSIS.
-    Rank {
-        #[arg(help = "Decision category to rank")]
-        category: Option<String>,
-        #[arg(long, help = "Render markdown")]
-        md: bool,
-        #[arg(long, help = "Render all decision categories")]
-        all: bool,
-        #[arg(long, value_name = "DIR", help = "Override decisions directory")]
-        dir: Option<std::path::PathBuf>,
+    /// Re-add generated files back into the chezmoi source.
+    ///
+    /// on-re-add! callbacks in Steel feature modules are executed.
+    ReAdd {
+        #[arg(long, help = "Preview without executing")]
+        dry_run: bool,
     },
-
-    /// Manage slot/variant selections (e.g. tiling window manager).
-    Variant {
-        #[command(subcommand)]
-        action: VariantAction,
-    },
-}
-
-#[derive(Debug, clap::Subcommand)]
-enum VariantAction {
-    /// Activate a variant for a slot.
-    Set {
-        slot: String,
-        variant: String,
-        #[arg(long, help = "Required for experimental variants")]
-        experimental: bool,
-        #[arg(long, value_name = "DIR")]
-        dir: Option<std::path::PathBuf>,
-    },
-    /// Reset a slot to its default variant.
-    Reset { slot: String },
 }
 
 fn main() -> Result<()> {
@@ -173,9 +144,7 @@ fn main() -> Result<()> {
         let features_dir_path = cli.features_dir.clone();
         let features_dir_opt = features_dir_path.as_deref();
         return match cli.command {
-            Command::Configure { experimental } => {
-                commands::configure::run(features_dir_opt, &config_path, true, experimental)
-            }
+            Command::Configure { experimental } => commands::configure::run(true, experimental),
             Command::Install { dry_run } => {
                 let engine = match cli.features_dir {
                     Some(dir) => engine::build(dir, false),
@@ -187,6 +156,7 @@ fn main() -> Result<()> {
         };
     }
 
+    let features_dir_arg = cli.features_dir.clone();
     let engine = match cli.features_dir {
         Some(dir) => engine::build(dir, false),
         None => engine::build_cache_only(),
@@ -208,46 +178,31 @@ fn main() -> Result<()> {
             commands::uninstall::run(&engine, &config_path, dry_run)?;
         }
         Command::Doctor => commands::doctor::run(&engine, &config_path)?,
-        Command::SelfUpdate { dry_run } => commands::self_update::run(dry_run)?,
-        Command::Bump { only, dry_run } => {
-            let source_path = StdChezmoiClient.source_path()?;
-            commands::bump::run(
-                &only,
-                dry_run,
-                &StdProcessExecutor,
-                &StdPathProvider,
-                source_path.as_deref(),
-                &engine,
-                &config_path,
-                &StderrReporter,
-            )?;
+        Command::Check => {
+            // Use --features-dir if given; otherwise fall back to
+            // <chezmoi-source-parent>/features/ (same heuristic as engine.rs).
+            let features_dir = features_dir_arg.or_else(|| {
+                use kaizen_core::chezmoi_client::ChezmoiClient as _;
+                let src = StdChezmoiClient.source_path().ok()??;
+                let candidate = src.parent()?.join("features");
+                candidate.exists().then_some(candidate)
+            });
+            match features_dir {
+                Some(dir) => commands::check::run(&dir)?,
+                None => {
+                    return Err(anyhow::anyhow!(
+                    "--features-dir required (or chezmoi source must contain a features/ sibling)"
+                ))
+                }
+            }
         }
-        Command::Rank {
-            category,
-            md,
-            all,
-            dir,
-        } => commands::rank::run(
-            category,
-            md,
-            all,
-            dir,
-            &StdPathProvider,
-            &filesystem::StdFileSystem,
-        )?,
-        Command::Variant { action } => match action {
-            VariantAction::Set {
-                slot,
-                variant,
-                experimental,
-                dir,
-            } => {
-                commands::variant::run_set(&slot, &variant, experimental, dir.as_deref(), &engine)?
-            }
-            VariantAction::Reset { slot } => {
-                commands::variant::run_reset(&slot, &engine)?;
-            }
-        },
+        Command::SelfUpdate { dry_run } => commands::self_update::run(dry_run)?,
+        Command::Bump { dry_run } => {
+            commands::bump::run(&engine, &config_path, dry_run)?;
+        }
+        Command::ReAdd { dry_run } => {
+            commands::re_add::run(&engine, dry_run)?;
+        }
     }
 
     Ok(())

@@ -116,7 +116,7 @@ fn ensure_dev_symlink() -> Result<()> {
 /// the dotfiles URL even if a stale config already exists.
 pub fn run(
     engine: &KaizenEngine,
-    features_dir: Option<&Path>,
+    _features_dir: Option<&Path>,
     config_path: &Path,
     dry_run: bool,
 ) -> Result<()> {
@@ -140,7 +140,7 @@ pub fn run(
         }
         println!();
         output::page_header("install — configure");
-        commands::configure::run(features_dir, config_path, false, false)?;
+        commands::configure::run(false, false)?;
         println!();
     } else {
         output::item_ok("config and dotfiles found — skipping configure");

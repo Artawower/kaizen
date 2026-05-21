@@ -125,7 +125,7 @@ impl ChezmoiBootstrapper {
 ///
 /// Returns the expected `kaizen/features` path under `source_dir` regardless
 /// of whether it already exists. Callers receive a clear `FeaturesDirNotFound`
-/// error from `FeatureStore` when the directory is absent.
+/// error when the directory is absent.
 pub fn resolve_features_dir_from_source(
     explicit: Option<&Path>,
     source_dir: &Path,

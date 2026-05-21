@@ -579,9 +579,15 @@ impl InstallBackend for NixSyncBackend {
             // so darwin-rebuild can see the flake.
             if let Some(home) = self.runtime.paths.home_dir() {
                 reporter.step("→ git add ~/.config");
-                let _ = self.runtime.executor.execute(
-                    ProcessCommand::run("git", ["-C", home.join(".config").to_str().unwrap_or(""), "add", "-A"])
-                );
+                let _ = self.runtime.executor.execute(ProcessCommand::run(
+                    "git",
+                    [
+                        "-C",
+                        home.join(".config").to_str().unwrap_or(""),
+                        "add",
+                        "-A",
+                    ],
+                ));
             }
 
             // Unlink source formulas before darwin-rebuild so brew bundle can

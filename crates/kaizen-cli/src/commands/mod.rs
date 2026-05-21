@@ -1,14 +1,14 @@
 pub mod apply;
 pub mod bump;
+pub mod check;
 pub mod clean;
 pub mod configure;
 pub mod doctor;
 pub mod features;
 pub mod install;
 pub mod plan;
-pub mod rank;
+pub mod re_add;
 pub mod self_update;
 pub mod sync;
 pub mod uninstall;
 pub mod update;
-pub mod variant;

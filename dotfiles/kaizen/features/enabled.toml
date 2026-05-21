@@ -1,0 +1,1 @@
+enabled = ["actions", "helix", "nix", "settings", "skhd", "yabai"]

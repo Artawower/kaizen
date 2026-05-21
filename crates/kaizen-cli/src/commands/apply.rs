@@ -2,11 +2,9 @@ use std::path::Path;
 
 use anyhow::Result;
 use kaizen_core::{ApplyBackend, KaizenEngine, PostApplyBackend, SyncOpts, TargetOs};
-
-use crate::backend::detect_backend;
 use owo_colors::OwoColorize;
 
-use crate::{output, reporter::StderrReporter};
+use crate::{backend::detect_backend, output, reporter::StderrReporter, steel_phase};
 
 pub fn run(engine: &KaizenEngine, config_path: &Path, dry_run: bool) -> Result<()> {
     let os = TargetOs::detect();
@@ -36,6 +34,14 @@ fn run_with<B: ApplyBackend + PostApplyBackend + ?Sized>(
         dry_run,
         ..Default::default()
     };
+
+    // Steel modules pre-phase — generate dotfiles before chezmoi apply.
+    // Errors are hard failures in both normal and dry-run mode:
+    // deploying stale/partial config is worse than stopping early.
+    if let Some(features_dir) = steel_phase::steel_features_dir() {
+        steel_phase::run_steel_phase(&features_dir, dry_run)
+            .map_err(|e| anyhow::anyhow!("Steel pre-phase failed: {e}"))?;
+    }
 
     if dry_run {
         let preview = backend.apply_preview(&plan);

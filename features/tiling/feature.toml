@@ -1,6 +1,0 @@
-title = "Tiling window manager"
-
-[[slots]]
-id = "wm"
-required = true
-description = "Window manager implementation"

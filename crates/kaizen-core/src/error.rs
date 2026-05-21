@@ -116,16 +116,6 @@ pub enum KaizenError {
     #[error("failed to parse feature-meta.json: {0}")]
     FeatureCacheParse(String),
 
-    #[error("rank decision '{category}' is empty")]
-    RankEmpty { category: String },
-
-    #[error("failed to parse rank decision '{category}': {source}")]
-    RankParse {
-        category: String,
-        #[source]
-        source: toml::de::Error,
-    },
-
     #[error("rank alternative '{alternative}' has no score for criterion '{criterion}'")]
     RankMissingScore {
         alternative: String,
