@@ -1,0 +1,7 @@
+{{- $shortcuts := .kaizen.shortcuts -}}
+
+def _kaizen_alias(keys, command):
+    aliases[''.join(keys)] = command
+
+_kaizen_alias({{ index $shortcuts "vcs.ui" | toJson }}, 'jjui')
+_kaizen_alias({{ index $shortcuts "projects.pick" | toJson }}, 'zi')

@@ -45,6 +45,7 @@ source @(config_dir / 'completers.xsh')
 source @(config_dir / 'filters.xsh')
 source @(config_dir / 'prompt.xsh')
 source @(config_dir / 'zoxide.xsh')
+source @(config_dir / 'generated.xsh')
 source @(config_dir / 'autoenv.xsh')
 source @(config_dir / 'smartenv.xsh')
 
