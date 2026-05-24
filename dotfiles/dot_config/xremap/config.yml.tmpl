@@ -107,8 +107,8 @@ keymap:
 
   - name: Fn tabs
     remap:
-      Fn-{{ if eq .layout "colemak" }}n{{ else }}j{{ end }}: C-Tab
-      Fn-{{ if eq .layout "colemak" }}e{{ else }}k{{ end }}: C-S-Tab
+      Fn-{{ join "" (index .kaizen.shortcuts "nav.down") }}: C-Tab
+      Fn-{{ join "" (index .kaizen.shortcuts "nav.up") }}: C-S-Tab
 
   - name: Emacs
     application:

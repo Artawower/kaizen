@@ -6,16 +6,11 @@
 // Find the full list of options on the wiki:
 // https://yalter.github.io/niri/Configuration:-Input
 
-{{ $down := "j" -}}
-{{ $up := "k" -}}
-{{ $right := "l" -}}
-{{ $overview := "i" -}}
-{{ if eq .layout "colemak" -}}
-{{   $down = "n" -}}
-{{   $up = "e" -}}
-{{   $right = "i" -}}
-{{   $overview = "l" -}}
-{{ end }}
+{{- $down := join "" (index .kaizen.shortcuts "nav.down") -}}
+{{- $up := join "" (index .kaizen.shortcuts "nav.up") -}}
+{{- $right := join "" (index .kaizen.shortcuts "nav.right") -}}
+{{- $overview := "k" -}}
+{{- if eq .layout "colemak" }}{{- $overview = "l" -}}{{ end }}
 
 environment {
     QT_PLUGIN_PATH null

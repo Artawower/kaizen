@@ -1,17 +1,19 @@
 # Kaizen unified shortcut catalog.
 #
-# Each entry is an array of tokens. Tokens matching a key in [modifiers.*]
-# are resolved to their platform-native name at export time. All other
-# elements are passed through as-is (literal keys, directions, layer prefixes).
+# [shortcuts] defines base (qwerty-compatible) shortcuts. Each entry is an
+# array of string tokens. Tokens matching a key in [modifiers.*] are resolved
+# to their platform-native name at export time. All other tokens pass through.
 #
-# First batch (accepted):
-#   projects.pick      ["p","p"]          modal leader + p + p (no token resolution)
-#   pane.split.right   ["w","v"]          modal leader + w + v
-#   pane.split.down    ["w","s"]          modal leader + w + s
-#   vcs.ui             ["g","g"]          modal leader + g + g
-#   pane.focus.*       ["CTRL","ALT",…]   global shortcuts; CTRL+ALT passes through to terminal apps
+# [layout.<name>.shortcuts] defines overrides applied on top of base for that
+# layout. kaizen merges overlay on top of base at export time.
 #
-# Deferred: window.focus.* nav tokens, files.find, vcs.status/diff/log
+# Accepted shortcuts:
+#   nav.*              navigation keys (layout-aware via colemak overlay)
+#   jjui.*             jjui action keys (displaced to j/k/l in colemak)
+#   projects.pick      ["p","p"]
+#   pane.split.*       pane split shortcuts
+#   vcs.ui             ["g","g"]
+#   pane.focus.*       ["CTRL","ALT",…] global terminal-safe shortcuts
 
 [modifiers.darwin]
 SUPER = "Cmd"
@@ -28,11 +30,38 @@ SHIFT = "Shift"
 CTRL = "Ctrl"
 
 [shortcuts]
+# --- Navigation (base = qwerty) ---
+"nav.left" = ["h"]
+"nav.down" = ["j"]
+"nav.up" = ["k"]
+"nav.right" = ["l"]
+
+# --- jjui actions (displaced from nav keys in colemak) ---
+"jjui.new" = ["n"]
+"jjui.edit" = ["e"]
+"jjui.interactive" = ["i"]
+
+# --- VCS ---
+"vcs.ui" = ["g", "g"]
+
+# --- Projects ---
 "projects.pick" = ["p", "p"]
+
+# --- Pane: split ---
 "pane.split.right" = ["w", "v"]
 "pane.split.down" = ["w", "s"]
-"vcs.ui" = ["g", "g"]
+
+# --- Pane: focus (global, terminal-safe) ---
 "pane.focus.left" = ["CTRL", "ALT", "Left"]
 "pane.focus.right" = ["CTRL", "ALT", "Right"]
 "pane.focus.up" = ["CTRL", "ALT", "Up"]
 "pane.focus.down" = ["CTRL", "ALT", "Down"]
+
+[layout.colemak.shortcuts]
+# nav.left = ["h"] — same as base, omitted
+"nav.down" = ["n"]
+"nav.up" = ["e"]
+"nav.right" = ["i"]
+"jjui.new" = ["j"]
+"jjui.edit" = ["k"]
+"jjui.interactive" = ["l"]

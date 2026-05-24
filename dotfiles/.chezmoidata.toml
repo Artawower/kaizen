@@ -21,42 +21,21 @@ tiling = true
 vcs = true
 
 [kaizen.shortcuts]
-"pane.focus.down" = [
-    "Ctrl",
-    "Opt",
-    "Down",
-]
-"pane.focus.left" = [
-    "Ctrl",
-    "Opt",
-    "Left",
-]
-"pane.focus.right" = [
-    "Ctrl",
-    "Opt",
-    "Right",
-]
-"pane.focus.up" = [
-    "Ctrl",
-    "Opt",
-    "Up",
-]
-"pane.split.down" = [
-    "w",
-    "s",
-]
-"pane.split.right" = [
-    "w",
-    "v",
-]
-"projects.pick" = [
-    "p",
-    "p",
-]
-"vcs.ui" = [
-    "g",
-    "g",
-]
+"jjui.edit" = ["k"]
+"jjui.interactive" = ["l"]
+"jjui.new" = ["j"]
+"nav.down" = ["n"]
+"nav.left" = ["h"]
+"nav.right" = ["i"]
+"nav.up" = ["e"]
+"pane.focus.down" = ["Ctrl", "Opt", "Down"]
+"pane.focus.left" = ["Ctrl", "Opt", "Left"]
+"pane.focus.right" = ["Ctrl", "Opt", "Right"]
+"pane.focus.up" = ["Ctrl", "Opt", "Up"]
+"pane.split.down" = ["w", "s"]
+"pane.split.right" = ["w", "v"]
+"projects.pick" = ["p", "p"]
+"vcs.ui" = ["g", "g"]
 
 [models]
 coder = "openai/gpt-5.5"

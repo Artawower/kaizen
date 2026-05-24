@@ -85,7 +85,7 @@ Only high-confidence entries that already exist in at least one consumer:
 
 | Action id        | Candidate mnemonic       | Reason deferred                                                        |
 | ---------------- | ------------------------ | ---------------------------------------------------------------------- |
-| `window.focus.*` | `nav.left/down/up/right` | Nav tokens need layout resolution; no consumer yet                     |
+| `window.focus.*` | `nav.left/down/up/right` | Deferred: no WM consumer yet; nav.\* accepted via layout overlay model |
 | `files.find`     | `f f`                    | Helix/Zed naming inconsistency (`ff` vs `space space`); needs decision |
 | `vcs.status`     | `v s` vs `g s`           | VCS prefix `v` vs `g` undecided                                        |
 | `vcs.diff`       | `v d` vs `g d`           | Same prefix conflict                                                   |
@@ -174,7 +174,7 @@ Keep validation small:
 
 1. duplicate shortcut ids are errors;
 2. empty mnemonic values are errors;
-3. unknown `nav.*` token is an error if nav mappings are declared (nav tokens are deferred);
+3. nav.\* keys are resolved via layout overlay model (not token substitution);
 4. duplicate mnemonic values are warnings, not errors.
 
 Do not parse native app configs.

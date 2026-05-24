@@ -211,7 +211,7 @@ Current accepted entries (first batch):
 "vcs.ui"           = "g g"
 ```
 
-Deferred (not in catalog yet): `window.focus.*` nav tokens, `files.find`, `vcs.status/diff/log`.
+Deferred: `window.focus.*` (nav.\* keys accepted via layout overlay; no WM consumer yet), `files.find`, `vcs.status/diff/log`.
 See `docs/mnemonic-shortcuts-plan.md` for the deferred list and blockers.
 
 ### Chezmoi template access

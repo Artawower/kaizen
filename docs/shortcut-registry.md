@@ -1,17 +1,29 @@
 # Shortcut Registry Draft
 
+## Layout overrides
+
+Layout-dependent shortcuts are defined as overlays in keybindings.toml:
+
+- `[shortcuts]` — base definitions (qwerty-compatible defaults)
+- `[layout.colemak.shortcuts]` — colemak-specific overrides merged on top of base
+
+kaizen merges overlay on top of base at export time. Templates receive
+already-resolved arrays and do not need `{{ if eq .layout "colemak" }}` guards.
+
 Status: research backlog. This file inventories shortcut families found in the
 dotfiles. It is **not** a binding engine, not a migration plan, and not a
 source of truth for what is currently active.
 
-**Only 4 entries are accepted and live in `dotfiles/kaizen/keybindings.toml`:**
+Accepted entries live in `dotfiles/kaizen/keybindings.toml`.
 
-| Shortcut id        | Mnemonic | Status   |
-| ------------------ | -------- | -------- |
-| `projects.pick`    | `p p`    | accepted |
-| `pane.split.right` | `w v`    | accepted |
-| `pane.split.down`  | `w s`    | accepted |
-| `vcs.ui`           | `g g`    | accepted |
+| Shortcut family | Mnemonic source                           | Status   |
+| --------------- | ----------------------------------------- | -------- |
+| `nav.*`         | `h/j/k/l` base, `h/n/e/i` colemak overlay | accepted |
+| `jjui.*`        | displaced from nav keys by layout overlay | accepted |
+| `projects.pick` | `p p`                                     | accepted |
+| `pane.split.*`  | `w v`, `w s`                              | accepted |
+| `pane.focus.*`  | `CTRL ALT arrows`                         | accepted |
+| `vcs.ui`        | `g g`                                     | accepted |
 
 Everything else in this file is research / candidate backlog.
 
@@ -215,13 +227,13 @@ These are useful facts but should probably not be forced into the shared catalog
 
 ### Deferred (not in catalog yet)
 
-| Shortcut id         | Candidate mnemonic        | Blocker                                                     |
-| ------------------- | ------------------------- | ----------------------------------------------------------- |
-| `files.find`        | `f f`                     | Helix/Zed naming inconsistency; needs decision first        |
-| `vcs.status`        | `v s` or `g s`            | VCS prefix `v` vs `g` undecided                             |
-| `vcs.diff`          | `v d` or `g d`            | Same prefix conflict; `g d` conflicts     /Users/darkawower/Library/Caches/Clop/images/57442.png/Users/darkawower/Library/Caches/Clop/images/57442.png go-to-definition |
-| `vcs.log`           | `v l` or `g l`            | Same prefix conflict                                        |
-| `window.focus.*`    | `nav.left/down/up/right`  | Nav tokens need layout resolution; no template consumer yet |
-| `window.move.*`     | `nav.* under move prefix` | Prefix app-owned; no shared surface consumer yet            |
-| `search.project`    | `/` or `f g`              | Naming undecided                                            |
-| `ui.sidebar.toggle` | `b` or `e`                | Keys conflict across Cmux/Zed/Helix; decision needed        |
+| Shortcut id         | Candidate mnemonic        | Blocker                                                                       |
+| ------------------- | ------------------------- | ----------------------------------------------------------------------------- |
+| `files.find`        | `f f`                     | Helix/Zed naming inconsistency; needs decision first                          |
+| `vcs.status`        | `v s` or `g s`            | VCS prefix `v` vs `g` undecided                                               |
+| `vcs.diff`          | `v d` or `g d`            | Same prefix conflict; `g d` conflicts with go-to-definition                   |
+| `vcs.log`           | `v l` or `g l`            | Same prefix conflict                                                          |
+| `window.focus.*`    | `nav.left/down/up/right`  | Deferred: no WM shortcut consumer yet; nav.\* keys accepted via overlay model |
+| `window.move.*`     | `nav.* under move prefix` | Prefix app-owned; no shared surface consumer yet                              |
+| `search.project`    | `/` or `f g`              | Naming undecided                                                              |
+| `ui.sidebar.toggle` | `b` or `e`                | Keys conflict across Cmux/Zed/Helix; decision needed                          |
