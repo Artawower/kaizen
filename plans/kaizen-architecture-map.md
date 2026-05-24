@@ -212,7 +212,7 @@ Current accepted entries (first batch):
 ```
 
 Deferred: `window.focus.*` (nav.\* keys accepted via layout overlay; no WM consumer yet), `files.find`, `vcs.status/diff/log`.
-See `docs/mnemonic-shortcuts-plan.md` for the deferred list and blockers.
+See `plans/mnemonic-shortcuts-plan.md` for the deferred list and blockers.
 
 ### Chezmoi template access
 
@@ -251,7 +251,7 @@ in an editor, `pp` in Xonsh, or an app-native binding in Emacs.
 - No prefix/leader registry.
 - No migration of every application shortcut.
 
-See `docs/mnemonic-shortcuts-plan.md` for the full rationale.
+See `plans/mnemonic-shortcuts-plan.md` for the full rationale.
 
 ---
 

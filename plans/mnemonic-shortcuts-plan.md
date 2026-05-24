@@ -1,7 +1,7 @@
 > [!WARNING]
 > DEPRECATED: This was a planning document. The implemented solution uses
 > `keybindings.toml` (renamed from `mnemonics.toml`) with output schema
-> `[kaizen.shortcuts]`. See `docs/shortcut-registry.md` for current state.
+> `[kaizen.shortcuts]`. See `plans/shortcut-registry.md` for current state.
 
 # Mnemonic shortcuts plan
 

@@ -305,7 +305,7 @@ are enabled.
 
 ### docs
 
-- This file (`docs/variants-plan.md`).
+- This file (`plans/variants-plan.md`).
 - `docs/feature-format.org` extended with a "Slots & Variants" section once
   the design is locked.
 
