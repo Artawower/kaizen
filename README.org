@@ -87,7 +87,6 @@ kaizen/
 └── dotfiles/                     ← chezmoi source root (applied to ~/)
     ├── .chezmoiignore
     ├── kaizen/
-    │   └── bump.toml             ← mise + nix upgrade step definitions
     └── dot_config/
         ├── kaizen/
         │   └── feature-meta.json ← seed: description + category per feature
@@ -127,12 +126,13 @@ kaizen install    # fresh-machine bootstrap: wizard if needed, then sync
 kaizen configure  # re-run the feature selection wizard
 kaizen sync       # reconcile system to config: packages + dotfiles + mise
 kaizen apply      # dotfiles + mise only, no package manager
-kaizen update     # upgrade packages and mise tools; --flake also updates flake inputs
+kaizen update     # upgrade packages, mise tools, and run featureRegistry update hooks; --flake also updates flake inputs
 kaizen clean      # remove old Nix generations, OS caches, Docker layers
 kaizen uninstall  # remove managed dotfiles, config, and chezmoi source
 kaizen doctor     # check tool availability and backend status
 kaizen features   # list available workflow features
 kaizen bump       # upgrade version pins (mise, nix) and save lock files back to source
+kaizen re-add     # re-add bump capture paths to chezmoi source; --only FEATURE
 kaizen self-update  # replace the kaizen binary with the latest release
 #+END_SRC
 
@@ -143,7 +143,8 @@ kaizen self-update  # replace the kaizen binary with the latest release
   3. =darwin-rebuild switch= — applies nix-darwin config (macOS only); installs feature-conditional brew casks.
   4. =mise install= — installs dev tools declared in =mise.toml.tmpl=.
   On activation, =home-manager= also regenerates =~/.config/kaizen/feature-meta.json=.
-- ~kaizen bump~ — upgrades version pins (mise tools, nix flake inputs) and runs =chezmoi re-add= on the changed lock files. Steps are defined in =~/.config/kaizen/bump.toml=. Use =--only STEP= to run a single step.
+- ~kaizen bump~ — upgrades version pins (mise tools, nix flake inputs) and runs =chezmoi re-add= on the changed lock files. Bump workflows are declared in Nix =featureRegistry= (=bump.before= / =bump.run= / =bump.capture= per feature). Use =--only FEATURE= to run a single feature.
+- ~kaizen re-add~ — runs =chezmoi re-add= for the =bump.capture= paths of enabled features without executing =bump.before= or =bump.run=. Use =--only FEATURE= to target a single feature. Example: =kaizen re-add --only ai= re-adds =~/.pi/agent/settings.json=.
 - ~kaizen uninstall~ — removes managed dotfiles and the chezmoi source. Does *not* uninstall Nix (system-level dependency; see [[https://docs.determinate.systems/determinate-nix/#uninstalling][Determinate Nix uninstall guide]]).
 
 * Configuration

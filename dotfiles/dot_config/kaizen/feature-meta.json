@@ -1,129 +1,178 @@
 {
   "ai": {
+    "bump": {
+      "before": [
+        {
+          "onFailure": "warn",
+          "run": [
+            "pi",
+            "update",
+            "--extensions"
+          ]
+        }
+      ],
+      "capture": [
+        "~/.pi/agent/settings.json"
+      ],
+      "run": []
+    },
     "category": "ai",
     "description": "AI coding agents and tooling",
-    "updateHooks": [
-      { "onFailure": "warn", "run": ["pi", "update", "--extensions"] }
+    "update": [
+      {
+        "onFailure": "warn",
+        "run": [
+          "pi",
+          "update",
+          "--extensions"
+        ]
+      }
     ]
   },
   "android": {
     "category": "dev",
-    "description": "Android development: Android Studio",
-    "updateHooks": []
+    "description": "Android development: Android Studio"
   },
   "api": {
     "category": "dev",
-    "description": "API client tools: Hoppscotch",
-    "updateHooks": []
+    "description": "API client tools: Hoppscotch"
   },
   "battery-thresholds": {
     "category": "system",
-    "description": "Battery charge threshold management",
-    "updateHooks": []
+    "description": "Battery charge threshold management"
   },
   "browser": {
     "category": "desktop",
-    "description": "Web browser: Zen",
-    "updateHooks": []
+    "description": "Web browser: Zen"
   },
   "containers": {
     "category": "dev",
-    "description": "Container and VM tooling: OrbStack",
-    "updateHooks": []
+    "description": "Container and VM tooling: OrbStack"
   },
   "core": {
     "category": "system",
-    "description": "Core CLI utilities",
-    "updateHooks": []
+    "description": "Core CLI utilities"
   },
   "database": {
     "category": "dev",
-    "description": "Database GUI tools: SQLite Browser, MongoDB Compass",
-    "updateHooks": []
+    "description": "Database GUI tools: SQLite Browser, MongoDB Compass"
   },
   "desktop": {
     "category": "desktop",
-    "description": "Desktop utilities: launcher, menu bar, file manager, cleaner",
-    "updateHooks": []
+    "description": "Desktop utilities: launcher, menu bar, file manager, cleaner"
   },
   "emacs": {
     "category": "editor",
-    "description": "Emacs editor",
-    "updateHooks": []
+    "description": "Emacs editor"
   },
   "fonts": {
     "category": "system",
-    "description": "Fonts and Nerd Fonts",
-    "updateHooks": []
+    "description": "Fonts and Nerd Fonts"
   },
   "frontend": {
     "category": "dev",
-    "description": "Frontend development tooling",
-    "updateHooks": []
+    "description": "Frontend development tooling"
   },
   "go": {
     "category": "dev",
-    "description": "Go development tooling",
-    "updateHooks": []
+    "description": "Go development tooling"
   },
   "helix": {
     "category": "editor",
-    "description": "Helix editor + marksman LSP",
-    "updateHooks": []
+    "description": "Helix editor + marksman LSP"
   },
   "keyboard": {
     "category": "system",
-    "description": "Keyboard layout tooling",
-    "updateHooks": []
+    "description": "Keyboard layout tooling"
   },
   "media": {
     "category": "media",
-    "description": "Media players: VLC, Spotube",
-    "updateHooks": []
+    "description": "Media players: VLC, Spotube"
+  },
+  "mise": {
+    "bump": {
+      "before": [
+        {
+          "onFailure": "fail",
+          "run": [
+            "mise",
+            "install"
+          ]
+        }
+      ],
+      "capture": [
+        "~/.config/mise.lock"
+      ],
+      "run": [
+        {
+          "onFailure": "fail",
+          "run": [
+            "~/.config/scripts/mise-bump"
+          ]
+        }
+      ]
+    },
+    "category": "dev",
+    "description": "Mise toolchains",
+    "update": []
+  },
+  "nix-system": {
+    "bump": {
+      "before": [],
+      "capture": [
+        "~/.config/nix/flake.lock"
+      ],
+      "run": [
+        {
+          "onFailure": "fail",
+          "run": [
+            "nix",
+            "flake",
+            "update",
+            "--flake",
+            "~/.config/nix"
+          ]
+        }
+      ]
+    },
+    "category": "system",
+    "description": "Nix flake inputs",
+    "update": []
   },
   "productivity": {
     "category": "productivity",
-    "description": "Productivity tools: notes, tasks, time-tracking, voice",
-    "updateHooks": []
+    "description": "Productivity tools: notes, tasks, time-tracking, voice"
   },
   "python": {
     "category": "dev",
-    "description": "Python development tooling",
-    "updateHooks": []
+    "description": "Python development tooling"
   },
   "rust": {
     "category": "dev",
-    "description": "Rust toolchain + cargo utilities",
-    "updateHooks": []
+    "description": "Rust toolchain + cargo utilities"
   },
   "screencast": {
     "category": "dev",
-    "description": "Screencasting and demo tools: LICEcap, KeyCastr",
-    "updateHooks": []
+    "description": "Screencasting and demo tools: LICEcap, KeyCastr"
   },
   "security": {
     "category": "security",
-    "description": "Security and privacy: firewall, password manager, VPN, remote access",
-    "updateHooks": []
+    "description": "Security and privacy: firewall, password manager, VPN, remote access"
   },
   "social": {
     "category": "social",
-    "description": "Social and communication: Discord, Telegram, Mattermost, WhatsApp",
-    "updateHooks": []
+    "description": "Social and communication: Discord, Telegram, Mattermost, WhatsApp"
   },
   "terminal": {
     "category": "terminal",
-    "description": "Terminal, TUI tools, and shell",
-    "updateHooks": []
+    "description": "Terminal, TUI tools, and shell"
   },
   "tiling": {
     "category": "desktop",
-    "description": "Tiling window manager",
-    "updateHooks": []
+    "description": "Tiling window manager"
   },
   "vcs": {
     "category": "vcs",
-    "description": "Version control tooling",
-    "updateHooks": []
+    "description": "Version control tooling"
   }
 }

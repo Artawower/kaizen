@@ -1,4 +1,9 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 let
   cfg = config.conf.features.rust;
@@ -11,12 +16,14 @@ in
     {
       conf.featureRegistry.rust = {
         description = "Rust toolchain + cargo utilities";
-        category    = "dev";
+        category = "dev";
       };
     }
     (lib.mkIf cfg.enable {
       conf.packages.nix = with pkgs; [
-        rustup gcc cmake pkg-config llvmPackages.libclang
+        gcc
+        cmake
+        llvmPackages.libclang
       ];
     })
   ];

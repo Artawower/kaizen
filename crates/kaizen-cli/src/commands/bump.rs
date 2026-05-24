@@ -1,10 +1,9 @@
-use std::{collections::BTreeSet, path::Path};
+use std::path::Path;
 
 use anyhow::{Context, Result};
 use kaizen_core::{
-    bump::{BumpManifest, BUMP_MANIFEST_FILE},
-    manifest::KAIZEN_DIR,
-    KaizenEngine, OnFailure, PathProvider, ProcessCommand, ProcessExecutor, ProgressReporter,
+    nix_feature_cache, KaizenEngine, KaizenError, OnFailure, ProcessCommand, ProcessExecutor,
+    ProgressReporter, UserConfig,
 };
 use owo_colors::OwoColorize;
 
@@ -14,81 +13,70 @@ pub fn run(
     only: &[String],
     dry_run: bool,
     executor: &dyn ProcessExecutor,
-    paths: &dyn PathProvider,
-    source_path: Option<&Path>,
     engine: &KaizenEngine,
     config_path: &Path,
     reporter: &dyn ProgressReporter,
 ) -> Result<()> {
     output::page_header(if dry_run { "bump  (dry-run)" } else { "bump" });
 
-    let manifest = load_manifest(paths, source_path)?;
-    let steps = manifest.filter_steps(only);
+    let config = kaizen_core::config::load_with(config_path, &crate::filesystem::StdFileSystem)
+        .or_else(|e| match e {
+            KaizenError::ConfigNotFound { .. } => Ok(UserConfig::default()),
+            e => Err(e),
+        })
+        .with_context(|| format!("failed to load config from {}", config_path.display()))?;
 
-    if steps.is_empty() {
-        if only.is_empty() {
-            output::item_warn("bump.toml has no steps defined");
-            return Ok(());
+    let mut bumps = engine
+        .bump_for_enabled_features(&config)
+        .context("failed to read feature registry")?;
+
+    if !only.is_empty() {
+        bumps.retain(|(name, _)| only.contains(name));
+        if bumps.is_empty() {
+            anyhow::bail!("no features matched {:?}", only);
         }
-        let available = manifest
-            .steps
-            .iter()
-            .map(|s| s.name.as_str())
-            .collect::<Vec<_>>()
-            .join(", ");
-        anyhow::bail!("no steps matched {:?} — available: {}", only, available);
+    }
+
+    if bumps.is_empty() {
+        output::item_warn("no enabled features with bump workflows defined");
+        return Ok(());
     }
 
     let home = dirs::home_dir();
 
-    for step in &steps {
-        output::header(&step.name);
+    for (name, bump) in &bumps {
+        output::header(name);
 
-        let expanded_run = step
-            .run
-            .iter()
-            .map(|part| expand_home(part, home.as_deref()))
-            .collect::<Vec<_>>();
-        let (bin, args) = expanded_run
-            .split_first()
-            .with_context(|| format!("step '{}': run list is empty", step.name))?;
-
-        if dry_run {
-            println!("  {}  {}", "→".dimmed(), expanded_run.join(" ").dimmed());
-            capture_step_outputs(
-                std::iter::once(*step),
+        for hook in &bump.before {
+            run_hook(
+                hook,
                 home.as_deref(),
-                true,
+                dry_run,
+                "[before]",
                 executor,
                 reporter,
             )?;
-            continue;
         }
 
-        reporter.step(&format!("→ {}", expanded_run.join(" ")));
-        executor
-            .execute(ProcessCommand::run(bin, args.iter().map(String::as_str)))
-            .with_context(|| format!("step '{}': command failed", step.name))?;
-        capture_step_outputs(
-            std::iter::once(*step),
-            home.as_deref(),
-            false,
-            executor,
-            reporter,
-        )?;
+        for hook in &bump.run {
+            run_hook(hook, home.as_deref(), dry_run, "", executor, reporter)?;
+        }
 
-        output::item_ok(&format!("{} done", step.name));
-    }
+        for raw_path in &bump.capture {
+            let expanded = expand_home(raw_path, home.as_deref());
+            if dry_run {
+                println!("  {}  chezmoi re-add {}", "→".dimmed(), raw_path.dimmed());
+                continue;
+            }
+            reporter.step(&format!("→ chezmoi re-add {expanded}"));
+            executor
+                .execute(ProcessCommand::run("chezmoi", ["re-add", &expanded]))
+                .map_err(|e| anyhow::anyhow!("chezmoi re-add {expanded} failed: {e}"))?;
+        }
 
-    let hooks_ran = run_feature_hooks(engine, config_path, only, dry_run, executor, reporter);
-    if hooks_ran {
-        capture_step_outputs(
-            steps.iter().copied(),
-            home.as_deref(),
-            dry_run,
-            executor,
-            reporter,
-        )?;
+        if !dry_run {
+            output::item_ok(&format!("{name} done"));
+        }
     }
 
     if !dry_run {
@@ -98,106 +86,40 @@ pub fn run(
     Ok(())
 }
 
-fn run_feature_hooks(
-    engine: &KaizenEngine,
-    config_path: &Path,
-    only: &[String],
-    dry_run: bool,
-    executor: &dyn ProcessExecutor,
-    reporter: &dyn ProgressReporter,
-) -> bool {
-    if !only.is_empty() {
-        return false;
-    }
-    let config =
-        match kaizen_core::config::load_with(config_path, &crate::filesystem::StdFileSystem) {
-            Ok(c) => c,
-            Err(_) => return false,
-        };
-    let hooks = match engine.update_hooks_for_enabled_features(&config) {
-        Ok(h) => h,
-        Err(_) => return false,
-    };
-    let mut ran = false;
-    for hook in hooks {
-        ran = true;
-        let label = hook.run.join(" ");
-        if dry_run {
-            println!(
-                "  {}  {} {}",
-                "→".dimmed(),
-                label.dimmed(),
-                "[feature hook]".dimmed()
-            );
-            continue;
-        }
-        reporter.step(&format!("→ {label}"));
-        let Some((bin, args)) = hook.run.split_first() else {
-            continue;
-        };
-        let result = executor.execute(ProcessCommand::run(bin, args.iter().map(String::as_str)));
-        match (result, &hook.on_failure) {
-            (Ok(_), _) => output::item_ok(&label),
-            (Err(e), OnFailure::Warn) => output::item_warn(&format!("{label}: {e}")),
-            (Err(e), OnFailure::Fail) => {
-                output::item_err(&format!("{label}: {e}"));
-                return ran;
-            }
-        }
-    }
-    ran
-}
-
-fn capture_step_outputs<'a>(
-    steps: impl IntoIterator<Item = &'a kaizen_core::bump::BumpStep>,
+fn run_hook(
+    hook: &nix_feature_cache::UpdateHook,
     home: Option<&Path>,
     dry_run: bool,
+    tag: &str,
     executor: &dyn ProcessExecutor,
     reporter: &dyn ProgressReporter,
 ) -> Result<()> {
-    for raw_path in steps
-        .into_iter()
-        .flat_map(|step| step.capture.iter())
-        .collect::<BTreeSet<_>>()
-    {
-        let expanded = expand_home(raw_path, home);
-        if dry_run {
-            println!("  {}  chezmoi re-add {}", "→".dimmed(), raw_path.dimmed());
-            continue;
+    let expanded: Vec<String> = hook.run.iter().map(|p| expand_home(p, home)).collect();
+    let label = expanded.join(" ");
+    if dry_run {
+        if tag.is_empty() {
+            println!("  {}  {}", "→".dimmed(), label.dimmed());
+        } else {
+            println!("  {}  {} {}", "→".dimmed(), label.dimmed(), tag.dimmed());
         }
-        reporter.step(&format!("→ chezmoi re-add {expanded}"));
-        executor
-            .execute(ProcessCommand::run("chezmoi", ["re-add", &expanded]))
-            .with_context(|| format!("chezmoi re-add {expanded} failed"))?;
+        return Ok(());
+    }
+    reporter.step(&format!("→ {label}"));
+    let Some((bin, args)) = expanded.split_first() else {
+        return Ok(());
+    };
+    let result = executor.execute(ProcessCommand::run(bin, args.iter().map(String::as_str)));
+    match (result, &hook.on_failure) {
+        (Ok(_), _) => output::item_ok(&label),
+        (Err(e), OnFailure::Warn) => output::item_warn(&format!("{label}: {e}")),
+        (Err(e), OnFailure::Fail) => anyhow::bail!("{label}: {e}"),
     }
     Ok(())
 }
 
-fn load_manifest(paths: &dyn PathProvider, source_path: Option<&Path>) -> Result<BumpManifest> {
-    let source_manifest =
-        source_path.map(|source| source.join(KAIZEN_DIR).join(BUMP_MANIFEST_FILE));
-    let config_manifest = paths
-        .config_dir()
-        .map(|config_dir| config_dir.join("kaizen").join(BUMP_MANIFEST_FILE));
-
-    for path in source_manifest.iter().chain(config_manifest.iter()) {
-        if !path.exists() {
-            continue;
-        }
-        let content = std::fs::read_to_string(path)
-            .with_context(|| format!("failed to read {}", path.display()))?;
-        return BumpManifest::from_toml(&content)
-            .with_context(|| format!("failed to parse {}", path.display()));
-    }
-
-    Ok(BumpManifest::default())
-}
-
-fn expand_home(path: &str, home: Option<&std::path::Path>) -> String {
+pub(crate) fn expand_home(path: &str, home: Option<&Path>) -> String {
     match home {
-        Some(h) if path.starts_with("~/") => {
-            format!("{}/{}", h.display(), &path[2..])
-        }
+        Some(h) if path.starts_with("~/") => format!("{}/{}", h.display(), &path[2..]),
         _ => path.to_owned(),
     }
 }
@@ -205,48 +127,37 @@ fn expand_home(path: &str, home: Option<&std::path::Path>) -> String {
 #[cfg(test)]
 mod tests {
     use std::path::PathBuf;
+    use std::sync::Arc;
     use std::sync::Mutex;
 
     use crate::filesystem::StdFileSystem;
-    use kaizen_core::{KaizenError, PathProvider, ProcessCommand, ProcessExecutor, ProcessOutput};
-    use std::sync::Arc;
-
-    fn empty_engine() -> KaizenEngine {
-        KaizenEngine::cache_only(Arc::new(StdFileSystem))
-    }
-    fn no_config() -> &'static std::path::Path {
-        std::path::Path::new("/nonexistent/config.toml")
-    }
+    use kaizen_core::{KaizenError, ProcessCommand, ProcessExecutor, ProcessOutput};
 
     use super::*;
     use crate::reporter::StderrReporter;
 
-    const SAMPLE_MANIFEST: &str = r#"
-[[steps]]
-name    = "mise"
-run     = ["mise", "upgrade", "--bump"]
-capture = ["/tmp/mise.lock"]
-
-[[steps]]
-name    = "nix"
-run     = ["nix", "flake", "update"]
-capture = ["/tmp/flake.lock"]
-"#;
-
-    struct FixedPaths(Option<PathBuf>);
-    impl PathProvider for FixedPaths {
-        fn home_dir(&self) -> Option<PathBuf> {
-            None
+    const FIXTURE_JSON: &str = r#"{
+        "mise": {
+            "description": "Mise toolchains",
+            "category": "dev",
+            "bump": {
+                "before": [{"run": ["mise", "install"], "onFailure": "fail"}],
+                "run": [{"run": ["mise-bump"], "onFailure": "fail"}],
+                "capture": ["/tmp/mise.lock"]
+            }
+        },
+        "nix": {
+            "description": "Nix flake",
+            "category": "system",
+            "bump": {
+                "run": [{"run": ["nix", "flake", "update"], "onFailure": "fail"}],
+                "capture": ["/tmp/flake.lock"]
+            }
         }
-        fn config_dir(&self) -> Option<PathBuf> {
-            self.0.clone()
-        }
-        fn is_tool_available(&self, _: &str) -> bool {
-            false
-        }
-    }
+    }"#;
 
     struct Recording(Mutex<Vec<String>>);
+
     impl Recording {
         fn new() -> Self {
             Self(Mutex::new(vec![]))
@@ -255,6 +166,7 @@ capture = ["/tmp/flake.lock"]
             self.0.lock().unwrap().clone()
         }
     }
+
     impl ProcessExecutor for Recording {
         fn execute(&self, cmd: ProcessCommand) -> Result<ProcessOutput, KaizenError> {
             self.0.lock().unwrap().push(
@@ -269,76 +181,102 @@ capture = ["/tmp/flake.lock"]
         }
     }
 
-    fn write_manifest(dir: &std::path::Path) {
-        write_manifest_content(dir, SAMPLE_MANIFEST);
+    /// Executor that records all commands and fails when the command contains `fail_on`.
+    struct FailOn {
+        fail_on: String,
+        log: Mutex<Vec<String>>,
     }
 
-    fn write_manifest_content(dir: &std::path::Path, content: &str) {
-        let kaizen_dir = dir.join("kaizen");
-        std::fs::create_dir_all(&kaizen_dir).unwrap();
-        std::fs::write(kaizen_dir.join(BUMP_MANIFEST_FILE), content).unwrap();
+    impl FailOn {
+        fn new(fail_on: &str) -> Self {
+            Self {
+                fail_on: fail_on.to_owned(),
+                log: Mutex::new(vec![]),
+            }
+        }
+        fn cmds(&self) -> Vec<String> {
+            self.log.lock().unwrap().clone()
+        }
     }
 
-    #[test]
-    fn dry_run_no_config_dir_executes_nothing() {
-        let ex = Recording::new();
-        run(
-            &[],
-            true,
-            &ex,
-            &FixedPaths(None),
-            None,
-            &empty_engine(),
-            no_config(),
-            &StderrReporter,
-        )
-        .unwrap();
-        assert!(ex.cmds().is_empty());
+    impl ProcessExecutor for FailOn {
+        fn execute(&self, cmd: ProcessCommand) -> Result<ProcessOutput, KaizenError> {
+            let full = format!("{} {}", cmd.bin, cmd.args.join(" "))
+                .trim()
+                .to_owned();
+            self.log.lock().unwrap().push(full.clone());
+            if full.contains(&self.fail_on) {
+                Err(KaizenError::CommandFailed {
+                    cmd: full,
+                    code: Some(1),
+                })
+            } else {
+                Ok(ProcessOutput {
+                    stdout: String::new(),
+                    stderr: String::new(),
+                })
+            }
+        }
     }
 
-    #[test]
-    fn dry_run_with_manifest_executes_nothing() {
+    fn engine_with_cache(cache_content: &str) -> (KaizenEngine, tempfile::TempDir) {
         let tmp = tempfile::tempdir().unwrap();
-        write_manifest(tmp.path());
-        let ex = Recording::new();
-        run(
-            &[],
-            true,
-            &ex,
-            &FixedPaths(Some(tmp.path().to_owned())),
-            None,
-            &empty_engine(),
-            no_config(),
-            &StderrReporter,
-        )
-        .unwrap();
-        assert!(ex.cmds().is_empty());
+        let cache_path = tmp.path().join("feature-meta.json");
+        std::fs::write(&cache_path, cache_content).unwrap();
+        let engine = KaizenEngine::cache_only(Arc::new(StdFileSystem)).with_nix_cache(cache_path);
+        (engine, tmp)
+    }
+
+    fn config_with_features(dir: &std::path::Path, features: &[&str]) -> PathBuf {
+        let cfg_path = dir.join("config.toml");
+        let mut content = "schema_version=1\n[dotfiles]\nbackend=\"chezmoi\"\n".to_string();
+        for f in features {
+            content.push_str(&format!("[features.{}]\nenabled=true\n", f));
+        }
+        std::fs::write(&cfg_path, content).unwrap();
+        cfg_path
     }
 
     #[test]
-    fn run_all_steps_executes_run_and_capture() {
-        let tmp = tempfile::tempdir().unwrap();
-        write_manifest(tmp.path());
+    fn dry_run_shows_per_feature_before_run_capture() {
+        let (engine, tmp) = engine_with_cache(FIXTURE_JSON);
+        let cfg_path = config_with_features(tmp.path(), &["mise"]);
+        let ex = Recording::new();
+        run(&[], true, &ex, &engine, &cfg_path, &StderrReporter).unwrap();
+        assert!(
+            ex.cmds().is_empty(),
+            "dry-run executes nothing: {:?}",
+            ex.cmds()
+        );
+    }
+
+    #[test]
+    fn only_filter_runs_single_feature() {
+        let (engine, tmp) = engine_with_cache(FIXTURE_JSON);
+        let cfg_path = config_with_features(tmp.path(), &["mise", "nix"]);
         let ex = Recording::new();
         run(
-            &[],
+            &["mise".to_string()],
             false,
             &ex,
-            &FixedPaths(Some(tmp.path().to_owned())),
-            None,
-            &empty_engine(),
-            no_config(),
+            &engine,
+            &cfg_path,
             &StderrReporter,
         )
         .unwrap();
         let cmds = ex.cmds();
-        assert!(cmds.contains(&"mise upgrade --bump".to_owned()), "{cmds:?}");
-        assert!(cmds.contains(&"nix flake update".to_owned()), "{cmds:?}");
-        assert!(
-            cmds.iter()
-                .any(|c| c.contains("re-add") && c.contains("mise.lock")),
-            "{cmds:?}"
-        );
+        assert!(cmds.contains(&"mise install".to_owned()), "{cmds:?}");
+        assert!(cmds.contains(&"mise-bump".to_owned()), "{cmds:?}");
+        assert!(!cmds.iter().any(|c| c.contains("nix")), "{cmds:?}");
+    }
+
+    #[test]
+    fn capture_calls_chezmoi_re_add() {
+        let (engine, tmp) = engine_with_cache(FIXTURE_JSON);
+        let cfg_path = config_with_features(tmp.path(), &["nix"]);
+        let ex = Recording::new();
+        run(&[], false, &ex, &engine, &cfg_path, &StderrReporter).unwrap();
+        let cmds = ex.cmds();
         assert!(
             cmds.iter()
                 .any(|c| c.contains("re-add") && c.contains("flake.lock")),
@@ -347,154 +285,169 @@ capture = ["/tmp/flake.lock"]
     }
 
     #[test]
-    fn run_argv_expands_home() {
-        let tmp = tempfile::tempdir().unwrap();
-        write_manifest_content(
-            tmp.path(),
-            r#"
-[[steps]]
-name = "home"
-run = ["foo", "~/x/y"]
-capture = []
-"#,
-        );
+    fn before_run_capture_execute_in_order() {
+        let (engine, tmp) = engine_with_cache(FIXTURE_JSON);
+        let cfg_path = config_with_features(tmp.path(), &["mise"]);
         let ex = Recording::new();
-        run(
-            &[],
-            false,
-            &ex,
-            &FixedPaths(Some(tmp.path().to_owned())),
-            None,
-            &empty_engine(),
-            no_config(),
-            &StderrReporter,
-        )
-        .unwrap();
-        let expected = format!("foo {}/x/y", dirs::home_dir().unwrap().display());
-        assert_eq!(ex.cmds(), vec![expected]);
-    }
-
-    #[test]
-    fn only_filter_runs_matching_step() {
-        let tmp = tempfile::tempdir().unwrap();
-        write_manifest(tmp.path());
-        let ex = Recording::new();
-        run(
-            &["mise".to_owned()],
-            false,
-            &ex,
-            &FixedPaths(Some(tmp.path().to_owned())),
-            None,
-            &empty_engine(),
-            no_config(),
-            &StderrReporter,
-        )
-        .unwrap();
+        run(&[], false, &ex, &engine, &cfg_path, &StderrReporter).unwrap();
         let cmds = ex.cmds();
-        assert!(cmds.contains(&"mise upgrade --bump".to_owned()), "{cmds:?}");
-        assert!(!cmds.iter().any(|c| c.contains("nix")), "{cmds:?}");
+        let before_idx = cmds
+            .iter()
+            .position(|c| c == "mise install")
+            .expect("mise install not found");
+        let run_idx = cmds
+            .iter()
+            .position(|c| c == "mise-bump")
+            .expect("mise-bump not found");
+        let capture_idx = cmds
+            .iter()
+            .position(|c| c.contains("re-add") && c.contains("mise.lock"))
+            .expect("chezmoi re-add not found");
+        assert!(before_idx < run_idx, "before must precede run: {cmds:?}");
+        assert!(run_idx < capture_idx, "run must precede capture: {cmds:?}");
     }
 
     #[test]
-    fn unknown_only_returns_error() {
-        let tmp = tempfile::tempdir().unwrap();
-        write_manifest(tmp.path());
+    fn on_failure_fail_returns_err_and_skips_capture() {
+        let cache = r#"{
+            "mise": {
+                "bump": {
+                    "run": [{"run": ["mise-bump"], "onFailure": "fail"}],
+                    "capture": ["/tmp/mise.lock"]
+                }
+            }
+        }"#;
+        let (engine, tmp) = engine_with_cache(cache);
+        let cfg_path = config_with_features(tmp.path(), &["mise"]);
+        let ex = FailOn::new("mise-bump");
+        let result = run(&[], false, &ex, &engine, &cfg_path, &StderrReporter);
+        assert!(result.is_err(), "onFailure=fail must propagate error");
+        let cmds = ex.cmds();
+        assert!(
+            !cmds.iter().any(|c| c.contains("re-add")),
+            "capture must not run after fail: {cmds:?}"
+        );
+    }
+
+    #[test]
+    fn on_failure_warn_continues_and_runs_capture() {
+        let cache = r#"{
+            "mise": {
+                "bump": {
+                    "run": [{"run": ["mise-bump"], "onFailure": "warn"}],
+                    "capture": ["/tmp/mise.lock"]
+                }
+            }
+        }"#;
+        let (engine, tmp) = engine_with_cache(cache);
+        let cfg_path = config_with_features(tmp.path(), &["mise"]);
+        let ex = FailOn::new("mise-bump");
+        let result = run(&[], false, &ex, &engine, &cfg_path, &StderrReporter);
+        assert!(
+            result.is_ok(),
+            "onFailure=warn must not propagate error: {result:?}"
+        );
+        let cmds = ex.cmds();
+        assert!(
+            cmds.iter()
+                .any(|c| c.contains("re-add") && c.contains("mise.lock")),
+            "capture must still run after warn: {cmds:?}"
+        );
+    }
+
+    #[test]
+    fn kaizen_update_uses_update_not_bump() {
+        // update and bump.before intentionally use DIFFERENT commands so the test
+        // fails if the implementation reads the wrong field.
+        let cache_json = r#"{
+            "ai": {
+                "update": [{"run": ["pi", "update", "--extensions"], "onFailure": "warn"}],
+                "bump": {
+                    "before": [{"run": ["pi", "sync", "--all"], "onFailure": "warn"}],
+                    "run": [],
+                    "capture": ["~/.pi/agent/settings.json"]
+                }
+            }
+        }"#;
+        let (engine, tmp) = engine_with_cache(cache_json);
+        let cfg_path = config_with_features(tmp.path(), &["ai"]);
+        let config = kaizen_core::config::load_with(&cfg_path, &StdFileSystem).unwrap();
+
+        let update_hooks = engine.update_hooks_for_enabled_features(&config).unwrap();
+        let bump_workflows = engine.bump_for_enabled_features(&config).unwrap();
+
+        assert!(!update_hooks.is_empty(), "update hooks must be present");
+        assert!(!bump_workflows.is_empty(), "bump workflow must be present");
+
+        let update_cmds: Vec<_> = update_hooks.iter().map(|h| h.run.join(" ")).collect();
+        let bump_before_cmds: Vec<_> = bump_workflows
+            .iter()
+            .flat_map(|(_, b)| b.before.iter().map(|h| h.run.join(" ")))
+            .collect();
+
+        // update reads the `update` field → "pi update --extensions"
+        assert_eq!(
+            update_cmds,
+            vec!["pi update --extensions"],
+            "update must read from `update` field: {update_cmds:?}"
+        );
+        // bump reads the `bump.before` field → "pi sync --all"
+        assert_eq!(
+            bump_before_cmds,
+            vec!["pi sync --all"],
+            "bump.before must read from `bump.before` field: {bump_before_cmds:?}"
+        );
+        // The two must differ — if they were equal the test would be worthless
+        assert_ne!(
+            update_cmds, bump_before_cmds,
+            "update and bump.before must use different commands"
+        );
+    }
+
+    #[test]
+    fn only_filter_unknown_feature_returns_error() {
+        let (engine, tmp) = engine_with_cache(FIXTURE_JSON);
+        let cfg_path = config_with_features(tmp.path(), &["mise"]);
         let ex = Recording::new();
         let result = run(
-            &["unknown".to_owned()],
+            &["unknown".to_string()],
             false,
             &ex,
-            &FixedPaths(Some(tmp.path().to_owned())),
-            None,
-            &empty_engine(),
-            no_config(),
+            &engine,
+            &cfg_path,
             &StderrReporter,
         );
-        assert!(result.is_err(), "expected error for unknown step");
+        assert!(result.is_err(), "expected error for unknown feature");
         assert!(ex.cmds().is_empty());
     }
 
     #[test]
-    fn load_manifest_prefers_chezmoi_source() {
-        let config = tempfile::tempdir().unwrap();
-        let source = tempfile::tempdir().unwrap();
-        write_manifest_content(
-            config.path(),
-            r#"
-[[steps]]
-name = "config"
-run = ["config-tool"]
-capture = []
-"#,
-        );
-        write_manifest_content(
-            source.path(),
-            r#"
-[[steps]]
-name = "source"
-run = ["source-tool"]
-capture = []
-"#,
-        );
-        let manifest = load_manifest(
-            &FixedPaths(Some(config.path().to_owned())),
-            Some(source.path()),
-        )
-        .unwrap();
-        assert_eq!(manifest.steps[0].name, "source");
+    fn no_cache_returns_empty_without_error() {
+        let engine = KaizenEngine::cache_only(Arc::new(StdFileSystem));
+        let tmp = tempfile::tempdir().unwrap();
+        let cfg_path = config_with_features(tmp.path(), &["mise"]);
+        let ex = Recording::new();
+        run(&[], false, &ex, &engine, &cfg_path, &StderrReporter).unwrap();
+        assert!(ex.cmds().is_empty());
     }
 
     #[test]
-    fn capture_runs_after_feature_hooks() {
-        let tmp = tempfile::tempdir().unwrap();
-        write_manifest_content(
-            tmp.path(),
-            r#"
-[[steps]]
-name = "mise"
-run = ["mise", "upgrade", "--bump"]
-capture = ["~/.pi/agent/settings.json"]
-"#,
-        );
+    fn invalid_config_returns_error() {
+        let (engine, tmp) = engine_with_cache(FIXTURE_JSON);
         let cfg_path = tmp.path().join("config.toml");
-        std::fs::write(
-            &cfg_path,
-            "schema_version=1\n[features.ai]\nenabled=true\n[dotfiles]\nbackend=\"chezmoi\"\n",
-        )
-        .unwrap();
-        let cache_path = tmp.path().join("feature-meta.json");
-        std::fs::write(
-            &cache_path,
-            r#"{"ai":{"description":"","category":"","updateHooks":[{"run":["pi","update","--extensions"],"onFailure":"warn"}]}}"#,
-        )
-        .unwrap();
-        let engine = KaizenEngine::cache_only(Arc::new(StdFileSystem)).with_nix_cache(cache_path);
+        std::fs::write(&cfg_path, "not [ valid toml =").unwrap();
         let ex = Recording::new();
-        run(
-            &[],
-            false,
-            &ex,
-            &FixedPaths(Some(tmp.path().to_owned())),
-            None,
-            &engine,
-            &cfg_path,
-            &StderrReporter,
-        )
-        .unwrap();
-        let cmds = ex.cmds();
-        let capture = format!(
-            "chezmoi re-add {}/.pi/agent/settings.json",
-            dirs::home_dir().unwrap().display()
-        );
-        assert_eq!(
-            cmds,
-            vec![
-                "mise upgrade --bump".to_owned(),
-                capture.clone(),
-                "pi update --extensions".to_owned(),
-                capture,
-            ]
-        );
+        let result = run(&[], false, &ex, &engine, &cfg_path, &StderrReporter);
+        assert!(result.is_err(), "broken config must return error");
+    }
+
+    #[test]
+    fn missing_config_treated_as_no_features() {
+        let (engine, tmp) = engine_with_cache(FIXTURE_JSON);
+        let cfg_path = tmp.path().join("nonexistent.toml");
+        let ex = Recording::new();
+        run(&[], false, &ex, &engine, &cfg_path, &StderrReporter).unwrap();
+        assert!(ex.cmds().is_empty(), "no config = no enabled features");
     }
 
     #[test]
@@ -509,41 +462,5 @@ capture = ["~/.pi/agent/settings.json"]
     #[test]
     fn expand_home_leaves_absolute_paths() {
         assert_eq!(expand_home("/etc/foo", None), "/etc/foo");
-    }
-
-    #[test]
-    fn feature_hooks_skipped_when_only_filter_set() {
-        let tmp = tempfile::tempdir().unwrap();
-        write_manifest(tmp.path());
-        let cfg_path = tmp.path().join("config.toml");
-        std::fs::write(
-            &cfg_path,
-            "schema_version=1\n[features.ai]\nenabled=true\n[dotfiles]\nbackend=\"chezmoi\"\n",
-        )
-        .unwrap();
-        let cache_path = tmp.path().join("feature-meta.json");
-        std::fs::write(
-            &cache_path,
-            r#"{"ai":{"description":"","category":"","updateHooks":[{"run":["pi","update","--extensions"],"onFailure":"warn"}]}}"#,
-        )
-        .unwrap();
-        let engine = KaizenEngine::cache_only(Arc::new(StdFileSystem)).with_nix_cache(cache_path);
-        let ex = Recording::new();
-        run(
-            &["mise".to_owned()],
-            false,
-            &ex,
-            &FixedPaths(Some(tmp.path().to_owned())),
-            None,
-            &engine,
-            &cfg_path,
-            &StderrReporter,
-        )
-        .unwrap();
-        assert!(
-            !ex.cmds().iter().any(|c| c.contains("pi")),
-            "{:?}",
-            ex.cmds()
-        );
     }
 }

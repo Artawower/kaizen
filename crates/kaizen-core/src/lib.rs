@@ -2,7 +2,6 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 pub mod backends;
-pub mod bump;
 pub mod chezmoi;
 pub mod chezmoi_client;
 pub mod config;
@@ -45,7 +44,7 @@ pub use feature_store::FeatureStore;
 pub use fs::FileSystem;
 pub use hooks::HookRunner;
 pub use installer::{Installer, PackageInstaller, Remover, Updater};
-pub use nix_feature_cache::{OnFailure, UpdateHook};
+pub use nix_feature_cache::{BumpWorkflow, OnFailure, UpdateHook};
 pub use os::{PackageManagerKind, TargetOs};
 pub use paths::PathProvider;
 pub use plan::{ConfigPlan, HookPlan, InstallPlan, WorkflowPlan};
@@ -65,6 +64,21 @@ pub use variants::{
     discover_variants, Slot, Stability, VariantChoice, VariantManifest, VariantProvides,
     VariantRequires, VariantResolver, WizardFeature, WizardFeatureSlot,
 };
+
+/// Execution order for bump and update workflows.
+///
+/// dev/toolchain features run first so tools like `pi` are upgraded
+/// before dependent AI extension updates (`pi update --extensions`).
+///
+/// Order: dev → system → other → ai
+fn category_order(category: &str) -> usize {
+    match category {
+        "dev" => 0,
+        "system" => 1,
+        "ai" => 100,
+        _ => 50,
+    }
+}
 
 pub fn resolve_features_dir(
     explicit: Option<PathBuf>,
@@ -248,6 +262,7 @@ impl KaizenEngine {
     ///
     /// Reads from the Nix feature cache (`feature-meta.json`). Returns an
     /// empty list when the cache is absent (fresh machine / non-Nix backend).
+    /// Results are sorted by category order: dev → system → other → ai.
     pub fn update_hooks_for_enabled_features(
         &self,
         config: &UserConfig,
@@ -258,17 +273,64 @@ impl KaizenEngine {
         let Some(meta) = nix_feature_cache::load(cache_path, self.fs.as_ref())? else {
             return Ok(vec![]);
         };
-        let hooks = config
+        let mut entries: Vec<(String, String, Vec<nix_feature_cache::UpdateHook>)> = config
             .features
             .iter()
             .filter(|(_, sel)| sel.enabled)
-            .flat_map(|(name, _)| {
-                meta.get(name.as_str())
-                    .map(|m| m.update_hooks.clone())
-                    .unwrap_or_default()
+            .filter_map(|(name, _)| {
+                meta.get(name.as_str()).map(|m| {
+                    let hooks = if !m.update.is_empty() {
+                        m.update.clone()
+                    } else {
+                        m.update_hooks.clone()
+                    };
+                    (name.clone(), m.category.clone(), hooks)
+                })
             })
             .collect();
-        Ok(hooks)
+        entries.sort_by_key(|(name, cat, _)| (category_order(cat), name.clone()));
+        Ok(entries
+            .into_iter()
+            .flat_map(|(_, _, hooks)| hooks)
+            .collect())
+    }
+
+    /// Return bump workflows declared by enabled features in `config`.
+    ///
+    /// Reads from the Nix feature cache (`feature-meta.json`). Features with an
+    /// empty bump workflow (no `before`, `run`, or `capture`) are skipped.
+    /// Results are sorted by category order: dev → system → other → ai.
+    /// Returns an empty list when the cache is absent.
+    pub fn bump_for_enabled_features(
+        &self,
+        config: &UserConfig,
+    ) -> Result<Vec<(String, nix_feature_cache::BumpWorkflow)>, KaizenError> {
+        let Some(ref cache_path) = self.nix_cache_path else {
+            return Ok(vec![]);
+        };
+        let Some(meta) = nix_feature_cache::load(cache_path, self.fs.as_ref())? else {
+            return Ok(vec![]);
+        };
+        let mut bumps: Vec<(String, String, nix_feature_cache::BumpWorkflow)> = config
+            .features
+            .iter()
+            .filter(|(_, sel)| sel.enabled)
+            .filter_map(|(name, _)| {
+                meta.get(name.as_str()).and_then(|m| {
+                    let bump = m.bump.clone();
+                    if bump.is_empty() {
+                        None
+                    } else {
+                        Some((name.clone(), m.category.clone(), bump))
+                    }
+                })
+            })
+            .collect();
+        bumps.sort_by_key(|(name, cat, _)| (category_order(cat), name.clone()));
+        Ok(bumps
+            .into_iter()
+            .map(|(name, _, bump)| (name, bump))
+            .collect())
     }
 
     /// Build the unified feature+variants list for the wizard screen.
@@ -761,6 +823,80 @@ mod tests {
         assert!(
             !slot.choices.iter().any(|c| c.id == "komorebi"),
             "linux-only filtered"
+        );
+    }
+
+    #[test]
+    fn bump_executes_in_category_order() {
+        let cache_json = r#"{
+            "alpha": {
+                "category": "ai",
+                "bump": {"run": [{"run": ["alpha-cmd"]}], "capture": []}
+            },
+            "beta": {
+                "category": "dev",
+                "bump": {"run": [{"run": ["beta-cmd"]}], "capture": []}
+            },
+            "gamma": {
+                "category": "system",
+                "bump": {"run": [{"run": ["gamma-cmd"]}], "capture": []}
+            }
+        }"#;
+        let fs = Arc::new(MemFileSystem::new());
+        let cache_path = PathBuf::from("/cache.json");
+        fs.add_file(&cache_path, cache_json);
+        let engine = KaizenEngine::cache_only(Arc::clone(&fs) as Arc<dyn FileSystem>)
+            .with_nix_cache(cache_path);
+        let config: UserConfig = toml::from_str(
+            "schema_version=1\n[dotfiles]\nbackend=\"chezmoi\"\n\
+             [features.alpha]\nenabled=true\n\
+             [features.beta]\nenabled=true\n\
+             [features.gamma]\nenabled=true\n",
+        )
+        .unwrap();
+        let bumps = engine.bump_for_enabled_features(&config).unwrap();
+        let names: Vec<&str> = bumps.iter().map(|(n, _)| n.as_str()).collect();
+        assert_eq!(
+            names,
+            vec!["beta", "gamma", "alpha"],
+            "expected dev → system → ai order"
+        );
+    }
+
+    #[test]
+    fn update_hooks_execute_in_category_order() {
+        let cache_json = r#"{
+            "alpha": {
+                "category": "ai",
+                "update": [{"run": ["alpha-update"]}]
+            },
+            "beta": {
+                "category": "dev",
+                "update": [{"run": ["beta-update"]}]
+            },
+            "gamma": {
+                "category": "system",
+                "update": [{"run": ["gamma-update"]}]
+            }
+        }"#;
+        let fs = Arc::new(MemFileSystem::new());
+        let cache_path = PathBuf::from("/cache.json");
+        fs.add_file(&cache_path, cache_json);
+        let engine = KaizenEngine::cache_only(Arc::clone(&fs) as Arc<dyn FileSystem>)
+            .with_nix_cache(cache_path);
+        let config: UserConfig = toml::from_str(
+            "schema_version=1\n[dotfiles]\nbackend=\"chezmoi\"\n\
+             [features.alpha]\nenabled=true\n\
+             [features.beta]\nenabled=true\n\
+             [features.gamma]\nenabled=true\n",
+        )
+        .unwrap();
+        let hooks = engine.update_hooks_for_enabled_features(&config).unwrap();
+        let cmds: Vec<&str> = hooks.iter().map(|h| h.run[0].as_str()).collect();
+        assert_eq!(
+            cmds,
+            vec!["beta-update", "gamma-update", "alpha-update"],
+            "expected dev → system → ai order"
         );
     }
 }

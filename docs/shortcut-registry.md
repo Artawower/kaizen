@@ -4,7 +4,7 @@ Status: research backlog. This file inventories shortcut families found in the
 dotfiles. It is **not** a binding engine, not a migration plan, and not a
 source of truth for what is currently active.
 
-**Only 4 entries are accepted and live in `dotfiles/kaizen/mnemonics.toml`:**
+**Only 4 entries are accepted and live in `dotfiles/kaizen/keybindings.toml`:**
 
 | Shortcut id        | Mnemonic | Status   |
 | ------------------ | -------- | -------- |
@@ -64,7 +64,7 @@ stores the mnemonic path, not the literal keystrokes or shell text.
 
 ## Shared mnemonic candidates
 
-These are the combinations that have a common nature across apps and are good candidates for `dotfiles/kaizen/mnemonics.toml`.
+These are the combinations that have a common nature across apps and are good candidates for `dotfiles/kaizen/keybindings.toml`.
 
 | Category          | Candidate mnemonic        | Action                                | Current contexts/apps                                                       | Source files                                                                                                   | Notes                                                                                       |
 | ----------------- | ------------------------- | ------------------------------------- | --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
@@ -142,7 +142,7 @@ These are the combinations that have a common nature across apps and are good ca
 
 ## Local-only / app-specific shortcuts
 
-These are useful facts but should probably not be forced into the shared catalog unless multiple apps converge. If a shortcut exists only in one program, keep it here instead of promoting it to `mnemonics.toml`.
+These are useful facts but should probably not be forced into the shared catalog unless multiple apps converge. If a shortcut exists only in one program, keep it here instead of promoting it to `keybindings.toml`.
 
 | App/context | Binding                            | Action                                      | Source                             | Notes                                                                     |
 | ----------- | ---------------------------------- | ------------------------------------------- | ---------------------------------- | ------------------------------------------------------------------------- |
@@ -204,7 +204,7 @@ These are useful facts but should probably not be forced into the shared catalog
 
 ## First batch decision
 
-### Accepted (in `dotfiles/kaizen/mnemonics.toml` now)
+### Accepted (in `dotfiles/kaizen/keybindings.toml` now)
 
 | Shortcut id        | Mnemonic | Consumers today                                                              |
 | ------------------ | -------- | ---------------------------------------------------------------------------- |

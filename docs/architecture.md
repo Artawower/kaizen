@@ -122,36 +122,38 @@ Each CLI command depends only on the narrowest sub-trait it needs.
 ## kaizen bump
 
 `kaizen bump` is the repository update command for lock files and tool caches.
-It runs declarative manifest steps first, then runs enabled feature update hooks.
+It runs bump workflows declared in the Nix `featureRegistry` for each enabled feature.
+
+`kaizen bump` executes enabled feature bump workflows in category order:
+**dev → system → other → ai**.
+
+dev/toolchain features run first so tools (e.g. `pi` via mise) are upgraded
+before AI extension updates that depend on them.
 
 ```mermaid
 flowchart TD
-    start([kaizen bump]) --> manifest["Load ~/.config/kaizen/bump.toml"]
-    manifest --> steps["Run selected [[steps]] in order"]
-    steps --> capture["chezmoi re-add every captured path"]
-    capture --> only{"--only set?"}
-    only -- yes --> done([done])
-    only -- no --> config["Load config.toml enabled features"]
-    config --> hooks["Run enabled feature updateHooks"]
-    hooks --> done
+    start([kaizen bump]) --> config["Load config.toml enabled features"]
+    config --> registry["Read featureRegistry bump workflows"]
+    registry --> before["Run bump.before hooks per feature"]
+    before --> run["Run bump.run hooks per feature"]
+    run --> capture["chezmoi re-add bump.capture paths"]
+    capture --> done([done])
 ```
 
-Manifest steps live in `bump.toml` and have three fields:
+Each enabled feature can declare a `bump` workflow in its Nix module:
 
-```toml
-[[steps]]
-name = "mise"
-run = ["~/.config/scripts/mise-bump"]
-capture = ["~/.config/mise.lock"]
-
-[[steps]]
-name = "nix"
-run = ["nix", "flake", "update", "--flake", "~/.config/nix"]
-capture = ["~/.config/nix/flake.lock"]
+```nix
+conf.featureRegistry.mise = {
+  bump = {
+    before = [{ run = [ "mise" "install" ]; onFailure = "fail"; }];
+    run    = [{ run = [ "~/.config/scripts/mise-bump" ]; onFailure = "fail"; }];
+    capture = [ "~/.config/mise.lock" ];
+  };
+};
 ```
 
-`name` is the stable selector used by `--only`. `run` is the command argv.
-`capture` lists paths to run through `chezmoi re-add` after the command succeeds;
+The feature name is the stable selector used by `--only`. `run` is the command argv.
+`capture` lists paths passed to `chezmoi re-add` after the commands complete;
 paths beginning with `~/` are expanded to the user's home directory.
 
 The mise step calls `~/.config/scripts/mise-bump` instead of plain
@@ -166,28 +168,34 @@ selectors, then runs `chezmoi apply` so the rendered config matches the updated
 template. Exact pins such as `gopls = "0.20.0"` are bumped only when selected in
 the interactive checklist.
 
-After all manifest steps finish, `kaizen bump` loads the current config and runs
-`updateHooks` from `conf.featureRegistry.<feature>` for enabled features only:
+`kaizen update` also runs the `update` hooks declared in each enabled feature's
+`conf.featureRegistry.<feature>.update` list after the backend completes:
 
 ```nix
 conf.featureRegistry.ai = {
   description = "AI coding agents and tooling";
   category = "ai";
-  updateHooks = [
+  update = [
     { run = [ "pi" "update" "--extensions" ]; onFailure = "warn"; }
   ];
 };
 ```
 
-`onFailure = "warn"` prints a warning and continues with the next hook.
-`onFailure = "fail"` prints an error and stops running further hooks. Hooks are
-not run when any `--only <step>` filter is set, because that mode is scoped to
-manifest steps.
+`kaizen re-add` runs only the `bump.capture` paths (no `bump.before` / `bump.run`).
+Useful when lock files changed outside of `kaizen bump`.
 
-`--dry-run` prints the manifest commands, `chezmoi re-add` captures, and feature
-hook commands without executing them. `--only <step>` runs only matching
-manifest steps by `name`; unknown names are an error, and feature hooks are
-skipped whenever the filter is present.
+`onFailure = "warn"` prints a warning and continues. `onFailure = "fail"` stops
+the workflow. `--dry-run` prints commands without executing. `--only <feature>`
+scopes bump/re-add to a single feature by name.
+
+## Keybindings Catalog
+
+`keybindings.toml` is the lightweight source of truth for user-editable action shortcuts.
+It is exported during apply/sync into `.chezmoidata.toml` under `[kaizen.shortcuts]`
+for use in chezmoi templates. `keybindings.toml` applies on: `kaizen apply`, `kaizen sync`.
+
+Legacy `mnemonics.toml` is read as a fallback when `keybindings.toml` is absent,
+preserving backward compatibility.
 
 ## Feature Declaration and Package Flow
 

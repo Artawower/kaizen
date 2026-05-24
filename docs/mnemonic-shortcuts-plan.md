@@ -1,3 +1,8 @@
+> [!WARNING]
+> DEPRECATED: This was a planning document. The implemented solution uses
+> `keybindings.toml` (renamed from `mnemonics.toml`) with output schema
+> `[kaizen.shortcuts]`. See `docs/shortcut-registry.md` for current state.
+
 # Mnemonic shortcuts plan
 
 Status: active. The semantic keymap experiment was replaced by this simpler approach.

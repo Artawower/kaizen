@@ -17,9 +17,7 @@ mod paths;
 mod reporter;
 mod selector;
 
-use chezmoi::StdChezmoiClient;
 use executor::StdProcessExecutor;
-use kaizen_core::chezmoi_client::ChezmoiClient as _;
 use paths::StdPathProvider;
 use reporter::StderrReporter;
 
@@ -109,13 +107,28 @@ enum Command {
 
     /// Upgrade version pins and save lock files back to the chezmoi source.
     ///
-    /// Steps are defined in ~/.config/kaizen/bump.toml.
-    /// After bumping, commit the changed lock files with your VCS.
+    /// Steps are taken from the Nix featureRegistry (bump.before / bump.run / bump.capture)
+    /// for each enabled feature.  After bumping, commit the changed lock files with your VCS.
     Bump {
         #[arg(
             long,
-            value_name = "STEP",
-            help = "Run only the named step(s) (e.g. --only mise --only nix)"
+            value_name = "FEATURE",
+            help = "Run only the named feature(s) (e.g. --only mise --only nix-system)"
+        )]
+        only: Vec<String>,
+        #[arg(long, help = "Preview without executing")]
+        dry_run: bool,
+    },
+
+    /// Re-add captured lock files to chezmoi without running bump commands.
+    ///
+    /// Runs only the `bump.capture` paths (chezmoi re-add) for each enabled feature.
+    /// Useful when lock files changed outside of `kaizen bump`.
+    ReAdd {
+        #[arg(
+            long,
+            value_name = "FEATURE",
+            help = "Re-add only the named feature(s) (e.g. --only mise)"
         )]
         only: Vec<String>,
         #[arg(long, help = "Preview without executing")]
@@ -210,13 +223,20 @@ fn main() -> Result<()> {
         Command::Doctor => commands::doctor::run(&engine, &config_path)?,
         Command::SelfUpdate { dry_run } => commands::self_update::run(dry_run)?,
         Command::Bump { only, dry_run } => {
-            let source_path = StdChezmoiClient.source_path()?;
             commands::bump::run(
                 &only,
                 dry_run,
                 &StdProcessExecutor,
-                &StdPathProvider,
-                source_path.as_deref(),
+                &engine,
+                &config_path,
+                &StderrReporter,
+            )?;
+        }
+        Command::ReAdd { only, dry_run } => {
+            commands::re_add::run(
+                &only,
+                dry_run,
+                &StdProcessExecutor,
                 &engine,
                 &config_path,
                 &StderrReporter,

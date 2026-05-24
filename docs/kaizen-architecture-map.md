@@ -1,3 +1,8 @@
+> [!WARNING]
+> DEPRECATED: This document predates the keybindings.toml rename.
+> References to `mnemonics.toml` and `[kaizen.mnemonics.shortcuts]` are outdated.
+> See `docs/architecture.md` for the current architecture.
+
 # Kaizen public architecture map
 
 This page is for a contributor who opens Kaizen for the first time. It describes the **public authoring model**: what a feature author can declare, how Kaizen combines declarations, and where shortcuts fit.

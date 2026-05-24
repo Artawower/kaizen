@@ -22,13 +22,12 @@
               type = lib.types.str;
               default = "";
             };
+
             updateHooks = lib.mkOption {
               type = lib.types.listOf (
                 lib.types.submodule {
                   options = {
-                    run = lib.mkOption {
-                      type = lib.types.listOf lib.types.str;
-                    };
+                    run = lib.mkOption { type = lib.types.listOf lib.types.str; };
                     onFailure = lib.mkOption {
                       type = lib.types.enum [
                         "warn"
@@ -40,6 +39,70 @@
                 }
               );
               default = [ ];
+            };
+
+            update = lib.mkOption {
+              type = lib.types.listOf (
+                lib.types.submodule {
+                  options = {
+                    run = lib.mkOption { type = lib.types.listOf lib.types.str; };
+                    onFailure = lib.mkOption {
+                      type = lib.types.enum [
+                        "warn"
+                        "fail"
+                      ];
+                      default = "warn";
+                    };
+                  };
+                }
+              );
+              default = [ ];
+            };
+
+            bump = lib.mkOption {
+              type = lib.types.submodule {
+                options = {
+                  before = lib.mkOption {
+                    type = lib.types.listOf (
+                      lib.types.submodule {
+                        options = {
+                          run = lib.mkOption { type = lib.types.listOf lib.types.str; };
+                          onFailure = lib.mkOption {
+                            type = lib.types.enum [
+                              "warn"
+                              "fail"
+                            ];
+                            default = "warn";
+                          };
+                        };
+                      }
+                    );
+                    default = [ ];
+                  };
+                  run = lib.mkOption {
+                    type = lib.types.listOf (
+                      lib.types.submodule {
+                        options = {
+                          run = lib.mkOption { type = lib.types.listOf lib.types.str; };
+                          onFailure = lib.mkOption {
+                            type = lib.types.enum [
+                              "warn"
+                              "fail"
+                            ];
+                            default = "warn";
+                          };
+                        };
+                      }
+                    );
+                    default = [ ];
+                  };
+                  capture = lib.mkOption {
+                    type = lib.types.listOf lib.types.str;
+                    default = [ ];
+                  };
+                };
+              };
+              default = { };
             };
           };
         }

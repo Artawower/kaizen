@@ -50,7 +50,8 @@ machine where nothing is enabled yet.
 
 | =description= | Human-readable label shown in =kaizen configure= wizard |
 | =category=    | Group key (=editor=, =dev=, =terminal=, =system=, ...)  |
-| =updateHooks= | Optional commands for =kaizen bump= after manifest steps     |
+| =update=      | Commands run by =kaizen update= after backend update completes |
+| =bump=        | Workflow for =kaizen bump=: =before=, =run=, =capture= fields  |
 
 ** =conf.packages.nix=
 List of =nixpkgs= attribute paths. Accumulates across all enabled feature
@@ -84,39 +85,42 @@ All keys are optional — omit what you don't need.
 
 * kaizen bump
 
-Features can declare update hooks in their always-active
-=conf.featureRegistry.<name>= metadata. =kaizen bump= runs these hooks after the
-manifest steps from =bump.toml=, but only for features enabled in the current
-=kaizen= config.
+Features declare their bump workflow in =conf.featureRegistry.<name>.bump=.
+=kaizen bump= runs the workflow for every enabled feature — no external manifest
+file is needed.
 
-Example from =ai.nix=:
+Example from =mise.nix=:
 
 #+begin_src nix
-conf.featureRegistry.ai = {
-  description = "AI coding agents and tooling";
-  category = "ai";
-  updateHooks = [
-    {
-      run = [
-        "pi"
-        "update"
-        "--extensions"
-      ];
-      onFailure = "warn";
-    }
-  ];
+conf.featureRegistry.mise = {
+  description = "Mise toolchains";
+  category = "dev";
+  bump = {
+    before  = [{ run = [ "mise" "install" ]; onFailure = "fail"; }];
+    run     = [{ run = [ "~/.config/scripts/mise-bump" ]; onFailure = "fail"; }];
+    capture = [ "~/.config/mise.lock" ];
+  };
 };
 #+end_src
 
-Each hook has a =run= argv list and an optional =onFailure= policy. The default
-policy is =warn=.
+The =bump= submodule has three fields:
 
-- =onFailure = "warn"= prints a warning and continues with the next hook.
-- =onFailure = "fail"= prints an error and stops running further hooks.
+- =before= — hooks that run before the main bump command (e.g. ensure toolchain
+  is installed).
+- =run= — the main bump commands.
+- =capture= — paths passed to =chezmoi re-add= after commands complete.
 
-Hooks are skipped when =kaizen bump --only <step>= is used, because =--only=
-selects named =bump.toml= manifest steps and intentionally avoids feature-level
-updates.
+Each hook has a =run= argv list and an optional =onFailure= policy (default: =warn=).
+
+- =onFailure = "warn"= prints a warning and continues.
+- =onFailure = "fail"= prints an error and stops the workflow.
+
+Use =--only <feature>= to run the bump workflow for a single feature only
+(e.g. =kaizen bump --only mise= or =kaizen bump --only nix-system=).
+
+Features are executed in category order: =dev → system → other → ai=.
+dev/toolchain features run first so tools (e.g. =pi= via mise) are upgraded
+before AI extension updates that depend on them.
 
 * Adding a new feature
 

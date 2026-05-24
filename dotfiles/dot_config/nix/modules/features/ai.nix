@@ -17,7 +17,7 @@ in
       conf.featureRegistry.ai = {
         description = "AI coding agents and tooling";
         category = "ai";
-        updateHooks = [
+        update = [
           {
             run = [
               "pi"
@@ -27,6 +27,20 @@ in
             onFailure = "warn";
           }
         ];
+        bump = {
+          before = [
+            {
+              run = [
+                "pi"
+                "update"
+                "--extensions"
+              ];
+              onFailure = "warn";
+            }
+          ];
+          run = [ ];
+          capture = [ "~/.pi/agent/settings.json" ];
+        };
       };
     }
     (lib.mkIf cfg.enable {

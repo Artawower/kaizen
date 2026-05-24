@@ -13,7 +13,7 @@ version = "0.1.6"
 backend = "cargo:kdlfmt"
 
 [[tools."go:github.com/umputun/ralphex/cmd/ralphex"]]
-version = "1.2.0"
+version = "1.3.1"
 backend = "go:github.com/umputun/ralphex/cmd/ralphex"
 
 [[tools."go:golang.org/x/tools/gopls"]]
@@ -53,23 +53,23 @@ checksum = "sha256:cc5149eabd53779ce1e7bdc5401643622d0c7e6800ade18928a767e940bb0
 url = "https://nodejs.org/dist/v24.15.0/node-v24.15.0-win-x64.zip"
 
 [[tools."npm:@angular/cli"]]
-version = "21.2.11"
+version = "21.2.12"
 backend = "npm:@angular/cli"
 
 [[tools."npm:@angular/language-server"]]
-version = "21.2.13"
+version = "21.2.14"
 backend = "npm:@angular/language-server"
 
 [[tools."npm:@angular/language-service"]]
-version = "21.2.13"
+version = "21.2.14"
 backend = "npm:@angular/language-service"
 
 [[tools."npm:@earendil-works/pi-coding-agent"]]
-version = "0.75.4"
+version = "0.75.5"
 backend = "npm:@earendil-works/pi-coding-agent"
 
 [[tools."npm:@github/copilot-language-server"]]
-version = "1.489.0"
+version = "1.495.0"
 backend = "npm:@github/copilot-language-server"
 
 [[tools."npm:@gy920/qwen-mcp-tool"]]
@@ -85,7 +85,7 @@ version = "0.73.0"
 backend = "npm:@mariozechner/pi-coding-agent"
 
 [[tools."npm:@mem0/cli"]]
-version = "0.2.5"
+version = "0.2.7"
 backend = "npm:@mem0/cli"
 
 [[tools."npm:@mermaid-js/mermaid-cli"]]
@@ -101,11 +101,11 @@ version = "0.15.6"
 backend = "npm:@qwen-code/qwen-code"
 
 [[tools."npm:@tobilu/qmd"]]
-version = "2.5.1"
+version = "2.5.2"
 backend = "npm:@tobilu/qmd"
 
 [[tools."npm:@vue/language-server"]]
-version = "2.2.12"
+version = "3.3.1"
 backend = "npm:@vue/language-server"
 
 [[tools."npm:bun"]]
@@ -113,7 +113,7 @@ version = "1.3.14"
 backend = "npm:bun"
 
 [[tools."npm:context-mode"]]
-version = "1.0.146"
+version = "1.0.147"
 backend = "npm:context-mode"
 
 [[tools."npm:copilot-node-server"]]
@@ -157,7 +157,7 @@ version = "3.3.0"
 backend = "npm:npm-upgrade"
 
 [[tools."npm:opencode-ai"]]
-version = "1.15.5"
+version = "1.15.10"
 backend = "npm:opencode-ai"
 
 [[tools."npm:opentmux"]]
@@ -197,7 +197,7 @@ version = "1.5.7"
 backend = "npm:skills"
 
 [[tools."npm:stylelint"]]
-version = "17.11.1"
+version = "17.12.0"
 backend = "npm:stylelint"
 
 [[tools."npm:typescript"]]
@@ -205,7 +205,7 @@ version = "6.0.3"
 backend = "npm:typescript"
 
 [[tools."npm:typescript-language-server"]]
-version = "5.2.0"
+version = "5.3.0"
 backend = "npm:typescript-language-server"
 
 [[tools."npm:vscode-langservers-extracted"]]
@@ -221,7 +221,7 @@ version = "1.23.0"
 backend = "npm:yaml-language-server"
 
 [[tools."pipx:basedpyright"]]
-version = "1.39.5"
+version = "1.39.6"
 backend = "pipx:basedpyright"
 
 [[tools."pipx:http-prompt"]]
