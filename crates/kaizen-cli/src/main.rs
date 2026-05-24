@@ -135,6 +135,20 @@ enum Command {
         dry_run: bool,
     },
 
+    /// List and inspect shortcut catalog entries from keybindings.toml.
+    Shortcuts {
+        #[arg(
+            long,
+            value_name = "PREFIX",
+            help = "Show only shortcuts with matching id prefix (e.g. --only nav)"
+        )]
+        only: Vec<String>,
+        #[arg(long, help = "Show shortcuts for all defined layouts")]
+        all_layouts: bool,
+        #[arg(long, help = "Output as JSON")]
+        json: bool,
+    },
+
     /// Rank alternatives from decisions/*.toml via TOPSIS.
     Rank {
         #[arg(help = "Decision category to rank")]
@@ -242,6 +256,18 @@ fn main() -> Result<()> {
                 &StderrReporter,
             )?;
         }
+        Command::Shortcuts {
+            only,
+            all_layouts,
+            json,
+        } => {
+            let catalog_path = resolve_catalog_path();
+            let layout = engine
+                .load_config(&config_path)
+                .ok()
+                .and_then(|c| c.settings.layout);
+            commands::shortcuts::run(&only, all_layouts, json, &catalog_path, layout.as_deref())?;
+        }
         Command::Rank {
             category,
             md,
@@ -271,4 +297,24 @@ fn main() -> Result<()> {
     }
 
     Ok(())
+}
+
+fn resolve_catalog_path() -> std::path::PathBuf {
+    use kaizen_core::chezmoi_client::ChezmoiClient as _;
+    // 1. Monorepo dev layout
+    let monorepo = std::path::PathBuf::from("dotfiles/kaizen/keybindings.toml");
+    if monorepo.exists() {
+        return monorepo;
+    }
+    // 2. Chezmoi source
+    if let Ok(Some(source)) = chezmoi::StdChezmoiClient.source_path() {
+        let candidate = source.join("kaizen/keybindings.toml");
+        if candidate.exists() {
+            return candidate;
+        }
+    }
+    // 3. Deployed fallback
+    dirs::home_dir()
+        .map(|h| h.join(".config/kaizen/keybindings.toml"))
+        .unwrap_or_else(|| std::path::PathBuf::from(".config/kaizen/keybindings.toml"))
 }

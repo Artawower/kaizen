@@ -1,19 +1,11 @@
 # Kaizen unified shortcut catalog.
 #
-# [shortcuts] defines base (qwerty-compatible) shortcuts. Each entry is an
-# array of string tokens. Tokens matching a key in [modifiers.*] are resolved
-# to their platform-native name at export time. All other tokens pass through.
+# [shortcuts] — base (qwerty-compatible) entries using object format:
+#   { keys = [...], group = "...", description = "..." }
 #
-# [layout.<name>.shortcuts] defines overrides applied on top of base for that
-# layout. kaizen merges overlay on top of base at export time.
-#
-# Accepted shortcuts:
-#   nav.*              navigation keys (layout-aware via colemak overlay)
-#   jjui.*             jjui action keys (displaced to j/k/l in colemak)
-#   projects.pick      ["p","p"]
-#   pane.split.*       pane split shortcuts
-#   vcs.ui             ["g","g"]
-#   pane.focus.*       ["CTRL","ALT",…] global terminal-safe shortcuts
+# [layout.<name>.shortcuts] — overrides as plain arrays merged on top of base.
+# kaizen merges overlay at export time; modifier tokens (CTRL/ALT/…) are
+# resolved per platform.
 
 [modifiers.darwin]
 SUPER = "Cmd"
@@ -31,31 +23,67 @@ CTRL = "Ctrl"
 
 [shortcuts]
 # --- Navigation (base = qwerty) ---
-"nav.left" = ["h"]
-"nav.down" = ["j"]
-"nav.up" = ["k"]
-"nav.right" = ["l"]
-
-# --- jjui actions (displaced from nav keys in colemak) ---
-"jjui.new" = ["n"]
-"jjui.edit" = ["e"]
-"jjui.interactive" = ["i"]
+"nav.left" = { keys = [
+  "h",
+], group = "Navigation", description = "Move focus left" }
+"nav.down" = { keys = [
+  "j",
+], group = "Navigation", description = "Move focus down" }
+"nav.up" = { keys = ["k"], group = "Navigation", description = "Move focus up" }
+"nav.right" = { keys = [
+  "l",
+], group = "Navigation", description = "Move focus right" }
 
 # --- VCS ---
-"vcs.ui" = ["g", "g"]
+"vcs.ui" = { keys = [
+  "g",
+  "g",
+], group = "VCS", description = "Open VCS UI (jjui)" }
 
 # --- Projects ---
-"projects.pick" = ["p", "p"]
+"projects.pick" = { keys = [
+  "p",
+  "p",
+], group = "Projects", description = "Pick project (zoxide)" }
 
 # --- Pane: split ---
-"pane.split.right" = ["w", "v"]
-"pane.split.down" = ["w", "s"]
+"pane.split.right" = { keys = [
+  "w",
+  "v",
+], group = "Pane", description = "Split pane right" }
+"pane.split.down" = { keys = [
+  "w",
+  "s",
+], group = "Pane", description = "Split pane down" }
 
 # --- Pane: focus (global, terminal-safe) ---
-"pane.focus.left" = ["CTRL", "ALT", "Left"]
-"pane.focus.right" = ["CTRL", "ALT", "Right"]
-"pane.focus.up" = ["CTRL", "ALT", "Up"]
-"pane.focus.down" = ["CTRL", "ALT", "Down"]
+"pane.focus.left" = { keys = [
+  "CTRL",
+  "ALT",
+  "Left",
+], group = "Pane", description = "Focus pane left" }
+"pane.focus.right" = { keys = [
+  "CTRL",
+  "ALT",
+  "Right",
+], group = "Pane", description = "Focus pane right" }
+"pane.focus.up" = { keys = [
+  "CTRL",
+  "ALT",
+  "Up",
+], group = "Pane", description = "Focus pane up" }
+"pane.focus.down" = { keys = [
+  "CTRL",
+  "ALT",
+  "Down",
+], group = "Pane", description = "Focus pane down" }
+
+# --- jjui actions (displaced from nav keys in colemak) ---
+"jjui.new" = { keys = ["n"], group = "jjui", description = "New change" }
+"jjui.edit" = { keys = ["e"], group = "jjui", description = "Edit change" }
+"jjui.interactive" = { keys = [
+  "i",
+], group = "jjui", description = "Interactive rebase" }
 
 [layout.colemak.shortcuts]
 # nav.left = ["h"] — same as base, omitted

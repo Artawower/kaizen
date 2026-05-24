@@ -1,5 +1,20 @@
 use std::{collections::BTreeMap, path::PathBuf};
 
+/// Extract the key-string list from either a plain array `["k1","k2"]`
+/// or an object `{ keys = ["k1","k2"], ... }` shortcut value.
+fn extract_keys(value: &toml::Value) -> Option<Vec<String>> {
+    match value {
+        toml::Value::Array(arr) => arr.iter().map(|v| v.as_str().map(String::from)).collect(),
+        toml::Value::Table(t) => t
+            .get("keys")?
+            .as_array()?
+            .iter()
+            .map(|v| v.as_str().map(String::from))
+            .collect(),
+        _ => None,
+    }
+}
+
 use crate::{
     chezmoi::merge_kaizen_data_with,
     chezmoi_client::ChezmoiClient,
@@ -287,16 +302,15 @@ fn export_shortcuts_to_chezmoi(
 
     let mut resolved: toml::map::Map<String, toml::Value> = toml::map::Map::new();
     for (id, tokens_val) in &shortcuts_table {
-        if let Some(arr) = tokens_val.as_array() {
-            let resolved_arr: Vec<toml::Value> = arr
+        if let Some(key_strings) = extract_keys(tokens_val) {
+            let resolved_arr: Vec<toml::Value> = key_strings
                 .iter()
-                .map(|t| {
-                    if let Some(s) = t.as_str() {
-                        let native = modifiers.get(s).and_then(|v| v.as_str()).unwrap_or(s);
-                        toml::Value::String(native.to_owned())
-                    } else {
-                        t.clone()
-                    }
+                .map(|s| {
+                    let native = modifiers
+                        .get(s.as_str())
+                        .and_then(|v| v.as_str())
+                        .unwrap_or(s);
+                    toml::Value::String(native.to_owned())
                 })
                 .collect();
             resolved.insert(id.clone(), toml::Value::Array(resolved_arr));
@@ -553,6 +567,20 @@ SUPER = "Super"
 ALT   = "Alt"
 
 [shortcuts]
+"projects.pick"   = { keys = ["p", "p"],                  group = "Projects", description = "Pick project" }
+"pane.focus.left" = { keys = ["SUPER", "ALT", "Left"],   group = "Pane",     description = "Focus pane left" }
+"#;
+
+    const SAMPLE_CATALOG_LEGACY: &str = r#"
+[modifiers.darwin]
+SUPER = "Cmd"
+ALT   = "Opt"
+
+[modifiers.linux]
+SUPER = "Super"
+ALT   = "Alt"
+
+[shortcuts]
 "projects.pick"   = ["p", "p"]
 "pane.focus.left" = ["SUPER", "ALT", "Left"]
 "#;
@@ -625,7 +653,7 @@ ALT   = "Alt"
     fn setup_catalog_legacy(fs: &crate::fs::mem::MemFileSystem, source: &std::path::Path) {
         let kaizen_dir = source.join("kaizen");
         fs.add_dir(&kaizen_dir);
-        fs.add_file(&kaizen_dir.join("mnemonics.toml"), SAMPLE_CATALOG);
+        fs.add_file(&kaizen_dir.join("mnemonics.toml"), SAMPLE_CATALOG_LEGACY);
     }
 
     #[test]

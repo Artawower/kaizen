@@ -74,3 +74,6 @@ reviewer = "anthropic/claude-sonnet-4-6"
 
 [tiling]
 wm = "yabai"
+
+[ui]
+font_size = 16

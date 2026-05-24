@@ -9,6 +9,7 @@ pub mod plan;
 pub mod rank;
 pub mod re_add;
 pub mod self_update;
+pub mod shortcuts;
 pub mod sync;
 pub mod uninstall;
 pub mod update;

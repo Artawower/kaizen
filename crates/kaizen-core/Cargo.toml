@@ -7,6 +7,7 @@ edition = "2021"
 tempfile = "3"
 
 [dependencies]
+anyhow = { workspace = true }
 serde = { workspace = true }
 toml = { workspace = true }
 indexmap = { workspace = true }

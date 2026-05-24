@@ -23,6 +23,7 @@ pub mod progress;
 pub mod rank;
 pub mod runtime;
 pub mod setup;
+pub mod shortcut_catalog;
 pub mod sync_backend;
 pub mod toolchain;
 pub mod variants;
@@ -54,6 +55,7 @@ pub use runtime::Runtime;
 pub use setup::{
     render_config, resolve_features_dir_from_source, BootstrapStatus, ChezmoiBootstrapper,
 };
+pub use shortcut_catalog::{ShortcutCatalog, ShortcutDefinition};
 pub use sync_backend::{
     ApplyBackend, ApplyReport, CleanBackend, CleanOpts, CleanReport, InstallBackend, InstallReport,
     PostApplyBackend, PreviewBackend, SyncBackend, SyncOpts, SyncPreview, SyncReport, SyncStep,

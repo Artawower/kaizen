@@ -485,6 +485,7 @@ dependencies = [
 name = "kaizen-core"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "indexmap",
  "os_info",
  "serde",
