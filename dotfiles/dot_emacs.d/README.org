@@ -1942,9 +1942,12 @@ The format is:
           (json "https://github.com/tree-sitter/tree-sitter-json")
           (vue "https://github.com/ikatyang/tree-sitter-vue")
           (make "https://github.com/alemuller/tree-sitter-make")
-          (markdown-inline "https://github.com/ikatyang/tree-sitter-markdown")
-          (vue "https://github.com/ikatyang/tree-sitter-vue")
-          (markdown "https://github.com/ikatyang/tree-sitter-markdown")
+          (markdown "https://github.com/tree-sitter-grammars/tree-sitter-markdown"
+                    "split_parser"
+                    "tree-sitter-markdown/src")
+          (markdown-inline "https://github.com/tree-sitter-grammars/tree-sitter-markdown"
+                           "split_parser"
+                           "tree-sitter-markdown-inline/src")
           (python "https://github.com/tree-sitter/tree-sitter-python")
           (rust "https://github.com/tree-sitter/tree-sitter-rust")
           (scss "https://github.com/tree-sitter-grammars/tree-sitter-scss")
@@ -1996,17 +1999,11 @@ The format is:
   :hook ((web-mode
           ng2-html-mode
           ng2-ts-mode
-          typescript-mode
-          js-mode
           js-ts-mode
           python-ts-mode
-          python-mode
-          html-mode
-          json-mode
+          html-ts-mode
           json-ts-mode
-          bash-mode
-          css-mode
-          scss-mode
+          css-ts-mode
           go-ts-mode
           typescript-ts-mode) . treesit-fold-mode)
   :config
