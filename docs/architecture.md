@@ -233,8 +233,8 @@ their only shared runtime input.
 ```mermaid
 graph TD
     data["~/.config/kaizen/data.toml<br/>(feature enables + [extra], written by kaizen)"]
-    user_nix["~/.config/kaizen/user-features/*.nix<br/>user home-manager modules"]
-    user_darwin["~/.config/kaizen/user-features/*.darwin.nix<br/>user darwin attrs"]
+    user_nix["~/.config/kaizen/user-features/*.nix<br/>user feature recipes (primary) / legacy HM modules"]
+    user_darwin["~/.config/kaizen/user-features/*.darwin.nix<br/>legacy user darwin attrs (deprecated)"]
 
     subgraph flake["flake.nix"]
         darwin_cfg["darwinConfigurations<br/>(nix-darwin, macOS only)"]
@@ -252,7 +252,7 @@ graph TD
         host["hosts/mac.nix or linux.nix<br/>stateVersion, username, homeDir, conf.extra"]
         mod["modules/darwin.nix or linux.nix"]
         options["options.nix<br/>conf.features · conf.packages · conf.featureRegistry · conf.extra"]
-        loader["feature-loader.nix<br/>readDir ./features → imports all *.nix<br/>readDir user-features → imports user *.nix<br/>activation → feature-meta.json"]
+        loader["feature-loader.nix<br/>readDir ./features → mkRecipeModule per .nix<br/>readDir user-features → recipe or legacy HM module<br/>activation → feature-meta.json + darwin-deps.json"]
         features["features/*.nix<br/>core · helix · vcs · terminal · …"]
         adapter["adapters/home-manager.nix<br/>conf.packages.nix + conf.extra.nixPackages → home.packages"]
         system["system/*.nix<br/>fonts · darkman · battery"]
@@ -277,20 +277,28 @@ graph TD
     hm_linux --> host
 ```
 
-### Feature module anatomy
+### Feature recipe anatomy
 
-Every `features/X.nix` follows this pattern:
+Every `features/X.nix` is a **pure function** returning a plain attrset — no
+`options`, `config`, or `lib.mkIf` boilerplate:
 
 ```nix
-# options.conf.features.X.enable  ←  set by data.toml at eval time
+{ pkgs, lib, ... }:
+{
+  description = "My feature";
+  category    = "dev";
 
-# config = lib.mkMerge [
-#   { conf.featureRegistry.X = { description, category } }  ← always
-#   (lib.mkIf cfg.enable {                                   ← when enabled
-#     conf.packages.nix = [ ... ]                            ← → home.packages
-#   })
-# ]
+  packages.nix          = with pkgs; [ ripgrep ];
+  packages.darwin.casks = [ "my-cask" ];
+
+  activation.darwin.myScript = ''echo "setup"'';
+}
 ```
+
+`feature-loader.nix` imports each recipe and generates the HM module
+centrally: it declares `conf.features.<name>.enable`, registers metadata in
+`conf.featureRegistry.<name>`, and conditionally applies packages and
+activation scripts when the feature is enabled.
 
 `conf.featureRegistry` is always populated so `feature-meta.json` contains
 the full feature list regardless of what is currently enabled.
@@ -334,19 +342,21 @@ a clear Nix eval error with the attribute name. The wizard never touches
 
 ### `user-features/*.nix`
 
-For users comfortable with Nix. Place modules in
+For users comfortable with Nix. Place _recipe_ files in
 `~/.config/kaizen/user-features/`. They are auto-discovered alongside built-in
-feature modules and receive the same `{ config, lib, pkgs, ... }` arguments.
+feature recipes and use the same recipe format: `{ pkgs, lib, user ? {}, ... }:`
+returning a plain attrset with `description`, `category`, `packages`, etc.
 
 ```
 ~/.config/kaizen/user-features/
-  mytools.nix          ← home-manager module (packages, programs, dotfiles)
+  mytools.nix          ← recipe file (same format as built-in features)
 ```
 
-**One feature = one file.** Darwin-specific deps are declared inline inside
-`*.nix` using `lib.optionals pkgs.stdenv.isDarwin [ ... ]` on the new options
-`conf.packages.darwinCasks`, `conf.packages.darwinBrews`, `conf.packages.darwinTaps`,
-`conf.packages.darwinBrewFormulas`, and `conf.darwin.activationScripts`.
+See `docs/feature-format.org` for the full recipe field reference.
+
+**One feature = one file.** Darwin-specific deps are declared in
+`packages.darwin.*` and `activation.darwin`; the loader applies them only on
+Darwin. No `lib.optionals pkgs.stdenv.isDarwin` needed in recipe files.
 
 The `*.darwin.nix` pattern is **deprecated and removed**.
 
