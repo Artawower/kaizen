@@ -28,4 +28,17 @@ in
     ${builtins.toJSON config.conf.featureRegistry}
     EOF
   '';
+
+  home.activation.generateDarwinDeps = lib.hm.dag.entryBefore [ "writeBoundary" ] ''
+    mkdir -p "$HOME/.config/kaizen"
+    cat > "$HOME/.config/kaizen/darwin-deps.json" <<'DARWIN_EOF'
+    ${builtins.toJSON {
+      brews             = config.conf.packages.darwinBrews;
+      casks             = config.conf.packages.darwinCasks;
+      taps              = config.conf.packages.darwinTaps;
+      brewFormulas      = config.conf.packages.darwinBrewFormulas;
+      activationScripts = config.conf.darwin.activationScripts;
+    }}
+    DARWIN_EOF
+  '';
 }

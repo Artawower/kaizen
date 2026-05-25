@@ -1,4 +1,4 @@
-{ config, lib, ... }:
+{ config, lib, pkgs, ... }:
 
 let cfg = config.conf.features.battery-thresholds;
 in
@@ -14,5 +14,8 @@ in
         category    = "system";
       };
     }
+    (lib.mkIf cfg.enable {
+      conf.packages.darwinCasks = lib.optionals pkgs.stdenv.isDarwin [ "aldente" ];
+    })
   ];
 }

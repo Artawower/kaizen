@@ -45,6 +45,7 @@ in
     }
     (lib.mkIf cfg.enable {
       conf.packages.nix = with pkgs; [ podman ];
+      conf.packages.darwinCasks = lib.optionals pkgs.stdenv.isDarwin [ "claude-code" ];
     })
   ];
 }

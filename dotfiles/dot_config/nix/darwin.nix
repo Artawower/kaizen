@@ -9,29 +9,7 @@
 let
   dataPath = "${user.homeDirectory}/.config/kaizen/data.toml";
   data = if builtins.pathExists dataPath then builtins.fromTOML (builtins.readFile dataPath) else { };
-  features = data.features or { };
   extra = data.extra or { };
-  f = name: features.${name} or false;
-
-  featuresDir = ./modules/features;
-  featureFiles = lib.filterAttrs (n: t: t == "regular" && lib.hasSuffix ".darwin.nix" n) (
-    builtins.readDir featuresDir
-  );
-
-  importDarwin =
-    fileName:
-    let
-      name = lib.removeSuffix ".darwin.nix" fileName;
-    in
-    if !(f name) then { } else import (featuresDir + "/${fileName}") { inherit lib pkgs user; };
-
-  loaded = map importDarwin (builtins.attrNames featureFiles);
-
-  featureCasks = lib.concatMap (m: m.darwinCasks or [ ]) loaded;
-  featureBrews = lib.concatMap (m: m.darwinBrews or [ ]) loaded;
-  featureTaps = lib.concatMap (m: m.darwinTaps or [ ]) loaded;
-  featureFormulas = lib.concatStrings (map (m: m.darwinBrewFormulas or "") loaded);
-  featureActivation = lib.foldl' (acc: m: acc // (m.darwinActivationScripts or { })) { } loaded;
 
   userFeaturesPath = "${user.homeDirectory}/.config/kaizen/user-features";
   userDarwinFiles =
@@ -49,6 +27,19 @@ let
   userTaps = lib.concatMap (m: m.darwinTaps or [ ]) userLoaded;
   userFormulas = lib.concatStrings (map (m: m.darwinBrewFormulas or "") userLoaded);
   userActivation = lib.foldl' (acc: m: acc // (m.darwinActivationScripts or { })) { } userLoaded;
+
+  darwinDepsPath = "${user.homeDirectory}/.config/kaizen/darwin-deps.json";
+  darwinDeps =
+    if builtins.pathExists darwinDepsPath then
+      builtins.fromJSON (builtins.readFile darwinDepsPath)
+    else
+      {
+        brews = [ ];
+        casks = [ ];
+        taps = [ ];
+        brewFormulas = "";
+        activationScripts = { };
+      };
 in
 
 {
@@ -83,20 +74,9 @@ in
     screensaver.askForPasswordDelay = 30;
   };
 
-  environment.loginItems = {
-    enable = true;
-    items = [
-      "/Applications/Ice.app"
-      "/Applications/AlDente.app"
-      "/Applications/Stats.app"
-      "/Applications/SpatialDock.app"
-      "/Applications/VoiceInk.app"
-      "/Applications/Input Source Pro.app"
-      "/Applications/Raycast.app"
-      "/Applications/Shottr.app"
-      "/Applications/Clop.app"
-    ];
-  };
+  # Login items are managed manually via System Settings → General → Login Items.
+  # The darwin-login-items module is removed: it uses Apple Events from root (sudo
+  # darwin-rebuild) which macOS TCC blocks with errAEEventNotPermitted (-1743).
 
   system.activationScripts = lib.mkMerge [
     {
@@ -129,7 +109,7 @@ in
         fi
       '';
     }
-    (lib.mapAttrs (_: text: { inherit text; }) (featureActivation // userActivation))
+    (lib.mapAttrs (_: text: { inherit text; }) (userActivation // (darwinDeps.activationScripts or { })))
   ];
 
   security.pam.services.sudo_local.touchIdAuth = true;
@@ -151,9 +131,12 @@ in
       upgrade = true;
     };
 
-    taps = lib.unique ([ "Artawower/tap" ] ++ featureTaps ++ (extra.brew_taps or [ ]) ++ userTaps);
+    taps = lib.unique (
+      [ "Artawower/tap" ] ++ (extra.brew_taps or [ ]) ++ userTaps ++ (darwinDeps.taps or [ ])
+    );
 
     brews = [
+      "ca-certificates"
       "chezmoi"
       "mas"
       "pkgconf"
@@ -161,13 +144,15 @@ in
       "Artawower/tap/wallboy"
       "ntfy"
     ]
-    ++ featureBrews
     ++ (extra.brew_formulas or [ ])
-    ++ userBrews;
+    ++ userBrews
+    ++ (darwinDeps.brews or [ ]);
 
-    casks = lib.unique ([ "chia" ] ++ featureCasks ++ (extra.brew_casks or [ ]) ++ userCasks);
+    casks = lib.unique (
+      [ "chia" ] ++ (extra.brew_casks or [ ]) ++ userCasks ++ (darwinDeps.casks or [ ])
+    );
 
-    extraConfig = featureFormulas + userFormulas;
+    extraConfig = userFormulas + (darwinDeps.brewFormulas or "");
 
     masApps = { };
   };

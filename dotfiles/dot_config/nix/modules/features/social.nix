@@ -1,4 +1,4 @@
-{ config, lib, ... }:
+{ config, lib, pkgs, ... }:
 
 let cfg = config.conf.features.social;
 in
@@ -13,5 +13,13 @@ in
         category    = "social";
       };
     }
+    (lib.mkIf cfg.enable {
+      conf.packages.darwinCasks = lib.optionals pkgs.stdenv.isDarwin [
+        "discord"
+        "mattermost"
+        "telegram-desktop"
+        "whatsapp"
+      ];
+    })
   ];
 }

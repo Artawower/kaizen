@@ -7,13 +7,12 @@
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
     nix-darwin.url     = "github:LnL7/nix-darwin/master";
     nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
-    darwin-login-items.url = "github:uncenter/nix-darwin-login-items";
     zen-browser.url    = "github:youwen5/zen-browser-flake";
     dms.url            = "github:AvengeMedia/DankMaterialShell";
     noctalia.url       = "github:noctalia-dev/noctalia-shell";
   };
 
-  outputs = { self, nix-darwin, nixpkgs, home-manager, darwin-login-items, dms, ... }@inputs:
+  outputs = { self, nix-darwin, nixpkgs, home-manager, dms, ... }@inputs:
     let
       user = import ./user.nix;
 
@@ -44,7 +43,6 @@
       darwinConfigurations.${user.hostname} = nix-darwin.lib.darwinSystem {
         specialArgs = { inherit self user; };
         modules = [
-          darwin-login-items.darwinModules.default
           ./darwin.nix
         ];
       };

@@ -516,6 +516,18 @@ impl NixSyncBackend {
 
     fn nix_install_steps(&self) -> Vec<String> {
         let mut steps = vec![];
+        let user = self.current_user().unwrap_or_else(|_| "<user>".into());
+        let nix_dir = self
+            .nix_config_dir()
+            .map(|p| p.to_string_lossy().into_owned())
+            .unwrap_or_else(|_| "~/.config/nix".into());
+        // home-manager first so it writes darwin-deps.json before darwin-rebuild reads it
+        steps.push(format!(
+            "home-manager switch --flake {}#{}@{} --impure",
+            nix_dir,
+            user,
+            self.flake_host()
+        ));
         if self.os == TargetOs::Darwin {
             let cmd = if self.darwin_rebuild_available() {
                 "sudo darwin-rebuild switch --flake ~/.config/nix --impure".into()
@@ -524,17 +536,6 @@ impl NixSyncBackend {
             };
             steps.push(cmd);
         }
-        let user = self.current_user().unwrap_or_else(|_| "<user>".into());
-        let nix_dir = self
-            .nix_config_dir()
-            .map(|p| p.to_string_lossy().into_owned())
-            .unwrap_or_else(|_| "~/.config/nix".into());
-        steps.push(format!(
-            "home-manager switch --flake {}#{}@{} --impure",
-            nix_dir,
-            user,
-            self.flake_host()
-        ));
         steps
     }
 }
@@ -573,10 +574,8 @@ impl InstallBackend for NixSyncBackend {
             });
         }
 
+        // git add must happen before both HM and darwin-rebuild use the flake
         if self.os == TargetOs::Darwin {
-            // Nix flakes require files to be git-tracked. After chezmoi apply
-            // deploys new files to ~/.config they are untracked — stage them
-            // so darwin-rebuild can see the flake.
             if let Some(home) = self.runtime.paths.home_dir() {
                 reporter.step("→ git add ~/.config");
                 let _ = self.runtime.executor.execute(ProcessCommand::run(
@@ -589,10 +588,14 @@ impl InstallBackend for NixSyncBackend {
                     ],
                 ));
             }
+        }
 
-            // Unlink source formulas before darwin-rebuild so brew bundle can
-            // relink cleanly without "already exists" symlink conflicts from
-            // previous installations (e.g. share/info/emacs/dir).
+        // home-manager switch first — writes darwin-deps.json so darwin-rebuild can read it
+        reporter.step("→ home-manager switch");
+        self.run_home_manager()?;
+
+        // darwin-rebuild switch second — consumes fresh darwin-deps.json
+        if self.os == TargetOs::Darwin {
             self.prelink_brew_source_formulas(&plan.install_plan.brew_source_formulas);
             reporter.step("→ darwin-rebuild switch");
             self.run_darwin_rebuild()?;
@@ -600,8 +603,6 @@ impl InstallBackend for NixSyncBackend {
             self.link_brew_app_bundles(&plan.install_plan.brew_source_formulas, reporter);
             self.start_brew_services(&plan.install_plan.brew_source_formulas, reporter);
         }
-        reporter.step("→ home-manager switch");
-        self.run_home_manager()?;
 
         Ok(InstallReport {
             steps,
@@ -848,6 +849,35 @@ mod tests {
         assert!(
             report.steps.iter().any(|s| s.contains("darwin-rebuild")),
             "darwin steps must include darwin-rebuild, got: {report:?}"
+        );
+    }
+
+    #[test]
+    fn install_dry_run_darwin_home_manager_before_darwin_rebuild() {
+        let backend = mock_backend(TargetOs::Darwin);
+        let plan = empty_plan(TargetOs::Darwin);
+        let report = backend
+            .install(
+                &plan,
+                &SyncOpts {
+                    dry_run: true,
+                    ..Default::default()
+                },
+                &NoopReporter,
+            )
+            .unwrap();
+        let hm_pos = report.steps.iter().position(|s| s.contains("home-manager"));
+        let dr_pos = report
+            .steps
+            .iter()
+            .position(|s| s.contains("darwin-rebuild"));
+        assert!(
+            hm_pos.is_some() && dr_pos.is_some(),
+            "both steps must be present, got: {report:?}"
+        );
+        assert!(
+            hm_pos < dr_pos,
+            "home-manager must come before darwin-rebuild, got steps: {report:?}"
         );
     }
 

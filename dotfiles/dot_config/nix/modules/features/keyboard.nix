@@ -40,6 +40,10 @@ in
     }
     (lib.mkIf cfg.enable {
       conf.packages.nix = lib.optionals (!isDarwin) (with pkgs; [ xremap ]);
+      conf.packages.darwinCasks = lib.optionals isDarwin [
+        "karabiner-elements"
+        "input-source-pro"
+      ];
 
       home.activation.configureInputSourceHotkeys = lib.mkIf isDarwin (
         lib.hm.dag.entryAfter [ "writeBoundary" ] ''

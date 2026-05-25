@@ -1,4 +1,4 @@
-{ config, lib, ... }:
+{ config, lib, pkgs, ... }:
 
 let cfg = config.conf.features.screencast;
 in
@@ -13,5 +13,8 @@ in
         category    = "dev";
       };
     }
+    (lib.mkIf cfg.enable {
+      conf.packages.darwinCasks = lib.optionals pkgs.stdenv.isDarwin [ "licecap" "keycastr" ];
+    })
   ];
 }

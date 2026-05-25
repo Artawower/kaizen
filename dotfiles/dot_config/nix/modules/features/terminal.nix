@@ -21,6 +21,10 @@ in
         starship zoxide eza fastfetch direnv
         codebook
       ];
+      conf.packages.darwinCasks = lib.optionals pkgs.stdenv.isDarwin [
+        "ghostty" "wezterm" "neohtop" "cmux" "muxy"
+      ];
+      conf.packages.darwinTaps = lib.optionals pkgs.stdenv.isDarwin [ "muxy-app/tap" ];
     })
   ];
 }

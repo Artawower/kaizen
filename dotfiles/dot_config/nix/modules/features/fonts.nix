@@ -29,6 +29,10 @@ in
       ];
 
       fonts.fontconfig.enable = lib.mkIf isLinux true;
+      conf.packages.darwinCasks = lib.optionals pkgs.stdenv.isDarwin [
+        "font-liga-comic-mono"
+        "font-monaspace-nf"
+      ];
     })
   ];
 }

@@ -18,5 +18,8 @@ in
     (lib.mkIf (cfg.enable && isLinux) {
       conf.packages.nix = with pkgs; [ podman ];
     })
+    (lib.mkIf cfg.enable {
+      conf.packages.darwinCasks = lib.optionals pkgs.stdenv.isDarwin [ "orbstack" ];
+    })
   ];
 }

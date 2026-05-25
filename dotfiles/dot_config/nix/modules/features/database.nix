@@ -1,4 +1,4 @@
-{ config, lib, ... }:
+{ config, lib, pkgs, ... }:
 
 let cfg = config.conf.features.database;
 in
@@ -13,5 +13,11 @@ in
         category    = "dev";
       };
     }
+    (lib.mkIf cfg.enable {
+      conf.packages.darwinCasks = lib.optionals pkgs.stdenv.isDarwin [
+        "db-browser-for-sqlite"
+        "mongodb-compass"
+      ];
+    })
   ];
 }

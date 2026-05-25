@@ -140,5 +140,40 @@
         default = [ ];
       };
     };
+
+    packages.darwinBrews = lib.mkOption {
+      type = lib.types.listOf lib.types.anything;
+      default = [ ];
+      description = "Homebrew brews contributed by features (merged into homebrew.brews)";
+    };
+
+    packages.darwinCasks = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [ ];
+      description = "Homebrew casks contributed by features";
+    };
+
+    packages.darwinTaps = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [ ];
+      description = "Homebrew taps contributed by features";
+    };
+
+    packages.darwinBrewFormulas = lib.mkOption {
+      type = lib.types.lines;
+      default = "";
+      description = "Homebrew extraConfig lines contributed by features";
+    };
+
+    darwin.activationScripts = lib.mkOption {
+      type = lib.types.attrsOf lib.types.str;
+      default = { };
+      description = ''
+        Darwin activation script bodies contributed by features (map name -> shell text).
+        Keys must be globally unique across all features: use feature-scoped prefixes
+        (e.g. "emacsApp", "yabaiSudoExtra") to avoid conflicts.
+        Duplicate keys cause a Nix module system type error.
+      '';
+    };
   };
 }

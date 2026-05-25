@@ -341,12 +341,31 @@ feature modules and receive the same `{ config, lib, pkgs, ... }` arguments.
 ```
 ~/.config/kaizen/user-features/
   mytools.nix          ← home-manager module (packages, programs, dotfiles)
-  mytools.darwin.nix   ← darwin attrs (darwinCasks, darwinActivationScripts, …)
 ```
 
-`*.darwin.nix` files follow the same contract as built-in `*.darwin.nix`:
-return an attrset with any combination of `darwinCasks`, `darwinBrews`,
-`darwinTaps`, `darwinBrewFormulas`, `darwinActivationScripts`.
+**One feature = one file.** Darwin-specific deps are declared inline inside
+`*.nix` using `lib.optionals pkgs.stdenv.isDarwin [ ... ]` on the new options
+`conf.packages.darwinCasks`, `conf.packages.darwinBrews`, `conf.packages.darwinTaps`,
+`conf.packages.darwinBrewFormulas`, and `conf.darwin.activationScripts`.
+
+The `*.darwin.nix` pattern is **deprecated and removed**.
+
+### JSON-bridge (HM → nix-darwin)
+
+nix-darwin and Home Manager use separate module-system evaluations. Feature
+modules live in the HM evaluation and cannot be imported directly by
+nix-darwin. The bridge works in two steps:
+
+1. **HM activation** (`generateDarwinDeps`): writes
+   `~/.config/kaizen/darwin-deps.json` from `config.conf.packages.darwin*`
+   and `config.conf.darwin.activationScripts` during every `home-manager switch`.
+2. **nix-darwin rebuild**: `darwin.nix` reads that JSON with
+   `builtins.fromJSON (builtins.readFile darwinDepsPath)` and merges the
+   values into `homebrew.*` and `system.activationScripts`.
+
+> **Two-step caveat**: when adding brew deps to a new feature for the first
+> time, run `home-manager switch` first (to write the JSON), then
+> `darwin-rebuild switch` (to pick it up). `kaizen sync` does both in order.
 
 Both mechanisms require `home-manager switch` / `darwin-rebuild switch` to
 take effect (`kaizen sync` triggers this automatically).

@@ -1,7 +1,6 @@
-{ config, lib, ... }:
+{ config, lib, pkgs, ... }:
 
-let
-  cfg = config.conf.features.desktop;
+let cfg = config.conf.features.desktop;
 in
 
 {
@@ -11,8 +10,18 @@ in
     {
       conf.featureRegistry.desktop = {
         description = "Desktop utilities: launcher, menu bar, file manager, cleaner";
-        category = "desktop";
+        category    = "desktop";
       };
     }
+    (lib.mkIf cfg.enable {
+      conf.packages.darwinCasks = lib.optionals pkgs.stdenv.isDarwin [
+        "raycast"
+        "jordanbaird-ice"
+        "stats"
+        "clop"
+        "marta"
+        "pearcleaner"
+      ];
+    })
   ];
 }

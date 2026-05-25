@@ -29,8 +29,9 @@ in {
     (lib.mkIf cfg.enable {
       conf.packages.nix = with pkgs; [ helix marksman ];
 
-      # macOS brew casks (see darwin.nix for aggregation)
-      # conf.packages.brewCasks = lib.optionals isDarwin [ "some-app" ];
+      # macOS deps — declared inline, exported via darwin-deps.json bridge
+      conf.packages.darwinCasks = lib.optionals isDarwin [ "some-app" ];
+      conf.packages.darwinTaps  = lib.optionals isDarwin [ "owner/tap" ];
     })
   ];
 }
@@ -61,21 +62,23 @@ modules and is mapped to =home.packages= by =adapters/home-manager.nix=.
 conf.packages.nix = with pkgs; [ go gopls go-tools ];
 #+end_src
 
-** =*.darwin.nix= (macOS, optional sibling file)
-Darwin-specific exports for a feature live in a sibling file
-=features/<name>.darwin.nix=. It is a plain Nix file (not a module) that
-returns an attrset. =darwin.nix= auto-discovers and imports it when the
-feature is enabled.
+** macOS deps (darwin JSON-bridge)
+
+Darwin-specific deps are declared **inline** in the feature's =.nix= file
+using the options below. The Home Manager activation step writes them to
+=~/.config/kaizen/darwin-deps.json=; =darwin.nix= reads that file and merges
+the values into =homebrew.*= and =system.activationScripts=.
+
+The old =*.darwin.nix= sibling-file pattern is **deprecated and removed**.
 
 #+begin_src nix
-# features/mytool.darwin.nix
-{ lib, pkgs, user, ... }:
-{
-  darwinCasks             = [ "mytool" ];
-  darwinBrews             = [ ];
-  darwinTaps              = [ ];
-  darwinBrewFormulas      = "";
-  darwinActivationScripts = {
+# features/mytool.nix (inline darwin section)
+(lib.mkIf cfg.enable {
+  conf.packages.darwinCasks        = lib.optionals isDarwin [ "mytool" ];
+  conf.packages.darwinTaps         = lib.optionals isDarwin [ "owner/tap" ];
+  conf.packages.darwinBrews        = lib.optionals isDarwin [ { name = "formula"; } ];
+  conf.packages.darwinBrewFormulas = lib.optionalString isDarwin ''brew "formula"'';
+  conf.darwin.activationScripts = lib.optionalAttrs isDarwin {
     setupMytool = ''echo "setting up mytool"'';
   };
 }
@@ -126,8 +129,9 @@ before AI extension updates that depend on them.
 
 1. Create =dotfiles/dot_config/nix/modules/features/<name>.nix= following the
    structure above.
-2. Optionally create =features/<name>.darwin.nix= for macOS brew / activation
-   script extras.
+2. Declare macOS-specific deps inline using =conf.packages.darwin*= and
+   =conf.darwin.activationScripts= (with =lib.optionals pkgs.stdenv.isDarwin=).
+   No separate =.darwin.nix= file needed.
 3. Add an entry to the seed file:
    =dotfiles/dot_config/kaizen/feature-meta.json=.
 4. Run =kaizen sync= — =feature-loader.nix= and =darwin.nix= pick up both
@@ -173,12 +177,21 @@ built-in feature modules.
 #+begin_src
 ~/.config/kaizen/user-features/
   mytools.nix          ← standard home-manager module
-  mytools.darwin.nix   ← darwin attrset (same contract as features/*.darwin.nix)
 #+end_src
 
 =*.nix= files receive the full ={ config, lib, pkgs, ... }= module arguments
-and can set any home-manager options. =*.darwin.nix= files receive
-={ lib, pkgs, user }= and return the darwin attrset described above.
+and can set any home-manager options. Declare macOS deps inline using
+=conf.packages.darwin*= and =conf.darwin.activationScripts=.
+
+** Legacy: user-features/*.darwin.nix (backward compatibility)
+
+This pattern is preserved for backward compatibility only. The primary contract
+for new features is inline darwin deps in =*.nix= via =conf.packages.darwin*=
+and =conf.darwin.activationScripts=.
+
+For user-features (=~/.config/kaizen/user-features/=), =*.darwin.nix= files are
+still scanned by =darwin.nix= and remain functional. New user features should
+prefer the inline approach.
 
 * Infrastructure modules
 
