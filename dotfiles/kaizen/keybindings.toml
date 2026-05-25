@@ -78,6 +78,101 @@ CTRL = "Ctrl"
   "Down",
 ], group = "Pane", description = "Focus pane down" }
 
+# --- App navigation: pane/view focus (Ctrl + Alt + nav) ---
+"app.pane.focus.left" = { keys = [
+  "CTRL",
+  "ALT",
+  "h",
+], group = "App Navigation", description = "Focus app pane/view left" }
+"app.pane.focus.down" = { keys = [
+  "CTRL",
+  "ALT",
+  "j",
+], group = "App Navigation", description = "Focus app pane/view down" }
+"app.pane.focus.up" = { keys = [
+  "CTRL",
+  "ALT",
+  "k",
+], group = "App Navigation", description = "Focus app pane/view up" }
+"app.pane.focus.right" = { keys = [
+  "CTRL",
+  "ALT",
+  "l",
+], group = "App Navigation", description = "Focus app pane/view right" }
+
+# --- App navigation: pane/view move (Ctrl + Alt + Shift + nav) ---
+"app.pane.move.left" = { keys = [
+  "CTRL",
+  "ALT",
+  "SHIFT",
+  "h",
+], group = "App Navigation", description = "Move app pane/view left" }
+"app.pane.move.down" = { keys = [
+  "CTRL",
+  "ALT",
+  "SHIFT",
+  "j",
+], group = "App Navigation", description = "Move app pane/view down" }
+"app.pane.move.up" = { keys = [
+  "CTRL",
+  "ALT",
+  "SHIFT",
+  "k",
+], group = "App Navigation", description = "Move app pane/view up" }
+"app.pane.move.right" = { keys = [
+  "CTRL",
+  "ALT",
+  "SHIFT",
+  "l",
+], group = "App Navigation", description = "Move app pane/view right" }
+
+# --- App navigation: tabs, workspaces, and pickers ---
+"app.tab.previous" = { keys = [
+  "SUPER",
+  "SHIFT",
+  "[",
+], group = "App Navigation", description = "Previous app tab/buffer" }
+"app.tab.next" = { keys = [
+  "SUPER",
+  "SHIFT",
+  "]",
+], group = "App Navigation", description = "Next app tab/buffer" }
+"app.workspace.previous" = { keys = [
+  "CTRL",
+  "SUPER",
+  "[",
+], group = "App Navigation", description = "Previous app workspace/session" }
+"app.workspace.next" = { keys = [
+  "CTRL",
+  "SUPER",
+  "]",
+], group = "App Navigation", description = "Next app workspace/session" }
+"app.projects.pick" = { keys = [
+  "ALT",
+  "p",
+], group = "App Navigation", description = "Pick app project" }
+"app.workspaces.pick" = { keys = [
+  "ALT",
+  "w",
+], group = "App Navigation", description = "Pick app workspace" }
+"app.tabs.pick" = { keys = [
+  "ALT",
+  "t",
+], group = "App Navigation", description = "Pick app tab" }
+"app.buffers.pick" = { keys = [
+  "ALT",
+  "b",
+], group = "App Navigation", description = "Pick app buffer" }
+"app.tab.switch" = { keys = [
+  "SUPER",
+  "1..9",
+], group = "App Navigation", description = "Switch app tab/buffer by number" }
+"app.workspace.switch" = { keys = [
+  "CTRL",
+  "SUPER",
+  "1..9",
+], group = "App Navigation", description = "Switch app workspace/session by number" }
+
 # --- jjui actions (displaced from nav keys in colemak) ---
 "jjui.new" = { keys = ["n"], group = "jjui", description = "New change" }
 "jjui.edit" = { keys = ["e"], group = "jjui", description = "Edit change" }
@@ -90,6 +185,12 @@ CTRL = "Ctrl"
 "nav.down" = ["n"]
 "nav.up" = ["e"]
 "nav.right" = ["i"]
+"app.pane.focus.down" = ["CTRL", "ALT", "n"]
+"app.pane.focus.up" = ["CTRL", "ALT", "e"]
+"app.pane.focus.right" = ["CTRL", "ALT", "i"]
+"app.pane.move.down" = ["CTRL", "ALT", "SHIFT", "n"]
+"app.pane.move.up" = ["CTRL", "ALT", "SHIFT", "e"]
+"app.pane.move.right" = ["CTRL", "ALT", "SHIFT", "i"]
 "jjui.new" = ["j"]
 "jjui.edit" = ["k"]
 "jjui.interactive" = ["l"]

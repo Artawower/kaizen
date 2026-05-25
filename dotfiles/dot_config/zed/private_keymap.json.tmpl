@@ -1,3 +1,7 @@
+{{- $appLeft := last (index .kaizen.shortcuts "app.pane.focus.left") -}}
+{{- $appDown := last (index .kaizen.shortcuts "app.pane.focus.down") -}}
+{{- $appUp := last (index .kaizen.shortcuts "app.pane.focus.up") -}}
+{{- $appRight := last (index .kaizen.shortcuts "app.pane.focus.right") -}}
 [
   {
     "context": "Workspace",
@@ -5,6 +9,19 @@
       "cmd-y": "agent::Keep",
       "cmd-n": "agent::Reject",
       "cmd-.": "workspace::ActivateNextPane",
+      "ctrl-alt-{{ $appLeft }}": "workspace::ActivatePaneLeft",
+      "ctrl-alt-{{ $appDown }}": "workspace::ActivatePaneDown",
+      "ctrl-alt-{{ $appUp }}": "workspace::ActivatePaneUp",
+      "ctrl-alt-{{ $appRight }}": "workspace::ActivatePaneRight",
+      "ctrl-alt-shift-{{ $appLeft }}": ["workspace::MoveItemToPaneInDirection", { "direction": "left" }],
+      "ctrl-alt-shift-{{ $appDown }}": ["workspace::MoveItemToPaneInDirection", { "direction": "down" }],
+      "ctrl-alt-shift-{{ $appUp }}": ["workspace::MoveItemToPaneInDirection", { "direction": "up" }],
+      "ctrl-alt-shift-{{ $appRight }}": ["workspace::MoveItemToPaneInDirection", { "direction": "right" }],
+      "cmd-shift-[": "pane::ActivatePreviousItem",
+      "cmd-shift-]": "pane::ActivateNextItem",
+      "alt-b": "tab_switcher::Toggle",
+      "alt-p": "projects::OpenRecent",
+      "alt-t": "tab_switcher::Toggle",
       "cmd-\\": "workspace::ToggleBottomDock",
       "cmd-w": "pane::CloseActiveItem",
       "cmd-p": "file_finder::Toggle",

@@ -1,0 +1,45 @@
+{{- $paneLeft := last (index .kaizen.shortcuts "app.pane.focus.left") -}}
+{{- $paneDown := last (index .kaizen.shortcuts "app.pane.focus.down") -}}
+{{- $paneUp := last (index .kaizen.shortcuts "app.pane.focus.up") -}}
+{{- $paneRight := last (index .kaizen.shortcuts "app.pane.focus.right") -}}
+onboarding = false
+
+[terminal]
+default_shell = "xonsh"
+
+[theme]
+name = "catppuccin"
+
+[ui.toast]
+delivery = "system"
+
+[ui]
+show_agent_labels_on_pane_borders = true
+agent_panel_scope = "all"
+
+[keys]
+detach = "prefix+q"
+workspace_picker = ["alt+w", "prefix+w", "prefix+p", "super+p"]
+new_workspace = ["alt+shift+w", "prefix+n"]
+rename_workspace = ["alt+r", "super+shift+r"]
+close_workspace = ["alt+x", "super+shift+d"]
+new_tab = ["alt+shift+t", "prefix+t", "super+t"]
+previous_tab = ["super+shift+[", "super+["]
+next_tab = ["super+shift+]", "super+]"]
+switch_tab = ["super+1..9", "alt+1..9"]
+switch_workspace = ["ctrl+alt+1..9", "ctrl+1..9"]
+rename_tab = "super+r"
+close_tab = "super+x"
+focus_pane_left = ["alt+{{ $paneLeft }}", "ctrl+alt+{{ $paneLeft }}"]
+focus_pane_down = ["alt+{{ $paneDown }}", "ctrl+alt+{{ $paneDown }}", "prefix+j"]
+focus_pane_up = ["alt+{{ $paneUp }}", "ctrl+alt+{{ $paneUp }}"]
+focus_pane_right = ["alt+{{ $paneRight }}", "ctrl+alt+{{ $paneRight }}", "prefix+i"]
+split_vertical = "prefix+v"
+split_horizontal = "prefix+h"
+close_pane = "prefix+x"
+zoom = ["prefix+z", "super+f"]
+resize_mode = "prefix+r"
+toggle_sidebar = ["prefix+b", "super+b"]
+previous_workspace = ["ctrl+alt+[", "super+alt+e"]
+next_workspace = ["ctrl+alt+]", "super+alt+n"]
+open_worktree = ["alt+p", "prefix+shift+o"]
