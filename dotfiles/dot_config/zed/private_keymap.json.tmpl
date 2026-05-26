@@ -1,8 +1,20 @@
-{{- $appLeft := last (index .kaizen.shortcuts "app.pane.focus.left") -}}
-{{- $appDown := last (index .kaizen.shortcuts "app.pane.focus.down") -}}
-{{- $appUp := last (index .kaizen.shortcuts "app.pane.focus.up") -}}
+{{- $appLeft  := last (index .kaizen.shortcuts "app.pane.focus.left") -}}
+{{- $appDown  := last (index .kaizen.shortcuts "app.pane.focus.down") -}}
+{{- $appUp    := last (index .kaizen.shortcuts "app.pane.focus.up") -}}
 {{- $appRight := last (index .kaizen.shortcuts "app.pane.focus.right") -}}
+{{- $tabPrev  := last (index .kaizen.shortcuts "app.tab.previous") -}}
+{{- $tabNext  := last (index .kaizen.shortcuts "app.tab.next") -}}
+{{- $wsPrev   := last (index .kaizen.shortcuts "app.workspace.previous") -}}
+{{- $wsNext   := last (index .kaizen.shortcuts "app.workspace.next") -}}
 [
+  {
+    "bindings": {
+      "cmd-shift-{{ $tabPrev }}": "pane::ActivatePreviousItem",
+      "cmd-shift-{{ $tabNext }}": "pane::ActivateNextItem",
+      "cmd-shift-{{ $wsPrev }}": "multi_workspace::PreviousProject",
+      "cmd-shift-{{ $wsNext }}": "multi_workspace::NextProject"
+    }
+  },
   {
     "context": "Workspace",
     "bindings": {
