@@ -147,6 +147,8 @@ enum Command {
         all_layouts: bool,
         #[arg(long, help = "Output as JSON")]
         json: bool,
+        #[arg(long, help = "Output as Markdown table grouped by group")]
+        markdown: bool,
     },
 
     /// Rank alternatives from decisions/*.toml via TOPSIS.
@@ -260,13 +262,14 @@ fn main() -> Result<()> {
             only,
             all_layouts,
             json,
+            markdown,
         } => {
             let catalog_path = resolve_catalog_path();
             let layout = engine
                 .load_config(&config_path)
                 .ok()
                 .and_then(|c| c.settings.layout);
-            commands::shortcuts::run(&only, all_layouts, json, &catalog_path, layout.as_deref())?;
+            commands::shortcuts::run(&only, all_layouts, json, markdown, &catalog_path, layout.as_deref())?;
         }
         Command::Rank {
             category,

@@ -11,6 +11,7 @@ pub fn run(
     only: &[String],
     all_layouts: bool,
     json: bool,
+    markdown: bool,
     catalog_path: &Path,
     layout: Option<&str>,
 ) -> Result<()> {
@@ -30,6 +31,11 @@ pub fn run(
 
     if json {
         print_json(&shortcuts);
+        return Ok(());
+    }
+
+    if markdown {
+        print_markdown(&shortcuts);
         return Ok(());
     }
 
@@ -82,6 +88,28 @@ fn run_all_layouts(only: &[String], catalog_path: &Path) -> Result<()> {
     }
 
     Ok(())
+}
+
+
+fn print_markdown(shortcuts: &[&ShortcutDefinition]) {
+    let mut groups: BTreeMap<&str, Vec<&ShortcutDefinition>> = BTreeMap::new();
+    for s in shortcuts {
+        let group = s.group.as_deref().unwrap_or("Other");
+        groups.entry(group).or_default().push(s);
+    }
+
+    for (group, entries) in &groups {
+        println!("## {group}");
+        println!();
+        println!("| Shortcut | Keys | Description |");
+        println!("|----------|------|-------------|");
+        for s in entries {
+            let keys = s.keys.join(" + ");
+            let desc = s.description.as_deref().unwrap_or("");
+            println!("| `{}` | `{}` | {} |", s.id, keys, desc);
+        }
+        println!();
+    }
 }
 
 fn print_grouped(shortcuts: &[&ShortcutDefinition]) {
@@ -164,7 +192,7 @@ mod tests {
         let dir = tempfile::tempdir().unwrap();
         let path = write_catalog(dir.path(), FIXTURE);
         // Must succeed without error — visual output not captured here.
-        run(&[], false, false, &path, None).unwrap();
+        run(&[], false, false, false, &path, None).unwrap();
     }
 
     #[test]
@@ -182,7 +210,7 @@ mod tests {
     fn json_output_succeeds() {
         let dir = tempfile::tempdir().unwrap();
         let path = write_catalog(dir.path(), FIXTURE);
-        run(&[], false, true, &path, None).unwrap();
+        run(&[], false, true, false, &path, None).unwrap();
     }
 
     #[test]

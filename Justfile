@@ -1,6 +1,11 @@
 default:
     just --choose
 
+# Generate docs/shortcuts-ref.md from keybindings.toml
+shortcuts-ref:
+    cargo run -q --bin kaizen -- shortcuts --markdown > docs/shortcuts-ref.md
+    @echo "→ docs/shortcuts-ref.md updated"
+
 run *args:
     cargo run --bin kaizen -- {{args}}
 

@@ -2,12 +2,13 @@
 
 ## Modifier grammar
 
-| Container           | Modifier      | Direction set                       |
-| ------------------- | ------------- | ----------------------------------- |
-| OS / WM             | `Caps`        | Full: h / j / k / l                 |
-| Pane / View         | `Ctrl + Alt`  | Full: h / j / k / l                 |
-| Tab / Buffer        | `Cmd + Shift` | Horizontal pair: h = prev, l = next |
-| Workspace / Session | `Cmd + Shift` | Vertical pair: k = prev, j = next   |
+| Container           | Modifier      | Direction set                                          |
+| ------------------- | ------------- | ------------------------------------------------------ |
+| OS / WM             | `Caps`        | Full: h / j / k / l                                    |
+| Multiplexer pane    | `Alt`         | Full: h / j / k / l (herdr only, stays in multiplexer) |
+| App pane / split    | `Ctrl + Alt`  | Full: h / j / k / l (passes through multiplexer)       |
+| Tab / Buffer        | `Cmd + Shift` | Horizontal pair: h = prev, l = next                    |
+| Workspace / Session | `Cmd + Shift` | Vertical pair: k = prev, j = next                      |
 
 Same modifier `Cmd+Shift` — direction keys distinguish tabs (horizontal) from workspaces (vertical).
 
@@ -50,31 +51,30 @@ Handled by: **Aerospace** (macOS), **Niri** (Linux).
 
 ## Terminal multiplexer
 
-Handled by: **herdr**, **Zellij**.
+Handled by: **herdr** (`prefix = Ctrl+B`).
 
-| Action                | QWERTY                   | Colemak                  |
-| --------------------- | ------------------------ | ------------------------ |
-| Focus pane left       | `Ctrl + Alt + h`         | `Ctrl + Alt + h`         |
-| Focus pane down       | `Ctrl + Alt + j`         | `Ctrl + Alt + n`         |
-| Focus pane up         | `Ctrl + Alt + k`         | `Ctrl + Alt + e`         |
-| Focus pane right      | `Ctrl + Alt + l`         | `Ctrl + Alt + i`         |
-| Move pane left        | `Ctrl + Alt + Shift + h` | `Ctrl + Alt + Shift + h` |
-| Move pane down        | `Ctrl + Alt + Shift + j` | `Ctrl + Alt + Shift + n` |
-| Move pane up          | `Ctrl + Alt + Shift + k` | `Ctrl + Alt + Shift + e` |
-| Move pane right       | `Ctrl + Alt + Shift + l` | `Ctrl + Alt + Shift + i` |
-| Previous tab          | `Cmd + Shift + h`        | `Cmd + Shift + h`        |
-| Next tab              | `Cmd + Shift + l`        | `Cmd + Shift + i`        |
-| Previous workspace    | `Cmd + Shift + k`        | `Cmd + Shift + e`        |
-| Next workspace        | `Cmd + Shift + j`        | `Cmd + Shift + n`        |
-| Switch workspace by № | `Cmd + Shift + 1..9`     | `Cmd + Shift + 1..9`     |
+herdr has three navigation layers:
 
-herdr also binds `prefix + <nav key>` as alias for all tab/workspace actions.
+| Action                | QWERTY            | Colemak           | Notes                         |
+| --------------------- | ----------------- | ----------------- | ----------------------------- |
+| Focus pane left       | `Alt + h`         | `Alt + h`         | terminal mode, stays in herdr |
+| Focus pane down       | `Alt + j`         | `Alt + n`         |                               |
+| Focus pane up         | `Alt + k`         | `Alt + e`         |                               |
+| Focus pane right      | `Alt + l`         | `Alt + i`         |                               |
+| Previous tab          | `Cmd + Shift + h` | `Cmd + Shift + h` |                               |
+| Next tab              | `Cmd + Shift + l` | `Cmd + Shift + i` |                               |
+| Switch tab by №       | `Cmd + 1..9`      | `Cmd + 1..9`      |                               |
+| Previous workspace    | `Cmd + Shift + k` | `Cmd + Shift + e` |                               |
+| Next workspace        | `Cmd + Shift + j` | `Cmd + Shift + n` |                               |
+| Switch workspace by № | `Ctrl + 1..9`     | `Ctrl + 1..9`     |                               |
 
 ---
 
 ## Apps
 
-Handled by: **Helix**, **Zed**, **Ghostty**, and other GUI apps.
+Handled by: **Helix**, **Zed**, and other GUI apps.
+
+`Ctrl+Alt+nav` passes through the multiplexer to the focused app.
 
 ### Pane / split focus
 
@@ -97,10 +97,9 @@ Handled by: **Helix**, **Zed**, **Ghostty**, and other GUI apps.
 | Next tab/buffer     | `Cmd + Shift + l` | `Cmd + Shift + i` |
 | Switch tab by №     | `Cmd + 1..9`      | `Cmd + 1..9`      |
 
-### Workspace / session
+### Workspace / project
 
-| Action                | QWERTY               | Colemak              |
-| --------------------- | -------------------- | -------------------- |
-| Previous workspace    | `Cmd + Shift + k`    | `Cmd + Shift + e`    |
-| Next workspace        | `Cmd + Shift + j`    | `Cmd + Shift + n`    |
-| Switch workspace by № | `Cmd + Shift + 1..9` | `Cmd + Shift + 1..9` |
+| Action             | QWERTY            | Colemak           |
+| ------------------ | ----------------- | ----------------- |
+| Previous workspace | `Cmd + Shift + k` | `Cmd + Shift + e` |
+| Next workspace     | `Cmd + Shift + j` | `Cmd + Shift + n` |
