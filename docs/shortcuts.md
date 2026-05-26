@@ -2,19 +2,24 @@
 
 ## Modifier grammar
 
-The modifier encodes the container level; the direction encodes the movement.
+| Container           | Modifier      | Direction set                       |
+| ------------------- | ------------- | ----------------------------------- |
+| OS / WM             | `Caps`        | Full: h / j / k / l                 |
+| Pane / View         | `Ctrl + Alt`  | Full: h / j / k / l                 |
+| Tab / Buffer        | `Cmd + Shift` | Horizontal pair: h = prev, l = next |
+| Workspace / Session | `Cmd + Shift` | Vertical pair: k = prev, j = next   |
 
-| Container           | Modifier     | Direction set                         |
-| ------------------- | ------------ | ------------------------------------- |
-| OS / WM             | `Caps`       | Full: h / j / k / l                   |
-| Pane / View         | `Ctrl + Alt` | Full: h / j / k / l                   |
-| Tab / Buffer        | `Cmd + Alt`  | Linear: k = prev, j = next + `Cmd+№`  |
-| Workspace / Session | `Ctrl`       | Linear: k = prev, j = next + `Ctrl+№` |
+Same modifier `Cmd+Shift` — direction keys distinguish tabs (horizontal) from workspaces (vertical).
 
 **Spatial navigation** (windows, splits, panes) — full 4-direction set.  
-**Linear navigation** (tabs, buffers, workspaces, sessions) — vertical pair only: `k` = previous, `j` = next.
+**Linear navigation** (tabs, workspaces) — direction pair only.
 
 Colemak remaps `j→n`, `k→e`, `l→i`; `h` stays.
+
+Known conflicts requiring per-app rebind:
+
+- `Cmd+Shift+N` — Finder "New Folder" (not rebound)
+- `Cmd+Shift+I` — Inspector in some apps (rebind in Zen browser)
 
 ---
 
@@ -45,18 +50,25 @@ Handled by: **Aerospace** (macOS), **Niri** (Linux).
 
 ## Terminal multiplexer
 
-Handled by: **Zellij**, **tmux**.
+Handled by: **herdr**, **Zellij**.
 
-| Action           | QWERTY                   | Colemak                  |
-| ---------------- | ------------------------ | ------------------------ |
-| Focus pane left  | `Ctrl + Alt + h`         | `Ctrl + Alt + h`         |
-| Focus pane down  | `Ctrl + Alt + j`         | `Ctrl + Alt + n`         |
-| Focus pane up    | `Ctrl + Alt + k`         | `Ctrl + Alt + e`         |
-| Focus pane right | `Ctrl + Alt + l`         | `Ctrl + Alt + i`         |
-| Move pane left   | `Ctrl + Alt + Shift + h` | `Ctrl + Alt + Shift + h` |
-| Move pane down   | `Ctrl + Alt + Shift + j` | `Ctrl + Alt + Shift + n` |
-| Move pane up     | `Ctrl + Alt + Shift + k` | `Ctrl + Alt + Shift + e` |
-| Move pane right  | `Ctrl + Alt + Shift + l` | `Ctrl + Alt + Shift + i` |
+| Action                | QWERTY                   | Colemak                  |
+| --------------------- | ------------------------ | ------------------------ |
+| Focus pane left       | `Ctrl + Alt + h`         | `Ctrl + Alt + h`         |
+| Focus pane down       | `Ctrl + Alt + j`         | `Ctrl + Alt + n`         |
+| Focus pane up         | `Ctrl + Alt + k`         | `Ctrl + Alt + e`         |
+| Focus pane right      | `Ctrl + Alt + l`         | `Ctrl + Alt + i`         |
+| Move pane left        | `Ctrl + Alt + Shift + h` | `Ctrl + Alt + Shift + h` |
+| Move pane down        | `Ctrl + Alt + Shift + j` | `Ctrl + Alt + Shift + n` |
+| Move pane up          | `Ctrl + Alt + Shift + k` | `Ctrl + Alt + Shift + e` |
+| Move pane right       | `Ctrl + Alt + Shift + l` | `Ctrl + Alt + Shift + i` |
+| Previous tab          | `Cmd + Shift + h`        | `Cmd + Shift + h`        |
+| Next tab              | `Cmd + Shift + l`        | `Cmd + Shift + i`        |
+| Previous workspace    | `Cmd + Shift + k`        | `Cmd + Shift + e`        |
+| Next workspace        | `Cmd + Shift + j`        | `Cmd + Shift + n`        |
+| Switch workspace by № | `Cmd + Shift + 1..9`     | `Cmd + Shift + 1..9`     |
+
+herdr also binds `prefix + <nav key>` as alias for all tab/workspace actions.
 
 ---
 
@@ -79,19 +91,16 @@ Handled by: **Helix**, **Zed**, **Ghostty**, and other GUI apps.
 
 ### Tab / buffer
 
-| Action              | QWERTY          | Colemak         |
-| ------------------- | --------------- | --------------- |
-| Previous tab/buffer | `Cmd + Alt + k` | `Cmd + Alt + e` |
-| Next tab/buffer     | `Cmd + Alt + j` | `Cmd + Alt + n` |
-| Switch tab by №     | `Cmd + 1..9`    | `Cmd + 1..9`    |
+| Action              | QWERTY            | Colemak           |
+| ------------------- | ----------------- | ----------------- |
+| Previous tab/buffer | `Cmd + Shift + h` | `Cmd + Shift + h` |
+| Next tab/buffer     | `Cmd + Shift + l` | `Cmd + Shift + i` |
+| Switch tab by №     | `Cmd + 1..9`      | `Cmd + 1..9`      |
 
 ### Workspace / session
 
-> App-level only. `Ctrl + j/k` conflict with readline in raw terminal
-> (Enter / kill-to-EOL) — register only in GUI application keymaps.
-
-| Action                | QWERTY        | Colemak       |
-| --------------------- | ------------- | ------------- |
-| Previous workspace    | `Ctrl + k`    | `Ctrl + e`    |
-| Next workspace        | `Ctrl + j`    | `Ctrl + n`    |
-| Switch workspace by № | `Ctrl + 1..9` | `Ctrl + 1..9` |
+| Action                | QWERTY               | Colemak              |
+| --------------------- | -------------------- | -------------------- |
+| Previous workspace    | `Cmd + Shift + k`    | `Cmd + Shift + e`    |
+| Next workspace        | `Cmd + Shift + j`    | `Cmd + Shift + n`    |
+| Switch workspace by № | `Cmd + Shift + 1..9` | `Cmd + Shift + 1..9` |

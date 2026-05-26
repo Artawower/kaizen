@@ -75,13 +75,13 @@ vcs = true
 ]
 "app.tab.next" = [
     "Cmd",
-    "Opt",
-    "n",
+    "Shift",
+    "i",
 ]
 "app.tab.previous" = [
     "Cmd",
-    "Opt",
-    "e",
+    "Shift",
+    "h",
 ]
 "app.tab.switch" = [
     "Cmd",
@@ -92,15 +92,18 @@ vcs = true
     "t",
 ]
 "app.workspace.next" = [
-    "Ctrl",
+    "Cmd",
+    "Shift",
     "n",
 ]
 "app.workspace.previous" = [
-    "Ctrl",
+    "Cmd",
+    "Shift",
     "e",
 ]
 "app.workspace.switch" = [
-    "Ctrl",
+    "Cmd",
+    "Shift",
     "1..9",
 ]
 "app.workspaces.pick" = [
@@ -142,6 +145,12 @@ vcs = true
     "w",
     "v",
 ]
+"prefix.editor" = ["space"]
+"prefix.multiplexer" = [
+    "Ctrl",
+    "b",
+]
+"prefix.wm" = ["Caps"]
 "projects.pick" = [
     "p",
     "p",
