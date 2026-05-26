@@ -29,6 +29,25 @@ if 'xontrib.sh' not in _sys.modules:
 del _sys
 
 config_dir = Path.home() / '.config/xonsh'
+# xontrib-runner: project-aware task picker (justfile/package.json/Makefile/Cargo.toml)
+try:
+    import sys as _sys_runner
+    _runner_src = Path.home() / '.config/xonsh/xontrib-runner/src'
+    # Add to sys.path for transitive imports inside the package
+    if str(_runner_src) not in _sys_runner.path:
+        _sys_runner.path.insert(0, str(_runner_src))
+    # xontrib is a namespace package — extend its __path__ directly
+    import xontrib as _xontrib_ns
+    _xontrib_pkg = str(_runner_src / 'xontrib')
+    if _xontrib_pkg not in _xontrib_ns.__path__:
+        _xontrib_ns.__path__.append(_xontrib_pkg)
+    import xontrib.runner as _runner_mod
+    _runner_mod._load_xontrib_(__xonsh__)
+    del _sys_runner, _runner_src, _xontrib_ns, _xontrib_pkg, _runner_mod
+except Exception as _e:
+    print(f"warning: failed to load xontrib-runner: {_e}")
+
+
 
 source @(config_dir / 'env.xsh')
 source @(config_dir / 'paths.xsh')

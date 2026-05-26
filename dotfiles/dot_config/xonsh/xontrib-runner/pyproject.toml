@@ -1,0 +1,16 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "xontrib-runner"
+version = "0.1.0"
+description = "Universal project task runner for xonsh: detects justfile/package.json/Makefile/Cargo.toml"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest", "pytest-mock"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/xontrib"]

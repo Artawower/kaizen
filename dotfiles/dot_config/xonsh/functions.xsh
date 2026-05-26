@@ -92,12 +92,6 @@ def print_colors():
         print(row)
 
 
-
-def run_script(args):
-    """Run script: detects justfile/package.json/Makefile and shows fzf task picker."""
-    # TODO: implement project-aware task detection
-    print("run_script: not yet implemented")
-
 aliases['hx']           = _hx
 aliases['vis']          = _vis
 aliases['docker-clean'] = _docker_clean
@@ -106,4 +100,3 @@ aliases['ghll']         = _ghll
 aliases['reload']       = _reload
 aliases['r']            = _reload
 
-aliases['run-script'] = run_script
