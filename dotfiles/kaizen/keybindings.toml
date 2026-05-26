@@ -80,6 +80,9 @@ CTRL  = "Ctrl"
 "app.tabs.pick"       = { keys = ["ALT", "t"], group = "App Navigation", description = "Pick app tab" }
 "app.buffers.pick"    = { keys = ["ALT", "b"], group = "App Navigation", description = "Pick app buffer" }
 
+# --- Run
+"run.script" = { keys = ["space", "r", "s"], group = "Run", description = "Run script" }
+
 # --- jjui actions (displaced from nav keys in colemak) ---
 "jjui.new"         = { keys = ["n"], group = "jjui", description = "New change" }
 "jjui.edit"        = { keys = ["e"], group = "jjui", description = "Edit change" }

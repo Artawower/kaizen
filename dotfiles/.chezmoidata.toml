@@ -155,6 +155,11 @@ vcs = true
     "p",
     "p",
 ]
+"run.script" = [
+    "space",
+    "r",
+    "s",
+]
 "vcs.ui" = [
     "g",
     "g",
