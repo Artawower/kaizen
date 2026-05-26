@@ -56,7 +56,7 @@ CTRL = "Ctrl"
   "s",
 ], group = "Pane", description = "Split pane down" }
 
-# --- Pane: focus (global, terminal-safe) ---
+# --- Pane: focus (arrow fallback, terminal-safe) ---
 "pane.focus.left" = { keys = [
   "CTRL",
   "ALT",
@@ -78,7 +78,7 @@ CTRL = "Ctrl"
   "Down",
 ], group = "Pane", description = "Focus pane down" }
 
-# --- App navigation: pane/view focus (Ctrl + Alt + nav) ---
+# --- Pane: focus (Ctrl + Alt + nav) ---
 "app.pane.focus.left" = { keys = [
   "CTRL",
   "ALT",
@@ -100,7 +100,7 @@ CTRL = "Ctrl"
   "l",
 ], group = "App Navigation", description = "Focus app pane/view right" }
 
-# --- App navigation: pane/view move (Ctrl + Alt + Shift + nav) ---
+# --- Pane: move (Ctrl + Alt + Shift + nav) ---
 "app.pane.move.left" = { keys = [
   "CTRL",
   "ALT",
@@ -126,27 +126,39 @@ CTRL = "Ctrl"
   "l",
 ], group = "App Navigation", description = "Move app pane/view right" }
 
-# --- App navigation: tabs, workspaces, and pickers ---
+# --- Tab / Buffer: Cmd + Alt + vertical pair ---
+# Linear navigation: k = previous, j = next.
 "app.tab.previous" = { keys = [
   "SUPER",
-  "SHIFT",
-  "[",
+  "ALT",
+  "k",
 ], group = "App Navigation", description = "Previous app tab/buffer" }
 "app.tab.next" = { keys = [
   "SUPER",
-  "SHIFT",
-  "]",
+  "ALT",
+  "j",
 ], group = "App Navigation", description = "Next app tab/buffer" }
+"app.tab.switch" = { keys = [
+  "SUPER",
+  "1..9",
+], group = "App Navigation", description = "Switch app tab/buffer by number" }
+
+# --- Workspace / Session: Ctrl + vertical pair (app-level only) ---
+# Ctrl+j/k conflict with readline in raw terminal — register only in GUI app keymaps.
 "app.workspace.previous" = { keys = [
   "CTRL",
-  "SUPER",
-  "[",
-], group = "App Navigation", description = "Previous app workspace/session" }
+  "k",
+], group = "App Navigation", description = "Previous app workspace/session (app-level only)" }
 "app.workspace.next" = { keys = [
   "CTRL",
-  "SUPER",
-  "]",
-], group = "App Navigation", description = "Next app workspace/session" }
+  "j",
+], group = "App Navigation", description = "Next app workspace/session (app-level only)" }
+"app.workspace.switch" = { keys = [
+  "CTRL",
+  "1..9",
+], group = "App Navigation", description = "Switch app workspace/session by number" }
+
+# --- Pickers ---
 "app.projects.pick" = { keys = [
   "ALT",
   "p",
@@ -163,15 +175,6 @@ CTRL = "Ctrl"
   "ALT",
   "b",
 ], group = "App Navigation", description = "Pick app buffer" }
-"app.tab.switch" = { keys = [
-  "SUPER",
-  "1..9",
-], group = "App Navigation", description = "Switch app tab/buffer by number" }
-"app.workspace.switch" = { keys = [
-  "CTRL",
-  "SUPER",
-  "1..9",
-], group = "App Navigation", description = "Switch app workspace/session by number" }
 
 # --- jjui actions (displaced from nav keys in colemak) ---
 "jjui.new" = { keys = ["n"], group = "jjui", description = "New change" }
@@ -185,12 +188,26 @@ CTRL = "Ctrl"
 "nav.down" = ["n"]
 "nav.up" = ["e"]
 "nav.right" = ["i"]
+
+# Pane focus
 "app.pane.focus.down" = ["CTRL", "ALT", "n"]
 "app.pane.focus.up" = ["CTRL", "ALT", "e"]
 "app.pane.focus.right" = ["CTRL", "ALT", "i"]
+
+# Pane move
 "app.pane.move.down" = ["CTRL", "ALT", "SHIFT", "n"]
 "app.pane.move.up" = ["CTRL", "ALT", "SHIFT", "e"]
 "app.pane.move.right" = ["CTRL", "ALT", "SHIFT", "i"]
+
+# Tab layer: Cmd+Alt+k/j → Cmd+Alt+e/n
+"app.tab.previous" = ["SUPER", "ALT", "e"]
+"app.tab.next" = ["SUPER", "ALT", "n"]
+
+# Workspace layer: Ctrl+k/j → Ctrl+e/n
+"app.workspace.previous" = ["CTRL", "e"]
+"app.workspace.next" = ["CTRL", "n"]
+
+# jjui
 "jjui.new" = ["j"]
 "jjui.edit" = ["k"]
 "jjui.interactive" = ["l"]
