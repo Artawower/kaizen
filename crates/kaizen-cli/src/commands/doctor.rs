@@ -26,11 +26,14 @@ pub fn run(engine: &KaizenEngine, config_path: &Path) -> Result<()> {
     report_version();
 
     output::header("Features");
-    match engine.list_features() {
-        Ok(names) if !names.is_empty() => {
-            output::item_ok(&format!("{} feature(s) available", names.len()))
+    match engine.list_features_with_meta() {
+        Ok(features) if !features.is_empty() => {
+            output::item_ok(&format!("{} feature(s) available", features.len()))
         }
-        Ok(_) => output::item_warn("features dir is empty"),
+        Ok(_) => output::item_warn("no features found (feature-meta.json empty or missing)"),
+        Err(kaizen_core::KaizenError::FeaturesDirNotFound { .. }) => {
+            output::item_warn("no features found (run home-manager switch to generate feature-meta.json)")
+        }
         Err(e) => output::item_err(&e.to_string()),
     }
 
