@@ -14,7 +14,7 @@
 (use-package hel
   :ensure (:host github :repo "anuvyklack/hel" :files (:defaults "**"))
   :config
-  (hel-mode))
+  (hel-mode 1))
 
 ;;; Nav key remapping — Colemak HNEI layout via kaizen/nav-* vars
 ;;
@@ -43,12 +43,6 @@
     (keymap-set hel-normal-state-map right #'hel-forward-char)
     ;; Insert mode entry on nav-insert key (colemak: l)
     (keymap-set hel-normal-state-map ins   #'hel-append)
-
-    ;; Uppercase nav → selection-extending variants
-    (keymap-set hel-normal-state-map (upcase left)  #'hel-backward-char)
-    (keymap-set hel-normal-state-map (upcase down)  #'hel-next-line)
-    (keymap-set hel-normal-state-map (upcase up)    #'hel-previous-line)
-    (keymap-set hel-normal-state-map (upcase right) #'hel-forward-char)
 
     ;; Motion state — nav keys
     (keymap-set hel-motion-state-map left  #'hel-backward-char)
@@ -126,19 +120,21 @@
   ;; Ediff navigation state
   (hel-define-state ediff
     "Hel state for Ediff buffer navigation."
-    :cursor '(hbar . 4)
-    :modes '(ediff-mode ediff-meta-mode))
+    :cursor '(hbar . 4))
+  (hel-set-initial-state 'ediff-mode      'ediff)
+  (hel-set-initial-state 'ediff-meta-mode 'ediff)
 
   (let ((down (or (bound-and-true-p kaizen/nav-down) "n"))
         (up   (or (bound-and-true-p kaizen/nav-up)   "e")))
+    (hel-keymap-set hel-ediff-state-map
+      "<escape>" #'hel-normal-state)
     (keymap-set hel-ediff-state-map down #'ediff-next-difference)
-    (keymap-set hel-ediff-state-map up   #'ediff-previous-difference)
-    (keymap-set hel-ediff-state-map "<escape>" #'hel-normal-state))
+    (keymap-set hel-ediff-state-map up   #'ediff-previous-difference))
 
   ;; Org-agenda motion state
   (hel-define-state agenda-motion
-    "Hel state for Org-Agenda navigation."
-    :modes '(org-agenda-mode))
+    "Hel state for Org-Agenda navigation.")
+  (hel-set-initial-state 'org-agenda-mode 'agenda-motion)
 
   (let ((down  (or (bound-and-true-p kaizen/nav-down)  "n"))
         (up    (or (bound-and-true-p kaizen/nav-up)    "e"))
@@ -165,13 +161,13 @@
       "c"        #'org-agenda-capture
       "TAB"      #'org-agenda-goto
       "RET"      #'org-agenda-switch-to
-      "f"        #'avy-goto-word-1)
-    (keymap-set hel-agenda-motion-state-map down  #'org-agenda-next-line)
-    (keymap-set hel-agenda-motion-state-map up    #'org-agenda-previous-line)
-    (keymap-set hel-agenda-motion-state-map left  #'org-agenda-earlier)
-    (keymap-set hel-agenda-motion-state-map right #'org-agenda-later)
-    (keymap-set hel-agenda-motion-state-map (upcase down) #'org-agenda-next-item)
-    (keymap-set hel-agenda-motion-state-map (upcase up)   #'org-agenda-previous-item)))
+      "f"        #'avy-goto-word-1
+      down       #'org-agenda-next-line
+      up         #'org-agenda-previous-line
+      left       #'org-agenda-earlier
+      right      #'org-agenda-later
+      (upcase down) #'org-agenda-next-item
+      (upcase up)   #'org-agenda-previous-item)))
 
 ;;; NOT PORTED:
 ;;   meow-keypad          — no equivalent in hel (hel uses ':' for M-x)
