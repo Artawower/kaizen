@@ -20,6 +20,151 @@ terminal = true
 tiling = true
 vcs = true
 
+[kaizen.base_shortcuts]
+"app.buffers.pick" = [
+    "Opt",
+    "b",
+]
+"app.pane.focus.down" = [
+    "Ctrl",
+    "Opt",
+    "j",
+]
+"app.pane.focus.left" = [
+    "Ctrl",
+    "Opt",
+    "h",
+]
+"app.pane.focus.right" = [
+    "Ctrl",
+    "Opt",
+    "l",
+]
+"app.pane.focus.up" = [
+    "Ctrl",
+    "Opt",
+    "k",
+]
+"app.pane.move.down" = [
+    "Ctrl",
+    "Opt",
+    "Shift",
+    "j",
+]
+"app.pane.move.left" = [
+    "Ctrl",
+    "Opt",
+    "Shift",
+    "h",
+]
+"app.pane.move.right" = [
+    "Ctrl",
+    "Opt",
+    "Shift",
+    "l",
+]
+"app.pane.move.up" = [
+    "Ctrl",
+    "Opt",
+    "Shift",
+    "k",
+]
+"app.projects.pick" = [
+    "Opt",
+    "p",
+]
+"app.tab.next" = [
+    "Cmd",
+    "Shift",
+    "l",
+]
+"app.tab.previous" = [
+    "Cmd",
+    "Shift",
+    "h",
+]
+"app.tab.switch" = [
+    "Cmd",
+    "1..9",
+]
+"app.tabs.pick" = [
+    "Opt",
+    "t",
+]
+"app.workspace.next" = [
+    "Cmd",
+    "Shift",
+    "j",
+]
+"app.workspace.previous" = [
+    "Cmd",
+    "Shift",
+    "k",
+]
+"app.workspace.switch" = [
+    "Cmd",
+    "Shift",
+    "1..9",
+]
+"app.workspaces.pick" = [
+    "Opt",
+    "w",
+]
+"jjui.edit" = ["e"]
+"jjui.interactive" = ["i"]
+"jjui.new" = ["n"]
+"nav.down" = ["j"]
+"nav.left" = ["h"]
+"nav.right" = ["l"]
+"nav.up" = ["k"]
+"pane.focus.down" = [
+    "Ctrl",
+    "Opt",
+    "Down",
+]
+"pane.focus.left" = [
+    "Ctrl",
+    "Opt",
+    "Left",
+]
+"pane.focus.right" = [
+    "Ctrl",
+    "Opt",
+    "Right",
+]
+"pane.focus.up" = [
+    "Ctrl",
+    "Opt",
+    "Up",
+]
+"pane.split.down" = [
+    "w",
+    "s",
+]
+"pane.split.right" = [
+    "w",
+    "v",
+]
+"prefix.editor" = ["space"]
+"prefix.multiplexer" = [
+    "Ctrl",
+    "b",
+]
+"prefix.wm" = ["Caps"]
+"projects.pick" = [
+    "p",
+    "p",
+]
+"run.script" = [
+    "space",
+    "r",
+    "s",
+]
+"vcs.ui" = [
+    "g",
+    "g",
+]
+
 [kaizen.shortcuts]
 "app.buffers.pick" = [
     "Opt",

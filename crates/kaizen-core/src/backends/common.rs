@@ -283,10 +283,11 @@ fn export_shortcuts_to_chezmoi(
         .unwrap_or_default();
 
     // Build merged shortcuts: base + layout overlay.
-    let mut shortcuts_table = match val.get("shortcuts").and_then(|s| s.as_table()) {
+    let base_shortcuts_table = match val.get("shortcuts").and_then(|s| s.as_table()) {
         Some(t) => t.clone(),
         None => return Ok(()),
     };
+    let mut shortcuts_table = base_shortcuts_table.clone();
     if let Some(l) = layout {
         if let Some(overlay) = val
             .get("layout")
@@ -300,22 +301,28 @@ fn export_shortcuts_to_chezmoi(
         }
     }
 
-    let mut resolved: toml::map::Map<String, toml::Value> = toml::map::Map::new();
-    for (id, tokens_val) in &shortcuts_table {
-        if let Some(key_strings) = extract_keys(tokens_val) {
-            let resolved_arr: Vec<toml::Value> = key_strings
-                .iter()
-                .map(|s| {
-                    let native = modifiers
-                        .get(s.as_str())
-                        .and_then(|v| v.as_str())
-                        .unwrap_or(s);
-                    toml::Value::String(native.to_owned())
-                })
-                .collect();
-            resolved.insert(id.clone(), toml::Value::Array(resolved_arr));
+    let resolve_table = |tbl: &toml::map::Map<String, toml::Value>| {
+        let mut out: toml::map::Map<String, toml::Value> = toml::map::Map::new();
+        for (id, tokens_val) in tbl {
+            if let Some(key_strings) = extract_keys(tokens_val) {
+                let arr: Vec<toml::Value> = key_strings
+                    .iter()
+                    .map(|s| {
+                        let native = modifiers
+                            .get(s.as_str())
+                            .and_then(|v| v.as_str())
+                            .unwrap_or(s);
+                        toml::Value::String(native.to_owned())
+                    })
+                    .collect();
+                out.insert(id.clone(), toml::Value::Array(arr));
+            }
         }
-    }
+        out
+    };
+
+    let resolved      = resolve_table(&shortcuts_table);
+    let base_resolved = resolve_table(&base_shortcuts_table);
 
     let chezmoidata_path = source.join(".chezmoidata.toml");
     let mut table: toml::map::Map<String, toml::Value> = if fs.exists(&chezmoidata_path) {
@@ -339,6 +346,7 @@ fn export_shortcuts_to_chezmoi(
         .or_insert_with(|| toml::Value::Table(Default::default()));
     if let toml::Value::Table(kaizen_tbl) = kaizen {
         kaizen_tbl.insert("shortcuts".to_owned(), toml::Value::Table(resolved));
+        kaizen_tbl.insert("base_shortcuts".to_owned(), toml::Value::Table(base_resolved));
     }
 
     let content =

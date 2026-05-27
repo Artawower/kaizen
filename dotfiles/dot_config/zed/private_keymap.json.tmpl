@@ -6,13 +6,17 @@
 {{- $tabNext  := last (index .kaizen.shortcuts "app.tab.next") -}}
 {{- $wsPrev   := last (index .kaizen.shortcuts "app.workspace.previous") -}}
 {{- $wsNext   := last (index .kaizen.shortcuts "app.workspace.next") -}}
+{{/* Cmd+key uses QWERTY on macOS regardless of Colemak layout — use base shortcuts */}}
+{{- $tabNextBase := last (index .kaizen.base_shortcuts "app.tab.next") -}}
+{{- $wsPrevBase  := last (index .kaizen.base_shortcuts "app.workspace.previous") -}}
+{{- $wsNextBase  := last (index .kaizen.base_shortcuts "app.workspace.next") -}}
 [
   {
     "bindings": {
       "cmd-shift-{{ $tabPrev }}": "pane::ActivatePreviousItem",
-      "cmd-shift-{{ $tabNext }}": "pane::ActivateNextItem",
-      "cmd-shift-{{ $wsPrev }}": "multi_workspace::PreviousProject",
-      "cmd-shift-{{ $wsNext }}": "multi_workspace::NextProject"
+      "cmd-shift-{{ $tabNextBase }}": "pane::ActivateNextItem",
+      "cmd-shift-{{ $wsPrevBase }}": "multi_workspace::PreviousProject",
+      "cmd-shift-{{ $wsNextBase }}": "multi_workspace::NextProject"
     }
   },
   {
@@ -56,7 +60,6 @@
       "ctrl-o": "pane::GoBack",
       "ctrl-i": "pane::GoForward",
       "f8": "editor::GoToDiagnostic",
-      "cmd-shift-j": "assistant::ToggleFocus",
       "alt-shift-f": "editor::Format",
       "cmd-r": "editor::Rename",
       "cmd-alt-shift-p": "agent::NewThread",
