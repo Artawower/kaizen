@@ -2422,7 +2422,6 @@ Prevents closing the last frame in daemon mode on macOS."
 ** Project.el
 #+BEGIN_SRC emacs-lisp
 (use-package project
-  :after meow
   :ensure nil
   :bind (("C-c p p" . project-switch-project)
          ("C-c p d" . project-forget-project)
@@ -3068,7 +3067,6 @@ ESLint via flymake-eslint (separate from LSP, since vscode-eslint-language-serve
 #+BEGIN_SRC emacs-lisp
 (use-package eldoc
   :ensure nil
-  :after meow
   :custom
   (eldoc-echo-area-use-multiline-p nil)
   (eldoc-echo-area-display-truncation-message nil)
@@ -3969,7 +3967,6 @@ Automatically creates parent directories if needed."
 #+BEGIN_SRC emacs-lisp
 (use-package org
   :mode (("\\.org$" . org-mode))
-  :after meow
   :ensure nil
   :hook
   (org-mode . org-indent-mode)

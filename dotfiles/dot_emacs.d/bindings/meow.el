@@ -1,4 +1,6 @@
-;;; bindings/meow.el — meow modal editing scheme -*- lexical-binding: t; -*-
+;;; bindings/meow.el --- meow modal editing scheme -*- lexical-binding: t; -*-
+(when (featurep 'kaizen-bindings-meow)
+  (user-error "kaizen-bindings-meow already loaded"))
 (require 'kaizen nil t)
 
 ;;; Helper functions
@@ -481,4 +483,5 @@
 (with-eval-after-load 'better-jumper
   (advice-add 'meow-end-of-thing :around #'my/better-jump-preserve-pos-advice))
 
+(provide 'kaizen-bindings-meow)
 ;;; bindings/meow.el ends here
