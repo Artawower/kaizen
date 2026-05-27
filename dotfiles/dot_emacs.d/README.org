@@ -1273,7 +1273,6 @@ Function for preserve better jump befor buffer changed only for prog mode.
   :custom
   (better-jumper-use-evil-jump-advice nil)
   :config
-  (advice-add 'meow-end-of-thing :around #'my/better-jump-preserve-pos-advice)
   (advice-add 'avy-goto-word-1 :around #'my/better-jump-preserve-pos-advice)
   ;; TODO: move to husky package
   (advice-add 'husky-actions-find-definition :before (lambda () (call-interactively #'better-jumper-set-jump)))
@@ -1992,7 +1991,6 @@ Comile mode
    ("q" . kill-current-buffer)
    ("<escape>" . kill-current-buffer)
    ("Q" . bury-buffer)
-   (";" . meow-reverse)
    ("Z" . magit-stash)
    ("P" . magit-fetch)
    ("p" . magit-push)
@@ -2000,7 +1998,6 @@ Comile mode
    ("f" . avy-goto-word-1)
    ("x" . magit-discard)
    :map magit-status-mode-map
-   ("x" . meow-line)
    ("X" . magit-discard)
    ("z z" . recenter)
    ("C-n" . magit-section-forward)

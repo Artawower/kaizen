@@ -9,104 +9,225 @@
 
 [modifiers.darwin]
 SUPER = "Cmd"
-ALT   = "Opt"
-WM    = "ralt + rshift"
+ALT = "Opt"
+WM = "ralt + rshift"
 SHIFT = "Shift"
-CTRL  = "Ctrl"
+CTRL = "Ctrl"
 
 [modifiers.linux]
 SUPER = "Super"
-ALT   = "Alt"
-WM    = "Alt+Shift"
+ALT = "Alt"
+WM = "Alt+Shift"
 SHIFT = "Shift"
-CTRL  = "Ctrl"
+CTRL = "Ctrl"
 
 [shortcuts]
 # --- Prefix / leader keys ---
-"prefix.multiplexer" = { keys = ["CTRL", "b"],  group = "Prefix", description = "Terminal multiplexer prefix (herdr / zellij)" }
-"prefix.editor"      = { keys = ["space"],       group = "Prefix", description = "Editor leader key (Helix space mode)" }
-"prefix.wm"          = { keys = ["Caps"],        group = "Prefix", description = "Tiling WM modifier key (Aerospace / Niri)" }
+"prefix.multiplexer" = { keys = [
+  "CTRL",
+  "b",
+], group = "Prefix", description = "Terminal multiplexer prefix (herdr / zellij)" }
+"prefix.editor" = { keys = [
+  "space",
+], group = "Prefix", description = "Editor leader key (Helix space mode)" }
+"prefix.wm" = { keys = [
+  "Caps",
+], group = "Prefix", description = "Tiling WM modifier key (Aerospace / Niri)" }
 
 # --- Navigation (base = qwerty) ---
-"nav.left"  = { keys = ["h"], group = "Navigation", description = "Move focus left" }
-"nav.down"  = { keys = ["j"], group = "Navigation", description = "Move focus down" }
-"nav.up"    = { keys = ["k"], group = "Navigation", description = "Move focus up" }
-"nav.right" = { keys = ["l"], group = "Navigation", description = "Move focus right" }
+"nav.left" = { keys = [
+  "h",
+], group = "Navigation", description = "Move focus left" }
+"nav.down" = { keys = [
+  "j",
+], group = "Navigation", description = "Move focus down" }
+"nav.up" = { keys = ["k"], group = "Navigation", description = "Move focus up" }
+"nav.right" = { keys = [
+  "l",
+], group = "Navigation", description = "Move focus right" }
+"nav.insert" = { keys = [
+  "l",
+], group = "Navigation", description = "Enter insert mode" }
 
 # --- VCS ---
-"vcs.ui" = { keys = ["g", "g"], group = "VCS", description = "Open VCS UI (jjui)" }
+"vcs.ui" = { keys = [
+  "g",
+  "g",
+], group = "VCS", description = "Open VCS UI (jjui)" }
 
 # --- Projects ---
-"projects.pick" = { keys = ["p", "p"], group = "Projects", description = "Pick project (zoxide)" }
+"projects.pick" = { keys = [
+  "p",
+  "p",
+], group = "Projects", description = "Pick project (zoxide)" }
 
 # --- Pane: split ---
-"pane.split.right" = { keys = ["w", "v"], group = "Pane", description = "Split pane right" }
-"pane.split.down"  = { keys = ["w", "s"], group = "Pane", description = "Split pane down" }
+"pane.split.right" = { keys = [
+  "w",
+  "v",
+], group = "Pane", description = "Split pane right" }
+"pane.split.down" = { keys = [
+  "w",
+  "s",
+], group = "Pane", description = "Split pane down" }
 
 # --- Pane: focus — arrow fallback (terminal-safe, all apps) ---
-"pane.focus.left"  = { keys = ["CTRL", "ALT", "Left"],  group = "Pane", description = "Focus pane left" }
-"pane.focus.right" = { keys = ["CTRL", "ALT", "Right"], group = "Pane", description = "Focus pane right" }
-"pane.focus.up"    = { keys = ["CTRL", "ALT", "Up"],    group = "Pane", description = "Focus pane up" }
-"pane.focus.down"  = { keys = ["CTRL", "ALT", "Down"],  group = "Pane", description = "Focus pane down" }
+"pane.focus.left" = { keys = [
+  "CTRL",
+  "ALT",
+  "Left",
+], group = "Pane", description = "Focus pane left" }
+"pane.focus.right" = { keys = [
+  "CTRL",
+  "ALT",
+  "Right",
+], group = "Pane", description = "Focus pane right" }
+"pane.focus.up" = { keys = [
+  "CTRL",
+  "ALT",
+  "Up",
+], group = "Pane", description = "Focus pane up" }
+"pane.focus.down" = { keys = [
+  "CTRL",
+  "ALT",
+  "Down",
+], group = "Pane", description = "Focus pane down" }
 
 # --- Pane: focus — nav keys (Ctrl + Alt + hjkl) ---
-"app.pane.focus.left"  = { keys = ["CTRL", "ALT", "h"], group = "App Navigation", description = "Focus app pane/view left" }
-"app.pane.focus.down"  = { keys = ["CTRL", "ALT", "j"], group = "App Navigation", description = "Focus app pane/view down" }
-"app.pane.focus.up"    = { keys = ["CTRL", "ALT", "k"], group = "App Navigation", description = "Focus app pane/view up" }
-"app.pane.focus.right" = { keys = ["CTRL", "ALT", "l"], group = "App Navigation", description = "Focus app pane/view right" }
+"app.pane.focus.left" = { keys = [
+  "CTRL",
+  "ALT",
+  "h",
+], group = "App Navigation", description = "Focus app pane/view left" }
+"app.pane.focus.down" = { keys = [
+  "CTRL",
+  "ALT",
+  "j",
+], group = "App Navigation", description = "Focus app pane/view down" }
+"app.pane.focus.up" = { keys = [
+  "CTRL",
+  "ALT",
+  "k",
+], group = "App Navigation", description = "Focus app pane/view up" }
+"app.pane.focus.right" = { keys = [
+  "CTRL",
+  "ALT",
+  "l",
+], group = "App Navigation", description = "Focus app pane/view right" }
 
 # --- Pane: move (Ctrl + Alt + Shift + hjkl) ---
-"app.pane.move.left"  = { keys = ["CTRL", "ALT", "SHIFT", "h"], group = "App Navigation", description = "Move app pane/view left" }
-"app.pane.move.down"  = { keys = ["CTRL", "ALT", "SHIFT", "j"], group = "App Navigation", description = "Move app pane/view down" }
-"app.pane.move.up"    = { keys = ["CTRL", "ALT", "SHIFT", "k"], group = "App Navigation", description = "Move app pane/view up" }
-"app.pane.move.right" = { keys = ["CTRL", "ALT", "SHIFT", "l"], group = "App Navigation", description = "Move app pane/view right" }
+"app.pane.move.left" = { keys = [
+  "CTRL",
+  "ALT",
+  "SHIFT",
+  "h",
+], group = "App Navigation", description = "Move app pane/view left" }
+"app.pane.move.down" = { keys = [
+  "CTRL",
+  "ALT",
+  "SHIFT",
+  "j",
+], group = "App Navigation", description = "Move app pane/view down" }
+"app.pane.move.up" = { keys = [
+  "CTRL",
+  "ALT",
+  "SHIFT",
+  "k",
+], group = "App Navigation", description = "Move app pane/view up" }
+"app.pane.move.right" = { keys = [
+  "CTRL",
+  "ALT",
+  "SHIFT",
+  "l",
+], group = "App Navigation", description = "Move app pane/view right" }
 
 # --- Tab / Buffer: Cmd+Shift + horizontal pair (h=prev, l=next) ---
 # Tabs are horizontal → left/right direction keys.
 # Known conflicts: Cmd+Shift+N (Finder new folder), Cmd+Shift+I (Inspector) — rebind per app.
-"app.tab.previous" = { keys = ["SUPER", "SHIFT", "h"], group = "App Navigation", description = "Previous app tab/buffer" }
-"app.tab.next"     = { keys = ["SUPER", "SHIFT", "l"], group = "App Navigation", description = "Next app tab/buffer" }
-"app.tab.switch"   = { keys = ["SUPER", "1..9"],       group = "App Navigation", description = "Switch app tab/buffer by number" }
+"app.tab.previous" = { keys = [
+  "SUPER",
+  "SHIFT",
+  "h",
+], group = "App Navigation", description = "Previous app tab/buffer" }
+"app.tab.next" = { keys = [
+  "SUPER",
+  "SHIFT",
+  "l",
+], group = "App Navigation", description = "Next app tab/buffer" }
+"app.tab.switch" = { keys = [
+  "SUPER",
+  "1..9",
+], group = "App Navigation", description = "Switch app tab/buffer by number" }
 
 # --- Workspace / Session: Cmd+Shift + vertical pair (k=prev, j=next) ---
 # Workspaces are vertical → up/down direction keys.
-"app.workspace.previous" = { keys = ["SUPER", "SHIFT", "k"], group = "App Navigation", description = "Previous app workspace/session" }
-"app.workspace.next"     = { keys = ["SUPER", "SHIFT", "j"], group = "App Navigation", description = "Next app workspace/session" }
-"app.workspace.switch"   = { keys = ["SUPER", "SHIFT", "1..9"], group = "App Navigation", description = "Switch app workspace/session by number" }
+"app.workspace.previous" = { keys = [
+  "SUPER",
+  "SHIFT",
+  "k",
+], group = "App Navigation", description = "Previous app workspace/session" }
+"app.workspace.next" = { keys = [
+  "SUPER",
+  "SHIFT",
+  "j",
+], group = "App Navigation", description = "Next app workspace/session" }
+"app.workspace.switch" = { keys = [
+  "SUPER",
+  "SHIFT",
+  "1..9",
+], group = "App Navigation", description = "Switch app workspace/session by number" }
 
 # --- Pickers ---
-"app.projects.pick"   = { keys = ["ALT", "p"], group = "App Navigation", description = "Pick app project" }
-"app.workspaces.pick" = { keys = ["ALT", "w"], group = "App Navigation", description = "Pick app workspace" }
-"app.tabs.pick"       = { keys = ["ALT", "t"], group = "App Navigation", description = "Pick app tab" }
-"app.buffers.pick"    = { keys = ["ALT", "b"], group = "App Navigation", description = "Pick app buffer" }
+"app.projects.pick" = { keys = [
+  "ALT",
+  "p",
+], group = "App Navigation", description = "Pick app project" }
+"app.workspaces.pick" = { keys = [
+  "ALT",
+  "w",
+], group = "App Navigation", description = "Pick app workspace" }
+"app.tabs.pick" = { keys = [
+  "ALT",
+  "t",
+], group = "App Navigation", description = "Pick app tab" }
+"app.buffers.pick" = { keys = [
+  "ALT",
+  "b",
+], group = "App Navigation", description = "Pick app buffer" }
 
 # --- Run
-"run.task" = { keys = ["space", "r", "t"], group = "Run", description = "Run task" }
+"run.task" = { keys = [
+  "space",
+  "r",
+  "t",
+], group = "Run", description = "Run task" }
 
 # --- jjui actions (displaced from nav keys in colemak) ---
-"jjui.new"         = { keys = ["n"], group = "jjui", description = "New change" }
-"jjui.edit"        = { keys = ["e"], group = "jjui", description = "Edit change" }
-"jjui.interactive" = { keys = ["i"], group = "jjui", description = "Interactive rebase" }
+"jjui.new" = { keys = ["n"], group = "jjui", description = "New change" }
+"jjui.edit" = { keys = ["e"], group = "jjui", description = "Edit change" }
+"jjui.interactive" = { keys = [
+  "i",
+], group = "jjui", description = "Interactive rebase" }
 
 [layout.colemak.shortcuts]
 # nav.left = ["h"] — same as base, omitted
-"nav.down"  = ["n"]
-"nav.up"    = ["e"]
+"nav.down" = ["n"]
+"nav.up" = ["e"]
 "nav.right" = ["i"]
 # Pane focus
-"app.pane.focus.down"  = ["CTRL", "ALT", "n"]
-"app.pane.focus.up"    = ["CTRL", "ALT", "e"]
+"app.pane.focus.down" = ["CTRL", "ALT", "n"]
+"app.pane.focus.up" = ["CTRL", "ALT", "e"]
 "app.pane.focus.right" = ["CTRL", "ALT", "i"]
 # Pane move
-"app.pane.move.down"  = ["CTRL", "ALT", "SHIFT", "n"]
-"app.pane.move.up"    = ["CTRL", "ALT", "SHIFT", "e"]
+"app.pane.move.down" = ["CTRL", "ALT", "SHIFT", "n"]
+"app.pane.move.up" = ["CTRL", "ALT", "SHIFT", "e"]
 "app.pane.move.right" = ["CTRL", "ALT", "SHIFT", "i"]
 # Tab: Cmd+Shift+h/l → Cmd+Shift+h/i
-"app.tab.next"     = ["SUPER", "SHIFT", "i"]
+"app.tab.next" = ["SUPER", "SHIFT", "i"]
 # Workspace: Cmd+Shift+k/j → Cmd+Shift+e/n
 "app.workspace.previous" = ["SUPER", "SHIFT", "e"]
-"app.workspace.next"     = ["SUPER", "SHIFT", "n"]
+"app.workspace.next" = ["SUPER", "SHIFT", "n"]
 # jjui
-"jjui.new"         = ["j"]
-"jjui.edit"        = ["k"]
+"jjui.new" = ["j"]
+"jjui.edit" = ["k"]
 "jjui.interactive" = ["l"]
