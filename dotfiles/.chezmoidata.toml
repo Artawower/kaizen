@@ -20,6 +20,9 @@ terminal = true
 tiling = true
 vcs = true
 
+[kaizen]
+binding_scheme = "hel"
+
 [kaizen.base_shortcuts]
 "app.buffers.pick" = [
     "Opt",
