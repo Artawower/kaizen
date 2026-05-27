@@ -15,13 +15,15 @@ _CATALOG = TaskCatalog([
     MakefileAdapter(),
 ])
 
-_COMMAND = "run-script"
+# "rt" is derived from run.task keys ["r","t"] in dotfiles/kaizen/keybindings.toml.
+# If the shortcut keys change, update this set accordingly.
+_COMMANDS = {"run-script", "rt"}
 
 
 def _make_completer(catalog: TaskCatalog):
     def _completer(prefix, line, begidx, endidx, ctx):
         words = line.split()
-        if not words or words[0] != _COMMAND:
+        if not words or words[0] not in _COMMANDS:
             return None
         tasks = catalog.collect(Path.cwd())
         completions = {
@@ -39,6 +41,9 @@ def _make_completer(catalog: TaskCatalog):
 
 
 def _load_xontrib_(xsh, **kwargs):
-    xsh.aliases[_COMMAND] = lambda args: run_script(args, _CATALOG)
-    xsh.completers[_COMMAND] = _make_completer(_CATALOG)
-    xsh.completers.move_to_end(_COMMAND, last=False)
+    handler = lambda args: run_script(args, _CATALOG)
+    completer = _make_completer(_CATALOG)
+    for cmd in _COMMANDS:
+        xsh.aliases[cmd] = handler
+        xsh.completers[cmd] = completer
+        xsh.completers.move_to_end(cmd, last=False)

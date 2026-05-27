@@ -155,10 +155,10 @@ vcs = true
     "p",
     "p",
 ]
-"run.script" = [
+"run.task" = [
     "space",
     "r",
-    "s",
+    "t",
 ]
 "vcs.ui" = [
     "g",
@@ -300,10 +300,10 @@ vcs = true
     "p",
     "p",
 ]
-"run.script" = [
+"run.task" = [
     "space",
     "r",
-    "s",
+    "t",
 ]
 "vcs.ui" = [
     "g",

@@ -5,3 +5,4 @@ def _kaizen_alias(keys, command):
 
 _kaizen_alias({{ index $shortcuts "vcs.ui" | toJson }}, 'jjui')
 _kaizen_alias({{ index $shortcuts "projects.pick" | toJson }}, 'zi')
+# run.task (keys: {{ index $shortcuts "run.task" | toJson }}) — alias registered by xontrib-runner
