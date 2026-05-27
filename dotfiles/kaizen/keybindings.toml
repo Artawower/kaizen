@@ -46,7 +46,7 @@ CTRL = "Ctrl"
   "l",
 ], group = "Navigation", description = "Move focus right" }
 "nav.insert" = { keys = [
-  "l",
+  "i",
 ], group = "Navigation", description = "Enter insert mode" }
 
 # --- VCS ---
@@ -214,6 +214,7 @@ CTRL = "Ctrl"
 "nav.down" = ["n"]
 "nav.up" = ["e"]
 "nav.right" = ["i"]
+"nav.insert" = ["l"]
 # Pane focus
 "app.pane.focus.down" = ["CTRL", "ALT", "n"]
 "app.pane.focus.up" = ["CTRL", "ALT", "e"]

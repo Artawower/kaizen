@@ -92,7 +92,7 @@
    '("s-D" . meow-bounds-of-thing)
    '("M-[" . meow-beginning-of-thing)
    '("M-]" . meow-end-of-thing)
-   `(,(or (bound-and-true-p kaizen/insert)    "l") . meow-append)
+   `(,(or (bound-and-true-p kaizen/nav-insert) "l") . meow-append)
    '("o" . meow-open-below)
    '("b" . meow-back-word)
    '("B" . meow-back-symbol)
