@@ -32,19 +32,23 @@ def run_script(args: list[str], catalog: TaskCatalog) -> None:
         return
 
     if args:
-        query = " ".join(args)
-        matches = [t for t in tasks if t.name == query or t.display == query]
+        name, extra = args[0], args[1:]
+        matches = [t for t in tasks if t.name == name or t.display == name]
         task = matches[0] if matches else None
         if task is None:
-            print(f"No task named {query!r}. Available: {[t.name for t in tasks]}")
+            print(f"No task named {name!r}. Available: {[t.name for t in tasks]}")
             return
     else:
         task = _fzf(tasks)
+        extra = []
 
     if task is None:
         return
 
-    subprocess.run(task.command, shell=True, cwd=task.root)
+    command = task.command
+    if extra:
+        command = f"{command} {' '.join(extra)}"
+    subprocess.run(command, shell=True, cwd=task.root)
 
 
 def complete_tasks(prefix: str, catalog: TaskCatalog) -> set[str]:

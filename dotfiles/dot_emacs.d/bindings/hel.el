@@ -12,8 +12,6 @@
   (hel-insert-state-cursor-type 'bar)
   (hel-motion-state-cursor-type 'hollow)
   :config
-  (hel-mode)
-
   (defun kaizen/hel-G (arg)
     "Go to line ARG, or end of buffer if no ARG."
     (interactive "P")
@@ -56,7 +54,7 @@
 
     (global-set-key (kbd "s-c") #'hel-copy)
 
-    (dolist (mode '(prog-mode text-mode conf-mode))
+    (dolist (mode '(prog-mode text-mode conf-mode fundamental-mode))
       (hel-set-initial-state mode 'normal))
 
     (dolist (mode '(elpaca-info-mode flymake-diagnostics-buffer-mode
@@ -223,6 +221,9 @@
   (with-eval-after-load 'better-jumper
     (advice-add 'hel-forward-word-start :around
                 #'my/better-jump-preserve-pos-advice)))
+
+  ;; Activate after all state/keymap configuration is complete
+  (hel-mode))
 
 (provide 'kaizen-bindings-hel)
 ;;; bindings/hel.el ends here
