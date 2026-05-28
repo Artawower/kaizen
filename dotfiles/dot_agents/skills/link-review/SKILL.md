@@ -1,21 +1,19 @@
 ---
 name: link-review
-description: Проведение ревью и анализ результата через независимого агента...
-argument-hint: "<что ревьюить>"
+description: Request a code review from an independent reviewer agent via link_prompt, then analyze and act on the findings. Use when you want an external perspective on recent changes before committing or merging.
+argument-hint: "<what to review>"
 ---
 
-Попроси reviewer вызвать skill code:review через link_prompt, передав ему аргументы для ревью:
+Send the review request to the reviewer agent via `link_prompt`, passing the arguments:
 
 <arguments>
 ${ARGS}
 </arguments>
 
-Попроси его вернуть результат через тот же канал связи.
+After receiving the review:
 
-После получения результата:
-1. проанализируй вывод reviewer;
-2. выдели ключевые замечания;
-3. отдели blockers от suggestions;
-4. Исправь те замечания который считаешь актуальными.
-5. Затем вновь, отправь на анализ в link_promtp reviewer вопрос с изменениями, так же сообщи о тех правках, что ты не сделал и почему, обсуди с ним и приди к консенсусу, стоит ли пропускать те пункты, что ты пометил как неактуальные. 
-6. Разрешено отправить не более 5 сообщений, если в через 5 сообщений не удалось договориться, принимай его точку зрения так как у него больше экспертизы
+1. Analyze the findings carefully.
+2. Separate blockers from suggestions.
+3. Apply comments you consider valid and relevant.
+4. Send a follow-up to the reviewer: share the changes made and explain which comments you skipped and why. Reach consensus on the skipped items.
+5. Maximum 5 rounds of back-and-forth. If no consensus after 5 rounds, defer to the reviewer's judgment — they have domain expertise.

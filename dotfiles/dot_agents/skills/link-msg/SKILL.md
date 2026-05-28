@@ -1,17 +1,15 @@
 ---
 name: link-msg
-description: Делегирует задачу подходящему коллеге через link_prompt и возвращает результат пользователю.
+description: Delegate a task to the most suitable connected agent via link_prompt and return the result to the user. Use when you want to route a request to a specialist colleague on the pi-link network.
 ---
 
 <arguments>
 ${ARGS}
 </arguments>
 
-Выполни задачу через `link`:
+Delegate the task via `link`:
 
-1. Вызови `link` и получи список доступных коллег.
-2. По смыслу задачи из `<arguments>` выбери наиболее подходящего коллегу.
-3. Передай выбранному коллеге задачу через `link_prompt`.
-4. Попроси коллегу вернуть результат через тот же канал связи.
-5. Дождись ответа, проанализируй его и верни пользователю итог.
-
+1. Call `link_list` to see available colleagues and their current status.
+2. Based on the task in `<arguments>`, select the most appropriate colleague.
+3. Send the task to that colleague via `link_prompt` with a self-contained prompt.
+4. Wait for the response, analyze it, and return the result to the user.
