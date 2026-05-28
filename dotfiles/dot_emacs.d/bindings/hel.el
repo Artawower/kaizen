@@ -14,6 +14,17 @@
   :config
   (hel-mode)
 
+  (defun kaizen/hel-G (arg)
+    "Go to line ARG, or end of buffer if no ARG."
+    (interactive "P")
+    (if arg (goto-line (prefix-numeric-value arg)) (hel-end-of-buffer)))
+
+  (defvar-keymap kaizen/hel-help-map
+    "f" #'helpful-function
+    "F" #'describe-face
+    "v" #'helpful-variable
+    "k" #'describe-key)
+
   (let* ((left  (or (bound-and-true-p kaizen/nav-left)   "h"))
          (down  (or (bound-and-true-p kaizen/nav-down)   "n"))
          (up    (or (bound-and-true-p kaizen/nav-up)     "e"))
@@ -30,8 +41,11 @@
       "j"   #'hel-forward-word-start
       "J"   #'hel-forward-WORD-start
       "q"   #'deactivate-mark
+      "G"   #'kaizen/hel-G
       "C-:" #'query-replace-regexp
       "SPC" mode-specific-map)
+
+    (keymap-set mode-specific-map "h" kaizen/hel-help-map)
 
     (hel-keymap-global-set :state 'motion
       left  #'hel-backward-char
