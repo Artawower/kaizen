@@ -51,9 +51,16 @@ CTRL = "Ctrl"
 
 # --- VCS ---
 "vcs.ui" = { keys = [
-  "g",
-  "g",
-], group = "VCS", description = "Open VCS UI (jjui)" }
+  "v",
+  "l",
+], group = "VCS", description = "Open VCS UI" }
+
+"vcs.history" = { keys = [
+  "v",
+  "h",
+], group = "VCS", description = "Open VCS history" }
+
+"window.zoom" = { keys = ["w", "f"], group = "Window", description = "Zoom/fullscreen current split" }
 
 # --- Projects ---
 "projects.pick" = { keys = [

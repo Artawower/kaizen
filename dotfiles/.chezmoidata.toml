@@ -164,9 +164,17 @@ binding_scheme = "hel"
     "r",
     "t",
 ]
+"vcs.history" = [
+    "v",
+    "h",
+]
 "vcs.ui" = [
-    "g",
-    "g",
+    "v",
+    "l",
+]
+"window.zoom" = [
+    "w",
+    "f",
 ]
 
 [kaizen.shortcuts]
@@ -310,9 +318,17 @@ binding_scheme = "hel"
     "r",
     "t",
 ]
+"vcs.history" = [
+    "v",
+    "h",
+]
 "vcs.ui" = [
-    "g",
-    "g",
+    "v",
+    "l",
+]
+"window.zoom" = [
+    "w",
+    "f",
 ]
 
 [models]

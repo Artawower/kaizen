@@ -1226,7 +1226,9 @@ Move to husky
   (defun my/avy-select-word ()
     (interactive)
     (call-interactively 'avy-goto-word-1)
-    (meow-mark-symbol 1)))
+    (if (bound-and-true-p hel-local-mode)
+        (hel-mark-inner-WORD 1)
+      (meow-mark-symbol 1))))
 #+END_SRC
 
 ** Ace window. Fast jump between opened windows and frames
@@ -3322,7 +3324,7 @@ Clone this repo for js debug git@github.com:microsoft/vscode-js-debug.git
 ** Python
 *** Python ts mode
 #+BEGIN_SRC emacs-lisp :results silent
-(use-package rust-ts-mode
+(use-package python-ts-mode
   :ensure nil
   :mode "\\.py\\'")
 #+END_SRC

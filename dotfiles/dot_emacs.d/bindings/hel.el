@@ -12,6 +12,21 @@
   (hel-insert-state-cursor-type 'bar)
   (hel-motion-state-cursor-type 'hollow)
   :config
+  ;; Disable hel in minibuffer — hard disable via hook (higher priority than hel's own)
+  (setopt hel-want-minibuffer nil)
+  (remove-hook 'minibuffer-setup-hook 'hel-local-mode)
+  (defun kaizen/hel-disable-in-minibuffer ()
+    (when (bound-and-true-p hel-local-mode)
+      (hel-local-mode -1)))
+  (add-hook 'minibuffer-setup-hook #'kaizen/hel-disable-in-minibuffer 100)
+  ;; Explicit <escape> in all minibuffer maps — ensures abort works
+  (dolist (map (list minibuffer-local-map
+                     minibuffer-local-ns-map
+                     minibuffer-local-completion-map
+                     minibuffer-local-must-match-map
+                     read-expression-map))
+    (keymap-set map "<escape>" #'abort-recursive-edit))
+
   (defun kaizen/hel-G (arg)
     "Go to line ARG, or end of buffer if no ARG."
     (interactive "P")
@@ -21,7 +36,21 @@
     "f" #'helpful-function
     "F" #'describe-face
     "v" #'helpful-variable
-    "k" #'describe-key)
+    "k" #'describe-key
+    "t" #'load-theme)
+
+  (defun kaizen/hel-avy-select-word ()
+    "Jump to word with avy, then select it (hel-aware)."
+    (interactive)
+    (call-interactively #'avy-goto-word-1)
+    (hel-mark-inner-WORD 1))
+
+  (defvar-keymap kaizen/hel-vcs-map
+    "l" #'majutsu
+    "h" #'git-timemachine)
+
+  (defvar-keymap kaizen/hel-window-map
+    "f" #'zoom-window-zoom)
 
   (let* ((left  (or (bound-and-true-p kaizen/nav-left)   "h"))
          (down  (or (bound-and-true-p kaizen/nav-down)   "n"))
@@ -40,10 +69,19 @@
       "J"   #'hel-forward-WORD-start
       "q"   #'deactivate-mark
       "G"   #'kaizen/hel-G
+      "N"   #'my/copy-with-ai-context
       "C-:" #'query-replace-regexp
       "SPC" mode-specific-map)
 
+    ;; Error navigation — same as meow C-n/C-e
+    (keymap-set hel-normal-state-map "C-n" #'flymake-goto-next-error)
+    (keymap-set hel-normal-state-map "C-e" #'flymake-goto-prev-error)
+    (keymap-set hel-normal-state-map "] d" #'flymake-goto-next-error)
+    (keymap-set hel-normal-state-map "[ d" #'flymake-goto-prev-error)
+
     (keymap-set mode-specific-map "h" kaizen/hel-help-map)
+    (keymap-set mode-specific-map "v" kaizen/hel-vcs-map)
+    (keymap-set mode-specific-map "w" kaizen/hel-window-map)
 
     (hel-keymap-global-set :state 'motion
       left  #'hel-backward-char
@@ -98,18 +136,15 @@
 
   ;; Package integrations — with-eval-after-load inside :config
   ;; hel is guaranteed loaded here, packages may load later
-  (with-eval-after-load 'zoom-window
-    (hel-keymap-global-set :state '(normal motion) "\\ m" #'zoom-window-zoom))
-
   (with-eval-after-load 'avy
     (hel-keymap-global-set :state 'normal
-      "f"   #'my/avy-select-word
-      "\\f" #'avy-goto-char-timer))
+      "f"   #'kaizen/hel-avy-select-word
+      "\\ f" #'avy-goto-char-timer))
 
   (with-eval-after-load 'bm
     (hel-keymap-global-set :state 'normal
-      "]m" #'bm-next
-      "[m" #'bm-previous))
+      "] m" #'bm-next
+      "[ m" #'bm-previous))
 
   (with-eval-after-load 'undo-fu
     (hel-keymap-global-set :state 'normal
@@ -120,15 +155,15 @@
     (hel-keymap-global-set :state 'normal "#" #'persistent-kmacro-apply))
 
   (with-eval-after-load 'apheleia
-    (hel-keymap-global-set :state 'normal "\\p" #'apheleia-format-buffer))
+    (hel-keymap-global-set :state 'normal "\\ p" #'apheleia-format-buffer))
 
   (with-eval-after-load 'dirvish
     (hel-keymap-global-set :state 'normal "gf" #'dirvish-quick-access))
 
   (with-eval-after-load 'git-gutter
     (hel-keymap-global-set :state 'normal
-      "]g" #'git-gutter:next-hunk
-      "[g" #'git-gutter:previous-hunk))
+      "] g" #'git-gutter:next-hunk
+      "[ g" #'git-gutter:previous-hunk))
 
   (with-eval-after-load 'blamer
     (add-hook 'hel-insert-state-enter-hook #'my/disable-blamer-mode)
@@ -154,16 +189,18 @@
     (hel-keymap-global-set :state 'normal
       "g i" #'eglot-find-implementation
       "g r" #'xref-find-references
-      "\\i" #'my/eglot-toggle-inlay-hints
-      "\\l" #'eglot-code-actions))
+      "\\ i" #'my/eglot-toggle-inlay-hints
+      "\\ l" #'eglot-code-actions))
 
   (with-eval-after-load 'corfu
     (add-hook 'hel-insert-state-exit-hook (lambda () (corfu-quit))))
 
-  (with-eval-after-load 'flymake
-    (hel-keymap-global-set :state 'normal
-      "]d" #'flymake-goto-next-error
-      "[d" #'flymake-goto-prev-error))
+  ;; Toggle hel in minibuffer on demand (C-z since hel is off there by default)
+  (define-key minibuffer-local-map          (kbd "C-z") #'hel-local-mode)
+  (define-key minibuffer-local-completion-map (kbd "C-z") #'hel-local-mode)
+  (define-key minibuffer-local-ns-map       (kbd "C-z") #'hel-local-mode)
+
+
 
   (with-eval-after-load 'flymake-posframe
     (add-hook 'hel-normal-state-enter-hook #'my/toggle-flymake-posframe)
@@ -171,17 +208,17 @@
 
   (with-eval-after-load 'eldoc-box
     (hel-keymap-global-set :state 'normal
-      "\\b" #'my/toggle-eldoc-buffer
-      "\\h" #'eldoc-box-help-at-point))
+      "\\ b" #'my/toggle-eldoc-buffer
+      "\\ h" #'eldoc-box-help-at-point))
 
   (with-eval-after-load 'pretty-ts-errors
     (hel-keymap-global-set :state 'normal
-      "\\e" #'pretty-ts-errors-show-error-at-point))
+      "\\ e" #'pretty-ts-errors-show-error-at-point))
 
   (with-eval-after-load 'org
     (hel-keymap-global-set :state 'normal
-      "\\o" #'org-mode
-      "\\a" #'org-agenda))
+      "\\ o" #'org-mode
+      "\\ a" #'org-agenda))
 
   (with-eval-after-load 'google-translate
     (hel-keymap-global-set :state 'normal
@@ -224,6 +261,8 @@
 
   ;; Activate after all state/keymap configuration is complete
   (hel-mode))
+
+
 
 (provide 'kaizen-bindings-hel)
 ;;; bindings/hel.el ends here
