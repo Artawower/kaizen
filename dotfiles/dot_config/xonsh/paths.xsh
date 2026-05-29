@@ -9,6 +9,7 @@ for _p in [
     home / 'bin',
     home / '.local/bin',
     home / '.config/bin',
+    home / '.config/scripts',
     home / '.local/share/mise/shims',
     home / '.local/share/uv/tools',
     home / '.cargo/bin',

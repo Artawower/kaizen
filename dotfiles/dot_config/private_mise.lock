@@ -65,11 +65,11 @@ version = "21.2.14"
 backend = "npm:@angular/language-service"
 
 [[tools."npm:@earendil-works/pi-coding-agent"]]
-version = "0.76.0"
+version = "0.77.0"
 backend = "npm:@earendil-works/pi-coding-agent"
 
 [[tools."npm:@github/copilot-language-server"]]
-version = "1.489.0"
+version = "1.498.0"
 backend = "npm:@github/copilot-language-server"
 
 [[tools."npm:@gy920/qwen-mcp-tool"]]
@@ -157,7 +157,7 @@ version = "3.3.0"
 backend = "npm:npm-upgrade"
 
 [[tools."npm:opencode-ai"]]
-version = "1.15.11"
+version = "1.15.12"
 backend = "npm:opencode-ai"
 
 [[tools."npm:opentmux"]]

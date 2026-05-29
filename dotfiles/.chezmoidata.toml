@@ -332,10 +332,11 @@ binding_scheme = "hel"
 ]
 
 [models]
-coder = "openai/gpt-5.5"
+coder = "openai-codex/gpt-5.5"
 default = "anthropic/claude-sonnet-4-6"
-quick = "anthropic/claude-haiku-4-5-20251001"
-research = "openai/gpt-5.4"
+expert = "anthropic/claude-opus-4-8"
+quick = "openai-codex/gpt-5.4-mini"
+research = "openai-codex/gpt-5.4"
 reviewer = "anthropic/claude-sonnet-4-6"
 
 [tiling]

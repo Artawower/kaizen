@@ -1,0 +1,8 @@
+{{- with .models }}
+[models]
+coder    = {{ .coder | quote }}
+default  = {{ .default | quote }}
+quick    = {{ .quick | quote }}
+research = {{ .research | quote }}
+reviewer = {{ .reviewer | quote }}
+{{- end }}
