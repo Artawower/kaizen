@@ -1,44 +1,46 @@
 ---
 name: team-research
-description: Delegate a research task to your team's researcher agent via pi-link. Ensures the ai-workers panes are running, then sends your request to <scope>@researcher and returns the result. Use when you need deep research, codebase exploration, or external reference lookup done by a dedicated agent with the research model.
+description: Delegate a research task to your own scope's researcher agent. Ensures ai-workers panes are running for YOUR scope, then sends the request to <scope>@researcher. Use for codebase exploration, external references, pattern lookup. Never borrows agents from other scopes.
 argument-hint: "<what to research>"
 ---
 
-# How the team system works
+# Scope rule — read first
 
-You are the lead agent (`<scope>@lead`). Your team runs in the `ai-workers` herdr tab:
-- `<scope>@researcher` — research model, deep exploration
-- `<scope>@coder` — coder model, implementation
-- `<scope>@critic` — reviewer model, code review
+Your scope comes from YOUR pi-link name, not from what agents are visible in `link_list`.
 
-Models are defined in `~/.config/kaizen/models.toml` and assigned per role at startup.
-
-# Task
-
-$ARGUMENTS
+**Never send to `kaizen@researcher` if your scope is `nix`. Never skip setup because a foreign researcher is already idle.**
 
 # Step 1: Identify your scope
 
-Call `link_list`. Find the entry marked `(you)`. Extract scope from `<scope>@lead`.
+Call `link_list`. Find the entry marked `(you)`. Scope = the part before `@`.
 
-> Rule: scope = part before `@`. Never use workers from a different scope.
+Example: `nix@lead` → scope = `nix`. You will use `nix@researcher`, not any other.
 
-# Step 2: Ensure researcher is running
+# Step 2: Start YOUR workers
+
+Always run this, even if other scopes' agents are visible:
 
 ```bash
-python3 ./scripts/ai-workers-setup "<scope>" "$PWD"
+ai-workers-setup "<scope>" "$PWD"
 ```
 
-If exit non-zero — surface the error to the user and stop.
+`ai-workers-setup` is on PATH (installed to `~/.config/scripts/`).
 
-# Step 3: Delegate to researcher
+If command not found:
+```bash
+python3 ~/.agents/skills/team-implement/scripts/ai-workers-setup "<scope>" "$PWD"
+```
+
+If it exits non-zero — surface the error and stop.
+
+# Step 3: Delegate
 
 Send `$ARGUMENTS` to `<scope>@researcher` via `link_prompt`. Include:
-- The exact research question from `$ARGUMENTS`
-- Any relevant context from the current codebase or conversation
+- The exact research question
+- Relevant codebase context if needed
 
-`link_prompt` is synchronous — wait for the `[<scope>@researcher]` response before continuing.
+`link_prompt` is synchronous — wait for `[<scope>@researcher]` before continuing.
 
 # Step 4: Return result
 
-Present the researcher's findings directly to the user. Do not paraphrase — return the full response.
+Present the researcher's findings in full to the user.

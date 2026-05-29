@@ -57,15 +57,15 @@ version = "21.2.13"
 backend = "npm:@angular/cli"
 
 [[tools."npm:@angular/language-server"]]
-version = "21.2.14"
+version = "21.2.15"
 backend = "npm:@angular/language-server"
 
 [[tools."npm:@angular/language-service"]]
-version = "21.2.14"
+version = "21.2.15"
 backend = "npm:@angular/language-service"
 
 [[tools."npm:@earendil-works/pi-coding-agent"]]
-version = "0.77.0"
+version = "0.78.0"
 backend = "npm:@earendil-works/pi-coding-agent"
 
 [[tools."npm:@github/copilot-language-server"]]
@@ -125,7 +125,7 @@ version = "11.0.0"
 backend = "npm:env-cmd"
 
 [[tools."npm:eslint"]]
-version = "10.4.0"
+version = "10.4.1"
 backend = "npm:eslint"
 
 [[tools."npm:git-trim"]]

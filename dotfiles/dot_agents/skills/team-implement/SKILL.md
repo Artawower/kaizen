@@ -43,15 +43,16 @@ If `HERDR_ENV=1` → herdr available. Otherwise note it and continue — Phase 2
 
 Your workers are: `<scope>@coder`, `<scope>@researcher`, `<scope>@critic`.
 
-Run the setup script (path is relative to this skill's directory):
+**This step is mandatory. Do not skip it even if other scopes' workers appear idle in `link_list`.**
 
 ```bash
-python3 ./scripts/ai-workers-setup "<scope>" "$PWD"
+ai-workers-setup "<scope>" "$PWD"
 ```
 
-**This step is mandatory.** Do not skip it even if other scopes' workers appear idle in `link_list`.
-
-The script path `./scripts/ai-workers-setup` is relative to the skill directory where this SKILL.md lives.
+If not on PATH:
+```bash
+python3 ~/.agents/skills/team-implement/scripts/ai-workers-setup "<scope>" "$PWD"
+```
 
 **Reading output:**
 

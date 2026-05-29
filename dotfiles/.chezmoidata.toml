@@ -340,12 +340,12 @@ binding_scheme = "hel"
 ]
 
 [models]
-coder = "openai-codex/gpt-5.5"
+coder = "anthropic/claude-sonnet-4-6"
 default = "anthropic/claude-sonnet-4-6"
 expert = "anthropic/claude-opus-4-8"
 quick = "openai-codex/gpt-5.4-mini"
 research = "openai-codex/gpt-5.4"
-reviewer = "anthropic/claude-sonnet-4-6"
+reviewer = "openai-codex/gpt-5.5"
 
 [tiling]
 wm = "yabai"
