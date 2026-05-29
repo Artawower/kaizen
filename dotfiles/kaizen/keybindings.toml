@@ -50,17 +50,21 @@ CTRL = "Ctrl"
 ], group = "Navigation", description = "Enter insert mode" }
 
 # --- VCS ---
-"vcs.ui" = { keys = [
-  "v",
-  "l",
-], group = "VCS", description = "Open VCS UI" }
+"vcs.ui" = { keys = ["v", "l"], group = "VCS", description = "Open VCS UI" }
 
 "vcs.history" = { keys = [
   "v",
   "h",
 ], group = "VCS", description = "Open VCS history" }
 
-"window.zoom" = { keys = ["w", "f"], group = "Window", description = "Zoom/fullscreen current split" }
+"window.zoom" = { keys = [
+  "w",
+  "f",
+], group = "Window", description = "Zoom/fullscreen current split" }
+"window.close" = { keys = [
+  "w",
+  "q",
+], group = "Window", description = "Close current window/pane" }
 
 # --- Projects ---
 "projects.pick" = { keys = [

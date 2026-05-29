@@ -371,6 +371,9 @@
   (define-key meow-normal-state-keymap (kbd "\\ m") #'zoom-window-zoom)
   (define-key meow-motion-state-keymap (kbd "\\ m") #'zoom-window-zoom))
 
+(define-key meow-normal-state-keymap (kbd "\\ w q") #'delete-window)
+(define-key meow-motion-state-keymap (kbd "\\ w q") #'delete-window)
+
 (with-eval-after-load 'avy
   (define-key meow-normal-state-keymap (kbd "f") #'my/avy-select-word)
   (define-key meow-normal-state-keymap (kbd "\\f") #'avy-goto-char-timer))

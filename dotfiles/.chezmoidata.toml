@@ -172,6 +172,10 @@ binding_scheme = "hel"
     "v",
     "l",
 ]
+"window.close" = [
+    "w",
+    "q",
+]
 "window.zoom" = [
     "w",
     "f",
@@ -325,6 +329,10 @@ binding_scheme = "hel"
 "vcs.ui" = [
     "v",
     "l",
+]
+"window.close" = [
+    "w",
+    "q",
 ]
 "window.zoom" = [
     "w",

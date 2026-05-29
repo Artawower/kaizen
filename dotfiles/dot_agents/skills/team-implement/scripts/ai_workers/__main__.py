@@ -35,7 +35,7 @@ ROLES = ["critic", "coder", "researcher"]
 TAB_LABEL = "ai-workers"
 STATE_FILE = Path.home() / ".config" / "herdr" / "ai-workers-layout.json"
 MODELS_FILE = Path.home() / ".config" / "kaizen" / "models.toml"
-ROLE_MODEL_KEY = {"coder": "coder", "researcher": "research", "critic": "reviewer"}
+ROLE_MODEL_KEY = {"coder": "coder", "researcher": "research", "critic": "reviewer", "expert": "expert"}
 AGENT_START_TIMEOUT_MS = 120_000
 LIVE_STATUSES = {"idle", "working", "blocked"}
 

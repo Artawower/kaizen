@@ -50,7 +50,10 @@
     "h" #'git-timemachine)
 
   (defvar-keymap kaizen/hel-window-map
-    "f" #'zoom-window-zoom)
+    "f" #'zoom-window-zoom
+    "q" #'delete-window
+    "v" #'split-window-right
+    "h" #'split-window-below)
 
   (let* ((left  (or (bound-and-true-p kaizen/nav-left)   "h"))
          (down  (or (bound-and-true-p kaizen/nav-down)   "n"))
