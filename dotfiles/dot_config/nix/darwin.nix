@@ -109,7 +109,9 @@ in
         fi
       '';
     }
-    (lib.mapAttrs (_: text: { inherit text; }) (userActivation // (darwinDeps.activationScripts or { })))
+    (lib.mapAttrs (_: text: { inherit text; }) (
+      userActivation // (darwinDeps.activationScripts or { })
+    ))
   ];
 
   security.pam.services.sudo_local.touchIdAuth = true;
@@ -127,7 +129,7 @@ in
     enable = true;
     onActivation = {
       autoUpdate = true;
-      cleanup = "uninstall";
+      cleanup = "none";
       upgrade = true;
     };
 

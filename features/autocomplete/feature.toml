@@ -1,0 +1,6 @@
+title = "AI autocomplete engine"
+
+[[slots]]
+id = "engine"
+required = false
+description = "Inline AI autocomplete provider"

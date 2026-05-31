@@ -6,6 +6,9 @@ hostname = "Arturs-MacBook-Pro"
 layout = "colemak"
 username = "darkawower"
 
+[autocomplete]
+engine = "cotabby"
+
 [features]
 ai = true
 core = true

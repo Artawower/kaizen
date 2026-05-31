@@ -9,6 +9,12 @@
     (load kaizen nil t)))
 
 (require 'org)
-(org-babel-load-file "~/.emacs.d/README.org")
+(condition-case err
+    (org-babel-load-file "~/.emacs.d/README.org")
+  (error (message "kaizen: README.org load error: %s" err)))
+
+(let ((local (expand-file-name "local.el" user-emacs-directory)))
+  (when (file-exists-p local)
+    (load local nil t)))
 
 ;;; init.el ends here

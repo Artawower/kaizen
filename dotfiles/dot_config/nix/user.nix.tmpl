@@ -1,9 +1,10 @@
 {
-  username      = "{{ .username }}";
-  hostname      = "{{ .hostname }}";
-  fullName      = "{{ .full_name }}";
-  email         = "{{ .email }}";
-  gpgKey        = "{{ .gpg_key_darwin }}";
-  homeDirectory = "/Users/{{ .username }}";
-  tilingWm      = "{{ .tiling.wm | default "yabai" }}";
+  username           = "{{ .username }}";
+  hostname           = "{{ .hostname }}";
+  fullName           = "{{ .full_name }}";
+  email              = "{{ .email }}";
+  gpgKey             = "{{ .gpg_key_darwin }}";
+  homeDirectory      = "/Users/{{ .username }}";
+  tilingWm           = "{{ .tiling.wm | default "yabai" }}";
+  autocompleteEngine = "{{ dig "autocomplete" "engine" "none" . }}";
 }
