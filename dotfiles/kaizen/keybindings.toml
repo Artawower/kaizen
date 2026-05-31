@@ -66,6 +66,33 @@ CTRL = "Ctrl"
   "q",
 ], group = "Window", description = "Close current window/pane" }
 
+# --- Folding ---
+"fold.toggle" = { keys = [
+  "z",
+  "a",
+], group = "Fold", description = "Toggle fold at cursor" }
+"fold.toggle-all" = { keys = [
+  "z",
+  "A",
+], group = "Fold", description = "Toggle all folds" }
+"fold.open" = { keys = [
+  "z",
+  "r",
+], group = "Fold", description = "Open fold at cursor" }
+"fold.open-all" = { keys = [
+  "z",
+  "R",
+], group = "Fold", description = "Open all folds" }
+"fold.close-all" = { keys = [
+  "z",
+  "M",
+], group = "Fold", description = "Close all folds" }
+"fold.next" = { keys = ["z", "j"], group = "Fold", description = "Next fold" }
+"fold.previous" = { keys = [
+  "z",
+  "k",
+], group = "Fold", description = "Previous fold" }
+
 # --- Bookmarks ---
 "bookmark.toggle" = { keys = [
   "m",
@@ -257,6 +284,9 @@ CTRL = "Ctrl"
 # Workspace: Cmd+Shift+k/j → Cmd+Shift+e/n
 "app.workspace.previous" = ["SUPER", "SHIFT", "e"]
 "app.workspace.next" = ["SUPER", "SHIFT", "n"]
+# Fold navigation
+"fold.next" = ["z", "n"]
+"fold.previous" = ["z", "e"]
 # jjui
 "jjui.new" = ["j"]
 "jjui.edit" = ["k"]

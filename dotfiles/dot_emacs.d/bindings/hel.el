@@ -256,9 +256,9 @@
       "s-p" #'husky-lsp-paste-from-register-1
       "z A" #'husky-fold-toggle-all
       "z a" #'husky-fold-toggle
-      "z j" #'husky-fold-next
+      (concat "z " (or (bound-and-true-p kaizen/nav-down) "j")) #'husky-fold-next
       "z M" #'husky-fold-close-all
-      "z k" #'husky-fold-previous))
+      (concat "z " (or (bound-and-true-p kaizen/nav-up) "k")) #'husky-fold-previous))
 
   (with-eval-after-load 'better-jumper
     (advice-add 'hel-forward-word-start :around

@@ -132,6 +132,34 @@ binding_scheme = "hel"
     "m",
     "m",
 ]
+"fold.close-all" = [
+    "z",
+    "M",
+]
+"fold.next" = [
+    "z",
+    "j",
+]
+"fold.open" = [
+    "z",
+    "r",
+]
+"fold.open-all" = [
+    "z",
+    "R",
+]
+"fold.previous" = [
+    "z",
+    "k",
+]
+"fold.toggle" = [
+    "z",
+    "a",
+]
+"fold.toggle-all" = [
+    "z",
+    "A",
+]
 "jjui.edit" = ["e"]
 "jjui.interactive" = ["i"]
 "jjui.new" = ["n"]
@@ -305,6 +333,34 @@ binding_scheme = "hel"
 "bookmark.toggle" = [
     "m",
     "m",
+]
+"fold.close-all" = [
+    "z",
+    "M",
+]
+"fold.next" = [
+    "z",
+    "n",
+]
+"fold.open" = [
+    "z",
+    "r",
+]
+"fold.open-all" = [
+    "z",
+    "R",
+]
+"fold.previous" = [
+    "z",
+    "e",
+]
+"fold.toggle" = [
+    "z",
+    "a",
+]
+"fold.toggle-all" = [
+    "z",
+    "A",
 ]
 "jjui.edit" = ["k"]
 "jjui.interactive" = ["l"]
