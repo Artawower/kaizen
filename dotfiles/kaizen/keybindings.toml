@@ -66,6 +66,24 @@ CTRL = "Ctrl"
   "q",
 ], group = "Window", description = "Close current window/pane" }
 
+# --- Bookmarks ---
+"bookmark.toggle" = { keys = [
+  "m",
+  "m",
+], group = "Bookmark", description = "Toggle bookmark on current line" }
+"bookmark.next" = { keys = [
+  "]",
+  "m",
+], group = "Bookmark", description = "Go to next bookmark" }
+"bookmark.previous" = { keys = [
+  "[",
+  "m",
+], group = "Bookmark", description = "Go to previous bookmark" }
+"bookmark.list" = { keys = [
+  "m",
+  "l",
+], group = "Bookmark", description = "List bookmarks" }
+
 # --- Projects ---
 "projects.pick" = { keys = [
   "p",

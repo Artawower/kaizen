@@ -146,8 +146,10 @@
 
   (with-eval-after-load 'bm
     (hel-keymap-global-set :state 'normal
-      "] m" #'bm-next
-      "[ m" #'bm-previous))
+      "] m"   #'bm-next
+      "[ m"   #'bm-previous
+      "SPC m m" #'bm-toggle
+      "SPC m l" #'bm-show))
 
   (with-eval-after-load 'undo-fu
     (hel-keymap-global-set :state 'normal

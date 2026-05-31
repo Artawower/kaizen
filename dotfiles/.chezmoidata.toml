@@ -113,6 +113,22 @@ binding_scheme = "hel"
     "Opt",
     "w",
 ]
+"bookmark.list" = [
+    "m",
+    "l",
+]
+"bookmark.next" = [
+    "]",
+    "m",
+]
+"bookmark.previous" = [
+    "[",
+    "m",
+]
+"bookmark.toggle" = [
+    "m",
+    "m",
+]
 "jjui.edit" = ["e"]
 "jjui.interactive" = ["i"]
 "jjui.new" = ["n"]
@@ -270,6 +286,22 @@ binding_scheme = "hel"
 "app.workspaces.pick" = [
     "Opt",
     "w",
+]
+"bookmark.list" = [
+    "m",
+    "l",
+]
+"bookmark.next" = [
+    "]",
+    "m",
+]
+"bookmark.previous" = [
+    "[",
+    "m",
+]
+"bookmark.toggle" = [
+    "m",
+    "m",
 ]
 "jjui.edit" = ["k"]
 "jjui.interactive" = ["l"]

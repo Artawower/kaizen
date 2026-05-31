@@ -379,8 +379,10 @@
   (define-key meow-normal-state-keymap (kbd "\\f") #'avy-goto-char-timer))
 
 (with-eval-after-load 'bm
-  (define-key meow-normal-state-keymap (kbd "]m") #'bm-next)
-  (define-key meow-normal-state-keymap (kbd "[m") #'bm-previous))
+  (define-key meow-normal-state-keymap (kbd "]m")        #'bm-next)
+  (define-key meow-normal-state-keymap (kbd "[m")        #'bm-previous)
+  (define-key meow-normal-state-keymap (kbd "SPC m m")   #'bm-toggle)
+  (define-key meow-normal-state-keymap (kbd "SPC m l")   #'bm-show))
 
 (with-eval-after-load 'undo-fu
   (define-key meow-normal-state-keymap (kbd "U") #'undo-fu-only-redo)
