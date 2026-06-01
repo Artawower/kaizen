@@ -162,6 +162,9 @@
   (with-eval-after-load 'apheleia
     (hel-keymap-global-set :state 'normal "\\ p" #'apheleia-format-buffer))
 
+  (hel-keymap-global-set :state 'normal
+    "SPC f f" #'project-find-file)
+
   (with-eval-after-load 'dirvish
     (hel-keymap-global-set :state 'normal "gf" #'dirvish-quick-access))
 
@@ -247,6 +250,7 @@
                   (unless (bound-and-true-p hel-normal-state)
                     (copilot--display-overlay-completion completion uuid start end)))))
 
+  ;; husky LSP — deferred until husky loads
   (with-eval-after-load 'husky
     (hel-keymap-global-set :state 'normal
       "gd"  #'husky-lsp-find-definition
@@ -254,19 +258,26 @@
       "g F" #'husky-lsp-avy-go-to-definition
       "g f" #'husky-lsp-avy-go-to-definition
       "g D" #'husky-buffers-side-husky-actions-find-definition
-      "z r" #'husky-fold-open
-      "z R" #'husky-fold-open-all
       "s-y" #'husky-lsp-copy-to-register-1
-      "s-p" #'husky-lsp-paste-from-register-1
-      "z A" #'husky-fold-toggle-all
-      "z a" #'husky-fold-toggle
-      (concat "z " (or (bound-and-true-p kaizen/nav-down) "j")) #'husky-fold-next
-      "z M" #'husky-fold-close-all
-      (concat "z " (or (bound-and-true-p kaizen/nav-up) "k")) #'husky-fold-previous))
+      "s-p" #'husky-lsp-paste-from-register-1))
+
+
 
   (with-eval-after-load 'better-jumper
     (advice-add 'hel-forward-word-start :around
                 #'my/better-jump-preserve-pos-advice)))
+
+  ;; husky-fold — public API via husky-autoloads
+  (let ((fold-next (concat "z " (or (bound-and-true-p kaizen/nav-down) "j")))
+        (fold-prev (concat "z " (or (bound-and-true-p kaizen/nav-up) "k"))))
+    (hel-keymap-global-set :state 'normal
+      "z r" #'husky-fold-open
+      "z R" #'husky-fold-open-all
+      "z A" #'husky-fold-toggle-all
+      "z a" #'husky-fold-toggle
+      fold-next #'husky-fold-next
+      "z M"     #'husky-fold-close-all
+      fold-prev #'husky-fold-previous))
 
   ;; Activate after all state/keymap configuration is complete
   (hel-mode))

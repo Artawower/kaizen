@@ -53,6 +53,7 @@ Function for getting config related paths
 
 #+BEGIN_SRC emacs-lisp
 (setq my/org-roam-dir (expand-file-name "~/org-roam"))
+(setq my/org-roam-dir (expand-file-name "~/tmp/org-debug-roam"))
 (setq my/agenda-dir (concat my/org-roam-dir "/agenda/"))
 
 (setq my/org-roam-charts-dir (expand-file-name "~/org-roam/charts"))

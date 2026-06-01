@@ -132,6 +132,10 @@ binding_scheme = "hel"
     "m",
     "m",
 ]
+"file.find" = [
+    "f",
+    "f",
+]
 "fold.close-all" = [
     "z",
     "M",
@@ -164,32 +168,26 @@ binding_scheme = "hel"
 "jjui.interactive" = ["i"]
 "jjui.new" = ["n"]
 "lsp.action" = [
-    "space",
     "l",
     "a",
 ]
 "lsp.diagnostics" = [
-    "space",
     "l",
     "d",
 ]
 "lsp.format" = [
-    "space",
     "l",
     "f",
 ]
 "lsp.hover" = [
-    "space",
     "l",
     "h",
 ]
 "lsp.rename" = [
-    "space",
     "l",
     "r",
 ]
 "lsp.symbols" = [
-    "space",
     "l",
     "s",
 ]
@@ -364,6 +362,10 @@ binding_scheme = "hel"
     "m",
     "m",
 ]
+"file.find" = [
+    "f",
+    "f",
+]
 "fold.close-all" = [
     "z",
     "M",
@@ -396,32 +398,26 @@ binding_scheme = "hel"
 "jjui.interactive" = ["l"]
 "jjui.new" = ["j"]
 "lsp.action" = [
-    "space",
     "l",
     "a",
 ]
 "lsp.diagnostics" = [
-    "space",
     "l",
     "d",
 ]
 "lsp.format" = [
-    "space",
     "l",
     "f",
 ]
 "lsp.hover" = [
-    "space",
     "l",
     "h",
 ]
 "lsp.rename" = [
-    "space",
     "l",
     "r",
 ]
 "lsp.symbols" = [
-    "space",
     "l",
     "s",
 ]

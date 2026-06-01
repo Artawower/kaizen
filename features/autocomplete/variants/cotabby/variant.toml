@@ -1,6 +1,0 @@
-id = "cotabby"
-slot = "autocomplete.engine"
-title = "Cotabby (local LLM tab-completion)"
-stability = "experimental"
-platforms = ["darwin"]
-default = false

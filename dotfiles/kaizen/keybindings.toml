@@ -66,34 +66,33 @@ CTRL = "Ctrl"
   "q",
 ], group = "Window", description = "Close current window/pane" }
 
+# --- File navigation ---
+# keys = suffix after space-leader (space prefix added by editor templates)
+"file.find" = { keys = [
+  "f",
+  "f",
+], group = "File", description = "Find file in project" }
+
 # --- LSP actions (space l *) ---
+# keys = suffix after space-leader
 "lsp.rename" = { keys = [
-  "space",
   "l",
   "r",
 ], group = "LSP", description = "Rename symbol" }
-"lsp.action" = { keys = [
-  "space",
-  "l",
-  "a",
-], group = "LSP", description = "Code action" }
+"lsp.action" = { keys = ["l", "a"], group = "LSP", description = "Code action" }
 "lsp.format" = { keys = [
-  "space",
   "l",
   "f",
 ], group = "LSP", description = "Format buffer" }
 "lsp.hover" = { keys = [
-  "space",
   "l",
   "h",
 ], group = "LSP", description = "Show hover docs" }
 "lsp.symbols" = { keys = [
-  "space",
   "l",
   "s",
 ], group = "LSP", description = "Document symbols" }
 "lsp.diagnostics" = { keys = [
-  "space",
   "l",
   "d",
 ], group = "LSP", description = "Diagnostics picker" }
