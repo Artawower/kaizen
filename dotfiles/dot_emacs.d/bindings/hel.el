@@ -192,10 +192,14 @@
 
   (with-eval-after-load 'eglot
     (hel-keymap-global-set :state 'normal
-      "g i" #'eglot-find-implementation
-      "g r" #'xref-find-references
-      "\\ i" #'my/eglot-toggle-inlay-hints
-      "\\ l" #'eglot-code-actions))
+      "g i"       #'eglot-find-implementation
+      "g r"       #'xref-find-references
+      "\\ i"     #'my/eglot-toggle-inlay-hints
+      "SPC l a"   #'eglot-code-actions
+      "SPC l r"   #'eglot-rename
+      "SPC l h"   #'eldoc
+      "SPC l f"   #'eglot-format-buffer
+      "SPC l d"   #'flymake-show-buffer-diagnostics))
 
   (with-eval-after-load 'corfu
     (add-hook 'hel-insert-state-exit-hook (lambda () (corfu-quit))))

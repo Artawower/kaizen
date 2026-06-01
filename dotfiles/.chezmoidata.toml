@@ -163,6 +163,36 @@ binding_scheme = "hel"
 "jjui.edit" = ["e"]
 "jjui.interactive" = ["i"]
 "jjui.new" = ["n"]
+"lsp.action" = [
+    "space",
+    "l",
+    "a",
+]
+"lsp.diagnostics" = [
+    "space",
+    "l",
+    "d",
+]
+"lsp.format" = [
+    "space",
+    "l",
+    "f",
+]
+"lsp.hover" = [
+    "space",
+    "l",
+    "h",
+]
+"lsp.rename" = [
+    "space",
+    "l",
+    "r",
+]
+"lsp.symbols" = [
+    "space",
+    "l",
+    "s",
+]
 "nav.down" = ["j"]
 "nav.insert" = ["i"]
 "nav.left" = ["h"]
@@ -365,6 +395,36 @@ binding_scheme = "hel"
 "jjui.edit" = ["k"]
 "jjui.interactive" = ["l"]
 "jjui.new" = ["j"]
+"lsp.action" = [
+    "space",
+    "l",
+    "a",
+]
+"lsp.diagnostics" = [
+    "space",
+    "l",
+    "d",
+]
+"lsp.format" = [
+    "space",
+    "l",
+    "f",
+]
+"lsp.hover" = [
+    "space",
+    "l",
+    "h",
+]
+"lsp.rename" = [
+    "space",
+    "l",
+    "r",
+]
+"lsp.symbols" = [
+    "space",
+    "l",
+    "s",
+]
 "nav.down" = ["n"]
 "nav.insert" = ["l"]
 "nav.left" = ["h"]

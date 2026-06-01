@@ -66,6 +66,38 @@ CTRL = "Ctrl"
   "q",
 ], group = "Window", description = "Close current window/pane" }
 
+# --- LSP actions (space l *) ---
+"lsp.rename" = { keys = [
+  "space",
+  "l",
+  "r",
+], group = "LSP", description = "Rename symbol" }
+"lsp.action" = { keys = [
+  "space",
+  "l",
+  "a",
+], group = "LSP", description = "Code action" }
+"lsp.format" = { keys = [
+  "space",
+  "l",
+  "f",
+], group = "LSP", description = "Format buffer" }
+"lsp.hover" = { keys = [
+  "space",
+  "l",
+  "h",
+], group = "LSP", description = "Show hover docs" }
+"lsp.symbols" = { keys = [
+  "space",
+  "l",
+  "s",
+], group = "LSP", description = "Document symbols" }
+"lsp.diagnostics" = { keys = [
+  "space",
+  "l",
+  "d",
+], group = "LSP", description = "Diagnostics picker" }
+
 # --- Folding ---
 "fold.toggle" = { keys = [
   "z",

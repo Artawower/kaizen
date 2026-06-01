@@ -242,11 +242,15 @@ h = ':run-shell-command ~/.config/helix/utils/git-hunk.sh %{buffer_name} %{curso
 [keys.normal.space.h.r]
 {{ join "" (index .kaizen.shortcuts "nav.up") }} = ":config-reload"
 
-[keys.normal.space.c]
+[keys.normal.space.l]
 "a" = "code_action"
 "r" = "rename_symbol"
 "f" = "format_selections"
-"e" = ":yank-diagnostic"
+"h" = "hover"
+"s" = "symbol_picker"
+"d" = "diagnostics_picker"
+
+[keys.normal.space.c]
 "n" = [":sh basename %{buffer_name} | tr -d '\\n' | pbcopy"]
 "p" = [":sh echo -n %{buffer_name} | pbcopy"]
 
