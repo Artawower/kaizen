@@ -6,9 +6,6 @@ hostname = "Arturs-MacBook-Pro"
 layout = "colemak"
 username = "darkawower"
 
-[autocomplete]
-engine = "cotabby"
-
 [features]
 ai = true
 core = true
@@ -28,92 +25,92 @@ binding_scheme = "hel"
 
 [kaizen.base_shortcuts]
 "app.buffers.pick" = [
-    "Opt",
+    "Alt",
     "b",
 ]
 "app.pane.focus.down" = [
     "Ctrl",
-    "Opt",
+    "Alt",
     "j",
 ]
 "app.pane.focus.left" = [
     "Ctrl",
-    "Opt",
+    "Alt",
     "h",
 ]
 "app.pane.focus.right" = [
     "Ctrl",
-    "Opt",
+    "Alt",
     "l",
 ]
 "app.pane.focus.up" = [
     "Ctrl",
-    "Opt",
+    "Alt",
     "k",
 ]
 "app.pane.move.down" = [
     "Ctrl",
-    "Opt",
+    "Alt",
     "Shift",
     "j",
 ]
 "app.pane.move.left" = [
     "Ctrl",
-    "Opt",
+    "Alt",
     "Shift",
     "h",
 ]
 "app.pane.move.right" = [
     "Ctrl",
-    "Opt",
+    "Alt",
     "Shift",
     "l",
 ]
 "app.pane.move.up" = [
     "Ctrl",
-    "Opt",
+    "Alt",
     "Shift",
     "k",
 ]
 "app.projects.pick" = [
-    "Opt",
+    "Alt",
     "p",
 ]
 "app.tab.next" = [
-    "Cmd",
+    "Super",
     "Shift",
     "l",
 ]
 "app.tab.previous" = [
-    "Cmd",
+    "Super",
     "Shift",
     "h",
 ]
 "app.tab.switch" = [
-    "Cmd",
+    "Super",
     "1..9",
 ]
 "app.tabs.pick" = [
-    "Opt",
+    "Alt",
     "t",
 ]
 "app.workspace.next" = [
-    "Cmd",
+    "Super",
     "Shift",
     "j",
 ]
 "app.workspace.previous" = [
-    "Cmd",
+    "Super",
     "Shift",
     "k",
 ]
 "app.workspace.switch" = [
-    "Cmd",
+    "Super",
     "Shift",
     "1..9",
 ]
 "app.workspaces.pick" = [
-    "Opt",
+    "Alt",
     "w",
 ]
 "bookmark.list" = [
@@ -198,22 +195,22 @@ binding_scheme = "hel"
 "nav.up" = ["k"]
 "pane.focus.down" = [
     "Ctrl",
-    "Opt",
+    "Alt",
     "Down",
 ]
 "pane.focus.left" = [
     "Ctrl",
-    "Opt",
+    "Alt",
     "Left",
 ]
 "pane.focus.right" = [
     "Ctrl",
-    "Opt",
+    "Alt",
     "Right",
 ]
 "pane.focus.up" = [
     "Ctrl",
-    "Opt",
+    "Alt",
     "Up",
 ]
 "pane.split.down" = [
@@ -258,92 +255,92 @@ binding_scheme = "hel"
 
 [kaizen.shortcuts]
 "app.buffers.pick" = [
-    "Opt",
+    "Alt",
     "b",
 ]
 "app.pane.focus.down" = [
     "Ctrl",
-    "Opt",
+    "Alt",
     "n",
 ]
 "app.pane.focus.left" = [
     "Ctrl",
-    "Opt",
+    "Alt",
     "h",
 ]
 "app.pane.focus.right" = [
     "Ctrl",
-    "Opt",
+    "Alt",
     "i",
 ]
 "app.pane.focus.up" = [
     "Ctrl",
-    "Opt",
+    "Alt",
     "e",
 ]
 "app.pane.move.down" = [
     "Ctrl",
-    "Opt",
+    "Alt",
     "Shift",
     "n",
 ]
 "app.pane.move.left" = [
     "Ctrl",
-    "Opt",
+    "Alt",
     "Shift",
     "h",
 ]
 "app.pane.move.right" = [
     "Ctrl",
-    "Opt",
+    "Alt",
     "Shift",
     "i",
 ]
 "app.pane.move.up" = [
     "Ctrl",
-    "Opt",
+    "Alt",
     "Shift",
     "e",
 ]
 "app.projects.pick" = [
-    "Opt",
+    "Alt",
     "p",
 ]
 "app.tab.next" = [
-    "Cmd",
+    "Super",
     "Shift",
     "i",
 ]
 "app.tab.previous" = [
-    "Cmd",
+    "Super",
     "Shift",
     "h",
 ]
 "app.tab.switch" = [
-    "Cmd",
+    "Super",
     "1..9",
 ]
 "app.tabs.pick" = [
-    "Opt",
+    "Alt",
     "t",
 ]
 "app.workspace.next" = [
-    "Cmd",
+    "Super",
     "Shift",
     "n",
 ]
 "app.workspace.previous" = [
-    "Cmd",
+    "Super",
     "Shift",
     "e",
 ]
 "app.workspace.switch" = [
-    "Cmd",
+    "Super",
     "Shift",
     "1..9",
 ]
 "app.workspaces.pick" = [
-    "Opt",
+    "Alt",
     "w",
 ]
 "bookmark.list" = [
@@ -428,22 +425,22 @@ binding_scheme = "hel"
 "nav.up" = ["e"]
 "pane.focus.down" = [
     "Ctrl",
-    "Opt",
+    "Alt",
     "Down",
 ]
 "pane.focus.left" = [
     "Ctrl",
-    "Opt",
+    "Alt",
     "Left",
 ]
 "pane.focus.right" = [
     "Ctrl",
-    "Opt",
+    "Alt",
     "Right",
 ]
 "pane.focus.up" = [
     "Ctrl",
-    "Opt",
+    "Alt",
     "Up",
 ]
 "pane.split.down" = [
@@ -494,8 +491,5 @@ quick = "openai-codex/gpt-5.4-mini"
 research = "openai-codex/gpt-5.4"
 reviewer = "openai-codex/gpt-5.5"
 
-[tiling]
-wm = "yabai"
-
 [ui]
-font_size = 16
+font_size = 14

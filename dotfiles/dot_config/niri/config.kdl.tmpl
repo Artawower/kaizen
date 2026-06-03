@@ -122,11 +122,10 @@ layer-rule {
     place-within-backdrop true
 }
 spawn-at-startup "sh" "-c" "systemctl --user unset-environment QT_PLUGIN_PATH; systemctl --user set-environment __EGL_VENDOR_LIBRARY_FILENAMES=/usr/share/glvnd/egl_vendor.d/50_mesa.json __GLX_VENDOR_LIBRARY_NAME=mesa LIBGL_DRIVERS_PATH=/usr/lib64/dri GBM_BACKENDS_PATH=/usr/lib64/gbm VDPAU_DRIVER_PATH=/usr/lib64/vdpau VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/asahi_icd.aarch64.json VK_LAYER_PATH=/usr/share/vulkan/explicit_layer.d:/usr/share/vulkan/implicit_layer.d; dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP=niri __EGL_VENDOR_LIBRARY_FILENAMES __GLX_VENDOR_LIBRARY_NAME LIBGL_DRIVERS_PATH GBM_BACKENDS_PATH VDPAU_DRIVER_PATH VK_ICD_FILENAMES VK_LAYER_PATH XDG_DATA_DIRS"
-spawn-at-startup "darkman run"
 spawn-at-startup "ydotoold"
 // spawn-at-startup "dms" "run"
-spawn-at-startup "vicinae-soft" "server"
-spawn-sh-at-startup "pkill xremap; xremap --ignore xremap --watch ~/.config/xremap/config.yml"
+spawn-at-startup "vicinae" "server"
+spawn-sh-at-startup "pkill xremap; xremap --device 'Apple SPI Keyboard' --watch=config,device ~/.config/xremap/config.yml"
 spawn-at-startup "sh" "-c" "sleep 1 && /usr/bin/quickshell -c noctalia-shell"
 spawn-at-startup "sh" "-c" "sleep 1; exec hyprvoice serve"
 spawn-sh-at-startup "$HOME/.config/bin/wallpaper-rotate"
@@ -202,13 +201,13 @@ window-rule {
     clip-to-geometry true
 }
 binds {
-    Alt+Shift+Slash {
+    Mod5+Shift+Slash {
         show-hotkey-overlay
     }
     Alt+Return hotkey-overlay-title="Open a Terminal: wezterm" {
         spawn "flatpak" "run" "org.wezfurlong.wezterm"
     }
-    Ctrl+Return hotkey-overlay-title="Open a Terminal: wezterm" {
+    Mod5+Shift+Return hotkey-overlay-title="Open a Terminal: ghostty" {
         spawn "ghostty"
     }
     Alt+Space hotkey-overlay-title="Run an Application: vicinae" {
@@ -247,279 +246,279 @@ binds {
     XF86MonBrightnessDown allow-when-locked=true {
         spawn "brightnessctl" "--class=backlight" "set" "5%-"
     }
-    Alt+Shift+G {
+    Mod5+Shift+G {
         maximize-window-to-edges
     }
-    Alt+Shift+{{ $overview }} repeat=false {
+    Mod5+Shift+{{ $overview }} repeat=false {
         toggle-overview
     }
-    Alt+Shift+Q repeat=false {
+    Mod5+Shift+Q repeat=false {
         close-window
     }
-    Alt+Shift+H {
+    Mod5+Shift+H {
         focus-column-left
     }
-    Alt+Shift+{{ $right }} {
+    Mod5+Shift+{{ $right }} {
         focus-column-right
     }
-    Alt+Shift+Super+Left {
+    Mod5+Shift+Super+Left {
         move-column-left
     }
-    Alt+Shift+Super+Down {
+    Mod5+Shift+Super+Down {
         move-window-down
     }
-    Alt+Shift+Super+Up {
+    Mod5+Shift+Super+Up {
         move-window-up
     }
-    Alt+Shift+Super+Right {
+    Mod5+Shift+Super+Right {
         move-column-right
     }
-    Alt+Shift+Super+H {
+    Mod5+Shift+Super+H {
         move-column-left
     }
-    Alt+Shift+Super+{{ $right }} {
+    Mod5+Shift+Super+{{ $right }} {
         move-column-right
     }
-    Alt+Shift+Home {
+    Mod5+Shift+Home {
         focus-column-first
     }
-    Alt+Shift+End {
+    Mod5+Shift+End {
         focus-column-last
     }
-    Alt+Shift+Ctrl+Home {
+    Mod5+Shift+Ctrl+Home {
         move-column-to-first
     }
-    Alt+Shift+Ctrl+End {
+    Mod5+Shift+Ctrl+End {
         move-column-to-last
     }
-    Alt+Shift+Ctrl+Super+Left {
+    Mod5+Shift+Ctrl+Super+Left {
         move-column-to-monitor-left
     }
-    Alt+Shift+Ctrl+Super+Down {
+    Mod5+Shift+Ctrl+Super+Down {
         move-column-to-monitor-down
     }
-    Alt+Shift+Ctrl+Super+Up {
+    Mod5+Shift+Ctrl+Super+Up {
         move-column-to-monitor-up
     }
-    Alt+Shift+Ctrl+Super+Right {
+    Mod5+Shift+Ctrl+Super+Right {
         move-column-to-monitor-right
     }
-    Alt+Shift+Ctrl+Super+H {
+    Mod5+Shift+Ctrl+Super+H {
         move-column-to-monitor-left
     }
-    Alt+Shift+Ctrl+Super+{{ $down }} {
+    Mod5+Shift+Ctrl+Super+{{ $down }} {
         move-column-to-monitor-down
     }
-    Alt+Shift+Ctrl+Super+{{ $up }} {
+    Mod5+Shift+Ctrl+Super+{{ $up }} {
         move-column-to-monitor-up
     }
-    Alt+Shift+Ctrl+Super+{{ $right }} {
+    Mod5+Shift+Ctrl+Super+{{ $right }} {
         move-column-to-monitor-right
     }
-    Alt+Shift+Page_Down {
+    Mod5+Shift+Page_Down {
         focus-workspace-down
     }
-    Alt+Shift+Page_Up {
+    Mod5+Shift+Page_Up {
         focus-workspace-up
     }
-    Alt+Shift+{{ $down }} {
+    Mod5+Shift+{{ $down }} {
         focus-workspace-down
     }
-    Alt+Shift+{{ $up }} {
+    Mod5+Shift+{{ $up }} {
         focus-workspace-up
     }
-    Alt+Shift+Ctrl+Page_Down {
+    Mod5+Shift+Ctrl+Page_Down {
         move-column-to-workspace-down
     }
-    Alt+Shift+Ctrl+Page_Up {
+    Mod5+Shift+Ctrl+Page_Up {
         move-column-to-workspace-up
     }
-    Alt+Shift+Super+{{ $down }} {
+    Mod5+Shift+Super+{{ $down }} {
         move-column-to-workspace-down
     }
-    Alt+Shift+Super+{{ $up }} {
+    Mod5+Shift+Super+{{ $up }} {
         move-column-to-workspace-up
     }
-    Alt+Shift+Super+Page_Down {
+    Mod5+Shift+Super+Page_Down {
         move-workspace-down
     }
-    Alt+Shift+Super+Page_Up {
+    Mod5+Shift+Super+Page_Up {
         move-workspace-up
     }
 {{- if ne .layout "colemak" }}
-    Alt+Shift+Super+U {
+    Mod5+Shift+Super+U {
         move-workspace-down
     }
-    Alt+Shift+Super+I {
+    Mod5+Shift+Super+I {
         move-workspace-up
     }
 {{- end }}
-    Alt+Shift+WheelScrollDown cooldown-ms=150 {
+    Mod5+Shift+WheelScrollDown cooldown-ms=150 {
         focus-workspace-down
     }
-    Alt+Shift+WheelScrollUp cooldown-ms=150 {
+    Mod5+Shift+WheelScrollUp cooldown-ms=150 {
         focus-workspace-up
     }
-    Alt+Shift+Ctrl+WheelScrollDown cooldown-ms=150 {
+    Mod5+Shift+Ctrl+WheelScrollDown cooldown-ms=150 {
         move-column-to-workspace-down
     }
-    Alt+Shift+Ctrl+WheelScrollUp cooldown-ms=150 {
+    Mod5+Shift+Ctrl+WheelScrollUp cooldown-ms=150 {
         move-column-to-workspace-up
     }
-    Alt+Shift+WheelScrollRight {
+    Mod5+Shift+WheelScrollRight {
         focus-column-right
     }
-    Alt+Shift+WheelScrollLeft {
+    Mod5+Shift+WheelScrollLeft {
         focus-column-left
     }
-    Alt+Shift+Ctrl+WheelScrollRight {
+    Mod5+Shift+Ctrl+WheelScrollRight {
         move-column-right
     }
-    Alt+Shift+Ctrl+WheelScrollLeft {
+    Mod5+Shift+Ctrl+WheelScrollLeft {
         move-column-left
     }
-    Alt+Shift+Super+WheelScrollDown {
+    Mod5+Shift+Super+WheelScrollDown {
         focus-column-right
     }
-    Alt+Shift+Super+WheelScrollUp {
+    Mod5+Shift+Super+WheelScrollUp {
         focus-column-left
     }
-    Alt+Shift+Ctrl+Super+WheelScrollDown {
+    Mod5+Shift+Ctrl+Super+WheelScrollDown {
         move-column-right
     }
-    Alt+Shift+Ctrl+Super+WheelScrollUp {
+    Mod5+Shift+Ctrl+Super+WheelScrollUp {
         move-column-left
     }
-    Alt+Shift+1 {
+    Mod5+Shift+1 {
         focus-workspace "soc"
     }
-    Alt+Shift+2 {
+    Mod5+Shift+2 {
         focus-workspace "web"
     }
-    Alt+Shift+3 {
+    Mod5+Shift+3 {
         focus-workspace "dev"
     }
-    Alt+Shift+4 {
+    Mod5+Shift+4 {
         focus-workspace "deb"
     }
-    Alt+Shift+5 {
+    Mod5+Shift+5 {
         focus-workspace "oth"
     }
-    Alt+Shift+O {
+    Mod5+Shift+O {
         focus-workspace "oth"
     }
-    Alt+Shift+S {
+    Mod5+Shift+S {
         focus-workspace "soc"
     }
-    Alt+Shift+P {
+    Mod5+Shift+P {
         focus-workspace "deb"
     }
-    Alt+Shift+D {
+    Mod5+Shift+D {
         spawn-sh "niri msg action focus-workspace dev && niri msg action focus-column-last"
     }
-    Alt+Shift+Ctrl+D {
+    Mod5+Shift+Ctrl+D {
         spawn-sh "niri msg action focus-workspace dev && niri msg action focus-column-first"
     }
-    Alt+Shift+W {
+    Mod5+Shift+W {
         focus-workspace "web"
     }
-    Alt+Shift+Super+1 {
+    Mod5+Shift+Super+1 {
         move-window-to-workspace "soc"
     }
-    Alt+Shift+Super+2 {
+    Mod5+Shift+Super+2 {
         move-window-to-workspace "web"
     }
-    Alt+Shift+Super+3 {
+    Mod5+Shift+Super+3 {
         move-window-to-workspace "dev"
     }
-    Alt+Shift+Super+4 {
+    Mod5+Shift+Super+4 {
         move-window-to-workspace "deb"
     }
-    Alt+Shift+Super+5 {
+    Mod5+Shift+Super+5 {
         move-window-to-workspace "oth"
     }
-    Alt+Shift+Super+O {
+    Mod5+Shift+Super+O {
         move-window-to-workspace "oth"
     }
-    Alt+Shift+Super+S {
+    Mod5+Shift+Super+S {
         move-window-to-workspace "soc"
     }
-    Alt+Shift+Super+W {
+    Mod5+Shift+Super+W {
         move-window-to-workspace "web"
     }
-    Alt+Shift+Super+D {
+    Mod5+Shift+Super+D {
         move-window-to-workspace "dev"
     }
-    Alt+Shift+Super+P {
+    Mod5+Shift+Super+P {
         move-window-to-workspace "deb"
     }
-    Alt+Shift+Ctrl+1 {
+    Mod5+Shift+Ctrl+1 {
         move-column-to-workspace "soc"
     }
-    Alt+Shift+Ctrl+2 {
+    Mod5+Shift+Ctrl+2 {
         move-column-to-workspace "dev"
     }
-    Alt+Shift+Ctrl+3 {
+    Mod5+Shift+Ctrl+3 {
         move-column-to-workspace "web"
     }
-    Alt+Shift+Ctrl+4 {
+    Mod5+Shift+Ctrl+4 {
         move-column-to-workspace "deb"
     }
-    Alt+Shift+Ctrl+5 {
+    Mod5+Shift+Ctrl+5 {
         move-column-to-workspace "oth"
     }
-    Alt+Shift+BracketLeft {
+    Mod5+Shift+BracketLeft {
         consume-or-expel-window-left
     }
-    Alt+Shift+BracketRight {
+    Mod5+Shift+BracketRight {
         consume-or-expel-window-right
     }
-    Alt+Shift+Comma {
+    Mod5+Shift+Comma {
         consume-window-into-column
     }
-    Alt+Shift+Period {
+    Mod5+Shift+Period {
         expel-window-from-column
     }
-    Alt+Shift+R {
+    Mod5+Shift+R {
         switch-preset-column-width
     }
-    Alt+Shift+Super+R {
+    Mod5+Shift+Super+R {
         switch-preset-window-height
     }
-    Alt+Shift+Ctrl+R {
+    Mod5+Shift+Ctrl+R {
         reset-window-height
     }
-    Alt+Shift+F {
+    Mod5+Shift+F {
         maximize-column
     }
-    Alt+Shift+Super+F {
+    Mod5+Shift+Super+F {
         fullscreen-window
     }
-    Alt+Shift+Ctrl+F {
+    Mod5+Shift+Ctrl+F {
         expand-column-to-available-width
     }
-    Alt+Shift+C {
+    Mod5+Shift+C {
         center-column
     }
-    Alt+Shift+Ctrl+C {
+    Mod5+Shift+Ctrl+C {
         center-visible-columns
     }
-    Alt+Shift+Minus {
+    Mod5+Shift+Minus {
         set-column-width "-10%"
     }
-    Alt+Shift+Equal {
+    Mod5+Shift+Equal {
         set-column-width "+10%"
     }
-    Alt+Shift+Super+Minus {
+    Mod5+Shift+Super+Minus {
         set-window-height "-10%"
     }
-    Alt+Shift+Super+Equal {
+    Mod5+Shift+Super+Equal {
         set-window-height "+10%"
     }
-    Alt+Shift+Super+C {
+    Mod5+Shift+Super+C {
         toggle-window-floating
     }
-    Alt+Shift+Super+V {
+    Mod5+Shift+Super+V {
         switch-focus-between-floating-and-tiling
     }    // Actions to switch layouts.
     // Note: if you uncomment these, make sure you do NOT have
@@ -556,13 +555,13 @@ binds {
         quit
     }
     Ctrl+Super+C {
-        spawn "vicinae" "vicinae://extensions/vicinae/clipboard/history"
+        spawn "vicinae" "vicinae://launch/clipboard/history?toggle=true"
     }
-    Super+Space {
-        spawn "vicinae" "vicinae://extensions/vicinae/clipboard/history"
+    Super+Space hotkey-overlay-title="Clipboard History: vicinae" {
+        spawn "vicinae" "vicinae://launch/clipboard/history?toggle=true"
     }
-    Ctrl+Super+E {
-        spawn "vicinae" "vicinae://extensions/vicinae/core/search-emojis"
+    Alt+Shift+E hotkey-overlay-title="Emoji Picker: vicinae" {
+        spawn "vicinae" "vicinae://launch/core/search-emojis?toggle=true"
     }
     Super+Shift+Alt+G {
         spawn "vicinae" "vicinae://extensions/rolandleth/kill-process/index"
@@ -573,8 +572,8 @@ binds {
     Super+Shift+G {
         spawn-sh "grim -g \"$(slurp)\" - | tesseract - - -l rus+eng | wl-copy"
     }
-    Alt+Tab {
-        spawn "vicinae" "vicinae://extensions/vicinae/wm/switch-windows"
+    Alt+Tab hotkey-overlay-title="Switch Windows: vicinae" {
+        spawn "vicinae" "vicinae://launch/wm/switch-windows?toggle=true"
     }
     Ctrl+Super+3 {
         spawn-sh "dms notify \"Start crop recording\" && wf-recorder --audio -g \"$(slurp)\" -f ~/Videos/crop_$(date +%H%M%S).mp4"

@@ -1,5 +1,7 @@
+{{- $clip := "pbcopy" -}}
+{{- if eq .chezmoi.os "linux" -}}{{- $clip = "wl-copy" -}}{{- end -}}
 {{- if eq .layout "colemak" -}}
-{{ include "dot_config/zellij/config-colemak.kdl" }}
+{{ include "dot_config/zellij/config-colemak.kdl" | replace "copy_command \"pbcopy\"" (printf "copy_command %q" $clip) }}
 {{- else -}}
-{{ include "dot_config/zellij/config-qwerty.kdl" }}
+{{ include "dot_config/zellij/config-qwerty.kdl" | replace "copy_command \"pbcopy\"" (printf "copy_command %q" $clip) }}
 {{- end -}}

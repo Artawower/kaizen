@@ -383,8 +383,8 @@
         "telemetryEnabled": false
     },
     "hooks": {
-        "darkModeChange": "",
-        "enabled": false,
+        "darkModeChange": "{{ .chezmoi.homeDir }}/.config/noctalia/scripts/sync-system-appearance $1",
+        "enabled": true,
         "performanceModeDisabled": "",
         "performanceModeEnabled": "",
         "screenLock": "",

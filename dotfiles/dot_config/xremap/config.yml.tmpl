@@ -2,7 +2,7 @@ modmap:
   - name: CapsLock as niri modifier and layout switch
     remap:
       CapsLock:
-        held: [Alt_L, Shift_L]
+        held: [Alt_R, Shift_R]
         alone: CapsLock
         free_hold: true
 
@@ -29,7 +29,7 @@ keymap:
 
   - name: Common Super shortcuts
     application:
-      not: [Emacs, emacs, "app.zen_browser.zen", zen, org.gnu.Emacs, zen-browser, "org.wezfurlong.wezterm", "com.mitchellh.ghostty", kitty]
+      not: [Emacs, emacs, "app.zen_browser.zen", zen, org.gnu.Emacs, zen-browser, alacritty, kitty, wezterm, "org.wezfurlong.wezterm", app.kde.konsole, konsole, ghostty, "com.mitchellh.ghostty"]
     exact_match: true
     remap:
       Super-c: C-c
@@ -37,6 +37,15 @@ keymap:
       Super-x: C-x
       Super-z: C-z
       Super-a: C-a
+{{- if eq .layout "colemak" }}
+      Super-e: C-f
+      Super-u: C-l
+      Super-f: C-t
+      Super-w: C-w
+      Super-s: C-r
+      Super-d: C-s
+      Super-j: C-n
+{{- else }}
       Super-f: C-f
       Super-l: C-l
       Super-t: C-t
@@ -44,11 +53,12 @@ keymap:
       Super-r: C-r
       Super-s: C-s
       Super-n: C-n
+{{- end }}
       Super-q: C-q
 
   - name: Terminals commands
     application:
-      only: [alacritty, kitty, wezterm, "org.wezfurlong.wezterm", app.kde.konsole, konsole, "com.mitchellh.ghostty"]
+      only: [alacritty, kitty, wezterm, "org.wezfurlong.wezterm", app.kde.konsole, konsole, ghostty, "com.mitchellh.ghostty"]
     remap:
       Super-v: C-Shift-v
       Super-c: C-Shift-c
@@ -75,7 +85,7 @@ keymap:
 
   - name: GUI shortcuts
     application:
-      only: [brave-browser, org.mozilla.firefox, "app.zen_browser.zen", zen, org.telegram.desktop]
+      only: [brave-browser, org.mozilla.firefox, "app.zen_browser.zen", zen, helium, org.telegram.desktop]
     remap:
       C-j: C-Tab
       C-k: C-Shift-Tab
@@ -85,14 +95,22 @@ keymap:
       Super-c: C-c
       Super-v: C-v
       Super-z: C-z
+{{- if eq .layout "colemak" }}
+      Super-Shift-f: C-Shift-t
+{{- else }}
       Super-Shift-t: C-Shift-t
+{{- end }}
 
   - name: Browser shortcuts
     application:
-      only: [brave-browser, org.mozilla.firefox, "app.zen_browser.zen", zen]
+      only: [brave-browser, org.mozilla.firefox, "app.zen_browser.zen", zen, helium]
     exact_match: true
     remap:
+{{- if eq .layout "colemak" }}
+      Super-e: C-f
+{{- else }}
       Super-f: C-f
+{{- end }}
       Super-1: C-1
       Super-2: C-2
       Super-3: C-3

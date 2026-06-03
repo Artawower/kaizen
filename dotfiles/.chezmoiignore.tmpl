@@ -8,7 +8,8 @@ kaizen/
 .config/noctalia/
 .config/vicinae/
 .config/systemd/
-{{- $wm := .tiling.wm | default "yabai" }}
+.config/autostart/
+{{- $wm := dig "tiling" "wm" "yabai" . }}
 {{- if ne $wm "yabai" }}
 .config/yabai/
 {{- end }}

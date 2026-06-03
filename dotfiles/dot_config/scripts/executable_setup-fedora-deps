@@ -9,9 +9,15 @@ if [ ! -f /etc/yum.repos.d/terra.repo ]; then
 fi
 
 sudo dnf copr enable solopasha/hyprland
+# ghostty: install from COPR (system build), never from nix. A nix-built ghostty
+# pins mismatched GTK/Mesa/libwayland libs and fails with "unable to acquire an
+# OpenGL context" under Wayland. See https://ghostty.org/docs/help/gtk-opengl-context
+sudo dnf copr enable scottames/ghostty
 sudo env -u LD_LIBRARY_PATH dnf clean all
 sudo env -u LD_LIBRARY_PATH dnf install -y --skip-unavailable \
+    ghostty \
     noctalia-shell \
+    vicinae \
     fastfetch \
     freetype-devel libepoxy-devel fontconfig-devel cairo-devel \
     pango-devel gtk4-devel libadwaita-devel libspiro-devel \

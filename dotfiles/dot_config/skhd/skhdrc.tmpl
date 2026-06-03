@@ -1,4 +1,4 @@
-{{- $wm := .tiling.wm | default "yabai" -}}
+{{- $wm := dig "tiling" "wm" "yabai" . -}}
 {{- if eq $wm "komorebi" -}}
 {{ include "dot_config/skhd/skhdrc-komorebi" }}
 {{- else if eq .layout "colemak" -}}

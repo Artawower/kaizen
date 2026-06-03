@@ -31,7 +31,13 @@
         home-manager.lib.homeManagerConfiguration {
           pkgs = import nixpkgs {
             inherit system;
-            config.allowUnfree = true;
+            config = {
+              allowUnfree = true;
+              # Obsidian pins an EOL electron that nixpkgs marks insecure. Allow it
+              # explicitly (version-resilient, unlike permittedInsecurePackages).
+              allowInsecurePredicate = pkg:
+                builtins.elem (nixpkgs.lib.getName pkg) [ "electron" ];
+            };
           };
           extraSpecialArgs = { inherit inputs; };
           modules = [
