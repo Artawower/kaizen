@@ -25,92 +25,92 @@ binding_scheme = "hel"
 
 [kaizen.base_shortcuts]
 "app.buffers.pick" = [
-    "Alt",
+    "Opt",
     "b",
 ]
 "app.pane.focus.down" = [
     "Ctrl",
-    "Alt",
+    "Opt",
     "j",
 ]
 "app.pane.focus.left" = [
     "Ctrl",
-    "Alt",
+    "Opt",
     "h",
 ]
 "app.pane.focus.right" = [
     "Ctrl",
-    "Alt",
+    "Opt",
     "l",
 ]
 "app.pane.focus.up" = [
     "Ctrl",
-    "Alt",
+    "Opt",
     "k",
 ]
 "app.pane.move.down" = [
     "Ctrl",
-    "Alt",
+    "Opt",
     "Shift",
     "j",
 ]
 "app.pane.move.left" = [
     "Ctrl",
-    "Alt",
+    "Opt",
     "Shift",
     "h",
 ]
 "app.pane.move.right" = [
     "Ctrl",
-    "Alt",
+    "Opt",
     "Shift",
     "l",
 ]
 "app.pane.move.up" = [
     "Ctrl",
-    "Alt",
+    "Opt",
     "Shift",
     "k",
 ]
 "app.projects.pick" = [
-    "Alt",
+    "Opt",
     "p",
 ]
 "app.tab.next" = [
-    "Super",
+    "Cmd",
     "Shift",
     "l",
 ]
 "app.tab.previous" = [
-    "Super",
+    "Cmd",
     "Shift",
     "h",
 ]
 "app.tab.switch" = [
-    "Super",
+    "Cmd",
     "1..9",
 ]
 "app.tabs.pick" = [
-    "Alt",
+    "Opt",
     "t",
 ]
 "app.workspace.next" = [
-    "Super",
+    "Cmd",
     "Shift",
     "j",
 ]
 "app.workspace.previous" = [
-    "Super",
+    "Cmd",
     "Shift",
     "k",
 ]
 "app.workspace.switch" = [
-    "Super",
+    "Cmd",
     "Shift",
     "1..9",
 ]
 "app.workspaces.pick" = [
-    "Alt",
+    "Opt",
     "w",
 ]
 "bookmark.list" = [
@@ -195,27 +195,27 @@ binding_scheme = "hel"
 "nav.up" = ["k"]
 "pane.focus.down" = [
     "Ctrl",
-    "Alt",
+    "Opt",
     "Down",
 ]
 "pane.focus.left" = [
     "Ctrl",
-    "Alt",
+    "Opt",
     "Left",
 ]
 "pane.focus.right" = [
     "Ctrl",
-    "Alt",
+    "Opt",
     "Right",
 ]
 "pane.focus.up" = [
     "Ctrl",
-    "Alt",
+    "Opt",
     "Up",
 ]
 "pane.split.down" = [
     "w",
-    "s",
+    "h",
 ]
 "pane.split.right" = [
     "w",
@@ -248,6 +248,10 @@ binding_scheme = "hel"
     "w",
     "q",
 ]
+"window.rotate" = [
+    "w",
+    "r",
+]
 "window.zoom" = [
     "w",
     "f",
@@ -255,92 +259,92 @@ binding_scheme = "hel"
 
 [kaizen.shortcuts]
 "app.buffers.pick" = [
-    "Alt",
+    "Opt",
     "b",
 ]
 "app.pane.focus.down" = [
     "Ctrl",
-    "Alt",
+    "Opt",
     "n",
 ]
 "app.pane.focus.left" = [
     "Ctrl",
-    "Alt",
+    "Opt",
     "h",
 ]
 "app.pane.focus.right" = [
     "Ctrl",
-    "Alt",
+    "Opt",
     "i",
 ]
 "app.pane.focus.up" = [
     "Ctrl",
-    "Alt",
+    "Opt",
     "e",
 ]
 "app.pane.move.down" = [
     "Ctrl",
-    "Alt",
+    "Opt",
     "Shift",
     "n",
 ]
 "app.pane.move.left" = [
     "Ctrl",
-    "Alt",
+    "Opt",
     "Shift",
     "h",
 ]
 "app.pane.move.right" = [
     "Ctrl",
-    "Alt",
+    "Opt",
     "Shift",
     "i",
 ]
 "app.pane.move.up" = [
     "Ctrl",
-    "Alt",
+    "Opt",
     "Shift",
     "e",
 ]
 "app.projects.pick" = [
-    "Alt",
+    "Opt",
     "p",
 ]
 "app.tab.next" = [
-    "Super",
+    "Cmd",
     "Shift",
     "i",
 ]
 "app.tab.previous" = [
-    "Super",
+    "Cmd",
     "Shift",
     "h",
 ]
 "app.tab.switch" = [
-    "Super",
+    "Cmd",
     "1..9",
 ]
 "app.tabs.pick" = [
-    "Alt",
+    "Opt",
     "t",
 ]
 "app.workspace.next" = [
-    "Super",
+    "Cmd",
     "Shift",
     "n",
 ]
 "app.workspace.previous" = [
-    "Super",
+    "Cmd",
     "Shift",
     "e",
 ]
 "app.workspace.switch" = [
-    "Super",
+    "Cmd",
     "Shift",
     "1..9",
 ]
 "app.workspaces.pick" = [
-    "Alt",
+    "Opt",
     "w",
 ]
 "bookmark.list" = [
@@ -425,27 +429,27 @@ binding_scheme = "hel"
 "nav.up" = ["e"]
 "pane.focus.down" = [
     "Ctrl",
-    "Alt",
+    "Opt",
     "Down",
 ]
 "pane.focus.left" = [
     "Ctrl",
-    "Alt",
+    "Opt",
     "Left",
 ]
 "pane.focus.right" = [
     "Ctrl",
-    "Alt",
+    "Opt",
     "Right",
 ]
 "pane.focus.up" = [
     "Ctrl",
-    "Alt",
+    "Opt",
     "Up",
 ]
 "pane.split.down" = [
     "w",
-    "s",
+    "h",
 ]
 "pane.split.right" = [
     "w",
@@ -478,6 +482,10 @@ binding_scheme = "hel"
     "w",
     "q",
 ]
+"window.rotate" = [
+    "w",
+    "r",
+]
 "window.zoom" = [
     "w",
     "f",
@@ -490,6 +498,9 @@ expert = "anthropic/claude-opus-4-8"
 quick = "openai-codex/gpt-5.4-mini"
 research = "openai-codex/gpt-5.4"
 reviewer = "openai-codex/gpt-5.5"
+
+[tiling]
+wm = "yabai"
 
 [ui]
 font_size = 14

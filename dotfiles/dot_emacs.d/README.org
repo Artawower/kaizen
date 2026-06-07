@@ -70,7 +70,7 @@ Function for getting config related paths
 #+END_SRC
 ** UI variables
 #+BEGIN_SRC emacs-lisp
-(setq split-width-threshold 150) 
+(setq split-width-threshold 150)
 (unless (boundp 'my/font-height)
   (setq my/font-height (if (eq system-type 'darwin) 18 14)))
 (setq my/font-default "Myna Nerd Font")
@@ -89,7 +89,7 @@ Function for getting config related paths
 #+BEGIN_SRC emacs-lisp :results silent
 (when (string= (getenv "XDG_SESSION_TYPE") "wayland")
   (setq wl-copy-process nil)
-  
+
   (defun wl-copy (text)
     (setq wl-copy-process
           (make-process :name "wl-copy"
@@ -2075,7 +2075,7 @@ Comile mode
    '(git-gutter-fr:added ((t :foreground "#00f300" :background nil)))
    '(git-gutter-fr:deleted ((t :foreground "#f30000" :background nil)))
    '(git-gutter-fr:modified ((t :foreground "#f3f300" :background nil))))
-  
+
   (defmacro git-gutter-fr-define-glyph (count pattern)
     `(progn
        ,@(cl-loop
@@ -3002,7 +3002,7 @@ def servers():
     "Prevent display messag en the echo area!"
     (let ((inhibit-message t))
       (apply orig-fn args)))
-  
+
   (advice-add 'flymake-goto-next-error :around #'my/inhibit-message-advice)
   (advice-add 'flymake-goto-prev-error :around #'my/inhibit-message-advice))
 #+END_SRC
@@ -3019,10 +3019,15 @@ def servers():
 
 **** The function to toggle the posframe mode by current meow state
 #+BEGIN_SRC emacs-lisp :results silent
-(defun my/toggle-flymake-posframe ()
-  "Toggle the flymake posframe mode by current meow state"
+(defun my/modal-normal-state-p ()
+  (cond
+   ((and (boundp 'hel-state) hel-state) (eq hel-state 'normal))
+   ((fboundp 'meow-normal-mode-p) (meow-normal-mode-p))
+   (t t)))
 
-  (if (meow-normal-mode-p) 
+(defun my/toggle-flymake-posframe ()
+  "Toggle the flymake posframe mode by current modal state."
+  (if (my/modal-normal-state-p)
       (flymake-posframe-mode 1)
     (flymake-posframe-mode -1)))
 #+END_SRC
@@ -3359,8 +3364,8 @@ Clone this repo for js debug git@github.com:microsoft/vscode-js-debug.git
 *** UV mode
 **** Auto activation
 #+BEGIN_SRC emacs-lisp :results silent
-(use-package uv-mode 
-  :defer t 
+(use-package uv-mode
+  :defer t
   :hook (pythons-ts-mode . uv-mode))
 #+END_SRC
 *** Virtualenv
@@ -3777,7 +3782,7 @@ Requires Emacs 30+
   (define-key eca-chat-mode-map (kbd "s-<return>") 'eca-chat--key-pressed-return)
   (define-key eca-chat-mode-map (kbd "<return>") 'eca-chat--key-pressed-newline)
   (define-key eca-chat-mode-map (kbd "RET") 'eca-chat--key-pressed-newline)
-  
+
   (define-key eca-chat-mode-map (kbd "C-n") 'eca-chat--key-pressed-next-prompt-history)
   (define-key eca-chat-mode-map (kbd "C-e") 'eca-chat--key-pressed-previous-prompt-history)
   (define-key eca-chat-mode-map (kbd "C-S-j") 'eca-chat-go-to-next-expandable-block)
@@ -4114,7 +4119,7 @@ Automatically creates parent directories if needed."
            :prepend t)
 
           ("o" "Orgnote")
-          
+
           ("on" "Orgnote → Next actions" entry
            (file+headline ,(expand-file-name "orgnote.org" my/agenda-dir) "Next actions")
            "* TODO %? \n%U\n"
@@ -4213,7 +4218,7 @@ Automatically creates parent directories if needed."
     (call-interactively 'find-file)))
 #+END_SRC
 
-** Org superagenda
+** COMMENT Org superagenda
 #+BEGIN_SRC emacs-lisp :results silent
 (use-package org-super-agenda
   :after org

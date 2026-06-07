@@ -167,12 +167,11 @@
     "SPC f f" #'project-find-file)
 
   (with-eval-after-load 'dirvish
-    (hel-keymap-global-set :state 'normal "gf" #'dirvish-quick-access))
+    (hel-keymap-global-set :state 'normal "g f" #'dirvish-quick-access))
 
-  (with-eval-after-load 'git-gutter
-    (hel-keymap-global-set :state 'normal
-      "] g" #'git-gutter:next-hunk
-      "[ g" #'git-gutter:previous-hunk))
+  (hel-keymap-global-set :state '(normal motion)
+    "] g" #'git-gutter:next-hunk
+    "[ g" #'git-gutter:previous-hunk)
 
   (with-eval-after-load 'blamer
     (add-hook 'hel-insert-state-enter-hook #'my/disable-blamer-mode)
@@ -254,7 +253,7 @@
   ;; husky LSP — deferred until husky loads
   (with-eval-after-load 'husky
     (hel-keymap-global-set :state 'normal
-      "gd"  #'husky-lsp-find-definition
+      "g d" #'husky-lsp-find-definition
       "%"   #'husky-navigation-bounce-paren
       "g F" #'husky-lsp-avy-go-to-definition
       "g f" #'husky-lsp-avy-go-to-definition
