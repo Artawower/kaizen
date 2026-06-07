@@ -5,7 +5,7 @@ ralt + rshift - e : /opt/homebrew/bin/yabai -m window --focus "$(/opt/homebrew/b
 
 ralt + rshift - i : /opt/homebrew/bin/yabai -m window --focus east || /opt/homebrew/bin/yabai -m space --focus next
 ralt + rshift - h : /opt/homebrew/bin/yabai -m window --focus west || /opt/homebrew/bin/yabai -m space --focus prev
-ralt + rshift + lshift - i : /opt/homebrew/bin/yabai -m window --warp east || (/opt/homebrew/bin/yabai -m window --space next && /opt/homebrew/bin/yabai -m space --focus next)
+ralt + rshift + lcmd - i : /opt/homebrew/bin/yabai -m window --warp east || (/opt/homebrew/bin/yabai -m window --space next && /opt/homebrew/bin/yabai -m space --focus next)
 ralt + rshift + lcmd - h : /opt/homebrew/bin/yabai -m window --warp west || (/opt/homebrew/bin/yabai -m window --space prev && /opt/homebrew/bin/yabai -m space --focus prev)
 
 
