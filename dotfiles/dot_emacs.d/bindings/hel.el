@@ -53,7 +53,8 @@
     "f" #'zoom-window-zoom
     "q" #'delete-window
     "v" #'split-window-right
-    "h" #'split-window-below)
+    "h" #'split-window-below
+    "r" #'rotate-window)
 
   (let* ((left  (or (bound-and-true-p kaizen/nav-left)   "h"))
          (down  (or (bound-and-true-p kaizen/nav-down)   "n"))

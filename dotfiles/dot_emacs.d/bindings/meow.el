@@ -373,6 +373,12 @@
 
 (define-key meow-normal-state-keymap (kbd "\\ w q") #'delete-window)
 (define-key meow-motion-state-keymap (kbd "\\ w q") #'delete-window)
+(define-key meow-normal-state-keymap (kbd "\\ w v") #'split-window-right)
+(define-key meow-motion-state-keymap (kbd "\\ w v") #'split-window-right)
+(define-key meow-normal-state-keymap (kbd "\\ w h") #'split-window-below)
+(define-key meow-motion-state-keymap (kbd "\\ w h") #'split-window-below)
+(define-key meow-normal-state-keymap (kbd "\\ w r") #'rotate-window)
+(define-key meow-motion-state-keymap (kbd "\\ w r") #'rotate-window)
 
 (with-eval-after-load 'avy
   (define-key meow-normal-state-keymap (kbd "f") #'my/avy-select-word)

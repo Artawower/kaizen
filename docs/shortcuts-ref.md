@@ -21,11 +21,50 @@
 | `app.workspace.switch` | `SUPER + SHIFT + 1..9` | Switch app workspace/session by number |
 | `app.workspaces.pick` | `ALT + w` | Pick app workspace |
 
+## Bookmark
+
+| Shortcut | Keys | Description |
+|----------|------|-------------|
+| `bookmark.list` | `m + l` | List bookmarks |
+| `bookmark.next` | `] + m` | Go to next bookmark |
+| `bookmark.previous` | `[ + m` | Go to previous bookmark |
+| `bookmark.toggle` | `m + m` | Toggle bookmark on current line |
+
+## File
+
+| Shortcut | Keys | Description |
+|----------|------|-------------|
+| `file.find` | `f + f` | Find file in project |
+
+## Fold
+
+| Shortcut | Keys | Description |
+|----------|------|-------------|
+| `fold.close-all` | `z + M` | Close all folds |
+| `fold.next` | `z + n` | Next fold |
+| `fold.open` | `z + r` | Open fold at cursor |
+| `fold.open-all` | `z + R` | Open all folds |
+| `fold.previous` | `z + e` | Previous fold |
+| `fold.toggle` | `z + a` | Toggle fold at cursor |
+| `fold.toggle-all` | `z + A` | Toggle all folds |
+
+## LSP
+
+| Shortcut | Keys | Description |
+|----------|------|-------------|
+| `lsp.action` | `l + a` | Code action |
+| `lsp.diagnostics` | `l + d` | Diagnostics picker |
+| `lsp.format` | `l + f` | Format buffer |
+| `lsp.hover` | `l + h` | Show hover docs |
+| `lsp.rename` | `l + r` | Rename symbol |
+| `lsp.symbols` | `l + s` | Document symbols |
+
 ## Navigation
 
 | Shortcut | Keys | Description |
 |----------|------|-------------|
 | `nav.down` | `n` | Move focus down |
+| `nav.insert` | `l` | Enter insert mode |
 | `nav.left` | `h` | Move focus left |
 | `nav.right` | `i` | Move focus right |
 | `nav.up` | `e` | Move focus up |
@@ -38,7 +77,7 @@
 | `pane.focus.left` | `CTRL + ALT + Left` | Focus pane left |
 | `pane.focus.right` | `CTRL + ALT + Right` | Focus pane right |
 | `pane.focus.up` | `CTRL + ALT + Up` | Focus pane up |
-| `pane.split.down` | `w + s` | Split pane down |
+| `pane.split.down` | `w + h` | Split pane down |
 | `pane.split.right` | `w + v` | Split pane right |
 
 ## Prefix
@@ -55,11 +94,26 @@
 |----------|------|-------------|
 | `projects.pick` | `p + p` | Pick project (zoxide) |
 
+## Run
+
+| Shortcut | Keys | Description |
+|----------|------|-------------|
+| `run.task` | `space + r + t` | Run task |
+
 ## VCS
 
 | Shortcut | Keys | Description |
 |----------|------|-------------|
-| `vcs.ui` | `g + g` | Open VCS UI (jjui) |
+| `vcs.history` | `v + h` | Open VCS history |
+| `vcs.ui` | `v + l` | Open VCS UI |
+
+## Window
+
+| Shortcut | Keys | Description |
+|----------|------|-------------|
+| `window.close` | `w + q` | Close current window/pane |
+| `window.rotate` | `w + r` | Rotate windows/panes |
+| `window.zoom` | `w + f` | Zoom/fullscreen current split |
 
 ## jjui
 

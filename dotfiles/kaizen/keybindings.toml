@@ -65,6 +65,10 @@ CTRL = "Ctrl"
   "w",
   "q",
 ], group = "Window", description = "Close current window/pane" }
+"window.rotate" = { keys = [
+  "w",
+  "r",
+], group = "Window", description = "Rotate windows/panes" }
 
 # --- File navigation ---
 # keys = suffix after space-leader (space prefix added by editor templates)
@@ -155,7 +159,7 @@ CTRL = "Ctrl"
 ], group = "Pane", description = "Split pane right" }
 "pane.split.down" = { keys = [
   "w",
-  "s",
+  "h",
 ], group = "Pane", description = "Split pane down" }
 
 # --- Pane: focus — arrow fallback (terminal-safe, all apps) ---

@@ -178,6 +178,8 @@ esc = ["collapse_selection", "keep_primary_selection"]
 "{{ $split_r }}" = "vsplit"
 {{ $split_d := last (index .kaizen.shortcuts "pane.split.down") -}}
 "{{ $split_d }}" = "hsplit"
+{{ $rotate := last (index .kaizen.shortcuts "window.rotate") -}}
+"{{ $rotate }}" = "rotate_view"
 {{ join "" (index .kaizen.shortcuts "nav.right") }} = [":toggle-option soft-wrap.enable", ":redraw"]
 
 [keys.normal.space.m.e]
