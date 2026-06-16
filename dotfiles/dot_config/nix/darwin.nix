@@ -1,6 +1,7 @@
 {
   self,
   user,
+  darwinSystem,
   lib,
   pkgs,
   ...
@@ -122,7 +123,7 @@ in
 
   system.configurationRevision = self.rev or self.dirtyRev or null;
   system.stateVersion = 5;
-  nixpkgs.hostPlatform = "aarch64-darwin";
+  nixpkgs.hostPlatform = darwinSystem;
   nixpkgs.config.permittedInsecurePackages = [ "python-2.7.18.8" ];
 
   homebrew = {
