@@ -1,0 +1,1 @@
+/Users/darkawower/projects/pet/kaizen/dotfiles/dot_emacs.d/elpaca/sources/xonsh-mode/xonsh-mode.el

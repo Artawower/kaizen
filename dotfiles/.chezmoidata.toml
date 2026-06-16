@@ -129,6 +129,8 @@ binding_scheme = "hel"
     "m",
     "m",
 ]
+"editor.line.end" = ["$"]
+"editor.line.start" = ["0"]
 "file.find" = [
     "f",
     "f",
@@ -363,6 +365,8 @@ binding_scheme = "hel"
     "m",
     "m",
 ]
+"editor.line.end" = ["$"]
+"editor.line.start" = ["0"]
 "file.find" = [
     "f",
     "f",

@@ -8,6 +8,8 @@
 (defvar kaizen/nav-up    "{{ last (index .kaizen.shortcuts "nav.up") }}")
 (defvar kaizen/nav-right "{{ last (index .kaizen.shortcuts "nav.right") }}")
 (defvar kaizen/nav-insert "{{ last (index .kaizen.shortcuts "nav.insert") }}")
+(defvar kaizen/line-start "{{ last (index .kaizen.shortcuts "editor.line.start") }}")
+(defvar kaizen/line-end "{{ last (index .kaizen.shortcuts "editor.line.end") }}")
 (defvar kaizen/binding-scheme "{{ index .kaizen "binding_scheme" | default "meow" }}")
 
 ;;; kaizen.el ends here

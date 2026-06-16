@@ -60,7 +60,9 @@
          (down  (or (bound-and-true-p kaizen/nav-down)   "n"))
          (up    (or (bound-and-true-p kaizen/nav-up)     "e"))
          (right (or (bound-and-true-p kaizen/nav-right)  "i"))
-         (ins   (or (bound-and-true-p kaizen/nav-insert) "l")))
+         (ins   (or (bound-and-true-p kaizen/nav-insert) "l"))
+         (line-start (or (bound-and-true-p kaizen/line-start) "0"))
+         (line-end   (or (bound-and-true-p kaizen/line-end)   "$")))
 
     (hel-keymap-global-set :state 'normal
       left  #'hel-backward-char
@@ -72,6 +74,8 @@
       "j"   #'hel-forward-word-start
       "J"   #'hel-forward-WORD-start
       "q"   #'deactivate-mark
+      line-start #'beginning-of-line
+      line-end   #'end-of-line
       "G"   #'kaizen/hel-G
       "N"   #'my/copy-with-ai-context
       "C-:" #'query-replace-regexp
@@ -92,6 +96,8 @@
       down  #'hel-next-line
       up    #'hel-previous-line
       right #'hel-forward-char
+      line-start #'beginning-of-line
+      line-end   #'end-of-line
       "SPC" mode-specific-map)
 
     (global-set-key (kbd "s-c") #'hel-copy)

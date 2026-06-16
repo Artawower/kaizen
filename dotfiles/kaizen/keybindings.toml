@@ -48,6 +48,12 @@ CTRL = "Ctrl"
 "nav.insert" = { keys = [
   "i",
 ], group = "Navigation", description = "Enter insert mode" }
+"editor.line.start" = { keys = [
+  "0",
+], group = "Navigation", description = "Move cursor to line start" }
+"editor.line.end" = { keys = [
+  "$",
+], group = "Navigation", description = "Move cursor to line end" }
 
 # --- VCS ---
 "vcs.ui" = { keys = ["v", "l"], group = "VCS", description = "Open VCS UI" }

@@ -1,0 +1,1 @@
+/Users/darkawower/projects/pet/kaizen/dotfiles/dot_emacs.d/elpaca/sources/golden-ratio-scroll-screen/golden-ratio-scroll-screen.el
