@@ -399,7 +399,9 @@ unreadable. Returns the names of envvars that were changed."
 ** Warning level
 #+BEGIN_SRC emacs-lisp
 (setq warning-minimum-level :emergency)
-(setq warning-suppress-log-types '((comp) (undo discard-info)))
+(setq warning-suppress-log-types '((comp) (undo discard-info) (obsolete)))
+(setq warning-suppress-types '((comp) (undo discard-info) (obsolete)))
+(setq byte-compile-warnings '(not obsolete))
 #+END_SRC
 ** No littering
 #+BEGIN_SRC emacs-lisp
@@ -1892,9 +1894,9 @@ Allow to transform PASCAL_CASE -> camelCase -> snake_case
   (defun my/ghostel--get-dir ()
     "Get directory for ghostel session."
     (expand-file-name
-     (or (when-let ((f (buffer-file-name)))
+     (or (when-let* ((f (buffer-file-name)))
            (file-name-directory f))
-         (when-let ((p (project-current)))
+         (when-let* ((p (project-current)))
            (project-root p))
          default-directory)))
 
@@ -2085,9 +2087,9 @@ Comile mode
    ;; If you edit it by hand, you could mess it up, so be careful.
    ;; Your init file should contain only one such instance.
    ;; If there is more than one, they won't work right.
-   '(git-gutter-fr:added ((t :foreground "#00f300" :background nil)))
-   '(git-gutter-fr:deleted ((t :foreground "#f30000" :background nil)))
-   '(git-gutter-fr:modified ((t :foreground "#f3f300" :background nil))))
+   '(git-gutter-fr:added ((t :foreground "#00f300" :background unspecified)))
+   '(git-gutter-fr:deleted ((t :foreground "#f30000" :background unspecified)))
+   '(git-gutter-fr:modified ((t :foreground "#f3f300" :background unspecified))))
 
   (defmacro git-gutter-fr-define-glyph (count pattern)
     `(progn
@@ -2707,7 +2709,7 @@ Function for search in buffer depends or visual or normal line
 
   (setq consult-project-root-function
         (lambda ()
-          (when-let (project (project-current))
+          (when-let* ((project (project-current)))
             (car (project-roots project))))))
 #+END_SRC
 
@@ -3159,7 +3161,7 @@ ESLint via flymake-eslint (separate from LSP, since vscode-eslint-language-serve
                     (directory-file-name (project-root pr)))
                  (abbreviate-file-name default-directory)))
          (bufname (format "*compilation:%s*" name)))
-    (if-let ((buf (get-buffer bufname)))
+    (if-let* ((buf (get-buffer bufname)))
         (pop-to-buffer buf)
       (message "No compilation buffer for this project"))))
 #+END_SRC
@@ -4381,7 +4383,7 @@ Automatically creates parent directories if needed."
   (setq org-node-affixation-fn
         (defun my/org-node-prefix-with-tag (node title)
           (list title
-                (when-let ((tags (org-mem-entry-tags node)))
+                (when-let* ((tags (org-mem-entry-tags node)))
                   (propertize (concat "(" (string-join tags ", ") ") ")
                               'face `(:foreground ,my/org-tag-color :weight bold :slant italic)))
                 nil))))

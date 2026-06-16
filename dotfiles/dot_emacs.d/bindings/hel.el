@@ -271,7 +271,7 @@
 
   (with-eval-after-load 'better-jumper
     (advice-add 'hel-forward-word-start :around
-                #'my/better-jump-preserve-pos-advice)))
+                #'my/better-jump-preserve-pos-advice))
 
   ;; husky-fold — public API via husky-autoloads
   (let ((fold-next (concat "z " (or (bound-and-true-p kaizen/nav-down) "j")))
