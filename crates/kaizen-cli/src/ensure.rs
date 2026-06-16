@@ -61,11 +61,9 @@ pub fn ensure_chezmoi() -> Result<()> {
     let status = Command::new("sh")
         .args([
             "-c",
-            &format!(
-                "$(curl -fsLS get.chezmoi.io) -- -b {}",
-                bin_dir.to_string_lossy()
-            ),
+            "curl -fsLS https://get.chezmoi.io | sh -s -- -b \"$CHEZMOI_BIN_DIR\"",
         ])
+        .env("CHEZMOI_BIN_DIR", &bin_dir)
         .status()?;
 
     if !status.success() {
