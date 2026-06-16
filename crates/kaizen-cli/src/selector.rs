@@ -1,4 +1,4 @@
-use std::io::{self, Write};
+use std::io::{self, IsTerminal, Write};
 
 use anyhow::Result;
 use crossterm::{
@@ -7,6 +7,7 @@ use crossterm::{
     execute, queue,
     terminal::{disable_raw_mode, enable_raw_mode, size, Clear, ClearType},
 };
+use dialoguer::{theme::ColorfulTheme, MultiSelect, Select};
 use owo_colors::OwoColorize;
 
 struct TerminalGuard;
@@ -18,6 +19,7 @@ impl Drop for TerminalGuard {
     }
 }
 
+#[derive(Clone)]
 pub struct Item {
     pub name: String,
     pub desc: Option<String>,
@@ -265,6 +267,26 @@ fn event_loop(
 }
 
 pub fn multi_select(prompt: &str, items: Vec<Item>) -> Result<Option<Vec<String>>> {
+    if !io::stdin().is_terminal() || !io::stdout().is_terminal() {
+        return multi_select_dialoguer(prompt, items);
+    }
+
+    match multi_select_crossterm(prompt, items.clone()) {
+        Ok(result) => Ok(result),
+        Err(err) if is_input_reader_error(&err) => multi_select_dialoguer(prompt, items),
+        Err(err) => Err(err),
+    }
+}
+
+fn is_input_reader_error(error: &anyhow::Error) -> bool {
+    error.chain().any(|cause| {
+        cause
+            .to_string()
+            .contains("Failed to initialize input reader")
+    })
+}
+
+fn multi_select_crossterm(prompt: &str, items: Vec<Item>) -> Result<Option<Vec<String>>> {
     let mut state = State::new(items);
     let mut stdout = io::stdout();
 
@@ -302,6 +324,31 @@ pub fn multi_select(prompt: &str, items: Vec<Item>) -> Result<Option<Vec<String>
         prompt,
         format!("({} selected)", names.len()).dimmed()
     );
+    Ok(Some(names))
+}
+
+fn multi_select_dialoguer(prompt: &str, items: Vec<Item>) -> Result<Option<Vec<String>>> {
+    let labels: Vec<String> = items
+        .iter()
+        .map(|item| match item.desc.as_deref() {
+            Some(desc) if !desc.is_empty() => format!("{} — {desc}", item.name),
+            _ => item.name.clone(),
+        })
+        .collect();
+    let defaults: Vec<bool> = items.iter().map(|item| item.selected).collect();
+    let Some(indices) = MultiSelect::with_theme(&ColorfulTheme::default())
+        .with_prompt(prompt)
+        .items(&labels)
+        .defaults(&defaults)
+        .interact_opt()?
+    else {
+        println!("  Cancelled.");
+        return Ok(None);
+    };
+    let names = indices
+        .into_iter()
+        .filter_map(|idx| items.get(idx).map(|item| item.name.clone()))
+        .collect();
     Ok(Some(names))
 }
 
@@ -819,6 +866,41 @@ pub fn pick_features_with_variants<F>(
 where
     F: Fn(bool) -> anyhow::Result<Vec<WizardFeature>>,
 {
+    if !io::stdin().is_terminal() || !io::stdout().is_terminal() {
+        return pick_features_with_variants_dialoguer(
+            prompt,
+            initial_features,
+            initial_experimental,
+            &feature_reloader,
+        );
+    }
+
+    match pick_features_with_variants_crossterm(
+        prompt,
+        initial_features.clone(),
+        initial_experimental,
+        &feature_reloader,
+    ) {
+        Ok(result) => Ok(result),
+        Err(err) if is_input_reader_error(&err) => pick_features_with_variants_dialoguer(
+            prompt,
+            initial_features,
+            initial_experimental,
+            &feature_reloader,
+        ),
+        Err(err) => Err(err),
+    }
+}
+
+fn pick_features_with_variants_crossterm<F>(
+    prompt: &str,
+    initial_features: Vec<WizardFeature>,
+    initial_experimental: bool,
+    feature_reloader: &F,
+) -> anyhow::Result<PickResult>
+where
+    F: Fn(bool) -> anyhow::Result<Vec<WizardFeature>>,
+{
     let mut state = PickFeaturesState::new(initial_features, initial_experimental);
     let mut stdout = io::stdout();
 
@@ -832,7 +914,7 @@ where
     execute!(stdout, MoveUp(reserved as u16))?;
     stdout.flush()?;
 
-    let result = pick_features_event_loop(&mut state, &mut stdout, prompt, &feature_reloader);
+    let result = pick_features_event_loop(&mut state, &mut stdout, prompt, feature_reloader);
 
     if state.lines_drawn > 0 {
         execute!(
@@ -857,6 +939,86 @@ where
             Ok(Some((ids, variants)))
         }
     }
+}
+
+fn pick_features_with_variants_dialoguer<F>(
+    prompt: &str,
+    initial_features: Vec<WizardFeature>,
+    initial_experimental: bool,
+    feature_reloader: &F,
+) -> anyhow::Result<PickResult>
+where
+    F: Fn(bool) -> anyhow::Result<Vec<WizardFeature>>,
+{
+    let features = if initial_experimental {
+        feature_reloader(true)?
+    } else {
+        initial_features
+    };
+    let labels: Vec<String> = features
+        .iter()
+        .map(|feature| {
+            if feature.description.is_empty() {
+                return feature.id.clone();
+            }
+            format!("{} — {}", feature.id, feature.description)
+        })
+        .collect();
+    let defaults: Vec<bool> = features.iter().map(|feature| feature.enabled).collect();
+    let Some(indices) = MultiSelect::with_theme(&ColorfulTheme::default())
+        .with_prompt(prompt)
+        .items(&labels)
+        .defaults(&defaults)
+        .interact_opt()?
+    else {
+        println!("  Cancelled.");
+        return Ok(None);
+    };
+
+    let mut ids = Vec::new();
+    let mut variants = BTreeMap::new();
+    for idx in indices {
+        let Some(feature) = features.get(idx) else {
+            continue;
+        };
+        ids.push(feature.id.clone());
+        let Some(slot) = &feature.slot else { continue };
+        let choices: Vec<String> = slot
+            .choices
+            .iter()
+            .map(|choice| format!("{} — {}", choice.id, choice.title))
+            .collect();
+        let default_idx = slot
+            .selected_id
+            .as_ref()
+            .and_then(|selected| {
+                slot.choices
+                    .iter()
+                    .position(|choice| &choice.id == selected)
+            })
+            .or_else(|| slot.choices.iter().position(|choice| choice.is_default))
+            .unwrap_or(0);
+        let Some(choice_idx) = Select::with_theme(&ColorfulTheme::default())
+            .with_prompt(format!("{} variant", feature.id))
+            .items(&choices)
+            .default(default_idx)
+            .interact_opt()?
+        else {
+            println!("  Cancelled.");
+            return Ok(None);
+        };
+        if let Some(choice) = slot.choices.get(choice_idx) {
+            variants.insert(slot.slot_fqn.clone(), choice.id.clone());
+        }
+    }
+
+    println!(
+        "  {} {}  {}",
+        "✓".green(),
+        prompt,
+        format!("({} selected)", ids.len()).dimmed()
+    );
+    Ok(Some((ids, variants)))
 }
 
 // ── Pure state helpers — unit tests ──────────────────────────────────────────
