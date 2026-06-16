@@ -113,6 +113,12 @@ fn bootstrap_chezmoi(url: &str) -> Result<PathBuf> {
     match bootstrapper.check(url)? {
         BootstrapStatus::AlreadyUpToDate(source) => {
             output::item_ok("chezmoi already initialized with matching remote");
+            output::item(&format!("updating dotfiles source {} …", source.display()));
+            use kaizen_core::ChezmoiClient as _;
+            crate::chezmoi::StdChezmoiClient
+                .pull_source(&source)
+                .context("failed to update dotfiles source")?;
+            output::item_ok("dotfiles source updated");
             Ok(source)
         }
         BootstrapStatus::Conflict {

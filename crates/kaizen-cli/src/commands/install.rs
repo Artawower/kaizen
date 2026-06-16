@@ -1,6 +1,6 @@
 use std::path::{Path, PathBuf};
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 use kaizen_core::KaizenEngine;
 
 use kaizen_core::ChezmoiClient;
@@ -123,14 +123,26 @@ pub fn run(
     // In a dev build, wire up the symlink before anything else so chezmoi
     // picks up the working repo directly. In a release build, update the
     // binary from GitHub releases instead.
-    if is_dev_build() {
+    let dev_build = is_dev_build();
+    if dev_build {
         ensure_dev_symlink()?;
     } else if !dry_run {
         let _ = commands::self_update::run(false);
     }
 
     let config_exists = config_path.exists();
-    let chezmoi_ready = StdChezmoiClient.source_path().unwrap_or(None).is_some();
+    let source_path = StdChezmoiClient.source_path().unwrap_or(None);
+    let chezmoi_ready = source_path.is_some();
+
+    if !dev_build && !dry_run {
+        if let Some(source) = source_path.as_ref() {
+            output::item(&format!("updating dotfiles source {} …", source.display()));
+            StdChezmoiClient
+                .pull_source(source)
+                .context("failed to update dotfiles source")?;
+            output::item_ok("dotfiles source updated");
+        }
+    }
 
     let need_configure = !config_exists || !chezmoi_ready;
 
