@@ -41,8 +41,15 @@ jobs:
             rm -f "$tmp"
           fi
 
+          release_workflow_changed=false
+          if [ -n "$before" ] && [ "$before" != "0000000000000000000000000000000000000000" ]; then
+            if git diff --name-only "$before" HEAD -- .github/workflows/release.yml | grep -q .; then
+              release_workflow_changed=true
+            fi
+          fi
+
           changed=false
-          if [ "$current_version" != "$previous_version" ]; then
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] || [ "$current_version" != "$previous_version" ] || [ "$release_workflow_changed" = "true" ]; then
             changed=true
           fi
 
@@ -58,8 +65,8 @@ jobs:
         include:
           - runner: macos-14
             target: aarch64-apple-darwin
-          # - runner: macos-13
-          #   target: x86_64-apple-darwin
+          - runner: macos-14
+            target: x86_64-apple-darwin
     runs-on: ${{ matrix.runner }}
     env:
       COPYFILE_DISABLE: "1"
@@ -76,6 +83,11 @@ jobs:
         shell: bash
         run: |
           export PATH="$HOME/.cargo/bin:$PATH"
+          clang="$(xcrun --find clang)"
+          sdk_path="$(xcrun --show-sdk-path)"
+          export CARGO_TARGET_AARCH64_APPLE_DARWIN_LINKER="$clang"
+          export CARGO_TARGET_X86_64_APPLE_DARWIN_LINKER="$clang"
+          export RUSTFLAGS="${RUSTFLAGS:+$RUSTFLAGS }-L $sdk_path/usr/lib"
           cargo build --release --bin kaizen --target ${{ matrix.target }}
 
       - name: Package artifact
@@ -119,4 +131,5 @@ jobs:
           fail_on_unmatched_files: true
           files: |
             release/kaizen-aarch64-apple-darwin.tar.gz
+            release/kaizen-x86_64-apple-darwin.tar.gz
             release/kaizen-sha256.txt

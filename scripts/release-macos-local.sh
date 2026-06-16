@@ -68,6 +68,7 @@ need rustup
 need tar
 need sed
 need shasum
+need xcrun
 
 os=$(uname -s)
 [ "$os" = "Darwin" ] || die "this script supports macOS only"
@@ -100,6 +101,12 @@ fi
 
 rm -rf "$release_dir"
 mkdir -p "$release_dir"
+
+clang=$(xcrun --find clang)
+sdk_path=$(xcrun --show-sdk-path)
+export CARGO_TARGET_AARCH64_APPLE_DARWIN_LINKER="$clang"
+export CARGO_TARGET_X86_64_APPLE_DARWIN_LINKER="$clang"
+export RUSTFLAGS="${RUSTFLAGS:+$RUSTFLAGS }-L $sdk_path/usr/lib"
 
 for target in "${requested_targets[@]}"; do
 	rustup target add "$target"
