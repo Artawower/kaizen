@@ -9,6 +9,9 @@
     (load kaizen nil t)))
 
 (require 'org)
+(require 'ob-python)
+(add-to-list 'org-babel-load-languages '(python . t))
+(org-babel-do-load-languages 'org-babel-load-languages org-babel-load-languages)
 (condition-case err
     (org-babel-load-file "~/.emacs.d/README.org")
   (error (message "kaizen: README.org load error: %s" err)))

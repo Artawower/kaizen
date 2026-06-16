@@ -3866,6 +3866,15 @@ deps
 #+END_SRC
 
 ** Org babels
+#+BEGIN_SRC emacs-lisp
+(defun my/org-babel-enable-language (language)
+  (add-to-list 'org-babel-load-languages (cons language t) t)
+  (condition-case err
+      (org-babel-do-load-languages 'org-babel-load-languages org-babel-load-languages)
+    (error
+     (setq org-babel-load-languages (assq-delete-all language org-babel-load-languages))
+     (message "org-babel: failed to load %s: %s" language err))))
+#+END_SRC
 *** HTTP requests
 Dependency
 
@@ -4150,15 +4159,8 @@ Automatically creates parent directories if needed."
 
   (setenv "NODE_PATH" "/opt/homebrew/lib/node_modules")
 
-  (org-babel-do-load-languages
-   'org-babel-load-languages
-   '((sql . t)
-     (typescript . t)
-     (js . t)
-     (python . t)
-     (rust . t)
-     (restclient . t)
-     (shell . t)))
+  (dolist (language '(sql js python shell typescript rust restclient))
+    (my/org-babel-enable-language language))
 
   (defun org-babel-execute:typescript (body params)
     (let ((org-babel-js-cmd "npx ts-node < "))
