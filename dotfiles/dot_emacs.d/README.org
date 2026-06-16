@@ -26,6 +26,19 @@ brew install emacs-plus@31 --with-debug --with-xwidgets --with-imagemagick --wit
 osascript -e 'tell application "Finder" to make alias file to posix file "/opt/homebrew/opt/emacs-plus@31/Emacs.app" at POSIX file "/Applications" with properties {name:"Emacs.app"}'
 #+END_SRC
 
+* Patches
+#+BEGIN_SRC emacs-lisp
+(defun my/remove-tramp-flush-file-function ()
+  (when (fboundp 'tramp-flush-file-function)
+    (remove-hook 'kill-buffer-hook #'tramp-flush-file-function)))
+
+(add-hook 'after-init-hook #'my/remove-tramp-flush-file-function)
+
+(with-eval-after-load 'tramp-cache
+  (my/remove-tramp-flush-file-function))
+#+END_SRC
+
+
 * Required variables
 ** Env variables
 #+BEGIN_SRC emacs-lisp
@@ -53,7 +66,7 @@ Function for getting config related paths
 
 #+BEGIN_SRC emacs-lisp
 (setq my/org-roam-dir (expand-file-name "~/org-roam"))
-(setq my/org-roam-dir (expand-file-name "~/tmp/org-debug-roam"))
+;; (setq my/org-roam-dir (expand-file-name "~/tmp/org-debug-roam"))
 (setq my/agenda-dir (concat my/org-roam-dir "/agenda/"))
 
 (setq my/org-roam-charts-dir (expand-file-name "~/org-roam/charts"))
@@ -647,7 +660,7 @@ Modeline inactive color
   (spacious-padding-mode 1))
 #+END_SRC
 
-** Olivetti mode
+** COMMENT Olivetti mode
 *** Function for dynamic body width
 #+BEGIN_SRC emacs-lisp :results silent
 (defun my/count-visible-windows ()
@@ -3410,7 +3423,7 @@ Clone this repo for js debug git@github.com:microsoft/vscode-js-debug.git
 #+END_SRC
 
 ** Typescript
-*** Pretty ts error
+*** COMMENT Pretty ts error
 #+BEGIN_SRC emacs-lisp :results silent
 (use-package pretty-ts-errors
   :defer t
@@ -3664,10 +3677,6 @@ Requires Emacs 30+
 ** Kdl mode
 #+BEGIN_SRC emacs-lisp
 (use-package kdl-mode :defer t)
-#+END_SRC
-** Fish
-#+BEGIN_SRC emacs-lisp
-(use-package fish-mode :defer t)
 #+END_SRC
 
 ** Xonsh
@@ -4218,7 +4227,7 @@ Automatically creates parent directories if needed."
     (call-interactively 'find-file)))
 #+END_SRC
 
-** COMMENT Org superagenda
+** Org superagenda
 #+BEGIN_SRC emacs-lisp :results silent
 (use-package org-super-agenda
   :after org
@@ -4344,10 +4353,11 @@ Automatically creates parent directories if needed."
 #+BEGIN_SRC emacs-lisp
 (use-package org-mem
   :config
+  (setq org-mem-do-look-everywhere nil)
   (setq org-mem-do-sync-with-org-id t)
   (setq org-mem-watch-dirs
-        (list my/org-roam-dir))
-  (org-mem-updater-mode))
+        (list (file-truename my/org-roam-dir)))
+  (org-mem-updater-mode 1))
 
 (use-package org-node
   :after org-mem
@@ -4357,13 +4367,15 @@ Automatically creates parent directories if needed."
    ("C-c r i" . org-node-insert-link))
   :custom
   (org-node-alter-candidates t)
-  (org-node-creation-fn #'org-node-new-via-roam-capture)
   (org-node-file-slug-fn #'org-node-slugify-like-roam-default)
   (org-node-file-timestamp-format "%Y%m%d%H%M%S-")
+  (org-node-filter-fn #'org-node-filter-watched-dir-p)
   :config
   (setq org-node-creation-fn #'my/org-node-create-in-current-dir)
-  (org-node-cache-mode)
-  (org-node-roam-accelerator-mode)
+
+  (org-node-cache-mode 1)
+  (org-node-roam-accelerator-mode 1)
+
   (setq org-node-affixation-fn
         (defun my/org-node-prefix-with-tag (node title)
           (list title
@@ -4682,28 +4694,6 @@ Override autosave function. What is the sense save buffer whic doesn't exist???
   (setq persistent-scratch-autosave-interval 5))
 #+END_SRC
 
-
-*** Easy setup
-#+BEGIN_SRC emacs-lisp :results silent
-(use-package mu4easy
-  :ensure t
-  :if (file-directory-p my/mu4e-load-path)
-  :after mu4e
-  :config (mu4easy-mode)
-  :custom
-  (mu4easy-contexts '((mu4easy-context
-                       :c-name  "Personal"
-                       :maildir "Gmail"
-                       :mail    "artawower33@gmail.com"
-                       :smtp    "smtp.gmail.com"
-                       :sent-action delete)
-                      (mu4easy-context
-                       :c-name  "Orgnote"
-                       :maildir "GmailOrgnote"
-                       :mail    "app.orgnote@gmail.com"
-                       :smtp    "smtp.gmail.com"
-                       :sent-action delete))))
-#+END_SRC
 
 ** Chezmoi
 Manage your dot files like a God

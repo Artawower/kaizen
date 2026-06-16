@@ -12,8 +12,42 @@ backend = "cargo:gitu"
 version = "0.1.6"
 backend = "cargo:kdlfmt"
 
+[[tools."github:ogulcancelik/herdr"]]
+version = "0.6.10"
+backend = "github:ogulcancelik/herdr"
+
+[tools."github:ogulcancelik/herdr"."platforms.linux-arm64"]
+checksum = "sha256:b3144a41df364f0541bbbdfe840fa61dbd67daf6e313ee317fe495d2ccf4927a"
+url = "https://github.com/ogulcancelik/herdr/releases/download/v0.6.10/herdr-linux-aarch64"
+url_api = "https://api.github.com/repos/ogulcancelik/herdr/releases/assets/444589140"
+
+[tools."github:ogulcancelik/herdr"."platforms.linux-arm64-musl"]
+checksum = "sha256:b3144a41df364f0541bbbdfe840fa61dbd67daf6e313ee317fe495d2ccf4927a"
+url = "https://github.com/ogulcancelik/herdr/releases/download/v0.6.10/herdr-linux-aarch64"
+url_api = "https://api.github.com/repos/ogulcancelik/herdr/releases/assets/444589140"
+
+[tools."github:ogulcancelik/herdr"."platforms.linux-x64"]
+checksum = "sha256:78d298d5a1ef076b4607e8e3c92d98f5de9f0cb30daf31aa910a1a6e9abb4fa1"
+url = "https://github.com/ogulcancelik/herdr/releases/download/v0.6.10/herdr-linux-x86_64"
+url_api = "https://api.github.com/repos/ogulcancelik/herdr/releases/assets/444589142"
+
+[tools."github:ogulcancelik/herdr"."platforms.linux-x64-musl"]
+checksum = "sha256:78d298d5a1ef076b4607e8e3c92d98f5de9f0cb30daf31aa910a1a6e9abb4fa1"
+url = "https://github.com/ogulcancelik/herdr/releases/download/v0.6.10/herdr-linux-x86_64"
+url_api = "https://api.github.com/repos/ogulcancelik/herdr/releases/assets/444589142"
+
+[tools."github:ogulcancelik/herdr"."platforms.macos-arm64"]
+checksum = "sha256:f48bbaafd60b3a33d783eca4dfe7243a3f96e557e55240f6ed53dd0b9b73670b"
+url = "https://github.com/ogulcancelik/herdr/releases/download/v0.6.10/herdr-macos-aarch64"
+url_api = "https://api.github.com/repos/ogulcancelik/herdr/releases/assets/444589143"
+
+[tools."github:ogulcancelik/herdr"."platforms.macos-x64"]
+checksum = "sha256:c99826b882363951f22405d889ec0c5574887093830d390c99b286c0949a0c73"
+url = "https://github.com/ogulcancelik/herdr/releases/download/v0.6.10/herdr-macos-x86_64"
+url_api = "https://api.github.com/repos/ogulcancelik/herdr/releases/assets/444589141"
+
 [[tools."go:github.com/umputun/ralphex/cmd/ralphex"]]
-version = "1.5.0"
+version = "1.5.1"
 backend = "go:github.com/umputun/ralphex/cmd/ralphex"
 
 [[tools."go:golang.org/x/tools/gopls"]]
@@ -53,23 +87,23 @@ checksum = "sha256:cc5149eabd53779ce1e7bdc5401643622d0c7e6800ade18928a767e940bb0
 url = "https://nodejs.org/dist/v24.15.0/node-v24.15.0-win-x64.zip"
 
 [[tools."npm:@angular/cli"]]
-version = "22.0.0"
+version = "22.0.1"
 backend = "npm:@angular/cli"
 
 [[tools."npm:@angular/language-server"]]
-version = "22.0.0"
+version = "22.0.1"
 backend = "npm:@angular/language-server"
 
 [[tools."npm:@angular/language-service"]]
-version = "22.0.0"
+version = "22.0.1"
 backend = "npm:@angular/language-service"
 
 [[tools."npm:@earendil-works/pi-coding-agent"]]
-version = "0.78.1"
+version = "0.79.4"
 backend = "npm:@earendil-works/pi-coding-agent"
 
 [[tools."npm:@github/copilot-language-server"]]
-version = "1.501.0"
+version = "1.506.0"
 backend = "npm:@github/copilot-language-server"
 
 [[tools."npm:@gy920/qwen-mcp-tool"]]
@@ -105,7 +139,7 @@ version = "2.5.3"
 backend = "npm:@tobilu/qmd"
 
 [[tools."npm:@vue/language-server"]]
-version = "2.2.12"
+version = "3.3.4"
 backend = "npm:@vue/language-server"
 
 [[tools."npm:bun"]]
@@ -125,7 +159,7 @@ version = "11.0.0"
 backend = "npm:env-cmd"
 
 [[tools."npm:eslint"]]
-version = "10.4.1"
+version = "10.5.0"
 backend = "npm:eslint"
 
 [[tools."npm:git-trim"]]
@@ -141,7 +175,7 @@ version = "1.0.0"
 backend = "npm:mcp-codex-cli"
 
 [[tools."npm:mem0ai"]]
-version = "3.0.6"
+version = "3.0.8"
 backend = "npm:mem0ai"
 
 [[tools."npm:ngx-unused-css"]]
@@ -157,7 +191,7 @@ version = "3.3.0"
 backend = "npm:npm-upgrade"
 
 [[tools."npm:opencode-ai"]]
-version = "1.16.2"
+version = "1.17.7"
 backend = "npm:opencode-ai"
 
 [[tools."npm:opentmux"]]
@@ -173,7 +207,7 @@ version = "1.10.1"
 backend = "npm:pi-antigravity-rotator"
 
 [[tools."npm:pi-link"]]
-version = "0.1.15"
+version = "0.1.16"
 backend = "npm:pi-link"
 
 [[tools."npm:playwright"]]
@@ -181,7 +215,7 @@ version = "^1.59.1"
 backend = "npm:playwright"
 
 [[tools."npm:prettier"]]
-version = "3.8.3"
+version = "3.8.4"
 backend = "npm:prettier"
 
 [[tools."npm:pretty-ts-errors-markdown"]]
@@ -193,7 +227,7 @@ version = "1.1.409"
 backend = "npm:pyright"
 
 [[tools."npm:skills"]]
-version = "1.5.10"
+version = "1.5.11"
 backend = "npm:skills"
 
 [[tools."npm:stylelint"]]
@@ -221,7 +255,7 @@ version = "1.23.0"
 backend = "npm:yaml-language-server"
 
 [[tools."pipx:basedpyright"]]
-version = "1.39.6"
+version = "1.39.8"
 backend = "pipx:basedpyright"
 
 [[tools."pipx:http-prompt"]]
@@ -233,7 +267,7 @@ version = "3.2.4"
 backend = "pipx:httpie"
 
 [[tools."pipx:pyrefly"]]
-version = "1.1.0.dev1"
+version = "1.1.0.dev2"
 backend = "pipx:pyrefly"
 
 [[tools."pipx:rassumfrassum"]]
