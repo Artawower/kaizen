@@ -13,38 +13,38 @@ version = "0.1.6"
 backend = "cargo:kdlfmt"
 
 [[tools."github:ogulcancelik/herdr"]]
-version = "0.6.10"
+version = "0.7.0"
 backend = "github:ogulcancelik/herdr"
 
 [tools."github:ogulcancelik/herdr"."platforms.linux-arm64"]
-checksum = "sha256:b3144a41df364f0541bbbdfe840fa61dbd67daf6e313ee317fe495d2ccf4927a"
-url = "https://github.com/ogulcancelik/herdr/releases/download/v0.6.10/herdr-linux-aarch64"
-url_api = "https://api.github.com/repos/ogulcancelik/herdr/releases/assets/444589140"
+checksum = "sha256:77407959c514c25c870bbcc6d2a2c86fef5b5701ed0c7c37745d7412e8563d72"
+url = "https://github.com/ogulcancelik/herdr/releases/download/v0.7.0/herdr-linux-aarch64"
+url_api = "https://api.github.com/repos/ogulcancelik/herdr/releases/assets/448342842"
 
 [tools."github:ogulcancelik/herdr"."platforms.linux-arm64-musl"]
-checksum = "sha256:b3144a41df364f0541bbbdfe840fa61dbd67daf6e313ee317fe495d2ccf4927a"
-url = "https://github.com/ogulcancelik/herdr/releases/download/v0.6.10/herdr-linux-aarch64"
-url_api = "https://api.github.com/repos/ogulcancelik/herdr/releases/assets/444589140"
+checksum = "sha256:77407959c514c25c870bbcc6d2a2c86fef5b5701ed0c7c37745d7412e8563d72"
+url = "https://github.com/ogulcancelik/herdr/releases/download/v0.7.0/herdr-linux-aarch64"
+url_api = "https://api.github.com/repos/ogulcancelik/herdr/releases/assets/448342842"
 
 [tools."github:ogulcancelik/herdr"."platforms.linux-x64"]
-checksum = "sha256:78d298d5a1ef076b4607e8e3c92d98f5de9f0cb30daf31aa910a1a6e9abb4fa1"
-url = "https://github.com/ogulcancelik/herdr/releases/download/v0.6.10/herdr-linux-x86_64"
-url_api = "https://api.github.com/repos/ogulcancelik/herdr/releases/assets/444589142"
+checksum = "sha256:ad2a5d480a4e04609a9dd30a19ec07854578df6b5f0ea9299246963baf40363b"
+url = "https://github.com/ogulcancelik/herdr/releases/download/v0.7.0/herdr-linux-x86_64"
+url_api = "https://api.github.com/repos/ogulcancelik/herdr/releases/assets/448342843"
 
 [tools."github:ogulcancelik/herdr"."platforms.linux-x64-musl"]
-checksum = "sha256:78d298d5a1ef076b4607e8e3c92d98f5de9f0cb30daf31aa910a1a6e9abb4fa1"
-url = "https://github.com/ogulcancelik/herdr/releases/download/v0.6.10/herdr-linux-x86_64"
-url_api = "https://api.github.com/repos/ogulcancelik/herdr/releases/assets/444589142"
+checksum = "sha256:ad2a5d480a4e04609a9dd30a19ec07854578df6b5f0ea9299246963baf40363b"
+url = "https://github.com/ogulcancelik/herdr/releases/download/v0.7.0/herdr-linux-x86_64"
+url_api = "https://api.github.com/repos/ogulcancelik/herdr/releases/assets/448342843"
 
 [tools."github:ogulcancelik/herdr"."platforms.macos-arm64"]
-checksum = "sha256:f48bbaafd60b3a33d783eca4dfe7243a3f96e557e55240f6ed53dd0b9b73670b"
-url = "https://github.com/ogulcancelik/herdr/releases/download/v0.6.10/herdr-macos-aarch64"
-url_api = "https://api.github.com/repos/ogulcancelik/herdr/releases/assets/444589143"
+checksum = "sha256:0946c1c5de396d1404906c81c84a0cef47af5e15c9aac3c058c3936b833fe311"
+url = "https://github.com/ogulcancelik/herdr/releases/download/v0.7.0/herdr-macos-aarch64"
+url_api = "https://api.github.com/repos/ogulcancelik/herdr/releases/assets/448342844"
 
 [tools."github:ogulcancelik/herdr"."platforms.macos-x64"]
-checksum = "sha256:c99826b882363951f22405d889ec0c5574887093830d390c99b286c0949a0c73"
-url = "https://github.com/ogulcancelik/herdr/releases/download/v0.6.10/herdr-macos-x86_64"
-url_api = "https://api.github.com/repos/ogulcancelik/herdr/releases/assets/444589141"
+checksum = "sha256:6c61cdb67c79b8d0626e109b9d8d8635c66a80bfed21ac9fe6efdf1dd8d27c0f"
+url = "https://github.com/ogulcancelik/herdr/releases/download/v0.7.0/herdr-macos-x86_64"
+url_api = "https://api.github.com/repos/ogulcancelik/herdr/releases/assets/448342841"
 
 [[tools."go:github.com/umputun/ralphex/cmd/ralphex"]]
 version = "1.5.1"
@@ -99,7 +99,7 @@ version = "22.0.1"
 backend = "npm:@angular/language-service"
 
 [[tools."npm:@earendil-works/pi-coding-agent"]]
-version = "0.79.4"
+version = "0.79.6"
 backend = "npm:@earendil-works/pi-coding-agent"
 
 [[tools."npm:@github/copilot-language-server"]]
@@ -139,7 +139,7 @@ version = "2.5.3"
 backend = "npm:@tobilu/qmd"
 
 [[tools."npm:@vue/language-server"]]
-version = "3.3.4"
+version = "2.2.12"
 backend = "npm:@vue/language-server"
 
 [[tools."npm:bun"]]

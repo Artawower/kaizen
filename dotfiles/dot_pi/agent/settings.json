@@ -1,9 +1,11 @@
 {
-  "lastChangelogVersion": "0.78.1",
+  "lastChangelogVersion": "0.79.4",
   "hideThinkingBlock": true,
   "quietStartup": true,
   "enableSkillCommands": true,
-  "npmCommand": ["npm"],
+  "npmCommand": [
+    "npm"
+  ],
   "packages": [
     "npm:pi-web-access",
     {
@@ -27,29 +29,39 @@
         "-pi-package/extensions/git-guard.ts",
         "-pi-package/extensions/safe-guard.ts"
       ],
-      "themes": ["-pi-package/themes/catppuccin-mocha.json"]
+      "themes": [
+        "-pi-package/themes/catppuccin-mocha.json"
+      ]
     },
     "npm:pi-copy-output",
     "npm:@sherif-fanous/pi-catppuccin",
     "npm:pi-notify",
     {
       "source": "npm:pi-tool-display",
-      "extensions": ["+index.ts"]
+      "extensions": [
+        "+index.ts"
+      ]
     },
     {
       "source": "npm:pi-usage-bars",
-      "extensions": ["+extensions/usage-bars/index.ts"]
+      "extensions": [
+        "+extensions/usage-bars/index.ts"
+      ]
     },
     {
       "source": "npm:@tintinweb/pi-subagents",
-      "extensions": ["-src/index.ts"]
+      "extensions": [
+        "-src/index.ts"
+      ]
     },
     "npm:@mjakl/pi-dark-or-light",
     "npm:@ifi/oh-pi-themes",
     "npm:@benvargas/pi-exa-mcp",
     {
       "source": "git:github.com/hk-vk/pi-connect",
-      "extensions": ["-index.ts"]
+      "extensions": [
+        "-index.ts"
+      ]
     },
     {
       "source": "npm:pi-free",
@@ -62,27 +74,38 @@
     },
     {
       "source": "npm:pi-image-preview",
-      "extensions": ["-index.ts"]
+      "extensions": [
+        "-index.ts"
+      ]
     },
     "npm:pi-skills-sh",
     "npm:pi-secret-guard",
     "npm:pi-extension-manager",
     {
       "source": "npm:pi-btw",
-      "extensions": ["-extensions/btw.ts"]
+      "extensions": [
+        "-extensions/btw.ts"
+      ]
     },
     "npm:pi-session-switch",
     {
       "source": "npm:@dkmnx/pi-clarify",
-      "extensions": ["-index.ts"]
+      "extensions": [
+        "-index.ts"
+      ]
     },
     "npm:pi-bailian-models",
     "npm:@thesethrose/pi-zai-provider",
     "git:github.com/HazAT/pi-interactive-subagents",
     {
       "source": "npm:pi-lens",
-      "extensions": ["+index.ts"],
-      "skills": ["+skills/ast-grep/SKILL.md", "+skills/lsp-navigation/SKILL.md"]
+      "extensions": [
+        "+index.ts"
+      ],
+      "skills": [
+        "+skills/ast-grep/SKILL.md",
+        "+skills/lsp-navigation/SKILL.md"
+      ]
     },
     "npm:pi-link",
     "git:github.com/tomooshi/condensed-milk-pi",
@@ -106,5 +129,6 @@
     "-extensions/subagent/notify.ts",
     "-extensions/agent-team.ts"
   ],
-  "autocompleteMaxVisible": 3
+  "autocompleteMaxVisible": 3,
+  "theme": "light"
 }

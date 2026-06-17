@@ -2,6 +2,7 @@
   self,
   user,
   darwinSystem,
+  config,
   lib,
   pkgs,
   ...
@@ -41,6 +42,24 @@ let
         brewFormulas = "";
         activationScripts = { };
       };
+
+  homebrewTaps = lib.unique (
+    [ "Artawower/tap" ] ++ (extra.brew_taps or [ ]) ++ userTaps ++ (darwinDeps.taps or [ ])
+  );
+  knownHomebrewTaps = [
+    "Artawower/tap"
+    "d12frosted/emacs-plus"
+    "felixkratz/formulae"
+    "glzr-io/tap"
+    "koekeishiya/formulae"
+    "lgug2z/tap"
+    "nikitabobko/tap"
+  ];
+  trustedHomebrewTaps = lib.unique (homebrewTaps ++ knownHomebrewTaps);
+  trustHomebrewTap = tap: ''
+    brew tap ${lib.escapeShellArg tap} >/dev/null 2>&1 || true
+    brew trust ${lib.escapeShellArg tap} >/dev/null 2>&1 || true
+  '';
 in
 
 {
@@ -109,6 +128,22 @@ in
           echo "mas not found; skipping optional MAS apps" >&2
         fi
       '';
+      homebrew.text = lib.mkBefore ''
+        if [ -f "${config.homebrew.prefix}/bin/brew" ]; then
+          echo >&2 "Trusting declared Homebrew taps..."
+          PATH="${config.homebrew.prefix}/bin:$PATH" \
+            sudo \
+              --preserve-env=PATH \
+              --user=${user.username} \
+              --set-home \
+              env \
+              sh -c ${lib.escapeShellArg ''
+                if brew trust --help >/dev/null 2>&1; then
+                  ${lib.concatMapStringsSep "\n" trustHomebrewTap trustedHomebrewTaps}
+                fi
+              ''}
+        fi
+      '';
     }
     (lib.mapAttrs (_: text: { inherit text; }) (
       userActivation // (darwinDeps.activationScripts or { })
@@ -135,9 +170,7 @@ in
       upgrade = true;
     };
 
-    taps = lib.unique (
-      [ "Artawower/tap" ] ++ (extra.brew_taps or [ ]) ++ userTaps ++ (darwinDeps.taps or [ ])
-    );
+    taps = homebrewTaps;
 
     brews = [
       "ca-certificates"

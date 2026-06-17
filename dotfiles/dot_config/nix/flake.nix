@@ -22,24 +22,36 @@
     }@inputs:
     let
       baseUser = import ./user.nix;
+      currentSystem = if builtins ? currentSystem then builtins.currentSystem else "";
+      isDarwin = nixpkgs.lib.hasSuffix "-darwin" currentSystem;
       envHome = builtins.getEnv "HOME";
       envUser = builtins.getEnv "USER";
+      envSudoUser = builtins.getEnv "SUDO_USER";
+      envKaizenHome = builtins.getEnv "KAIZEN_HOME";
+      envKaizenUser = builtins.getEnv "KAIZEN_USER";
+      usableUser = name: name != "" && name != "root";
       username =
-        if envUser != "" then
+        if usableUser envKaizenUser then
+          envKaizenUser
+        else if usableUser envUser then
           envUser
-        else if envHome != "" then
-          builtins.baseNameOf envHome
+        else if usableUser envSudoUser then
+          envSudoUser
+        else if usableUser (baseNameOf envHome) then
+          baseNameOf envHome
         else
           baseUser.username;
-      user = baseUser // {
-        inherit username;
-        homeDirectory = if envHome != "" then envHome else baseUser.homeDirectory or "/Users/${username}";
-      };
-      darwinSystem =
-        if builtins ? currentSystem && nixpkgs.lib.hasSuffix "-darwin" builtins.currentSystem then
-          builtins.currentSystem
+      homeDirectory =
+        if envKaizenHome != "" then
+          envKaizenHome
+        else if envHome != "" && baseNameOf envHome == username then
+          envHome
         else
-          "aarch64-darwin";
+          baseUser.homeDirectory or (if isDarwin then "/Users/${username}" else "/home/${username}");
+      user = baseUser // {
+        inherit username homeDirectory;
+      };
+      darwinSystem = if isDarwin then currentSystem else "aarch64-darwin";
 
       mkDarwinHome =
         system: extraModules:

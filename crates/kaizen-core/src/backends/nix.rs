@@ -98,6 +98,14 @@ impl NixSyncBackend {
 
     fn run_darwin_rebuild(&self) -> Result<(), KaizenError> {
         let flake = format!("{}#{}", self.nix_config_dir()?.display(), self.flake_host());
+        let user = self.current_user()?;
+        let home = self
+            .runtime
+            .paths
+            .home_dir()
+            .ok_or(KaizenError::HomeDirUnavailable)?
+            .to_string_lossy()
+            .into_owned();
         let cmd = if self.darwin_rebuild_available() {
             ProcessCommand::run("darwin-rebuild", ["switch", "--flake", &flake, "--impure"])
                 .sudo()
@@ -119,7 +127,9 @@ impl NixSyncBackend {
             )
             .sudo()
             .with_path_prefix(self.nix_path_prefix())
-        };
+        }
+        .with_env("KAIZEN_USER", user)
+        .with_env("KAIZEN_HOME", home);
         self.runtime.executor.execute(cmd)?;
         Ok(())
     }
@@ -730,13 +740,17 @@ impl PreviewBackend for NixSyncBackend {
 
 #[cfg(test)]
 mod tests {
-    use std::sync::Arc;
+    use std::{
+        path::PathBuf,
+        sync::{Arc, Mutex},
+    };
 
     use super::*;
     use crate::{
         container::NoopContainerCleaner,
-        executor::NoopExecutor,
+        executor::{NoopExecutor, ProcessExecutor, ProcessOutput},
         fs::mem::MemFileSystem,
+        os::PackageManagerKind,
         paths::test::TestPathProvider,
         plan::{ConfigPlan, HookPlan, InstallPlan},
         progress::NoopReporter,
@@ -783,6 +797,32 @@ mod tests {
             HookPlan::default(),
             vec![],
         )
+    }
+
+    #[derive(Default)]
+    struct EnvRecordingExecutor {
+        calls: Mutex<Vec<ProcessCommand>>,
+    }
+
+    impl EnvRecordingExecutor {
+        fn calls(&self) -> Vec<ProcessCommand> {
+            self.calls.lock().unwrap().clone()
+        }
+    }
+
+    impl ProcessExecutor for EnvRecordingExecutor {
+        fn execute(&self, cmd: ProcessCommand) -> Result<ProcessOutput, KaizenError> {
+            let stdout = if cmd.bin == "id" && cmd.args == ["-un"] {
+                "andrey".to_owned()
+            } else {
+                String::new()
+            };
+            self.calls.lock().unwrap().push(cmd);
+            Ok(ProcessOutput {
+                stdout,
+                stderr: String::new(),
+            })
+        }
     }
 
     #[test]
@@ -879,6 +919,50 @@ mod tests {
             hm_pos < dr_pos,
             "home-manager must come before darwin-rebuild, got steps: {report:?}"
         );
+    }
+
+    #[test]
+    fn install_darwin_rebuild_uses_original_user_env() {
+        let executor = Arc::new(EnvRecordingExecutor::default());
+        let backend = NixSyncBackend::new(
+            TargetOs::Darwin,
+            Runtime::new(
+                executor.clone(),
+                Arc::new(MemFileSystem::new()),
+                Arc::new(crate::NoopChezmoiClient),
+                Arc::new(TestPathProvider {
+                    home: Some(PathBuf::from("/Users/andrey")),
+                    config: Some(PathBuf::from("/Users/andrey/.config")),
+                    available_tools: vec![],
+                }),
+                PackageManagerKind::Brew,
+            ),
+            Box::new(NoopDevTools),
+            Box::new(NoopContainerCleaner),
+        );
+        let plan = empty_plan(TargetOs::Darwin);
+
+        backend
+            .install(&plan, &SyncOpts::default(), &NoopReporter)
+            .unwrap();
+
+        let darwin_rebuild = executor
+            .calls()
+            .into_iter()
+            .find(|cmd| {
+                cmd.sudo
+                    && (cmd.bin == "darwin-rebuild"
+                        || cmd.args.iter().any(|arg| arg.contains("darwin-rebuild")))
+            })
+            .expect("darwin-rebuild command should run through sudo");
+        assert!(darwin_rebuild
+            .env
+            .iter()
+            .any(|(key, value)| key == "KAIZEN_USER" && value == "andrey"));
+        assert!(darwin_rebuild
+            .env
+            .iter()
+            .any(|(key, value)| key == "KAIZEN_HOME" && value == "/Users/andrey"));
     }
 
     #[test]
