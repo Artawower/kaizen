@@ -1,6 +1,6 @@
 use std::path::{Path, PathBuf};
 
-use anyhow::{Context, Result};
+use anyhow::Result;
 use kaizen_core::KaizenEngine;
 
 use kaizen_core::ChezmoiClient;
@@ -137,10 +137,13 @@ pub fn run(
     if !dev_build && !dry_run {
         if let Some(source) = source_path.as_ref() {
             output::item(&format!("updating dotfiles source {} …", source.display()));
-            StdChezmoiClient
-                .pull_source(source)
-                .context("failed to update dotfiles source")?;
-            output::item_ok("dotfiles source updated");
+            match StdChezmoiClient.pull_source(source) {
+                Ok(()) => output::item_ok("dotfiles source updated"),
+                Err(err) => {
+                    output::item_warn(&format!("dotfiles source update failed: {err}"));
+                    output::item("continuing with existing dotfiles source");
+                }
+            }
         }
     }
 
