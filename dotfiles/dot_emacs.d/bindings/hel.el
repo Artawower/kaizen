@@ -32,6 +32,28 @@
     (interactive "P")
     (if arg (goto-line (prefix-numeric-value arg)) (hel-end-of-buffer)))
 
+  (hel-define-command kaizen/hel-change ()
+    "Delete region without touching `kill-ring', then switch to Insert state."
+    :multiple-cursors nil
+    (interactive "*")
+    (hel-with-each-cursor
+      (cond ((use-region-p)
+             (let ((logical-lines? (hel-linewise-selection-p))
+                   (visual-lines? (hel-visual-lines-p)))
+               (delete-region (region-beginning) (region-end))
+               (cond (logical-lines?
+                      (newline)
+                      (backward-char)
+                      (indent-according-to-mode))
+                     (visual-lines?
+                      (insert " ")
+                      (backward-char)))))
+            ((not (hel-bolp))
+             (delete-char -1))
+            ((bolp)
+             (indent-according-to-mode))))
+    (hel-insert-state 1))
+
   (defvar-keymap kaizen/hel-help-map
     "f" #'helpful-function
     "F" #'describe-face
@@ -73,6 +95,7 @@
       "k"   #'hel-search-next
       "j"   #'hel-forward-word-start
       "J"   #'hel-forward-WORD-start
+      "c"   #'kaizen/hel-change
       "q"   #'deactivate-mark
       line-start #'beginning-of-line
       line-end   #'end-of-line
