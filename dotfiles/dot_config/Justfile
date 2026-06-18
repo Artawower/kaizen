@@ -38,7 +38,7 @@ nix:
     case "$(uname -s)" in
         Darwin)
             sudo -v
-            sudo /run/current-system/sw/bin/darwin-rebuild switch --flake "$HOME/.config/nix" --impure
+            sudo env USER="$USER" HOME="$HOME" KAIZEN_USER="$USER" KAIZEN_HOME="$HOME" /run/current-system/sw/bin/darwin-rebuild switch --flake "$HOME/.config/nix" --impure
             nix run home-manager/master -- switch -b backup --flake ".#${USER}@mac" --impure
             ;;
         Linux)
