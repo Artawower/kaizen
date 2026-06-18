@@ -1,5 +1,5 @@
 {
-  "lastChangelogVersion": "0.79.4",
+  "lastChangelogVersion": "0.79.6",
   "hideThinkingBlock": true,
   "quietStartup": true,
   "enableSkillCommands": true,
@@ -115,8 +115,8 @@
     "npm:pi-jj-auto",
     "npm:pi-alibaba-models"
   ],
-  "defaultProvider": "openai-codex",
-  "defaultModel": "gpt-5.5",
+  "defaultProvider": "deepseek",
+  "defaultModel": "deepseek-v4-pro",
   "defaultThinkingLevel": "high",
   "collapseChangelog": false,
   "dark-or-light": {

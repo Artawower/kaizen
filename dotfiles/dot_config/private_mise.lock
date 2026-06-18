@@ -87,19 +87,19 @@ checksum = "sha256:cc5149eabd53779ce1e7bdc5401643622d0c7e6800ade18928a767e940bb0
 url = "https://nodejs.org/dist/v24.15.0/node-v24.15.0-win-x64.zip"
 
 [[tools."npm:@angular/cli"]]
-version = "22.0.1"
+version = "22.0.3"
 backend = "npm:@angular/cli"
 
 [[tools."npm:@angular/language-server"]]
-version = "22.0.1"
+version = "22.0.2"
 backend = "npm:@angular/language-server"
 
 [[tools."npm:@angular/language-service"]]
-version = "22.0.1"
+version = "22.0.2"
 backend = "npm:@angular/language-service"
 
 [[tools."npm:@earendil-works/pi-coding-agent"]]
-version = "0.79.6"
+version = "0.79.8"
 backend = "npm:@earendil-works/pi-coding-agent"
 
 [[tools."npm:@github/copilot-language-server"]]
@@ -175,7 +175,7 @@ version = "1.0.0"
 backend = "npm:mcp-codex-cli"
 
 [[tools."npm:mem0ai"]]
-version = "3.0.8"
+version = "3.0.9"
 backend = "npm:mem0ai"
 
 [[tools."npm:ngx-unused-css"]]
@@ -191,7 +191,7 @@ version = "3.3.0"
 backend = "npm:npm-upgrade"
 
 [[tools."npm:opencode-ai"]]
-version = "1.17.7"
+version = "1.17.8"
 backend = "npm:opencode-ai"
 
 [[tools."npm:opentmux"]]
@@ -227,7 +227,7 @@ version = "1.1.409"
 backend = "npm:pyright"
 
 [[tools."npm:skills"]]
-version = "1.5.11"
+version = "1.5.12"
 backend = "npm:skills"
 
 [[tools."npm:stylelint"]]
@@ -267,7 +267,7 @@ version = "3.2.4"
 backend = "pipx:httpie"
 
 [[tools."pipx:pyrefly"]]
-version = "1.1.0.dev2"
+version = "1.1.1"
 backend = "pipx:pyrefly"
 
 [[tools."pipx:rassumfrassum"]]

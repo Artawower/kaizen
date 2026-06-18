@@ -65,7 +65,7 @@
     "Jump to word with avy, then select it (hel-aware)."
     (interactive)
     (call-interactively #'avy-goto-word-1)
-    (hel-mark-inner-WORD 1))
+    (hel-mark-a-word))
 
   (defvar-keymap kaizen/hel-vcs-map
     "l" #'majutsu

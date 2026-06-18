@@ -128,6 +128,8 @@ impl NixSyncBackend {
             .sudo()
             .with_path_prefix(self.nix_path_prefix())
         }
+        .with_env("USER", user.clone())
+        .with_env("HOME", home.clone())
         .with_env("KAIZEN_USER", user)
         .with_env("KAIZEN_HOME", home);
         self.runtime.executor.execute(cmd)?;
@@ -946,15 +948,22 @@ mod tests {
             .install(&plan, &SyncOpts::default(), &NoopReporter)
             .unwrap();
 
-        let darwin_rebuild = executor
-            .calls()
-            .into_iter()
-            .find(|cmd| {
-                cmd.sudo
-                    && (cmd.bin == "darwin-rebuild"
-                        || cmd.args.iter().any(|arg| arg.contains("darwin-rebuild")))
-            })
-            .expect("darwin-rebuild command should run through sudo");
+        let calls = executor.calls();
+        let Some(darwin_rebuild) = calls.iter().find(|cmd| {
+            cmd.sudo
+                && (cmd.bin == "darwin-rebuild"
+                    || cmd.args.iter().any(|arg| arg.contains("darwin-rebuild")))
+        }) else {
+            panic!("darwin-rebuild command should run through sudo: {calls:?}");
+        };
+        assert!(darwin_rebuild
+            .env
+            .iter()
+            .any(|(key, value)| key == "USER" && value == "andrey"));
+        assert!(darwin_rebuild
+            .env
+            .iter()
+            .any(|(key, value)| key == "HOME" && value == "/Users/andrey"));
         assert!(darwin_rebuild
             .env
             .iter()
