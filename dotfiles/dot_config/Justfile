@@ -23,6 +23,20 @@ flatpak:
 mise:
     mise install
     mise trust ~/.config/mise.toml
+    just opencode-postinstall
+
+[private]
+opencode-postinstall:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    prefix="$(mise where npm:opencode-ai 2>/dev/null || true)"
+    if [ -z "$prefix" ]; then
+        exit 0
+    fi
+    package_dir="$prefix/lib/node_modules/opencode-ai"
+    if [ -f "$package_dir/postinstall.mjs" ]; then
+        (cd "$package_dir" && node postinstall.mjs)
+    fi
 
 [private]
 mise-bump:
@@ -146,6 +160,7 @@ upgrade:
     just nix
     mise upgrade --exclude pnpm
     mise trust ~/.config/mise.toml
+    just opencode-postinstall
     uv tool upgrade --all
     if [ "$(uname -s)" = "Linux" ]; then
         just manual-deps
