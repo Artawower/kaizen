@@ -4379,6 +4379,7 @@ Automatically creates parent directories if needed."
 
   (org-node-cache-mode 1)
   (org-node-roam-accelerator-mode 1)
+  (org-node-complete-at-point-mode)
 
   (setq org-node-affixation-fn
         (defun my/org-node-prefix-with-tag (node title)
@@ -4499,6 +4500,17 @@ Ob raindrop (dynamic block)
   :config
   (push '("\\.excalidraw.svg\\'" . "echo '%s' | sed 's/.svg//' | xargs open") org-file-apps)
   (advice-add #'org-display-inline-images :after #'org-display-user-inline-images))
+#+END_SRC
+
+** Orgql
+#+BEGIN_SRC emacs-lisp :results silent
+(use-package org-ql
+  :defer t
+  :ensure (org-ql :host github :repo "alphapapa/org-ql"
+                  :files (:defaults (:exclude "helm-org-ql.el")))
+  :config
+  (ignore-errors
+    (load "~/.emacs.d/org-node-query.el"))))
 #+END_SRC
 
 * Translation

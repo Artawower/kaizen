@@ -53,3 +53,24 @@ org-mode
  "#+FEATUREALT: " (p "Modern AI Coding Banner") n
  n
  "Start typing here..." q)
+
+
+(org-roam-ql
+ "#+BEGIN: org-roam-ql :query " (p "query" query "(tags \"interview\")") " :format list" n
+ "#+END:")
+
+(org-roam-ql
+ "#+BEGIN: org-roam-ql :query " (p "(tags \"interview\")" query) " :format list" n
+ "#+END:")
+
+(org-roam-ql-files
+ "#+BEGIN: org-roam-ql :query " (p "(tags \"interview\")" query) " :result files :format list :sort \"title\"" n
+ "#+END:")
+
+(org-roam-ql-table
+ "#+BEGIN: org-roam-ql :query " (p "(tags \"interview\")" query) " :columns " (p "(link file tags)" columns) " :sort \"title\"" n
+ "#+END:")
+
+(org-roam-ql-include-exclude
+ "#+BEGIN: org-roam-ql :include " (p "(tags \"interview\")" include) " :exclude " (p "(tags \"archive\")" exclude) " :result files :format list :sort \"title\"" n
+ "#+END:")
