@@ -136,7 +136,7 @@ CTRL = "Ctrl"
 
 # --- Bookmarks ---
 "bookmark.toggle" = { keys = [
-  "m",
+  "b",
   "m",
 ], group = "Bookmark", description = "Toggle bookmark on current line" }
 "bookmark.next" = { keys = [
@@ -148,7 +148,7 @@ CTRL = "Ctrl"
   "m",
 ], group = "Bookmark", description = "Go to previous bookmark" }
 "bookmark.list" = { keys = [
-  "m",
+  "b",
   "l",
 ], group = "Bookmark", description = "List bookmarks" }
 

@@ -114,7 +114,7 @@ binding_scheme = "hel"
     "w",
 ]
 "bookmark.list" = [
-    "m",
+    "b",
     "l",
 ]
 "bookmark.next" = [
@@ -126,7 +126,7 @@ binding_scheme = "hel"
     "m",
 ]
 "bookmark.toggle" = [
-    "m",
+    "b",
     "m",
 ]
 "editor.line.end" = ["$"]
@@ -350,7 +350,7 @@ binding_scheme = "hel"
     "w",
 ]
 "bookmark.list" = [
-    "m",
+    "b",
     "l",
 ]
 "bookmark.next" = [
@@ -362,7 +362,7 @@ binding_scheme = "hel"
     "m",
 ]
 "bookmark.toggle" = [
-    "m",
+    "b",
     "m",
 ]
 "editor.line.end" = ["$"]

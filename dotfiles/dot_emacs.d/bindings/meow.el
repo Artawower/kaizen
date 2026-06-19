@@ -387,8 +387,8 @@
 (with-eval-after-load 'bm
   (define-key meow-normal-state-keymap (kbd "]m")        #'bm-next)
   (define-key meow-normal-state-keymap (kbd "[m")        #'bm-previous)
-  (define-key meow-normal-state-keymap (kbd "SPC m m")   #'bm-toggle)
-  (define-key meow-normal-state-keymap (kbd "SPC m l")   #'bm-show))
+  (define-key meow-normal-state-keymap (kbd "SPC b m")   #'bm-toggle)
+  (define-key meow-normal-state-keymap (kbd "SPC b l")   #'bm-show))
 
 (with-eval-after-load 'undo-fu
   (define-key meow-normal-state-keymap (kbd "U") #'undo-fu-only-redo)
@@ -453,7 +453,11 @@
 
 (with-eval-after-load 'org
   (define-key meow-normal-state-keymap (kbd "\\o") #'org-mode)
-  (define-key meow-normal-state-keymap (kbd "\\a") #'org-agenda))
+  (define-key meow-normal-state-keymap (kbd "\\a") #'org-agenda)
+  (define-key meow-normal-state-keymap (kbd "SPC m l l") #'org-insert-link)
+  (define-key meow-normal-state-keymap (kbd "SPC m l t") #'org-toggle-link-display)
+  (define-key meow-normal-state-keymap (kbd "SPC m l d") #'org-toggle-link-display)
+  (define-key meow-normal-state-keymap (kbd "SPC m l s") #'org-store-link))
 
 (with-eval-after-load 'google-translate
   (define-key meow-normal-state-keymap (kbd "\\ t") #'google-translate-smooth-translate))

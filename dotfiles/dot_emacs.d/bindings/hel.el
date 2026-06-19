@@ -32,6 +32,12 @@
     (interactive "P")
     (if arg (goto-line (prefix-numeric-value arg)) (hel-end-of-buffer)))
 
+  (defun kaizen/hel-insert-at-indentation ()
+    "Move to the first non-blank character, then switch to Insert state."
+    (interactive)
+    (back-to-indentation)
+    (hel-insert-state 1))
+
   (hel-define-command kaizen/hel-change ()
     "Delete region without touching `kill-ring', then switch to Insert state."
     :multiple-cursors nil
@@ -65,11 +71,21 @@
     "Jump to word with avy, then select it (hel-aware)."
     (interactive)
     (call-interactively #'avy-goto-word-1)
-    (hel-mark-a-word))
+    (hel-mark-inner-word 1))
 
   (defvar-keymap kaizen/hel-vcs-map
     "l" #'majutsu
     "h" #'git-timemachine)
+
+  (defvar-keymap kaizen/hel-bookmark-map
+    "m" #'bm-toggle
+    "l" #'bm-show)
+
+  (defvar-keymap kaizen/hel-org-link-map
+    "s" #'org-store-link
+    "l" #'org-insert-link
+    "t" #'org-toggle-link-display
+    "d" #'org-toggle-link-display)
 
   (defvar-keymap kaizen/hel-window-map
     "f" #'zoom-window-zoom
@@ -92,6 +108,7 @@
       up    #'hel-previous-line
       right #'hel-forward-char
       ins   #'hel-append
+      (upcase ins) #'kaizen/hel-insert-at-indentation
       "k"   #'hel-search-next
       "j"   #'hel-forward-word-start
       "J"   #'hel-forward-WORD-start
@@ -110,6 +127,7 @@
     (keymap-set hel-normal-state-map "] d" #'flymake-goto-next-error)
     (keymap-set hel-normal-state-map "[ d" #'flymake-goto-prev-error)
 
+    (keymap-set mode-specific-map "b" kaizen/hel-bookmark-map)
     (keymap-set mode-specific-map "h" kaizen/hel-help-map)
     (keymap-set mode-specific-map "v" kaizen/hel-vcs-map)
     (keymap-set mode-specific-map "w" kaizen/hel-window-map)
@@ -119,6 +137,7 @@
       down  #'hel-next-line
       up    #'hel-previous-line
       right #'hel-forward-char
+      (upcase ins) #'back-to-indentation
       line-start #'beginning-of-line
       line-end   #'end-of-line
       "SPC" mode-specific-map)
@@ -178,8 +197,8 @@
     (hel-keymap-global-set :state 'normal
       "] m"   #'bm-next
       "[ m"   #'bm-previous
-      "SPC m m" #'bm-toggle
-      "SPC m l" #'bm-show))
+      "SPC b m" #'bm-toggle
+      "SPC b l" #'bm-show))
 
   (with-eval-after-load 'undo-fu
     (hel-keymap-global-set :state 'normal
@@ -257,9 +276,14 @@
       "\\ e" #'pretty-ts-errors-show-error-at-point))
 
   (with-eval-after-load 'org
+    (keymap-set mode-specific-map "m l" kaizen/hel-org-link-map)
     (hel-keymap-global-set :state 'normal
       "\\ o" #'org-mode
-      "\\ a" #'org-agenda))
+      "\\ a" #'org-agenda
+      "SPC m l l" #'org-insert-link
+      "SPC m l t" #'org-toggle-link-display
+      "SPC m l d" #'org-toggle-link-display
+      "SPC m l s" #'org-store-link))
 
   (with-eval-after-load 'google-translate
     (hel-keymap-global-set :state 'normal
