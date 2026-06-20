@@ -22,7 +22,7 @@ for _p in [
 $PATH.insert(0, '/nix/var/nix/profiles/default/bin')
 
 if IS_DARWIN:
-    for _p in ['/opt/homebrew/sbin', '/opt/homebrew/bin']:
+    for _p in ['/opt/homebrew/sbin', '/opt/homebrew/bin', '/opt/homebrew/opt/libpq/bin']:
         $PATH.insert(0, _p)
 
     $PATH.insert(0, str(home / '.orbstack/bin'))

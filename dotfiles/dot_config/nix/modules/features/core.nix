@@ -19,6 +19,7 @@
       htop
       ncdu
       sqlite
+      libpq
       just
       mise
       nil

@@ -1,6 +1,6 @@
 (readme-iconed-modern
  ":PROPERTIES:" n
- ":ID: " (p "repo id" repo-id) n
+ ":ID: " (p (org-id-new) note-id) n
  ":END:" n n
 
  "#+TITLE: ✨ " (p "title") n n

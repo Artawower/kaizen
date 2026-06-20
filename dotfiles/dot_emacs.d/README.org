@@ -4087,6 +4087,20 @@ Automatically creates parent directories if needed."
   (add-to-list 'org-src-lang-modes '("ts" . typescript-ts))
   (add-to-list 'org-src-lang-modes '("python" . python-ts))
   (add-to-list 'org-src-lang-modes '("rust" . rust-ts))
+  
+
+  (my/setup-org-mode-faces)
+  (add-hook 'org-mode-hook
+            (lambda () (imenu-add-to-menubar "Imenu")))
+
+  (add-to-list 'org-tag-faces '("@.*" . (:foreground "red")))
+
+
+  (setenv "NODE_PATH" "/opt/homebrew/lib/node_modules")
+
+  (dolist (language '(sql js python shell typescript rust restclient bash))
+    (my/org-babel-enable-language language))
+  
   (setq org-capture-templates
         `(("t" "Task → Inbox" entry
            (file ,(expand-file-name "inbox.org" my/agenda-dir))
@@ -4151,18 +4165,6 @@ Automatically creates parent directories if needed."
            "* TODO %? :inbox:\n%U\n"
            :empty-lines 1
            :prepend t)))
-
-  (my/setup-org-mode-faces)
-  (add-hook 'org-mode-hook
-            (lambda () (imenu-add-to-menubar "Imenu")))
-
-  (add-to-list 'org-tag-faces '("@.*" . (:foreground "red")))
-
-
-  (setenv "NODE_PATH" "/opt/homebrew/lib/node_modules")
-
-  (dolist (language '(sql js python shell typescript rust restclient))
-    (my/org-babel-enable-language language))
 
   (defun org-babel-execute:typescript (body params)
     (let ((org-babel-js-cmd "npx ts-node < "))
@@ -4391,33 +4393,6 @@ Automatically creates parent directories if needed."
 #+END_SRC
 
 
-** Image inserting to org documents
-#+BEGIN_SRC emacs-lisp
-(use-package org-yt
-  :defer t
-  :ensure (:host github :repo "TobiasZawada/org-yt")
-  :config
-  (defun org-image-link (protocol link _description)
-    "Interpret LINK as base64-encoded image data."
-    (cl-assert (string-match "\\`img" protocol) nil
-               "Expected protocol type starting with img")
-    (let ((buf (url-retrieve-synchronously (concat (substring protocol 3) ":" link))))
-      (cl-assert buf nil
-                 "Download of image \"%s\" failed." link)
-      (with-current-buffer buf
-        (goto-char (point-min))
-        (re-search-forward "\r?\n\r?\n")
-        (buffer-substring-no-properties (point) (point-max)))))
-
-  (org-link-set-parameters
-   "imghttp"
-   :image-data-fun #'org-image-link)
-
-  (org-link-set-parameters
-   "imghttps"
-   :image-data-fun #'org-image-link))
-#+END_SRC
-
 ** Orgnote. Roam publisher for second brain project
 My own package for publish roam files
 #+BEGIN_SRC emacs-lisp
@@ -4504,13 +4479,8 @@ Ob raindrop (dynamic block)
 
 ** Orgql
 #+BEGIN_SRC emacs-lisp :results silent
-(use-package org-ql
-  :defer t
-  :ensure (org-ql :host github :repo "alphapapa/org-ql"
-                  :files (:defaults (:exclude "helm-org-ql.el")))
-  :config
-  (ignore-errors
-    (load "~/.emacs.d/org-node-query.el"))))
+(use-package org-mem-roam-ql
+  :ensure (:host github :repo "artawower/org-mem-roam-ql.el"))
 #+END_SRC
 
 * Translation

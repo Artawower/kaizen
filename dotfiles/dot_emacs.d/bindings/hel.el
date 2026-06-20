@@ -73,6 +73,28 @@
     (call-interactively #'avy-goto-word-1)
     (hel-mark-inner-word 1))
 
+  (defun kaizen/hel-search-or-next ()
+    "If searching, go to next match. Otherwise search for selection or word under cursor."
+    (interactive)
+    (if (ignore-errors (hel-search-pattern))
+        (hel-search-next 1)
+      (unless (region-active-p)
+        (hel-mark-inner-word 1))
+      (when (region-active-p)
+        (hel-construct-search-pattern)
+        (deactivate-mark)
+        (hel-search-next 1))))
+
+  (defun kaizen/hel-search-with-region ()
+    "Start search. If region is active, pre-fill with selection."
+    (interactive)
+    (when (region-active-p)
+      (let ((sel (buffer-substring-no-properties (region-beginning) (region-end))))
+        (deactivate-mark)
+        (when (and sel (not (string-empty-p sel)))
+          (set-register '/ sel))))
+    (hel-search-interactively))
+
   (defvar-keymap kaizen/hel-vcs-map
     "l" #'majutsu
     "h" #'git-timemachine)
@@ -109,7 +131,7 @@
       right #'hel-forward-char
       ins   #'hel-append
       (upcase ins) #'kaizen/hel-insert-at-indentation
-      "k"   #'hel-search-next
+      "k"   #'kaizen/hel-search-or-next
       "j"   #'hel-forward-word-start
       "J"   #'hel-forward-WORD-start
       "c"   #'kaizen/hel-change
@@ -119,6 +141,7 @@
       "G"   #'kaizen/hel-G
       "N"   #'my/copy-with-ai-context
       "C-:" #'query-replace-regexp
+      "/"   #'kaizen/hel-search-with-region
       "SPC" mode-specific-map)
 
     ;; Error navigation — same as meow C-n/C-e
@@ -150,7 +173,7 @@
     (dolist (mode '(elpaca-info-mode flymake-diagnostics-buffer-mode
                                      flycheck-error-list-mode magit-process-mode
                                      compilation-mode helpful-mode help-mode
-                                     messages-buffer-mode debug-mode debugger-mode
+                                     debug-mode debugger-mode
                                      grep-mode))
       (hel-set-initial-state mode 'motion))
 

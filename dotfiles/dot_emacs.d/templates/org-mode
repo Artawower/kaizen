@@ -23,14 +23,16 @@ org-mode
 (quote "#+BEGIN_QUOTE" n> p n "#+END_QUOTE")
 (begin-latex "\\begin{aligned}" n p n "\\end{aligned}")
 
-(note ":PROPERTIES:" n ":ID: " (p "id" id) n ":END:" n n
+(note ":PROPERTIES:" n
+":ID: " (p (org-id-new) note-id) n
+":END:" n n
 "#+TITLE: " (p "title") n
 "#+DESCRIPTION: " (p "description") n
 "#+FILETAGS: " (p "tags") n
 "#+STARTUP: " (p "content" startup) n n n
 "* Links" n
 "- " n
-"* Connected notes" n
+"* Explanation" n
 "- " n n)
 
 (scss "#+BEGIN_SRC scss" n> p n "#+END_SRC")
