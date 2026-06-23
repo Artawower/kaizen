@@ -35,6 +35,20 @@ org-mode
 "* Explanation" n
 "- " n n)
 
+
+(pg-note ":PROPERTIES:" n
+":ID: " (p (org-id-new) note-id) n
+":END:" n n
+"#+TITLE: " (p "title") n
+"#+DESCRIPTION: " (p "description") n
+"#+FILETAGS: " (p "tags") n
+"#+STARTUP: " (p "content" startup) n
+"#+PROPERTY: header-args:sql :engine postgresql :dbhost 127.0.0.1 :dbport 5432 :dbuser postgres :database demo :results table" n n
+"* Links" n
+"- " n
+"* Explanation" n
+"- " n n)
+
 (scss "#+BEGIN_SRC scss" n> p n "#+END_SRC")
 (yaml "#+BEGIN_SRC yaml" n> p n "#+END_SRC")
 
