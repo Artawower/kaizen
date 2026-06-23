@@ -132,6 +132,7 @@
       ins   #'hel-append
       (upcase ins) #'kaizen/hel-insert-at-indentation
       "k"   #'kaizen/hel-search-or-next
+      "r"   #'hel-replace-with-kill-ring
       "j"   #'hel-forward-word-start
       "J"   #'hel-forward-WORD-start
       "c"   #'kaizen/hel-change
@@ -144,7 +145,6 @@
       "/"   #'kaizen/hel-search-with-region
       "SPC" mode-specific-map)
 
-    ;; Error navigation — same as meow C-n/C-e
     (keymap-set hel-normal-state-map "C-n" #'flymake-goto-next-error)
     (keymap-set hel-normal-state-map "C-e" #'flymake-goto-prev-error)
     (keymap-set hel-normal-state-map "] d" #'flymake-goto-next-error)
@@ -185,29 +185,35 @@
       down       #'ediff-next-difference
       up         #'ediff-previous-difference)
 
-    (hel-define-state agenda-motion "Hel state for Org-Agenda.")
-    (hel-set-initial-state 'org-agenda-mode 'agenda-motion)
-    (hel-keymap-set hel-agenda-motion-state-map
-      "<escape>" #'org-agenda-quit
-      "SPC"      #'execute-extended-command
-      "q"        #'org-agenda-quit
-      "g"        #'org-agenda-redo
-      "."        #'org-agenda-goto-today
-      "t"        #'org-agenda-todo
-      "s"        #'org-agenda-schedule
-      "d"        #'org-agenda-deadline
-      ":"        #'org-agenda-set-tags
-      "/"        #'org-agenda-filter
-      "v"        #'org-agenda-view-mode-dispatch
-      "TAB"      #'org-agenda-goto
-      "RET"      #'org-agenda-switch-to
-      "f"        #'avy-goto-word-1
-      down       #'org-agenda-next-line
-      up         #'org-agenda-previous-line
-      left       #'org-agenda-earlier
-      right      #'org-agenda-later
-      (upcase down) #'org-agenda-next-item
-      (upcase up)   #'org-agenda-previous-item))
+    (hel-set-initial-state 'org-agenda-mode 'normal)
+
+    (with-eval-after-load 'org-agenda
+      (hel-keymap-set org-agenda-mode-map :state 'normal
+        "<escape>" #'org-agenda-quit
+        "SPC"      mode-specific-map
+        "q"        #'org-agenda-quit
+        "g"        #'org-agenda-redo
+        "."        #'org-agenda-goto-today
+        "t"        #'org-agenda-todo
+        "s"        #'org-agenda-schedule
+        "d"        #'org-agenda-deadline
+        ":"        #'org-agenda-set-tags
+        "/"        #'org-agenda-filter
+        "v"        #'org-agenda-view-mode-dispatch
+        "TAB"      #'org-agenda-goto
+        "RET"      #'org-agenda-switch-to
+        "f"        #'avy-goto-word-1
+        down       #'org-agenda-next-line
+        up         #'org-agenda-previous-line
+        left       #'org-agenda-earlier
+        right      #'org-agenda-later
+        (upcase down) #'org-agenda-next-item
+        (upcase up)   #'org-agenda-previous-item))
+
+    (dolist (buffer (buffer-list))
+      (with-current-buffer buffer
+        (when (derived-mode-p 'org-agenda-mode)
+          (hel-normal-state 1)))))
 
   ;; Package integrations — with-eval-after-load inside :config
   ;; hel is guaranteed loaded here, packages may load later
@@ -233,6 +239,10 @@
 
   (with-eval-after-load 'apheleia
     (hel-keymap-global-set :state 'normal "\\ p" #'apheleia-format-buffer))
+
+  (with-eval-after-load 'consult
+    (hel-keymap-global-set :state 'normal "SPC b a" #'consult-buffer)
+    (hel-keymap-global-set :state 'normal "SPC b b" #'consult-project-buffer))
 
   (hel-keymap-global-set :state 'normal
     "SPC f f" #'project-find-file)

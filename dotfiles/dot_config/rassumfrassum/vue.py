@@ -2,6 +2,8 @@
 
 def servers():
     return [
-        ['typescript-language-server', '--stdio'],
+        ['vue-language-server', '--stdio']
+
+        # ['typescript-language-server', '--stdio'],
         # ["node", "/Users/darkawower/.emacs.d/var/lsp/server/eslint/unzipped/extension/server/out/eslintServer.js", '--stdio']
     ]

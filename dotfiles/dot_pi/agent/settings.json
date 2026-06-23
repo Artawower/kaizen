@@ -1,5 +1,5 @@
 {
-  "lastChangelogVersion": "0.79.6",
+  "lastChangelogVersion": "0.79.10",
   "hideThinkingBlock": true,
   "quietStartup": true,
   "enableSkillCommands": true,
@@ -7,7 +7,15 @@
     "npm"
   ],
   "packages": [
-    "npm:pi-web-access",
+    {
+      "source": "npm:pi-web-access",
+      "extensions": [
+        "-index.ts"
+      ],
+      "skills": [
+        "-skills/librarian/SKILL.md"
+      ]
+    },
     {
       "source": "npm:oh-pi",
       "skills": [
@@ -113,10 +121,11 @@
     "npm:@benvargas/pi-claude-code-use",
     "npm:context-mode",
     "npm:pi-jj-auto",
-    "npm:pi-alibaba-models"
+    "npm:pi-alibaba-models",
+    "npm:pi-opencode-bridge"
   ],
-  "defaultProvider": "deepseek",
-  "defaultModel": "deepseek-v4-pro",
+  "defaultProvider": "opencode-go",
+  "defaultModel": "glm-5.2",
   "defaultThinkingLevel": "high",
   "collapseChangelog": false,
   "dark-or-light": {

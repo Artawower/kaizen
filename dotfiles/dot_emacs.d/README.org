@@ -1122,6 +1122,7 @@ Move to husky
 
 *** Standard editing
 #+BEGIN_SRC emacs-lisp
+(global-set-key (kbd "TAB") 'tab-to-tab-stop)
 (global-set-key (kbd "s-v") 'yank)
 (global-set-key (kbd "s-s") 'save-buffer)
 (global-set-key (kbd "s-u") 'revert-buffer)
@@ -1322,6 +1323,11 @@ Bookmark for navigation inside file
          ("s-b" . bm-toggle)
          ("C-c b L" . bm-show-all)
          ("C-c b l" . bm-show)))
+#+END_SRC
+
+** Layout bm
+#+BEGIN_SRC emacs-lisp :results silent
+(use-package burly :defer t)
 #+END_SRC
 
 ** Scroll golden ratio
@@ -2893,11 +2899,15 @@ def servers():
 
   ;; https://github.com/joaotavora/eglot/discussions/1184
   (defun my/vue-eglot-init-options ()
-    (let* ((root (when (project-current) (project-root (project-current))))
-           (local (when root (expand-file-name "node_modules/typescript/lib" root)))
-           (global (expand-file-name "~/.volta/tools/image/packages/typescript/lib/node_modules/typescript/lib"))
-           (tsdk (if (and local (file-exists-p (expand-file-name "typescript.js" local))) local global)))
-      `(:typescript (:tsdk ,tsdk) :vue (:hybridMode :json-false))))
+  (let* ((root (when (project-current) (project-root (project-current))))
+         (local (when root (expand-file-name "node_modules/typescript/lib" root)))
+         (tsdk (if (and local (file-exists-p (expand-file-name "typescript.js" local)))
+                   local
+                 (string-trim
+                  (shell-command-to-string
+                   "node -p \"require('path').dirname(require.resolve('typescript'))\"")))))
+    `(:typescript (:tsdk ,tsdk)
+      :vue (:hybridMode :json-false))))
 
   (add-to-list 'eglot-server-programs
                `(vue-ts-mode . ("vue-language-server" "--stdio"
@@ -4087,7 +4097,7 @@ Automatically creates parent directories if needed."
   (add-to-list 'org-src-lang-modes '("ts" . typescript-ts))
   (add-to-list 'org-src-lang-modes '("python" . python-ts))
   (add-to-list 'org-src-lang-modes '("rust" . rust-ts))
-  
+
 
   (my/setup-org-mode-faces)
   (add-hook 'org-mode-hook
@@ -4100,7 +4110,7 @@ Automatically creates parent directories if needed."
 
   (dolist (language '(sql js python shell typescript rust restclient bash))
     (my/org-babel-enable-language language))
-  
+
   (setq org-capture-templates
         `(("t" "Task → Inbox" entry
            (file ,(expand-file-name "inbox.org" my/agenda-dir))
