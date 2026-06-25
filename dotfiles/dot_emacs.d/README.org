@@ -2869,88 +2869,131 @@ def servers():
          ("C-c l d" . eglot-find-typeDefinition)
          ("C-c l f" . xref-find-references))
   :hook
-  ((typescript-ts-mode
+  ((typescript-mode
+    typescript-ts-mode
     tsx-ts-mode
+    js-mode
     js-ts-mode
-    html-ts-mode
     ng2-ts-mode
+    html-ts-mode
+    rust-mode
     rust-ts-mode
     python-ts-mode
     go-ts-mode
     vue-ts-mode) . eglot-ensure)
-  ;; (eglot-managed-mode-hook . (lambda () (eglot-semantic-tokens-mode -1)))
   :custom
   (eglot-semantic-token-modifiers nil)
   (eglot-semantic-token-types nil)
   (eglot-confirm-server-initiated-edits nil)
   (eglot-code-action-indicator "")
-  (eglot-events-buffer-config '(:size 0 :format nil))
+  (eglot-events-buffer-config '(:size 2000000))
   :config
+  (require 'cl-lib)
+  (require 'subr-x)
 
   (defun my/eglot-disable-inline-hints ()
-    "Disable inline hints in eglot."
     (when (bound-and-true-p eglot-inlay-hints-mode)
       (eglot-inlay-hints-mode -1)))
 
-  (add-hook 'eglot-managed-mode-hook #'my/eglot-disable-inline-hints)
-  (add-to-list 'eglot-server-programs
-               '((typescript-ts-mode tsx-ts-mode js-ts-mode ng2-ts-mode)
-                 . ("typescript-language-server" "--stdio")))
+  (defun my/eglot-key-matches-mode-p (key mode)
+    (cond
+     ((eq key mode) t)
+     ((and (consp key)
+           (eq (car key) mode))
+      t)
+     ((consp key)
+      (cl-some
+       (lambda (item)
+         (my/eglot-key-matches-mode-p item mode))
+       key))
+     (t nil)))
 
-  ;; https://github.com/joaotavora/eglot/discussions/1184
+  (defun my/eglot-remove-server-programs-for-modes (&rest modes)
+    (setq eglot-server-programs
+          (cl-remove-if
+           (lambda (entry)
+             (cl-some
+              (lambda (mode)
+                (my/eglot-key-matches-mode-p (car entry) mode))
+              modes))
+           eglot-server-programs)))
+
+  (defun my/typescript-lib-path-p (path)
+    (and path
+         (file-exists-p (expand-file-name "typescript.js" path))
+         (file-exists-p (expand-file-name "tsserver.js" path))))
+
+  (defun my/local-typescript-lib-path ()
+    (let* ((root (locate-dominating-file default-directory "node_modules/typescript/lib/typescript.js"))
+           (path (when root (expand-file-name "node_modules/typescript/lib" root))))
+      (when (my/typescript-lib-path-p path)
+        path)))
+
+  (defun my/node-typescript-lib-path ()
+    (when-let* ((node (executable-find "node")))
+      (let* ((command
+              (concat
+               (shell-quote-argument node)
+               " -p \"require('path').dirname(require.resolve('typescript/lib/tsserver.js'))\""))
+             (path (string-trim (shell-command-to-string command))))
+        (when (my/typescript-lib-path-p path)
+          path))))
+
+  (defun my/typescript-lib-path ()
+    (or (my/local-typescript-lib-path)
+        (my/node-typescript-lib-path)
+        (error "Cannot find TypeScript SDK from %s" default-directory)))
+
   (defun my/vue-eglot-init-options ()
-  (let* ((root (when (project-current) (project-root (project-current))))
-         (local (when root (expand-file-name "node_modules/typescript/lib" root)))
-         (tsdk (if (and local (file-exists-p (expand-file-name "typescript.js" local)))
-                   local
-                 (string-trim
-                  (shell-command-to-string
-                   "node -p \"require('path').dirname(require.resolve('typescript'))\"")))))
-    `(:typescript (:tsdk ,tsdk)
-      :vue (:hybridMode :json-false))))
+    `(:typescript (:tsdk ,(my/typescript-lib-path))
+                  :vue (:hybridMode :json-false)))
 
-  (add-to-list 'eglot-server-programs
-               `(vue-ts-mode . ("vue-language-server" "--stdio"
-                                :initializationOptions ,(my/vue-eglot-init-options))))
+  (defun my/vue-eglot-server (_interactive)
+    `("vue-language-server"
+      "--stdio"
+      :initializationOptions ,(my/vue-eglot-init-options)))
 
-  ;; Python via rassumfrassum
-  (add-to-list 'eglot-server-programs
-               '(python-ts-mode . ("rass" "python")))
+  (add-hook 'eglot-managed-mode-hook #'my/eglot-disable-inline-hints)
 
-  (add-to-list 'eglot-server-programs
-               '(html-ts-mode . ("rass" "angular-html")))
+  (my/eglot-remove-server-programs-for-modes
+   'typescript-mode
+   'typescript-ts-mode
+   'tsx-ts-mode
+   'js-mode
+   'js-ts-mode
+   'ng2-ts-mode
+   'vue-ts-mode
+   'html-ts-mode
+   'python-ts-mode
+   'go-ts-mode
+   'rust-mode
+   'rust-ts-mode)
 
-  ;; (add-to-list 'eglot-server-programs
-  ;;              `(vue-ts-mode . ("rass" "vue-lint")))
+  (add-to-list
+   'eglot-server-programs
+   '((typescript-mode typescript-ts-mode tsx-ts-mode js-mode js-ts-mode ng2-ts-mode)
+     . ("typescript-language-server" "--stdio")))
 
+  (add-to-list
+   'eglot-server-programs
+   (cons '(vue-ts-mode :language-id "vue")
+         #'my/vue-eglot-server))
 
-  ;; Go (single server, no rass needed)
-  (add-to-list 'eglot-server-programs
-               '(go-ts-mode . ("gopls")))
+  (add-to-list
+   'eglot-server-programs
+   '(html-ts-mode . ("rass" "angular-html")))
 
-  ;; (add-to-list 'eglot-server-programs '((typescript-mode typescript-ts-mode) . ("rass" "angular")))
-  (defun my/typescript-lsp-server (&optional _interactive _project)
-    "Return LSP server command based on whether project is Angular or not."
-    (let* ((project-root (locate-dominating-file default-directory "angular.json"))
-           (angular-p (and project-root
-                           (file-exists-p (expand-file-name "angular.json" project-root)))))
-(message "IS ANGULAR? %s" angular-p)
-      (if angular-p
-          ;; Angular project - include ngserver
-          '("rass" "angular")
-          ;; '("lspx"
-          ;;   "--lsp" "typescript-language-server --stdio"
-          ;;   "--lsp" "ngserver --stdio --tsProbeLocations . --ngProbeLocations .")
-            ;; "--lsp" "node /Users/darkawower/.emacs.d/var/lsp/server/eslint/unzipped/extension/server/out/eslintServer.js --stdio")
-            '("rass" "vue"))))
+  (add-to-list
+   'eglot-server-programs
+   '(python-ts-mode . ("rass" "python")))
 
-  (add-to-list 'eglot-server-programs
-               '((typescript-mode typescript-ts-mode tsx-ts-mode js-mode js-ts-mode) . my/typescript-lsp-server))
+  (add-to-list
+   'eglot-server-programs
+   '(go-ts-mode . ("gopls")))
 
-
-  ;; Rust
-  (add-to-list 'eglot-server-programs
-               '((rust-ts-mode rust-mode) . ("rust-analyzer"))))
+  (add-to-list
+   'eglot-server-programs
+   '((rust-ts-mode rust-mode) . ("rust-analyzer"))))
 #+END_SRC
 
 *** Toggle eglot inline hints

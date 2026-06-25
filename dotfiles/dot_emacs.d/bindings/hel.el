@@ -340,6 +340,7 @@
   (with-eval-after-load 'husky
     (hel-keymap-global-set :state 'normal
       "g d" #'husky-lsp-find-definition
+      "g D" #'husky-buffers-side-husky-actions-find-definition
       "%"   #'husky-navigation-bounce-paren
       "g F" #'husky-lsp-avy-go-to-definition
       "g f" #'husky-lsp-avy-go-to-definition
