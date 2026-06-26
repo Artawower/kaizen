@@ -337,56 +337,125 @@ Exec path replacement https://www.reddit.com/r/emacs/comments/f8xwau/hack_replac
 #+BEGIN_SRC emacs-lisp
 ;;; Code to replace exec-path-from-shell
 ;; Need to create file in $HOME/.emacs.d/.local/env
-;; use this command to create the file  `printenv > ~/.emacs.d/.local/env'
-(defconst my/local-dir (concat user-emacs-directory ".local/"))
+;; Use this command to create the file:
+;;
+;;   printenv > ~/.emacs.d/.local/env
 
-(defconst my/env-file (concat my/local-dir "env"))
+(defconst my/local-dir
+  (expand-file-name ".local/" user-emacs-directory))
+
+(defconst my/env-file
+  (expand-file-name "env" my/local-dir))
+
+(defconst my/posix-shell-file
+  (or (executable-find "dash")
+      "/bin/sh")
+  "POSIX-compatible shell used by `shell-command' and friends.
+
+Do not use xonsh/fish here. `shell-file-name' is used by
+`shell-command', `shell-command-to-string', `call-process-shell-command',
+etc., so it should be a POSIX-compatible shell.")
+
+(defun my/env-line-name (line)
+  "Return env var name from LINE like \"NAME=value\"."
+  (when (string-match-p "\\`[^#=[:space:]]+=" line)
+    (substring line 0 (string-match-p "=" line))))
+
+(defun my/env-line-value (line)
+  "Return env var value from LINE like \"NAME=value\"."
+  (when-let ((pos (string-match-p "=" line)))
+    (substring line (1+ pos))))
+
+(defun my/env-get-from-lines (name lines)
+  "Return value of env var NAME from parsed env LINES."
+  (let ((prefix (concat name "=")))
+    (catch 'value
+      (dolist (line lines)
+        (when (string-prefix-p prefix line)
+          (throw 'value (substring line (length prefix)))))
+      nil)))
+
+(defun my/apply-posix-shell-settings ()
+  "Force POSIX shell for Emacs shell-command APIs.
+
+This intentionally does not change $SHELL in `process-environment'.
+$SHELL can remain xonsh/zsh/fish for interactive tools, while
+`shell-file-name' should stay POSIX-compatible."
+  (setq shell-file-name my/posix-shell-file)
+  (setq shell-command-switch "-c")
+
+  ;; These are mostly for sh-mode / shell-script related behavior.
+  ;; They are not the main variables used by `shell-command-to-string',
+  ;; but keeping them consistent is harmless.
+  (setq sh-shell my/posix-shell-file)
+  (setq sh-shell-file my/posix-shell-file))
 
 (defun my/load-envvars-file (file &optional noerror)
   "Read and set envvars from FILE.
+
 If NOERROR is non-nil, don't throw an error if the file doesn't exist or is
-unreadable. Returns the names of envvars that were changed."
+unreadable. Returns the names of envvars that were changed.
+
+Important: this function imports $SHELL into `process-environment',
+but it does not copy $SHELL into `shell-file-name'."
   (if (not (file-readable-p file))
       (unless noerror
         (signal 'file-error (list "Couldn't read envvar file" file)))
-    (let (envvars environment)
+    (let (envvars environment path-value)
       (with-temp-buffer
-        (save-excursion
-          (insert "\n")
-          (insert-file-contents file))
-        (while (re-search-forward "\n *\\([^#= \n]*\\)=" nil t)
-          (push (match-string 1) envvars)
-          (push (buffer-substring
-                 (match-beginning 1)
-                 (1- (or (save-excursion
-                           (when (re-search-forward "^\\([^= ]+\\)=" nil t)
-                             (line-beginning-position)))
-                         (point-max))))
-                environment)))
+        (insert-file-contents file)
+        (dolist (line (split-string (buffer-string) "\n" t))
+          (when-let ((name (my/env-line-name line)))
+            (push name envvars)
+            (push line environment))))
+
       (when environment
+        (setq environment (nreverse environment))
+        (setq envvars (nreverse envvars))
+
+        ;; Import environment variables.
         (setq process-environment
-              (append (nreverse environment) process-environment)
-              exec-path
-              (if (member "PATH" envvars)
-                  (append (split-string (getenv "PATH") path-separator t)
-                          (list exec-directory))
-                exec-path)
-              shell-file-name
-              (if (member "SHELL" envvars)
-                  (or (getenv "SHELL") shell-file-name)
-                shell-file-name))
+              (append environment process-environment))
+
+        ;; Sync `exec-path' from imported PATH, if PATH exists in FILE.
+        ;; Use the value from FILE directly, not whatever PATH happened
+        ;; to be before/after append.
+        (setq path-value (my/env-get-from-lines "PATH" environment))
+
+        (when path-value
+          (setq exec-path
+                (append (split-string path-value path-separator t)
+                        (list exec-directory))))
+
+        ;; Do NOT do this:
+        ;;
+        ;;   (setq shell-file-name (getenv "SHELL"))
+        ;;
+        ;; $SHELL can be xonsh/fish/zsh. `shell-file-name' is used for
+        ;; `shell-command-to-string' and must be POSIX-compatible.
+        (my/apply-posix-shell-settings)
+
         envvars))))
+
+;; Set it early once.
+(my/apply-posix-shell-settings)
 
 (when (and (or (display-graphic-p)
                (daemonp))
            (file-exists-p my/env-file))
-  (my/load-envvars-file my/env-file))
+  (my/load-envvars-file my/env-file t))
 
+;; Set it again after env import, because env import may include SHELL.
+(my/apply-posix-shell-settings)
 
 (defun my/reload-envvars ()
   "Reload envvars from `my/env-file'."
   (interactive)
-  (my/load-envvars-file my/env-file t))
+  (my/load-envvars-file my/env-file t)
+  (my/apply-posix-shell-settings)
+  (message "Reloaded envvars from %s; shell-file-name=%s"
+           my/env-file
+           shell-file-name))
 #+END_SRC
 
 ** Backups

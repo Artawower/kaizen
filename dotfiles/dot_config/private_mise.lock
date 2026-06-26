@@ -13,38 +13,38 @@ version = "0.1.6"
 backend = "cargo:kdlfmt"
 
 [[tools."github:ogulcancelik/herdr"]]
-version = "0.7.0"
+version = "0.7.1"
 backend = "github:ogulcancelik/herdr"
 
 [tools."github:ogulcancelik/herdr"."platforms.linux-arm64"]
-checksum = "sha256:77407959c514c25c870bbcc6d2a2c86fef5b5701ed0c7c37745d7412e8563d72"
-url = "https://github.com/ogulcancelik/herdr/releases/download/v0.7.0/herdr-linux-aarch64"
-url_api = "https://api.github.com/repos/ogulcancelik/herdr/releases/assets/448342842"
+checksum = "sha256:3d757ac30c631e79dc45038c3ecc6423fe13a89f9cffa0f415aedd2c27f1576c"
+url = "https://github.com/ogulcancelik/herdr/releases/download/v0.7.1/herdr-linux-aarch64"
+url_api = "https://api.github.com/repos/ogulcancelik/herdr/releases/assets/456674305"
 
 [tools."github:ogulcancelik/herdr"."platforms.linux-arm64-musl"]
-checksum = "sha256:77407959c514c25c870bbcc6d2a2c86fef5b5701ed0c7c37745d7412e8563d72"
-url = "https://github.com/ogulcancelik/herdr/releases/download/v0.7.0/herdr-linux-aarch64"
-url_api = "https://api.github.com/repos/ogulcancelik/herdr/releases/assets/448342842"
+checksum = "sha256:3d757ac30c631e79dc45038c3ecc6423fe13a89f9cffa0f415aedd2c27f1576c"
+url = "https://github.com/ogulcancelik/herdr/releases/download/v0.7.1/herdr-linux-aarch64"
+url_api = "https://api.github.com/repos/ogulcancelik/herdr/releases/assets/456674305"
 
 [tools."github:ogulcancelik/herdr"."platforms.linux-x64"]
-checksum = "sha256:ad2a5d480a4e04609a9dd30a19ec07854578df6b5f0ea9299246963baf40363b"
-url = "https://github.com/ogulcancelik/herdr/releases/download/v0.7.0/herdr-linux-x86_64"
-url_api = "https://api.github.com/repos/ogulcancelik/herdr/releases/assets/448342843"
+checksum = "sha256:b965acaffc2c22f54b6e6c64af7cf8e98a3f4ac2622630a0599c67a4b9d8a654"
+url = "https://github.com/ogulcancelik/herdr/releases/download/v0.7.1/herdr-linux-x86_64"
+url_api = "https://api.github.com/repos/ogulcancelik/herdr/releases/assets/456674304"
 
 [tools."github:ogulcancelik/herdr"."platforms.linux-x64-musl"]
-checksum = "sha256:ad2a5d480a4e04609a9dd30a19ec07854578df6b5f0ea9299246963baf40363b"
-url = "https://github.com/ogulcancelik/herdr/releases/download/v0.7.0/herdr-linux-x86_64"
-url_api = "https://api.github.com/repos/ogulcancelik/herdr/releases/assets/448342843"
+checksum = "sha256:b965acaffc2c22f54b6e6c64af7cf8e98a3f4ac2622630a0599c67a4b9d8a654"
+url = "https://github.com/ogulcancelik/herdr/releases/download/v0.7.1/herdr-linux-x86_64"
+url_api = "https://api.github.com/repos/ogulcancelik/herdr/releases/assets/456674304"
 
 [tools."github:ogulcancelik/herdr"."platforms.macos-arm64"]
-checksum = "sha256:0946c1c5de396d1404906c81c84a0cef47af5e15c9aac3c058c3936b833fe311"
-url = "https://github.com/ogulcancelik/herdr/releases/download/v0.7.0/herdr-macos-aarch64"
-url_api = "https://api.github.com/repos/ogulcancelik/herdr/releases/assets/448342844"
+checksum = "sha256:16f4653f0491ea1e7d2b46b5b02542f18e1b82e88daaf9e2900572e5bb634df8"
+url = "https://github.com/ogulcancelik/herdr/releases/download/v0.7.1/herdr-macos-aarch64"
+url_api = "https://api.github.com/repos/ogulcancelik/herdr/releases/assets/456674306"
 
 [tools."github:ogulcancelik/herdr"."platforms.macos-x64"]
-checksum = "sha256:6c61cdb67c79b8d0626e109b9d8d8635c66a80bfed21ac9fe6efdf1dd8d27c0f"
-url = "https://github.com/ogulcancelik/herdr/releases/download/v0.7.0/herdr-macos-x86_64"
-url_api = "https://api.github.com/repos/ogulcancelik/herdr/releases/assets/448342841"
+checksum = "sha256:5780fa07dbb9a78d79e52d20b86a61013f6cba02667f20b6cf89663015090846"
+url = "https://github.com/ogulcancelik/herdr/releases/download/v0.7.1/herdr-macos-x86_64"
+url_api = "https://api.github.com/repos/ogulcancelik/herdr/releases/assets/456674307"
 
 [[tools."go:github.com/umputun/ralphex/cmd/ralphex"]]
 version = "1.5.1"
@@ -99,7 +99,7 @@ version = "22.0.2"
 backend = "npm:@angular/language-service"
 
 [[tools."npm:@earendil-works/pi-coding-agent"]]
-version = "0.79.10"
+version = "0.80.2"
 backend = "npm:@earendil-works/pi-coding-agent"
 
 [[tools."npm:@github/copilot-language-server"]]
@@ -119,7 +119,7 @@ version = "0.73.0"
 backend = "npm:@mariozechner/pi-coding-agent"
 
 [[tools."npm:@mem0/cli"]]
-version = "0.2.8"
+version = "0.2.9"
 backend = "npm:@mem0/cli"
 
 [[tools."npm:@mermaid-js/mermaid-cli"]]
@@ -175,7 +175,7 @@ version = "1.0.0"
 backend = "npm:mcp-codex-cli"
 
 [[tools."npm:mem0ai"]]
-version = "3.0.9"
+version = "3.0.10"
 backend = "npm:mem0ai"
 
 [[tools."npm:ngx-unused-css"]]
@@ -191,7 +191,7 @@ version = "3.3.0"
 backend = "npm:npm-upgrade"
 
 [[tools."npm:opencode-ai"]]
-version = "1.17.9"
+version = "1.17.10"
 backend = "npm:opencode-ai"
 
 [tools."npm:opencode-ai".options]
@@ -230,7 +230,7 @@ version = "1.1.409"
 backend = "npm:pyright"
 
 [[tools."npm:skills"]]
-version = "1.5.12"
+version = "1.5.13"
 backend = "npm:skills"
 
 [[tools."npm:stylelint"]]
