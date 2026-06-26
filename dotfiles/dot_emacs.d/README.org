@@ -1312,9 +1312,11 @@ Move to husky
   (defun my/avy-select-word ()
     (interactive)
     (call-interactively 'avy-goto-word-1)
-    (if (bound-and-true-p hel-local-mode)
-        (hel-mark-inner-WORD 1)
-      (meow-mark-symbol 1))))
+    (cond
+     ((bound-and-true-p hel-local-mode) (hel-mark-inner-WORD 1))
+     ((bound-and-true-p helixel-global-mode) (helixel-mark-inner-WORD 1))
+     ((bound-and-true-p meow--global-mode) (meow-mark-symbol 1))
+     (t (meow-mark-symbol 1)))))
 #+END_SRC
 
 ** Ace window. Fast jump between opened windows and frames

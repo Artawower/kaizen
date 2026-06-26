@@ -21,7 +21,7 @@ tiling = true
 vcs = true
 
 [kaizen]
-binding_scheme = "hel"
+binding_scheme = "helixel"
 
 [kaizen.base_shortcuts]
 "app.buffers.pick" = [
