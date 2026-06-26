@@ -6,6 +6,9 @@ hostname = "Arturs-MacBook-Pro"
 layout = "colemak"
 username = "darkawower"
 
+[emacs]
+binding-scheme = "helixel"
+
 [features]
 ai = true
 core = true
@@ -19,9 +22,6 @@ rust = true
 terminal = true
 tiling = true
 vcs = true
-
-[kaizen]
-binding_scheme = "helixel"
 
 [kaizen.base_shortcuts]
 "app.buffers.pick" = [

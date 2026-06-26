@@ -1,0 +1,6 @@
+title = "Emacs modal editing binding scheme"
+
+[[slots]]
+id = "binding-scheme"
+required = false
+description = "Modal editing keybinding scheme loaded by dot_emacs.d/keybindings.el"

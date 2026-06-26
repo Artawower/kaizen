@@ -24,7 +24,6 @@
             ('visual 'hollow)
             (_ cursor-type))))
   (add-hook 'helixel-state-change-hook #'kaizen/helixel-apply-cursor)
-
   (dolist (state '(normal motion))
     (helixel-define-key state (kbd "C-o") #'better-jumper-jump-backward)
     (helixel-define-key state (kbd "C-i") #'better-jumper-jump-forward)))
@@ -106,41 +105,62 @@
   "h" #'split-window-below
   "r" #'rotate-window)
 
+(defun kaizen/helixel-bind-leader ()
+  "Bind SPC to the kaizen leader (`mode-specific-map') in helixel states.
+
+helixel binds SPC to `helixel-space-map' by default.  We override it with
+`mode-specific-map' (the same leader keymap used by the meow/hel schemes) so
+that multi-key bindings like \"SPC f f\" descend into the leader instead of
+helixel's space-map.  Call this early (before defining any \"SPC …\" binding)
+and again after `helixel-mode', since `helixel-mode' init may re-attach SPC."
+  (define-key helixel-normal-map (kbd "SPC") mode-specific-map)
+  (define-key helixel-motion-map (kbd "SPC") mode-specific-map))
+
+;; Attach the leader BEFORE any \"SPC …\" binding so those descend into
+;; `mode-specific-map' (a prefix) instead of landing in helixel's space-map.
+(kaizen/helixel-bind-leader)
+
 (let* ((left  (or (bound-and-true-p kaizen/nav-left)   "h"))
        (down  (or (bound-and-true-p kaizen/nav-down)   "n"))
        (up    (or (bound-and-true-p kaizen/nav-up)     "e"))
        (right (or (bound-and-true-p kaizen/nav-right)  "i"))
        (ins   (or (bound-and-true-p kaizen/nav-insert) "l"))
-       (line-start (or (bound-and-true-p kaizen/line-start) "0"))
-       (line-end   (or (bound-and-true-p kaizen/line-end)   "$")))
+       (line-end (or (bound-and-true-p kaizen/line-end) "$")))
 
   (dolist (state '(normal motion))
-    (helixel-define-key state left  #'helixel-backward-char)
-    (helixel-define-key state down  #'helixel-next-line)
-    (helixel-define-key state up    #'helixel-previous-line)
-    (helixel-define-key state right #'helixel-forward-char)
-    (helixel-define-key state line-start #'helixel-go-beginning-line)
-    (helixel-define-key state line-end   #'helixel-go-end-line))
+    (helixel-define-key state (kbd left)  #'helixel-backward-char)
+    (helixel-define-key state (kbd down)  #'helixel-next-line)
+    (helixel-define-key state (kbd up)    #'helixel-previous-line)
+    (helixel-define-key state (kbd right) #'helixel-forward-char)
+    (helixel-define-key state (kbd line-end) #'helixel-go-end-line))
 
-  (helixel-define-key 'normal ins    #'helixel-insert-after)
-  (helixel-define-key 'normal (upcase ins) #'kaizen/helixel-insert-at-indentation)
-  (helixel-define-key 'normal "k"   #'kaizen/helixel-search-or-next)
-  (helixel-define-key 'normal "r"   #'helixel-replace)
-  (helixel-define-key 'normal "j"   #'helixel-forward-word-start)
-  (helixel-define-key 'normal "J"   #'helixel-forward-WORD-start)
-  (helixel-define-key 'normal "c"   #'kaizen/helixel-change)
-  (helixel-define-key 'normal "q"   #'deactivate-mark)
-  (helixel-define-key 'normal "G"   #'kaizen/helixel-G)
-  (helixel-define-key 'normal "N"   #'my/copy-with-ai-context)
+  ;; Count prefix: bind 0-9 to `digit-argument' (exactly how Emacs' own
+  ;; `esc-map' does it) overriding helixel's fragile kbd-macro strings
+  ;; ("\C-u<N>" — they fail as "N is bound to N which is not a command").
+  ;; Beginning-of-line stays on the goto prefix (`g h' / `g l'), not on `0',
+  ;; so `0' remains a count digit like `1'..`9' (e.g. `3 w' = forward 3 words).
+  (dotimes (i 10)
+    (helixel-define-key 'normal (number-to-string i) #'digit-argument))
+
+  (helixel-define-key 'normal (kbd ins) #'helixel-insert-after)
+  (helixel-define-key 'normal (kbd (upcase ins)) #'kaizen/helixel-insert-at-indentation)
+  (helixel-define-key 'normal "k" #'kaizen/helixel-search-or-next)
+  (helixel-define-key 'normal "r" #'helixel-replace)
+  (helixel-define-key 'normal "j" #'helixel-forward-word-start)
+  (helixel-define-key 'normal "J" #'helixel-forward-WORD-start)
+  (helixel-define-key 'normal "c" #'kaizen/helixel-change)
+  (helixel-define-key 'normal "q" #'deactivate-mark)
+  (helixel-define-key 'normal "G" #'kaizen/helixel-G)
+  (helixel-define-key 'normal "N" #'my/copy-with-ai-context)
   (helixel-define-key 'normal (kbd "C-:") #'query-replace-regexp)
-  (helixel-define-key 'normal "/"   #'helixel-search-forward)
+  (helixel-define-key 'normal "/" #'helixel-search-forward)
 
-  (helixel-define-key 'motion (upcase ins) #'back-to-indentation)
+  (helixel-define-key 'motion (kbd (upcase ins)) #'back-to-indentation)
 
   (define-key helixel-normal-map (kbd "C-n") #'flymake-goto-next-error)
   (define-key helixel-normal-map (kbd "C-e") #'flymake-goto-prev-error)
-  (helixel-define-key 'normal "] d" #'flymake-goto-next-error)
-  (helixel-define-key 'normal "[ d" #'flymake-goto-prev-error)
+  (helixel-define-key 'normal (kbd "] d") #'flymake-goto-next-error)
+  (helixel-define-key 'normal (kbd "[ d") #'flymake-goto-prev-error)
 
   (keymap-set mode-specific-map "b" kaizen/helixel-bookmark-map)
   (keymap-set mode-specific-map "h" kaizen/helixel-help-map)
@@ -166,15 +186,9 @@
 
   (add-to-list 'helixel-major-mode-default-states '(org-agenda-mode . normal)))
 
-(defun kaizen/helixel-bind-leader ()
-  "Bind SPC to the kaizen leader (`mode-specific-map') in helixel states.
-Done after `helixel-mode' so helixel's own space-map init can't override it."
-  (define-key helixel-normal-map " " mode-specific-map)
-  (define-key helixel-motion-map " " mode-specific-map))
-
 (with-eval-after-load 'org-agenda
-  (helixel-define-key 'normal "<escape>" #'org-agenda-quit 'org-agenda-mode)
-  (helixel-define-key 'normal "SPC" mode-specific-map 'org-agenda-mode)
+  (helixel-define-key 'normal (kbd "<escape>") #'org-agenda-quit 'org-agenda-mode)
+  (helixel-define-key 'normal (kbd "SPC") mode-specific-map 'org-agenda-mode)
   (helixel-define-key 'normal "q" #'org-agenda-quit 'org-agenda-mode)
   (helixel-define-key 'normal "g" #'org-agenda-redo 'org-agenda-mode)
   (helixel-define-key 'normal "." #'org-agenda-goto-today 'org-agenda-mode)
@@ -184,20 +198,20 @@ Done after `helixel-mode' so helixel's own space-map init can't override it."
   (helixel-define-key 'normal ":" #'org-agenda-set-tags 'org-agenda-mode)
   (helixel-define-key 'normal "/" #'org-agenda-filter 'org-agenda-mode)
   (helixel-define-key 'normal "v" #'org-agenda-view-mode-dispatch 'org-agenda-mode)
-  (helixel-define-key 'normal "TAB" #'org-agenda-goto 'org-agenda-mode)
-  (helixel-define-key 'normal "RET" #'org-agenda-switch-to 'org-agenda-mode)
+  (helixel-define-key 'normal (kbd "TAB") #'org-agenda-goto 'org-agenda-mode)
+  (helixel-define-key 'normal (kbd "RET") #'org-agenda-switch-to 'org-agenda-mode)
   (helixel-define-key 'normal "f" #'avy-goto-word-1 'org-agenda-mode)
 
   (let ((down (or (bound-and-true-p kaizen/nav-down) "n"))
         (up   (or (bound-and-true-p kaizen/nav-up) "e"))
         (left (or (bound-and-true-p kaizen/nav-left) "h"))
         (right (or (bound-and-true-p kaizen/nav-right) "i")))
-    (helixel-define-key 'normal down #'org-agenda-next-line 'org-agenda-mode)
-    (helixel-define-key 'normal up #'org-agenda-previous-line 'org-agenda-mode)
-    (helixel-define-key 'normal left #'org-agenda-earlier 'org-agenda-mode)
-    (helixel-define-key 'normal right #'org-agenda-later 'org-agenda-mode)
-    (helixel-define-key 'normal (upcase down) #'org-agenda-next-item 'org-agenda-mode)
-    (helixel-define-key 'normal (upcase up) #'org-agenda-previous-item 'org-agenda-mode))
+    (helixel-define-key 'normal (kbd down) #'org-agenda-next-line 'org-agenda-mode)
+    (helixel-define-key 'normal (kbd up) #'org-agenda-previous-line 'org-agenda-mode)
+    (helixel-define-key 'normal (kbd left) #'org-agenda-earlier 'org-agenda-mode)
+    (helixel-define-key 'normal (kbd right) #'org-agenda-later 'org-agenda-mode)
+    (helixel-define-key 'normal (kbd (upcase down)) #'org-agenda-next-item 'org-agenda-mode)
+    (helixel-define-key 'normal (kbd (upcase up)) #'org-agenda-previous-item 'org-agenda-mode))
 
   (dolist (buffer (buffer-list))
     (with-current-buffer buffer
@@ -209,13 +223,13 @@ Done after `helixel-mode' so helixel's own space-map init can't override it."
 ;; helixel is guaranteed loaded here, packages may load later
 (with-eval-after-load 'avy
   (helixel-define-key 'normal "f" #'kaizen/helixel-avy-select-word)
-  (helixel-define-key 'normal "\\ f" #'avy-goto-char-timer))
+  (helixel-define-key 'normal (kbd "\\ f") #'avy-goto-char-timer))
 
 (with-eval-after-load 'bm
-  (helixel-define-key 'normal "] m" #'bm-next)
-  (helixel-define-key 'normal "[ m" #'bm-previous)
-  (helixel-define-key 'normal "SPC b m" #'bm-toggle)
-  (helixel-define-key 'normal "SPC b l" #'bm-show))
+  (helixel-define-key 'normal (kbd "] m") #'bm-next)
+  (helixel-define-key 'normal (kbd "[ m") #'bm-previous)
+  (helixel-define-key 'normal (kbd "SPC b m") #'bm-toggle)
+  (helixel-define-key 'normal (kbd "SPC b l") #'bm-show))
 
 (with-eval-after-load 'undo-fu
   (helixel-define-key 'normal "u" #'undo-fu-only-undo)
@@ -225,21 +239,21 @@ Done after `helixel-mode' so helixel's own space-map init can't override it."
   (helixel-define-key 'normal "#" #'persistent-kmacro-apply))
 
 (with-eval-after-load 'apheleia
-  (helixel-define-key 'normal "\\ p" #'apheleia-format-buffer))
+  (helixel-define-key 'normal (kbd "\\ p") #'apheleia-format-buffer))
 
 (with-eval-after-load 'consult
-  (helixel-define-key 'normal "SPC b a" #'consult-buffer)
-  (helixel-define-key 'normal "SPC b b" #'consult-project-buffer))
+  (helixel-define-key 'normal (kbd "SPC b a") #'consult-buffer)
+  (helixel-define-key 'normal (kbd "SPC b b") #'consult-project-buffer))
 
-(helixel-define-key 'normal "SPC f f" #'project-find-file)
+(helixel-define-key 'normal (kbd "SPC f f") #'project-find-file)
 
 (with-eval-after-load 'dirvish
-  (helixel-define-key 'normal "g f" #'dirvish-quick-access))
+  (helixel-define-key 'normal (kbd "g f") #'dirvish-quick-access))
 
 (dolist (state '(normal motion))
-  (helixel-define-key state "SPC g r" #'git-gutter:revert-hunk)
-  (helixel-define-key state "] g" #'git-gutter:next-hunk)
-  (helixel-define-key state "[ g" #'git-gutter:previous-hunk))
+  (helixel-define-key state (kbd "SPC g r") #'git-gutter:revert-hunk)
+  (helixel-define-key state (kbd "] g") #'git-gutter:next-hunk)
+  (helixel-define-key state (kbd "[ g") #'git-gutter:previous-hunk))
 
 (with-eval-after-load 'blamer
   (add-hook 'helixel-state-change-hook
@@ -249,15 +263,15 @@ Done after `helixel-mode' so helixel's own space-map init can't override it."
                ((eq helixel--current-state 'normal) (blamer-mode))))))
 
 (with-eval-after-load 'smerge-mode
-  (helixel-define-key 'normal "g s" #'smerge-next)
-  (helixel-define-key 'normal "g S" #'smerge-prev))
+  (helixel-define-key 'normal (kbd "g s") #'smerge-next)
+  (helixel-define-key 'normal (kbd "g S") #'smerge-prev))
 
 (with-eval-after-load 'ediff
   (let ((down (or (bound-and-true-p kaizen/nav-down) "n"))
         (up   (or (bound-and-true-p kaizen/nav-up) "e")))
-    (helixel-define-key 'motion down #'ediff-next-difference 'ediff-mode)
-    (helixel-define-key 'motion up #'ediff-previous-difference 'ediff-mode))
-  (helixel-define-key 'motion "<escape>" #'ediff-quit 'ediff-mode)
+    (helixel-define-key 'motion (kbd down) #'ediff-next-difference 'ediff-mode)
+    (helixel-define-key 'motion (kbd up) #'ediff-previous-difference 'ediff-mode))
+  (helixel-define-key 'motion (kbd "<escape>") #'ediff-quit 'ediff-mode)
   (add-hook 'ediff-cleanup-hook
             (lambda ()
               (when (and (boundp 'helixel-global-mode) helixel-global-mode)
@@ -265,14 +279,14 @@ Done after `helixel-mode' so helixel's own space-map init can't override it."
                   (helixel-normal-state 1))))))
 
 (with-eval-after-load 'eglot
-  (helixel-define-key 'normal "g i" #'eglot-find-implementation)
-  (helixel-define-key 'normal "g r" #'xref-find-references)
-  (helixel-define-key 'normal "\\ i" #'my/eglot-toggle-inlay-hints)
-  (helixel-define-key 'normal "SPC l a" #'eglot-code-actions)
-  (helixel-define-key 'normal "SPC l r" #'eglot-rename)
-  (helixel-define-key 'normal "SPC l h" #'eldoc)
-  (helixel-define-key 'normal "SPC l f" #'eglot-format-buffer)
-  (helixel-define-key 'normal "SPC l d" #'flymake-show-buffer-diagnostics))
+  (helixel-define-key 'normal (kbd "g i") #'eglot-find-implementation)
+  (helixel-define-key 'normal (kbd "g r") #'xref-find-references)
+  (helixel-define-key 'normal (kbd "\\ i") #'my/eglot-toggle-inlay-hints)
+  (helixel-define-key 'normal (kbd "SPC l a") #'eglot-code-actions)
+  (helixel-define-key 'normal (kbd "SPC l r") #'eglot-rename)
+  (helixel-define-key 'normal (kbd "SPC l h") #'eldoc)
+  (helixel-define-key 'normal (kbd "SPC l f") #'eglot-format-buffer)
+  (helixel-define-key 'normal (kbd "SPC l d") #'flymake-show-buffer-diagnostics))
 
 (with-eval-after-load 'corfu
   (add-hook 'helixel-state-change-hook
@@ -288,23 +302,23 @@ Done after `helixel-mode' so helixel's own space-map init can't override it."
                 (my/toggle-flymake-posframe)))))
 
 (with-eval-after-load 'eldoc-box
-  (helixel-define-key 'normal "\\ b" #'my/toggle-eldoc-buffer)
-  (helixel-define-key 'normal "\\ h" #'eldoc-box-help-at-point))
+  (helixel-define-key 'normal (kbd "\\ b") #'my/toggle-eldoc-buffer)
+  (helixel-define-key 'normal (kbd "\\ h") #'eldoc-box-help-at-point))
 
 (with-eval-after-load 'pretty-ts-errors
-  (helixel-define-key 'normal "\\ e" #'pretty-ts-errors-show-error-at-point))
+  (helixel-define-key 'normal (kbd "\\ e") #'pretty-ts-errors-show-error-at-point))
 
 (with-eval-after-load 'org
   (keymap-set mode-specific-map "m l" kaizen/helixel-org-link-map)
-  (helixel-define-key 'normal "\\ o" #'org-mode)
-  (helixel-define-key 'normal "\\ a" #'org-agenda)
-  (helixel-define-key 'normal "SPC m l l" #'org-insert-link)
-  (helixel-define-key 'normal "SPC m l t" #'org-toggle-link-display)
-  (helixel-define-key 'normal "SPC m l d" #'org-toggle-link-display)
-  (helixel-define-key 'normal "SPC m l s" #'org-store-link))
+  (helixel-define-key 'normal (kbd "\\ o") #'org-mode)
+  (helixel-define-key 'normal (kbd "\\ a") #'org-agenda)
+  (helixel-define-key 'normal (kbd "SPC m l l") #'org-insert-link)
+  (helixel-define-key 'normal (kbd "SPC m l t") #'org-toggle-link-display)
+  (helixel-define-key 'normal (kbd "SPC m l d") #'org-toggle-link-display)
+  (helixel-define-key 'normal (kbd "SPC m l s") #'org-store-link))
 
 (with-eval-after-load 'google-translate
-  (helixel-define-key 'normal "\\ t" #'google-translate-smooth-translate))
+  (helixel-define-key 'normal (kbd "\\ t") #'google-translate-smooth-translate))
 
 (with-eval-after-load 'magit
   (keymap-set magit-mode-map ";" (if (fboundp 'helixel-action-cycle)
@@ -333,13 +347,13 @@ Done after `helixel-mode' so helixel's own space-map init can't override it."
                   (copilot--display-overlay-completion completion uuid start end)))))
 
 (with-eval-after-load 'husky
-  (helixel-define-key 'normal "g d" #'husky-lsp-find-definition)
-  (helixel-define-key 'normal "g D" #'husky-buffers-side-husky-actions-find-definition)
+  (helixel-define-key 'normal (kbd "g d") #'husky-lsp-find-definition)
+  (helixel-define-key 'normal (kbd "g D") #'husky-buffers-side-husky-actions-find-definition)
   (helixel-define-key 'normal "%" #'husky-navigation-bounce-paren)
-  (helixel-define-key 'normal "g F" #'husky-lsp-avy-go-to-definition)
-  (helixel-define-key 'normal "g f" #'husky-lsp-avy-go-to-definition)
-  (helixel-define-key 'normal "s-y" #'husky-lsp-copy-to-register-1)
-  (helixel-define-key 'normal "s-p" #'husky-lsp-paste-from-register-1))
+  (helixel-define-key 'normal (kbd "g F") #'husky-lsp-avy-go-to-definition)
+  (helixel-define-key 'normal (kbd "g f") #'husky-lsp-avy-go-to-definition)
+  (helixel-define-key 'normal (kbd "s-y") #'husky-lsp-copy-to-register-1)
+  (helixel-define-key 'normal (kbd "s-p") #'husky-lsp-paste-from-register-1))
 
 (with-eval-after-load 'better-jumper
   (advice-add 'helixel-forward-word-start :around
@@ -347,15 +361,18 @@ Done after `helixel-mode' so helixel's own space-map init can't override it."
 
 (let ((fold-next (concat "z " (or (bound-and-true-p kaizen/nav-down) "j")))
       (fold-prev (concat "z " (or (bound-and-true-p kaizen/nav-up) "k"))))
-  (helixel-define-key 'normal "z r" #'husky-fold-open)
-  (helixel-define-key 'normal "z R" #'husky-fold-open-all)
-  (helixel-define-key 'normal "z A" #'husky-fold-toggle-all)
-  (helixel-define-key 'normal "z a" #'husky-fold-toggle)
-  (helixel-define-key 'normal fold-next #'husky-fold-next)
-  (helixel-define-key 'normal "z M" #'husky-fold-close-all)
-  (helixel-define-key 'normal fold-prev #'husky-fold-previous))
+  (helixel-define-key 'normal (kbd "z r") #'husky-fold-open)
+  (helixel-define-key 'normal (kbd "z R") #'husky-fold-open-all)
+  (helixel-define-key 'normal (kbd "z A") #'husky-fold-toggle-all)
+  (helixel-define-key 'normal (kbd "z a") #'husky-fold-toggle)
+  (helixel-define-key 'normal (kbd fold-next) #'husky-fold-next)
+  (helixel-define-key 'normal (kbd "z M") #'husky-fold-close-all)
+  (helixel-define-key 'normal (kbd fold-prev) #'husky-fold-previous))
 
 (helixel-mode)
+;; helixel-mode init may re-attach SPC to its own space-map — re-assert the
+;; kaizen leader as the last thing so \"SPC …\" keeps flowing into
+;; `mode-specific-map'.
 (kaizen/helixel-bind-leader)
 
 (provide 'kaizen-bindings-helixel)
