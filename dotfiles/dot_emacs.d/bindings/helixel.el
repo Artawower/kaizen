@@ -11,7 +11,7 @@
   (defun kaizen/helixel-disable-in-minibuffer ()
     (when (bound-and-true-p helixel-global-mode)
       (dolist (sel '(helixel-normal-state helixel-insert-state
-                     helixel-motion-state helixel-visual-state))
+                                          helixel-motion-state helixel-visual-state))
         (when (and (boundp sel) (symbol-value sel))
           (funcall sel -1)))))
   (add-hook 'minibuffer-setup-hook #'kaizen/helixel-disable-in-minibuffer 100)
@@ -142,7 +142,7 @@ and again after `helixel-mode', since `helixel-mode' init may re-attach SPC."
   (dotimes (i 10)
     (helixel-define-key 'normal (number-to-string i) #'digit-argument))
 
-  (helixel-define-key 'normal (kbd ins) #'helixel-insert-after)
+  (helixel-define-key 'normal (kbd ins) #'helixel-insert)
   (helixel-define-key 'normal (kbd (upcase ins)) #'kaizen/helixel-insert-at-indentation)
   (helixel-define-key 'normal "k" #'kaizen/helixel-search-or-next)
   (helixel-define-key 'normal "r" #'helixel-replace)
@@ -169,7 +169,7 @@ and again after `helixel-mode', since `helixel-mode' init may re-attach SPC."
 
   (global-set-key (kbd "s-c") #'helixel-kill-ring-save)
 
-  (dolist (mode '(prog-mode text-mode conf-mode fundamental-mode))
+  (dolist (mode '(prog-mode text-mode conf-mode fundamental-mode ghostel-mode messages-buffer-mode))
     (add-to-list 'helixel-major-mode-default-states (cons mode 'normal)))
 
   (dolist (mode '(elpaca-info-mode flymake-diagnostics-buffer-mode
