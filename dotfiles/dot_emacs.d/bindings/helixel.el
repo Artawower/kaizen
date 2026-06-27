@@ -78,11 +78,15 @@
   (helixel-mark-inner-WORD 1))
 
 (defun kaizen/helixel-search-or-next ()
-  "If searching, go to next match. Otherwise search for word under cursor."
+  "Search active selection first, otherwise repeat or search word at point."
   (interactive)
-  (if (bound-and-true-p helixel--active-search)
-      (call-interactively #'helixel-search-repeat-next)
-    (call-interactively #'helixel-search-at-point-next)))
+  (cond
+   ((use-region-p)
+    (helixel-search--from-region 'forward))
+   ((bound-and-true-p helixel--active-search)
+    (call-interactively #'helixel-search-repeat-next))
+   (t
+    (call-interactively #'helixel-search-at-point-next))))
 
 (defvar-keymap kaizen/helixel-vcs-map
   "l" #'majutsu
