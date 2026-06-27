@@ -156,6 +156,7 @@
    '("\\q" . kill-current-buffer))
 
   (meow-define-keys 'insert
+    '("TAB" . self-insert-command)
     '("s-o" . meow-last-buffer)
     '("M-[" . meow-beginning-of-thing)
     '("M-]" . meow-end-of-thing)

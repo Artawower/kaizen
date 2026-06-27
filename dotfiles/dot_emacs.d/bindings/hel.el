@@ -23,7 +23,9 @@
   
   (hel-keymap-global-set :state '(normal motion)
     "C-o" #'better-jumper-jump-backward
-    "C-i" #'better-jumper-jump-forward))
+    "C-S-o" #'better-jumper-jump-forward)
+  (hel-keymap-global-set :state 'insert
+    "TAB" #'self-insert-command))
 
 (dolist (map (list minibuffer-local-map
                    minibuffer-local-ns-map

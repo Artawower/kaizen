@@ -26,7 +26,8 @@
   (add-hook 'helixel-state-change-hook #'kaizen/helixel-apply-cursor)
   (dolist (state '(normal motion))
     (helixel-define-key state (kbd "C-o") #'better-jumper-jump-backward)
-    (helixel-define-key state (kbd "C-i") #'better-jumper-jump-forward)))
+    (helixel-define-key state (kbd "C-S-o") #'better-jumper-jump-forward))
+  (helixel-define-key 'insert (kbd "TAB") #'self-insert-command))
 
 (dolist (map (list minibuffer-local-map
                    minibuffer-local-ns-map

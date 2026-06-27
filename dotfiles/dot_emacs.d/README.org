@@ -1198,7 +1198,6 @@ Move to husky
 (global-set-key (kbd "s-a") 'mark-whole-buffer)
 (global-set-key (kbd "s-z") 'undo)
 (global-set-key "\C-u" 'my/backward-kill-line)
-(global-set-key (kbd "TAB") 'self-insert-command)
 #+END_SRC
 
 *** Window management
@@ -1358,7 +1357,7 @@ Function for preserve better jump befor buffer changed only for prog mode.
   :defer 2
   :bind
   (("C-o" . better-jumper-jump-backward)
-   ("C-i" . better-jumper-jump-forward)
+   ("C-S-o" . better-jumper-jump-forward)
    ("C-c 1" . better-jumper-set-jump))
   :custom
   (better-jumper-use-evil-jump-advice nil)
@@ -2274,6 +2273,12 @@ Setup blamer face
   (define-key majutsu-diff-mode-map (kbd "C-n") nil))
 #+END_SRC
 
+** Jujusu sidebar
+#+BEGIN_SRC emacs-lisp :results silent
+(use-package jj-sidebar
+  :defer t
+  :ensure (:host github :repo "Artawower/jj-sidebar"))
+#+END_SRC
 ** Majutsu display configuration
 #+BEGIN_SRC emacs-lisp
 (add-to-list 'display-buffer-alist
@@ -2499,6 +2504,13 @@ Prevents closing the last frame in daemon mode on macOS."
     (interactive)
     (let ((default-directory (project-root (project-current t))))
       (call-interactively #'majutsu)))
+  
+  (defun my/open-terminal ()
+    "Run Majutsu from the current project root."
+    (interactive)
+    (let ((default-directory (project-root (project-current t))))
+      (call-interactively #'majutsu)))
+  (add-to-list 'tabspaces-project-switch-commands '(ghostel-project "Term" ?t))
   (add-to-list 'tabspaces-project-switch-commands '(my/project-majutsu "Jujutsu" ?j)))
 #+END_SRC
 
