@@ -76,7 +76,7 @@
   "Jump to word with avy, then select it (helixel-aware)."
   (interactive)
   (call-interactively #'avy-goto-word-1)
-  (helixel-mark-inner-WORD 1))
+  (helixel-mark-inner-word 1))
 
 (defun kaizen/helixel-search-or-next ()
   "Search active selection first, otherwise repeat or search word at point."
@@ -350,6 +350,10 @@ and again after `helixel-mode', since `helixel-mode' init may re-attach SPC."
               (lambda (completion uuid start end)
                 (unless (bound-and-true-p helixel-normal-state)
                   (copilot--display-overlay-completion completion uuid start end)))))
+
+(with-eval-after-load 'golden-ratio-scroll-screen
+  (define-key global-map (kbd "C-d") #'golden-ratio-scroll-screen-up)
+  (define-key global-map (kbd "C-u") #'golden-ratio-scroll-screen-down))
 
 (with-eval-after-load 'husky
   (helixel-define-key 'normal (kbd "g d") #'husky-lsp-find-definition)
