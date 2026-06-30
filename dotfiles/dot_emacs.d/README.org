@@ -3628,16 +3628,11 @@ Clone this repo for js debug git@github.com:microsoft/vscode-js-debug.git
 (use-package web-mode
   :defer t
   :mode
-  ("\\.tsx\\'" . web-mode)
-  ("\\.jsx\\'" . web-mode)
   ("\\.astro\\'" . web-mode)
   :custom
   (web-mode-enable-auto-quoting nil)
   (web-mode-comment-formats
         '(("java"       . "/*")
-          ("javascript" . "//")
-          ("typescript" . "//")
-          ("vue"        . "//")
           ("php"        . "/*")
           ("pug"        . "//")
           ("css"        . "/*")))

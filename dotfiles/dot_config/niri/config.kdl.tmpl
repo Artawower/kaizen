@@ -66,6 +66,11 @@ output "eDP-1" {
     mode "3024x1964@60.004"
     scale 2
 }
+output "HDMI-A-1" {
+    mode "3840x2160@60.000"
+    scale 2
+    position x=1920 y=0  // Positioned to the right of eDP-1
+}
 workspace "soc"
 workspace "web"
 workspace "dev"
