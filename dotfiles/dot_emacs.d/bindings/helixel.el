@@ -150,6 +150,7 @@ and again after `helixel-mode', since `helixel-mode' init may re-attach SPC."
   (helixel-define-key 'normal (kbd ins) #'helixel-insert)
   (helixel-define-key 'normal (kbd (upcase ins)) #'kaizen/helixel-insert-at-indentation)
   (helixel-define-key 'normal "k" #'kaizen/helixel-search-or-next)
+  (helixel-define-key 'normal "K" #'helixel-search-repeat-reverse)
   (helixel-define-key 'normal "r" #'helixel-replace)
   (helixel-define-key 'normal "j" #'helixel-forward-word-start)
   (helixel-define-key 'normal "J" #'helixel-forward-WORD-start)
@@ -190,6 +191,10 @@ and again after `helixel-mode', since `helixel-mode' init may re-attach SPC."
     (add-to-list 'helixel-motion-parent-excluded-modes mode))
 
   (add-to-list 'helixel-major-mode-default-states '(org-agenda-mode . normal)))
+
+(with-eval-after-load 'dired
+  (helixel-define-key 'motion "-" #'dired-up-directory 'dired-mode)
+  (helixel-define-key 'motion "h" #'dired-up-directory 'dired-mode))
 
 (with-eval-after-load 'org-agenda
   (helixel-define-key 'normal (kbd "<escape>") #'org-agenda-quit 'org-agenda-mode)

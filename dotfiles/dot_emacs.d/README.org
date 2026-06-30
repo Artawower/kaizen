@@ -141,7 +141,7 @@ Function for getting config related paths
 #+END_SRC
 *** Initial mode
 #+BEGIN_SRC emacs-lisp
-(setq initial-major-mode 'fundamental-mode)
+(setq initial-major-mode 'text-mode)
 #+END_SRC
 *** Buffer naming startup
 https://github.com/D4lj337/Emacs-performance
@@ -1813,6 +1813,7 @@ Allow to transform PASCAL_CASE -> camelCase -> snake_case
   :bind (:map dired-mode-map
               ("z z" . recenter)
               ("-" . dired-up-directory)
+              ("h" . dired-up-directory)
               ("\\c" . dired-create-empty-file))
   :config
   (setq dired-dwim-target t)
