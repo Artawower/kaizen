@@ -62,21 +62,31 @@ input {
     // Setting max-scroll-amount="0%" makes it work only on windows already fully on screen.
     // focus-follows-mouse max-scroll-amount="0%"
 }
-output "eDP-1" {
-    mode "3024x1964@60.004"
-    scale 2
-}
 output "HDMI-A-1" {
     mode "3840x2160@60.000"
     scale 2
-    position x=1920 y=0  // Positioned to the right of eDP-1
+    position x=1512 y=0
+ // Positioned to the right of eDP-1    focus-at-startup
 }
-workspace "soc"
-workspace "web"
-workspace "dev"
+output "eDP-1" {
+    mode "3024x1964@60.004"
+    scale 2
+    position x=0 y=0
+}
+workspace "soc" {
+    open-on-output "eDP-1"
+}
+workspace "web" {
+    open-on-output "eDP-1"
+}
+workspace "dev" {
+    open-on-output "HDMI-A-1"
+}
 workspace "deb"
 workspace "oth"
-// workspace "term"
+workspace "term" {
+    open-on-output "eDP-1"
+}
 // Settings that influence how windows are positioned and sized.
 // Find more information on the wiki:
 // https://yalter.github.io/niri/Configuration:-Layout
@@ -401,13 +411,16 @@ binds {
         focus-workspace "web"
     }
     Mod5+Shift+3 {
-        focus-workspace "dev"
+        focus-workspace "term"
     }
     Mod5+Shift+4 {
-        focus-workspace "deb"
+        focus-workspace "dev"
     }
     Mod5+Shift+5 {
         focus-workspace "oth"
+    }
+    Mod5+Shift+6 {
+        focus-workspace "deb"
     }
     Mod5+Shift+O {
         focus-workspace "oth"
@@ -417,6 +430,9 @@ binds {
     }
     Mod5+Shift+P {
         focus-workspace "deb"
+    }
+    Mod5+Shift+T {
+        focus-workspace "term"
     }
     Mod5+Shift+D {
         spawn-sh "niri msg action focus-workspace dev && niri msg action focus-column-last"
@@ -434,13 +450,16 @@ binds {
         move-window-to-workspace "web"
     }
     Mod5+Shift+Super+3 {
-        move-window-to-workspace "dev"
+        move-window-to-workspace "term"
     }
     Mod5+Shift+Super+4 {
-        move-window-to-workspace "deb"
+        move-window-to-workspace "dev"
     }
     Mod5+Shift+Super+5 {
         move-window-to-workspace "oth"
+    }
+    Mod5+Shift+Super+6 {
+        move-window-to-workspace "deb"
     }
     Mod5+Shift+Super+O {
         move-window-to-workspace "oth"
@@ -453,6 +472,9 @@ binds {
     }
     Mod5+Shift+Super+D {
         move-window-to-workspace "dev"
+    }
+    Mod5+Shift+Super+T {
+        move-window-to-workspace "term"
     }
     Mod5+Shift+Super+P {
         move-window-to-workspace "deb"
