@@ -3033,9 +3033,19 @@ def servers():
         (when (my/typescript-lib-path-p path)
           path))))
 
+  (defun my/global-typescript-lib-path ()
+    (let* ((base (expand-file-name "~/.local/share/mise/installs/npm-typescript"))
+           (versions (when (file-directory-p base)
+                      (directory-files base t "\\`[^.]"))))
+      (cl-loop for v in versions
+               for lib = (expand-file-name "lib/node_modules/typescript/lib" v)
+               when (my/typescript-lib-path-p lib)
+               return lib)))
+
   (defun my/typescript-lib-path ()
     (or (my/local-typescript-lib-path)
         (my/node-typescript-lib-path)
+        (my/global-typescript-lib-path)
         (error "Cannot find TypeScript SDK from %s" default-directory)))
 
   (defun my/vue-eglot-init-options ()
@@ -3063,10 +3073,15 @@ def servers():
    'rust-mode
    'rust-ts-mode)
 
+  (defun my/ts-eglot-server (_interactive)
+    (let ((tsdk (condition-case nil (my/typescript-lib-path) (error nil))))
+      `("typescript-language-server" "--stdio"
+        ,@(when tsdk (list :initializationOptions `(:tsserver (:path ,tsdk)))))))
+
   (add-to-list
    'eglot-server-programs
    '((typescript-mode typescript-ts-mode tsx-ts-mode js-mode js-ts-mode ng2-ts-mode)
-     . ("typescript-language-server" "--stdio")))
+     . my/ts-eglot-server))
 
   (add-to-list
    'eglot-server-programs
