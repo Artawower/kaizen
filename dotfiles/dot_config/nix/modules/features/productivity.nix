@@ -12,7 +12,7 @@
     "obsidian"
     "ticktick"
     "stretchly"
-    "blankie"
+    # "blankie"
   ];
   packages.linux.nix = with pkgs; [
     obsidian

@@ -1,4 +1,5 @@
 ;;; bindings/helixel.el --- helixel (Helix-style) modal editing scheme -*- lexical-binding: t; -*-
+
 (when (featurep 'kaizen-bindings-helixel)
   (user-error "kaizen-bindings-helixel already loaded"))
 
@@ -8,13 +9,33 @@
   :ensure (:host github :repo "jixiuf/helixel-mode" :files (:defaults "**") :wait t)
   :demand t
   :config
-  (defun kaizen/helixel-disable-in-minibuffer ()
-    (when (bound-and-true-p helixel-global-mode)
-      (dolist (sel '(helixel-normal-state helixel-insert-state
-                                          helixel-motion-state helixel-visual-state))
-        (when (and (boundp sel) (symbol-value sel))
-          (funcall sel -1)))))
-  (add-hook 'minibuffer-setup-hook #'kaizen/helixel-disable-in-minibuffer 100)
+  (defun kaizen/enable-helixel-normal-state-in-buffer (&optional buffer)
+    "Enable Helixel normal state in BUFFER if possible."
+    (when (fboundp 'helixel-normal-state)
+      (with-current-buffer (or buffer (current-buffer))
+        (unless (or (minibufferp)
+                    (bound-and-true-p helixel-normal-state)
+                    (bound-and-true-p helixel-insert-state)
+                    (bound-and-true-p helixel-motion-state)
+                    (bound-and-true-p helixel-visual-state))
+          (helixel-normal-state 1)))))
+
+  ;; Scratch usually uses `lisp-interaction-mode`.
+  (add-hook 'lisp-interaction-mode-hook
+            #'kaizen/enable-helixel-normal-state-in-buffer)
+
+  ;; Messages buffer has its own major mode in modern Emacs.
+  (add-hook 'messages-buffer-mode-hook
+            #'kaizen/enable-helixel-normal-state-in-buffer)
+
+  ;; These buffers may already exist before hooks are installed.
+  (add-hook
+   'emacs-startup-hook
+   (lambda ()
+     (dolist (buffer-name '("*scratch*" "*Messages*"))
+       (when-let ((buffer (get-buffer buffer-name)))
+         (kaizen/enable-helixel-normal-state-in-buffer buffer)))))
+
   (defun kaizen/helixel-apply-cursor ()
     (setq cursor-type
           (pcase helixel--current-state
@@ -23,10 +44,13 @@
             ('motion 'hollow)
             ('visual 'hollow)
             (_ cursor-type))))
+
   (add-hook 'helixel-state-change-hook #'kaizen/helixel-apply-cursor)
+
   (dolist (state '(normal motion))
     (helixel-define-key state (kbd "C-o") #'better-jumper-jump-backward)
     (helixel-define-key state (kbd "C-S-o") #'better-jumper-jump-forward))
+
   (helixel-define-key 'insert (kbd "TAB") #'self-insert-command))
 
 (dolist (map (list minibuffer-local-map
@@ -39,7 +63,9 @@
 (defun kaizen/helixel-G (arg)
   "Go to line ARG, or end of buffer if no ARG."
   (interactive "P")
-  (if arg (goto-line (prefix-numeric-value arg)) (helixel-go-end-buffer)))
+  (if arg
+      (goto-line (prefix-numeric-value arg))
+    (helixel-go-end-buffer)))
 
 (defun kaizen/helixel-insert-at-indentation ()
   "Move to the first non-blank character, then switch to Insert state."
@@ -54,13 +80,14 @@
       (let ((linewise? (eq (helixel--region-type) 'line))
             (vislines? (eq (helixel--region-type) 'rect)))
         (helixel-delete-selection t)
-        (cond (linewise?
-               (newline)
-               (backward-char)
-               (indent-according-to-mode))
-              (vislines?
-               (insert " ")
-               (backward-char))))
+        (cond
+         (linewise?
+          (newline)
+          (backward-char)
+          (indent-according-to-mode))
+         (vislines?
+          (insert " ")
+          (backward-char))))
     (unless (bolp)
       (delete-char -1)))
   (call-interactively #'helixel-insert))
@@ -73,7 +100,7 @@
   "t" #'load-theme)
 
 (defun kaizen/helixel-avy-select-word ()
-  "Jump to word with avy, then select it (helixel-aware)."
+  "Jump to word with avy, then select it."
   (interactive)
   (call-interactively #'avy-goto-word-1)
   (helixel-mark-inner-word 1))
@@ -111,55 +138,104 @@
   "r" #'rotate-window)
 
 (defun kaizen/helixel-bind-leader ()
-  "Bind SPC to the kaizen leader (`mode-specific-map') in helixel states.
-
-helixel binds SPC to `helixel-space-map' by default.  We override it with
-`mode-specific-map' (the same leader keymap used by the meow/hel schemes) so
-that multi-key bindings like \"SPC f f\" descend into the leader instead of
-helixel's space-map.  Call this early (before defining any \"SPC …\" binding)
-and again after `helixel-mode', since `helixel-mode' init may re-attach SPC."
+  "Bind SPC to the kaizen leader (`mode-specific-map') in Helixel states."
   (define-key helixel-normal-map (kbd "SPC") mode-specific-map)
   (define-key helixel-motion-map (kbd "SPC") mode-specific-map))
 
-;; Attach the leader BEFORE any \"SPC …\" binding so those descend into
-;; `mode-specific-map' (a prefix) instead of landing in helixel's space-map.
+;; Attach the leader before any SPC bindings.
 (kaizen/helixel-bind-leader)
 
-(let* ((left  (or (bound-and-true-p kaizen/nav-left)   "h"))
-       (down  (or (bound-and-true-p kaizen/nav-down)   "n"))
-       (up    (or (bound-and-true-p kaizen/nav-up)     "e"))
-       (right (or (bound-and-true-p kaizen/nav-right)  "i"))
-       (ins   (or (bound-and-true-p kaizen/nav-insert) "l"))
-       (line-end (or (bound-and-true-p kaizen/line-end) "$")))
+;;; Default states
 
+(defun kaizen/helixel-set-default-state (mode state)
+  "Set Helixel default STATE for MODE without duplicating entries."
+  (setq helixel-major-mode-default-states
+        (assq-delete-all mode helixel-major-mode-default-states))
+  (add-to-list 'helixel-major-mode-default-states
+               (cons mode state)))
+
+(defvar kaizen/helixel-normal-modes
+  '(prog-mode
+    text-mode
+    conf-mode
+    fundamental-mode
+    lisp-interaction-mode
+    emacs-lisp-mode
+    ghostel-mode
+    messages-buffer-mode
+    org-agenda-mode)
+  "Modes where Helixel should start in normal state.")
+
+(defvar kaizen/helixel-motion-modes
+  '(special-mode
+    dired-mode
+    elpaca-info-mode
+    flymake-diagnostics-buffer-mode
+    flycheck-error-list-mode
+    magit-mode
+    magit-status-mode
+    magit-log-mode
+    magit-diff-mode
+    magit-process-mode
+    majutsu-mode
+    majutsu-log-mode
+    majutsu-status-mode
+    compilation-mode
+    helpful-mode
+    help-mode
+    debug-mode
+    debugger-mode
+    grep-mode
+    ediff-mode
+    ediff-meta-mode)
+  "Modes where Helixel should start in motion state.")
+
+(dolist (mode kaizen/helixel-normal-modes)
+  (kaizen/helixel-set-default-state mode 'normal))
+
+(dolist (mode kaizen/helixel-motion-modes)
+  (kaizen/helixel-set-default-state mode 'motion))
+
+;; Ediff should use its own motion bindings instead of inheriting the generic
+;; Helixel motion parent map.
+(dolist (mode '(ediff-mode ediff-meta-mode))
+  (add-to-list 'helixel-motion-parent-excluded-modes mode))
+
+;;; Layout-aware navigation bindings
+
+(let* ((left     (or (bound-and-true-p kaizen/nav-left)   "h"))
+       (down     (or (bound-and-true-p kaizen/nav-down)   "n"))
+       (up       (or (bound-and-true-p kaizen/nav-up)     "e"))
+       (right    (or (bound-and-true-p kaizen/nav-right)  "i"))
+       (ins      (or (bound-and-true-p kaizen/nav-insert) "l"))
+       (line-end (or (bound-and-true-p kaizen/line-end)   "$")))
+
+  ;; Generic navigation for normal/motion buffers.
+  ;; Ediff is excluded from generic motion parent above.
   (dolist (state '(normal motion))
-    (helixel-define-key state (kbd left)  #'helixel-backward-char)
-    (helixel-define-key state (kbd down)  #'helixel-next-line)
-    (helixel-define-key state (kbd up)    #'helixel-previous-line)
-    (helixel-define-key state (kbd right) #'helixel-forward-char)
+    (helixel-define-key state (kbd left)     #'helixel-backward-char)
+    (helixel-define-key state (kbd down)     #'helixel-next-line)
+    (helixel-define-key state (kbd up)       #'helixel-previous-line)
+    (helixel-define-key state (kbd right)    #'helixel-forward-char)
     (helixel-define-key state (kbd line-end) #'helixel-go-end-line))
 
-  ;; Count prefix: bind 0-9 to `digit-argument' (exactly how Emacs' own
-  ;; `esc-map' does it) overriding helixel's fragile kbd-macro strings
-  ;; ("\C-u<N>" — they fail as "N is bound to N which is not a command").
-  ;; Beginning-of-line stays on the goto prefix (`g h' / `g l'), not on `0',
-  ;; so `0' remains a count digit like `1'..`9' (e.g. `3 w' = forward 3 words).
+  ;; Count prefix: bind 0-9 to `digit-argument'.
   (dotimes (i 10)
     (helixel-define-key 'normal (number-to-string i) #'digit-argument))
 
-  (helixel-define-key 'normal (kbd ins) #'helixel-insert)
+  (helixel-define-key 'normal (kbd ins)          #'helixel-insert)
   (helixel-define-key 'normal (kbd (upcase ins)) #'kaizen/helixel-insert-at-indentation)
-  (helixel-define-key 'normal "k" #'kaizen/helixel-search-or-next)
-  (helixel-define-key 'normal "K" #'helixel-search-repeat-reverse)
-  (helixel-define-key 'normal "r" #'helixel-replace)
-  (helixel-define-key 'normal "j" #'helixel-forward-word-start)
-  (helixel-define-key 'normal "J" #'helixel-forward-WORD-start)
-  (helixel-define-key 'normal "c" #'kaizen/helixel-change)
-  (helixel-define-key 'normal "q" #'deactivate-mark)
-  (helixel-define-key 'normal "G" #'kaizen/helixel-G)
-  (helixel-define-key 'normal "N" #'my/copy-with-ai-context)
-  (helixel-define-key 'normal (kbd "C-:") #'query-replace-regexp)
-  (helixel-define-key 'normal "/" #'helixel-search-forward)
+  (helixel-define-key 'normal "k"                #'kaizen/helixel-search-or-next)
+  (helixel-define-key 'normal "K"                #'helixel-search-repeat-reverse)
+  (helixel-define-key 'normal "r"                #'helixel-replace)
+  (helixel-define-key 'normal "j"                #'helixel-forward-word-start)
+  (helixel-define-key 'normal "J"                #'helixel-forward-WORD-start)
+  (helixel-define-key 'normal "c"                #'kaizen/helixel-change)
+  (helixel-define-key 'normal "q"                #'deactivate-mark)
+  (helixel-define-key 'normal "G"                #'kaizen/helixel-G)
+  (helixel-define-key 'normal "N"                #'my/copy-with-ai-context)
+  (helixel-define-key 'normal (kbd "C-:")        #'query-replace-regexp)
+  (helixel-define-key 'normal "/"                #'helixel-search-forward)
 
   (helixel-define-key 'motion (kbd (upcase ins)) #'back-to-indentation)
 
@@ -173,24 +249,7 @@ and again after `helixel-mode', since `helixel-mode' init may re-attach SPC."
   (keymap-set mode-specific-map "v" kaizen/helixel-vcs-map)
   (keymap-set mode-specific-map "w" kaizen/helixel-window-map)
 
-  (global-set-key (kbd "s-c") #'helixel-kill-ring-save)
-
-  (dolist (mode '(prog-mode text-mode conf-mode fundamental-mode ghostel-mode messages-buffer-mode))
-    (add-to-list 'helixel-major-mode-default-states (cons mode 'normal)))
-
-  (dolist (mode '(elpaca-info-mode flymake-diagnostics-buffer-mode
-                                   flycheck-error-list-mode magit-process-mode
-                                   compilation-mode helpful-mode help-mode
-                                   debug-mode debugger-mode
-                                   grep-mode))
-    (add-to-list 'helixel-major-mode-default-states (cons mode 'motion)))
-
-  (dolist (mode '(ediff-mode ediff-meta-mode))
-    (add-to-list 'helixel-major-mode-default-states (cons mode 'motion)))
-  (dolist (mode '(ediff-mode ediff-meta-mode))
-    (add-to-list 'helixel-motion-parent-excluded-modes mode))
-
-  (add-to-list 'helixel-major-mode-default-states '(org-agenda-mode . normal)))
+  (global-set-key (kbd "s-c") #'helixel-kill-ring-save))
 
 (with-eval-after-load 'dired
   (helixel-define-key 'motion "-" #'dired-up-directory 'dired-mode)
@@ -212,25 +271,19 @@ and again after `helixel-mode', since `helixel-mode' init may re-attach SPC."
   (helixel-define-key 'normal (kbd "RET") #'org-agenda-switch-to 'org-agenda-mode)
   (helixel-define-key 'normal "f" #'avy-goto-word-1 'org-agenda-mode)
 
-  (let ((down (or (bound-and-true-p kaizen/nav-down) "n"))
-        (up   (or (bound-and-true-p kaizen/nav-up) "e"))
-        (left (or (bound-and-true-p kaizen/nav-left) "h"))
+  (let ((down  (or (bound-and-true-p kaizen/nav-down)  "n"))
+        (up    (or (bound-and-true-p kaizen/nav-up)    "e"))
+        (left  (or (bound-and-true-p kaizen/nav-left)  "h"))
         (right (or (bound-and-true-p kaizen/nav-right) "i")))
-    (helixel-define-key 'normal (kbd down) #'org-agenda-next-line 'org-agenda-mode)
-    (helixel-define-key 'normal (kbd up) #'org-agenda-previous-line 'org-agenda-mode)
-    (helixel-define-key 'normal (kbd left) #'org-agenda-earlier 'org-agenda-mode)
-    (helixel-define-key 'normal (kbd right) #'org-agenda-later 'org-agenda-mode)
+    (helixel-define-key 'normal (kbd down)          #'org-agenda-next-line 'org-agenda-mode)
+    (helixel-define-key 'normal (kbd up)            #'org-agenda-previous-line 'org-agenda-mode)
+    (helixel-define-key 'normal (kbd left)          #'org-agenda-earlier 'org-agenda-mode)
+    (helixel-define-key 'normal (kbd right)         #'org-agenda-later 'org-agenda-mode)
     (helixel-define-key 'normal (kbd (upcase down)) #'org-agenda-next-item 'org-agenda-mode)
-    (helixel-define-key 'normal (kbd (upcase up)) #'org-agenda-previous-item 'org-agenda-mode))
+    (helixel-define-key 'normal (kbd (upcase up))   #'org-agenda-previous-item 'org-agenda-mode)))
 
-  (dolist (buffer (buffer-list))
-    (with-current-buffer buffer
-      (when (derived-mode-p 'org-agenda-mode)
-        (when (fboundp 'helixel-normal-state)
-          (helixel-normal-state 1))))))
+;;; Package integrations
 
-;; Package integrations — with-eval-after-load inside :config
-;; helixel is guaranteed loaded here, packages may load later
 (with-eval-after-load 'avy
   (helixel-define-key 'normal "f" #'kaizen/helixel-avy-select-word)
   (helixel-define-key 'normal (kbd "\\ f") #'avy-goto-char-timer))
@@ -269,24 +322,142 @@ and again after `helixel-mode', since `helixel-mode' init may re-attach SPC."
   (add-hook 'helixel-state-change-hook
             (lambda ()
               (cond
-               ((eq helixel--current-state 'insert) (my/disable-blamer-mode))
-               ((eq helixel--current-state 'normal) (blamer-mode))))))
+               ((eq helixel--current-state 'insert)
+                (my/disable-blamer-mode))
+               ((eq helixel--current-state 'normal)
+                (blamer-mode))))))
 
 (with-eval-after-load 'smerge-mode
   (helixel-define-key 'normal (kbd "g s") #'smerge-next)
   (helixel-define-key 'normal (kbd "g S") #'smerge-prev))
 
+;;; Ediff integration
+
+(defun kaizen/helixel-ediff-bindings ()
+  "Setup layout-aware Ediff bindings for Helixel motion state."
+  (let* ((down (or (bound-and-true-p kaizen/nav-down) "n"))
+         (up   (or (bound-and-true-p kaizen/nav-up)   "e"))
+         ;; Bind both layout keys and explicit n/e fallbacks.
+         ;; This fixes cases where `kaizen/nav-up' is not currently \"e\".
+         (next-keys (delete-dups (list down "n")))
+         (prev-keys (delete-dups (list up "e" "p"))))
+
+    (dolist (key next-keys)
+      (when (and (stringp key)
+                 (> (length key) 0))
+        (when (boundp 'ediff-mode-map)
+          (keymap-set ediff-mode-map key #'ediff-next-difference))
+        (helixel-define-key 'motion (kbd key)
+                            #'ediff-next-difference
+                            'ediff-mode)))
+
+    (dolist (key prev-keys)
+      (when (and (stringp key)
+                 (> (length key) 0))
+        (when (boundp 'ediff-mode-map)
+          (keymap-set ediff-mode-map key #'ediff-previous-difference))
+        (helixel-define-key 'motion (kbd key)
+                            #'ediff-previous-difference
+                            'ediff-mode)))
+
+    ;; Keep standard Ediff-ish controls.
+    (helixel-define-key 'motion (kbd "SPC") #'ediff-next-difference 'ediff-mode)
+    (helixel-define-key 'motion (kbd "S-SPC") #'ediff-previous-difference 'ediff-mode)
+    (helixel-define-key 'motion (kbd "<backspace>") #'ediff-previous-difference 'ediff-mode)
+    (helixel-define-key 'motion (kbd "<delete>") #'ediff-previous-difference 'ediff-mode)
+    (helixel-define-key 'motion (kbd "?") #'ediff-toggle-help 'ediff-mode)
+    (helixel-define-key 'motion (kbd "q") #'ediff-quit 'ediff-mode)
+    (helixel-define-key 'motion (kbd "<escape>") #'ediff-quit 'ediff-mode)))
+
 (with-eval-after-load 'ediff
-  (let ((down (or (bound-and-true-p kaizen/nav-down) "n"))
-        (up   (or (bound-and-true-p kaizen/nav-up) "e")))
-    (helixel-define-key 'motion (kbd down) #'ediff-next-difference 'ediff-mode)
-    (helixel-define-key 'motion (kbd up) #'ediff-previous-difference 'ediff-mode))
-  (helixel-define-key 'motion (kbd "<escape>") #'ediff-quit 'ediff-mode)
+  (defvar-local kaizen/helixel-ediff-motion-map nil
+    "Buffer-local overriding map for `helixel-motion-state' in Ediff buffers.")
+
+  (defun kaizen/helixel-ediff--valid-key-p (key)
+    "Return non-nil when KEY is a non-empty string."
+    (and (stringp key)
+         (> (length key) 0)))
+
+  (defun kaizen/helixel-ediff--control-buffer ()
+    "Return current Ediff control buffer, if available."
+    (cond
+     ((and (boundp 'ediff-control-buffer)
+           (buffer-live-p ediff-control-buffer))
+      ediff-control-buffer)
+     ((derived-mode-p 'ediff-mode)
+      (current-buffer))
+     (t
+      nil)))
+
+  (defun kaizen/helixel-ediff-setup-motion-map ()
+    "Install Helixel-like motion keys in the Ediff control buffer."
+    (let* ((buffer (and (fboundp 'kaizen/helixel-ediff--control-buffer)
+                        (kaizen/helixel-ediff--control-buffer))))
+      (when buffer
+        (with-current-buffer buffer
+          (let* ((down (or (and (boundp 'kaizen/nav-down) kaizen/nav-down) "n"))
+                 (up   (or (and (boundp 'kaizen/nav-up) kaizen/nav-up) "e"))
+                 (next-keys (delete-dups (delq nil (list down "n" "j" "SPC"))))
+                 (prev-keys (delete-dups
+                             (delq nil
+                                   (list up "e" "k" "p" "S-SPC"
+                                         "<backspace>" "<delete>"))))
+                 (map (make-sparse-keymap)))
+
+            (dolist (key next-keys)
+              (when (kaizen/helixel-ediff--valid-key-p key)
+                (define-key map (kbd key) #'ediff-next-difference)
+                (when (fboundp 'helixel-define-key)
+                  (helixel-define-key
+                   'motion
+                   (kbd key)
+                   #'ediff-next-difference
+                   'ediff-mode))))
+
+            (dolist (key prev-keys)
+              (when (kaizen/helixel-ediff--valid-key-p key)
+                (define-key map (kbd key) #'ediff-previous-difference)
+                (when (fboundp 'helixel-define-key)
+                  (helixel-define-key
+                   'motion
+                   (kbd key)
+                   #'ediff-previous-difference
+                   'ediff-mode))))
+
+            (define-key map (kbd "?") #'ediff-toggle-help)
+            (define-key map (kbd "q") #'ediff-quit)
+            (define-key map (kbd "<escape>") #'ediff-quit)
+
+            (setq-local kaizen/helixel-ediff-motion-map map)
+
+            (setq-local minor-mode-overriding-map-alist
+                        (assq-delete-all
+                         'helixel-motion-state
+                         minor-mode-overriding-map-alist))
+
+            (push `(helixel-motion-state . ,kaizen/helixel-ediff-motion-map)
+                  minor-mode-overriding-map-alist)
+
+            (when (fboundp 'helixel-motion-state)
+              (helixel-motion-state 1)))))))
+
+  ;; Ediff can rebuild its control buffer/keymap during setup, so install the
+  ;; override from several Ediff lifecycle hooks.
+  (add-hook 'ediff-mode-hook #'kaizen/helixel-ediff-setup-motion-map)
+  (add-hook 'ediff-startup-hook #'kaizen/helixel-ediff-setup-motion-map)
+  (add-hook 'ediff-keymap-setup-hook #'kaizen/helixel-ediff-setup-motion-map)
+
+  ;; If this file is reloaded while Ediff is already open, patch existing
+  ;; control buffers immediately.
+  (dolist (buffer (buffer-list))
+    (with-current-buffer buffer
+      (when (derived-mode-p 'ediff-mode)
+        (kaizen/helixel-ediff-setup-motion-map))))
+
   (add-hook 'ediff-cleanup-hook
             (lambda ()
-              (when (and (boundp 'helixel-global-mode) helixel-global-mode)
-                (when (fboundp 'helixel-normal-state)
-                  (helixel-normal-state 1))))))
+              (when (fboundp 'helixel-normal-state)
+                (helixel-normal-state 1)))))
 
 (with-eval-after-load 'eglot
   (helixel-define-key 'normal (kbd "g i") #'eglot-find-implementation)
@@ -299,11 +470,10 @@ and again after `helixel-mode', since `helixel-mode' init may re-attach SPC."
   (helixel-define-key 'normal (kbd "SPC l d") #'flymake-show-buffer-diagnostics))
 
 (with-eval-after-load 'corfu
-  (add-hook 'helixel-state-change-hook
+  (add-hook 'helixel-normal-state-hook
             (lambda ()
-              (unless (eq helixel--current-state 'insert)
-                (when (fboundp 'corfu-quit)
-                  (ignore-errors (corfu-quit)))))))
+              (when (fboundp 'corfu-quit)
+                (ignore-errors (corfu-quit))))))
 
 (with-eval-after-load 'flymake-posframe
   (add-hook 'helixel-state-change-hook
@@ -383,9 +553,11 @@ and again after `helixel-mode', since `helixel-mode' init may re-attach SPC."
   (helixel-define-key 'normal (kbd "z M") #'husky-fold-close-all)
   (helixel-define-key 'normal (kbd fold-prev) #'husky-fold-previous))
 
+;; Keep startup exactly like in the working version.
 (helixel-mode)
-;; helixel-mode init may re-attach SPC to its own space-map — re-assert the
-;; kaizen leader as the last thing so \"SPC …\" keeps flowing into
+
+;; `helixel-mode' init may re-attach SPC to its own space-map — re-assert the
+;; kaizen leader as the last thing so "SPC …" keeps flowing into
 ;; `mode-specific-map'.
 (kaizen/helixel-bind-leader)
 

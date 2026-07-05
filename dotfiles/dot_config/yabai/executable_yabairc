@@ -69,7 +69,6 @@ yabai -m rule --add app="^Loom Recorder Settings$" manage=off
 yabai -m rule --add app="^Loom Control Menu$" manage=off
 yabai -m rule --add title="^Discord Updater$" manage=off
 yabai -m rule --add title="^Pearcleaner$" manage=off sticky=on
-yabai -m rule --add app="^Arc$" manage=off
 yabai -m rule --add app="^$" manage=off
 
 # yabai -m rule --add app="^World of Warcraft$" manage=off
@@ -78,7 +77,6 @@ yabai -m rule --add app=Emacs manage=on space=dev
 yabai -m rule --add label=emacs app=Emacs manage=on space=dev
 yabai -m rule --add app=Ghostty manage=on space=term
 yabai -m rule --add app=Firefox manage=on space=4
-yabai -m rule --add app=Arc manage=on space=4
 yabai -m rule --add app="Brave Browser" manage=on space=3
 yabai -m rule --add app="^Marta$" manage=off grid=4:4:2:0:2:4
 yabai -m rule --add app="^spotube$" manage=off grid=100:100:5:7:84:84 space=6
@@ -196,8 +194,8 @@ yabai -m space 8 --padding abs:64:64:64:64
 # yabai -m signal --add event=space_changed action="yabai -m window --focus \$(yabai -m query --windows --space | jq .[0].id)"
 yabai -m signal --add event=space_changed action='window_id=$(yabai -m query --windows --space | jq -r "[.[] | select(.app != \"Raycast\")][0].id"); if [ "$window_id" != "null" ]; then yabai -m window --focus $window_id; fi'
 
-yabai -m signal --add app='^Finder$' event=window_created action='yabai -m space --focus next; sleep 0.01; yabai -m space --focus prev'
-yabai -m signal --add app='^Finder$' event=window_destroyed action='yabai -m space --focus next; sleep 0.01; yabai -m space --focus prev'
+# yabai -m signal --add app='^Finder$' event=window_created action='yabai -m space --focus next; sleep 0.01; yabai -m space --focus prev'
+# yabai -m signal --add app='^Finder$' event=window_destroyed action='yabai -m space --focus next; sleep 0.01; yabai -m space --focus prev'
 
 
 

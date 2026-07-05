@@ -1222,10 +1222,23 @@ Move to husky
 #+END_SRC
 
 *** Buffer operations
+#+BEGIN_SRC emacs-lisp :results silent
+(defun my/new-untitled-buffer ()
+  "Create and switch to a new untitled buffer with Helixel enabled."
+  (interactive)
+  (let ((buffer (generate-new-buffer "Untitled")))
+    (switch-to-buffer buffer)
+    ;; Better than staying in raw fundamental-mode.
+    ;; Use text-mode if you want this buffer to behave like a normal editable note.
+    (text-mode)
+    (when (fboundp 'helixel-normal-state)
+      (helixel-normal-state 1))))
+#+END_SRC
+
 #+BEGIN_SRC emacs-lisp
 (global-set-key (kbd "C-c o l") 'my/open-messages)
 (global-set-key (kbd "C-c o M") 'my/open-clear-messages)
-(global-set-key (kbd "s-n") (lambda () (interactive) (switch-to-buffer (generate-new-buffer "Untitled"))))
+(global-set-key (kbd "s-n") 'my/new-untitled-buffer)
 (global-set-key (kbd "C-c q") 'kill-current-buffer)
 #+END_SRC
 
@@ -2823,10 +2836,10 @@ Function for search in buffer depends or visual or normal line
   (corfu-auto t)
   (corfu-cycle t)                ;; Enable cycling for `corfu-next/previous'
   (corfu-commit-predicate nil)   ;; Do not commit selected candidates on next input
-  (corfu-quit-at-boundary t)     ;; Automatically quit at word boundary
-  (corfu-quit-no-match t)        ;; Automatically quit if there is no match
-  (corfu-auto-delay 0.1)
-  (corfu-echo-documentation t) ;; Do not show documentation in the echo area
+  (corfu-quit-at-boundary 'separator)
+  (corfu-quit-no-match 'separator)
+  (corfu-auto-delay 0.2)
+  (corfu-echo-documentation t) 
   (corfu-preselect-first nil)
   (corfu-auto-prefix 2)
   (corfu-separator ?\s)
@@ -2888,11 +2901,14 @@ Function for search in buffer depends or visual or normal line
 *** Cape
 #+BEGIN_SRC emacs-lisp
 (use-package cape
-  :bind ("C-c C-e" . cape-prefix-map) ;; Alternative keys: M-p, M-+, ...
+  :bind ("C-c C-e" . cape-prefix-map)
   :init
-  (add-hook 'completion-at-point-functions #'cape-dabbrev)
-  (add-hook 'completion-at-point-functions #'cape-file)
-  (add-hook 'completion-at-point-functions #'cape-elisp-block))
+  (defun my/setup-cape ()
+    (add-hook 'completion-at-point-functions #'cape-file 90 t)
+    (add-hook 'completion-at-point-functions #'cape-dabbrev 100 t))
+
+  (add-hook 'prog-mode-hook #'my/setup-cape)
+  (add-hook 'text-mode-hook #'my/setup-cape))
 #+END_SRC
 
 ** Completion icons
@@ -2980,7 +2996,7 @@ def servers():
   (eglot-semantic-token-types nil)
   (eglot-confirm-server-initiated-edits nil)
   (eglot-code-action-indicator "")
-  (eglot-events-buffer-config '(:size 2000000))
+  (eglot-events-buffer-config '(:size 0))
   :config
   (require 'cl-lib)
   (require 'subr-x)
@@ -3253,7 +3269,7 @@ ESLint via flymake-eslint (separate from LSP, since vscode-eslint-language-serve
 (use-package eldoc
   :ensure nil
   :custom
-  (eldoc-echo-area-use-multiline-p nil)
+  (eldoc-echo-area-use-multiline-p t)
   (eldoc-echo-area-display-truncation-message nil)
   (eldoc-idle-delay 0.7)
   :config
@@ -3275,8 +3291,7 @@ ESLint via flymake-eslint (separate from LSP, since vscode-eslint-language-serve
   :config
   (setf (alist-get 'internal-border-width eldoc-box-frame-parameters) 15)
   (setf (alist-get 'left-fringe eldoc-box-frame-parameters) 10)
-  (setf (alist-get 'right-fringe eldoc-box-frame-parameters) 10)
-  (add-hook 'eldoc-box-buffer-setup-hook #'eldoc-box-prettify-ts-errors 0 t))
+  (setf (alist-get 'right-fringe eldoc-box-frame-parameters) 10))
 #+END_SRC
 
 ** Compilation
