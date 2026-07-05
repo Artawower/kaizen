@@ -4322,6 +4322,13 @@ Automatically creates parent directories if needed."
            "* TODO %? :inbox:\n%U\n"
            :empty-lines 1
            :prepend t)))
+  
+  (org-link-set-parameters
+   "readest"
+   :follow
+   (lambda (path _)
+     (browse-url-default-browser
+      (concat "readest:" path))))
 
   (defun org-babel-execute:typescript (body params)
     (let ((org-babel-js-cmd "npx ts-node < "))
