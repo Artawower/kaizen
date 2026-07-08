@@ -14,9 +14,13 @@
               {
                 "from": {
                   "key_code": "caps_lock",
-                  "modifiers": { "optional": ["any"] }
+                  "modifiers": {
+                    "optional": ["any"]
+                  }
                 },
-                "parameters": { "basic.to_if_alone_timeout_milliseconds": 250 },
+                "parameters": {
+                  "basic.to_if_alone_timeout_milliseconds": 250
+                },
                 "to": [
                   {
                     "key_code": "right_shift",
@@ -41,7 +45,9 @@
               {
                 "from": {
                   "key_code": "caps_lock",
-                  "modifiers": { "optional": ["any"] }
+                  "modifiers": {
+                    "optional": ["any"]
+                  }
                 },
                 "to": [
                   {
@@ -64,7 +70,11 @@
                     "optional": ["any"]
                   }
                 },
-                "to": [{ "key_code": "right_option" }],
+                "to": [
+                  {
+                    "key_code": "right_option"
+                  }
+                ],
                 "type": "basic"
               },
               {
@@ -75,7 +85,11 @@
                     "optional": ["any"]
                   }
                 },
-                "to": [{ "key_code": "right_option" }],
+                "to": [
+                  {
+                    "key_code": "right_option"
+                  }
+                ],
                 "type": "basic"
               }
             ]
@@ -147,7 +161,11 @@
                     "optional": ["any"]
                   }
                 },
-                "to": [{ "key_code": "up_arrow" }],
+                "to": [
+                  {
+                    "key_code": "up_arrow"
+                  }
+                ],
                 "type": "basic"
               },
               {
@@ -158,7 +176,11 @@
                     "optional": ["any"]
                   }
                 },
-                "to": [{ "key_code": "down_arrow" }],
+                "to": [
+                  {
+                    "key_code": "down_arrow"
+                  }
+                ],
                 "type": "basic"
               },
               {
@@ -169,7 +191,11 @@
                     "optional": ["any"]
                   }
                 },
-                "to": [{ "key_code": "left_arrow" }],
+                "to": [
+                  {
+                    "key_code": "left_arrow"
+                  }
+                ],
                 "type": "basic"
               },
               {
@@ -180,7 +206,11 @@
                     "optional": ["any"]
                   }
                 },
-                "to": [{ "key_code": "right_arrow" }],
+                "to": [
+                  {
+                    "key_code": "right_arrow"
+                  }
+                ],
                 "type": "basic"
               }
             ]
@@ -254,7 +284,11 @@
                     "optional": ["any"]
                   }
                 },
-                "to": [{ "key_code": "up_arrow" }],
+                "to": [
+                  {
+                    "key_code": "up_arrow"
+                  }
+                ],
                 "type": "basic"
               },
               {
@@ -265,7 +299,11 @@
                     "optional": ["any"]
                   }
                 },
-                "to": [{ "key_code": "down_arrow" }],
+                "to": [
+                  {
+                    "key_code": "down_arrow"
+                  }
+                ],
                 "type": "basic"
               },
               {
@@ -276,7 +314,11 @@
                     "optional": ["any"]
                   }
                 },
-                "to": [{ "key_code": "left_arrow" }],
+                "to": [
+                  {
+                    "key_code": "left_arrow"
+                  }
+                ],
                 "type": "basic"
               },
               {
