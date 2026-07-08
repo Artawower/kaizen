@@ -7,7 +7,124 @@
 // If you want to maintain a configuration file with your own comments and formatting, you should create a separate file and add it to the 'imports' array.
 //
 // Learn more about configuration at https://docs.vicinae.com/config
-
+{{- if eq .chezmoi.os "darwin" }}
+{
+   "$schema": "https://vicinae.com/schemas/config.json",
+   "pop_to_root_on_close": true,
+   "font": {
+      "rendering": "qt",
+      "normal": {}
+   },
+   "theme": {
+      "light": {
+         "name": "noctalia",
+         "icon_theme": "Hicolor"
+      },
+      "dark": {
+         "name": "dracula",
+         "icon_theme": "Hicolor"
+      }
+   },
+   "launcher_window": {
+      "opacity": 0.65,
+      "compact_mode": {
+         "enabled": true
+      }
+   },
+   "keybinds": {
+      "toggle-action-panel": "control+K"
+   },
+   "favorites": [
+      "clipboard:history",
+      "core:search-emojis",
+      "applications:com.mattermost.Desktop",
+      "applications:org.telegram"
+   ],
+   "providers": {
+      "@benvp/store.raycast.audio-device": {
+         "preferences": {
+            "favourite": "",
+            "favourite2": "",
+            "systemOutput": true
+         }
+      },
+      "@lardissone/store.raycast.raindrop-io": {
+         "preferences": {
+            "additionalItemToDisplayInList": "link",
+            "displayDate": "lastUpdated",
+            "fetchAllResults": true,
+            "sortBy": "",
+            "tagsDisplay": "1",
+            "titleOnly": false,
+            "useLastCollection": false
+         },
+         "entrypoints": {
+            "search": {
+               "shortcut": "control+shift+L"
+            }
+         }
+      },
+      "applications": {
+         "preferences": {
+            "paths": [
+               "{{ .chezmoi.homeDir }}/.local/share/applications",
+               "{{ .chezmoi.homeDir }}/.nix-profile/share/applications",
+               "{{ .chezmoi.homeDir }}/.config/vicinae"
+            ]
+         },
+         "entrypoints": {
+            "org.gnome.Ptyxis": {
+               "enabled": false
+            }
+         }
+      },
+      "clipboard": {
+         "entrypoints": {
+            "history": {
+               "alias": "cp",
+               "shortcut": "control+SPACE"
+            }
+         }
+      },
+      "core": {
+         "entrypoints": {
+            "about": {
+               "enabled": false
+            },
+            "documentation": {
+               "enabled": true
+            },
+            "manage-fallback": {
+               "enabled": false
+            },
+            "report-bug": {
+               "enabled": true
+            },
+            "search-emojis": {
+               "alias": "sm",
+               "shortcut": "alt+shift+E"
+            },
+            "sponsor": {
+               "enabled": false
+            }
+         }
+      },
+      "manage-shortcuts": {
+         "enabled": false
+      },
+      "snippets": {
+         "enabled": false
+      },
+      "wm": {
+         "entrypoints": {
+            "switch-windows": {
+               "shortcut": "alt+TAB"
+            }
+         }
+      }
+   }
+}
+{{- else }}
 {
    "$schema": "https://vicinae.com/schemas/config.json",
    "pop_to_root_on_close": true,
@@ -70,3 +187,4 @@
       }
    }
 }
+{{- end }}
