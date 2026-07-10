@@ -1,8 +1,13 @@
 { ... }:
 {
   description = "Desktop utilities: launcher, menu bar, file manager, cleaner";
-  category    = "desktop";
+  category = "desktop";
   packages.darwin.casks = [
-    "raycast" "jordanbaird-ice" "stats" "clop" "marta" "pearcleaner"
+    "jordanbaird-ice"
+    "stats"
+    "clop"
+    "marta"
+    "pearcleaner"
+    "vicinae"
   ];
 }
