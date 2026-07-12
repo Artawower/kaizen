@@ -4338,17 +4338,27 @@ Automatically creates parent directories if needed."
            :empty-lines 1
            :prepend t)))
   
-  (org-link-set-parameters
-   "readest"
-   :follow
-   (lambda (path _)
-     (browse-url-default-browser
-      (concat "readest:" path))))
+  
 
   (defun org-babel-execute:typescript (body params)
     (let ((org-babel-js-cmd "npx ts-node < "))
       (org-babel-execute:js body params))))
 
+#+END_SRC
+
+
+** Readest integration
+#+BEGIN_SRC emacs-lisp :results silent
+(use-package ol
+  :ensure nil
+  :after org
+  :config
+  (org-link-set-parameters
+   "readest"
+   :follow
+   (lambda (path _)
+     (browse-url-default-browser
+      (concat "readest:" path)))))
 #+END_SRC
 
 ** Org agenda core package
