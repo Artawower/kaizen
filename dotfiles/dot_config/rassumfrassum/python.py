@@ -1,8 +1,9 @@
 """Python preset: pyright + ty"""
 
+
 def servers():
     return [
-        ['pyrefly', 'lsp'],
-        # ['ty', 'server'],
-        ['codebook-lsp', 'serve'],
+        ["codebook-lsp", "serve"],
+        ["ty", "server"],
+        # ["pyrefly", "lsp"], Currently, pyrefly doesn't work for all scenarios.
     ]
