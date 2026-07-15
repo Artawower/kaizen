@@ -119,7 +119,7 @@ version = "0.73.0"
 backend = "npm:@mariozechner/pi-coding-agent"
 
 [[tools."npm:@mem0/cli"]]
-version = "0.2.10"
+version = "0.2.11"
 backend = "npm:@mem0/cli"
 
 [[tools."npm:@mermaid-js/mermaid-cli"]]
@@ -175,7 +175,7 @@ version = "1.0.0"
 backend = "npm:mcp-codex-cli"
 
 [[tools."npm:mem0ai"]]
-version = "3.0.13"
+version = "3.1.0"
 backend = "npm:mem0ai"
 
 [[tools."npm:ngx-unused-css"]]
@@ -191,7 +191,7 @@ version = "3.3.0"
 backend = "npm:npm-upgrade"
 
 [[tools."npm:opencode-ai"]]
-version = "1.17.18"
+version = "1.17.20"
 backend = "npm:opencode-ai"
 
 [tools."npm:opencode-ai".options]
@@ -230,7 +230,7 @@ version = "1.1.409"
 backend = "npm:pyright"
 
 [[tools."npm:skills"]]
-version = "1.5.16"
+version = "1.5.17"
 backend = "npm:skills"
 
 [[tools."npm:stylelint"]]

@@ -3724,6 +3724,7 @@ Requires Emacs 30+
   (html-mode . emmet-mode)
   (vue-mode . emmet-mode)
   (vue-ts-mode . emmet-mode)
+  (tsx-ts-mode . emmet-mode)
   :bind (:map emmet-mode-keymap
               ("s-e" . emmet-expand-line)
               ("C-n" . nil)))
