@@ -24,9 +24,13 @@ kaizen/
 {{- if ne $wm "komorebi" }}
 .config/komorebi/
 {{- end }}
+{{- if ne $wm "omniwm" }}
+.config/omniwm/
+{{- end }}
 {{- else if eq .chezmoi.os "linux" }}
 .config/skhd/
 .config/aerospace/
+.config/omniwm/
 .config/karabiner/
 .config/sketchybar/
 .config/yabai/

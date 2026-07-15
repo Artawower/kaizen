@@ -10,7 +10,7 @@
 
 let
   dataPath = "${user.homeDirectory}/.config/kaizen/data.toml";
-  data = if builtins.pathExists dataPath then builtins.fromTOML (builtins.readFile dataPath) else { };
+  data = if builtins.pathExists dataPath then fromTOML (builtins.readFile dataPath) else { };
   extra = data.extra or { };
 
   userFeaturesPath = "${user.homeDirectory}/.config/kaizen/user-features";
@@ -145,9 +145,11 @@ in
         fi
       '';
     }
-    (lib.mapAttrs (_: text: { inherit text; }) (
-      userActivation // (darwinDeps.activationScripts or { })
-    ))
+    {
+      postActivation.text = lib.mkAfter (
+        lib.concatStringsSep "\n" (lib.attrValues (userActivation // (darwinDeps.activationScripts or { })))
+      );
+    }
   ];
 
   security.pam.services.sudo_local.touchIdAuth = true;

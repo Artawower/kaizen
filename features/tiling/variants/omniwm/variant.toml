@@ -1,0 +1,13 @@
+id = "omniwm"
+slot = "tiling.wm"
+title = "OmniWM (native Niri/Dwindle WM for macOS)"
+stability = "experimental"
+platforms = ["darwin"]
+default = false
+
+[provides]
+nix_modules = ["module.darwin.nix"]
+dotfile_paths = ["dot_config/omniwm/"]
+
+[hooks]
+post_apply = ["$HOME/.config/omniwm/activate.sh"]
