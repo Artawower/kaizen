@@ -4883,7 +4883,7 @@ Manage your dot files like a God
 * Husky
 #+BEGIN_SRC emacs-lisp
 (use-package husky
-  :defer t
+  :defer 2
   :ensure (:type git :host github :repo "artawower/husky" :files ("lisp/*.el"))
   :bind (("C-c T t" . husky-edit-insert-todo-by-current-git-branch)
          ("C-c T i" . husky-edit-insert-todo-by-current-git-branch)
