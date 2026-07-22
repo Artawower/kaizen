@@ -2952,10 +2952,8 @@ def servers():
 **** Python preset
 #+BEGIN_SRC python :tangle ~/.config/rassumfrassum/python.py
 """Python preset: pyright + ty"""
-
 def servers():
     return [
-        ['basedpyright-langserver', '--stdio'],
         ['ty', '--server'],
         ['codebook-lsp', 'serve'],
     ]
@@ -3287,12 +3285,9 @@ ESLint via flymake-eslint (separate from LSP, since vscode-eslint-language-serve
 *** Better eldoc UI
 #+BEGIN_SRC emacs-lisp :results silent
 (use-package eldoc-box
-  :custom-face
-  (eldoc-box-border ((t (:background unspecified :inherit default))))
   :config
-  (setf (alist-get 'internal-border-width eldoc-box-frame-parameters) 15)
-  (setf (alist-get 'left-fringe eldoc-box-frame-parameters) 10)
-  (setf (alist-get 'right-fringe eldoc-box-frame-parameters) 10))
+  ;; Prevent child frames from inheriting the maximized state from `default-frame-alist'.
+  (setf (alist-get 'fullscreen eldoc-box-frame-parameters) nil))
 #+END_SRC
 
 ** Compilation

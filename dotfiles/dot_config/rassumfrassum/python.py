@@ -1,9 +1,9 @@
-"""Python preset: pyright + ty"""
+"""Use ty as primary because Rass routes hover requests to the first server."""
 
 
 def servers():
     return [
-        ["codebook-lsp", "serve"],
         ["ty", "server"],
+        ["codebook-lsp", "serve"],
         # ["pyrefly", "lsp"], Currently, pyrefly doesn't work for all scenarios.
     ]
