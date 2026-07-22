@@ -3196,10 +3196,11 @@ def servers():
     (let ((inhibit-message t))
       (apply orig-fn args)))
 
-  (advice-add 'flymake-goto-next-error :around #'my/inhibit-message-advice)
-  (advice-add 'flymake-goto-prev-error :around #'my/inhibit-message-advice))
+  ;; (advice-add 'flymake-goto-next-error :around #'my/inhibit-message-advice)
+  ;; (advice-add 'flymake-goto-prev-error :around #'my/inhibit-message-advice)
+)
 #+END_SRC
-*** Flymake posframe
+*** COMMENT Flymake posframe
 #+BEGIN_SRC emacs-lisp :results silent
 (use-package flymake-posframe
   :ensure (flymake-posframe :host github :repo "Ladicle/flymake-posframe")
