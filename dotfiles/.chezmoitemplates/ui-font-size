@@ -1,0 +1,6 @@
+{{- $fontSize := .ui.font_size -}}
+{{- $dataPath := joinPath .chezmoi.homeDir ".config" "kaizen" "data.toml" -}}
+{{- if stat $dataPath -}}
+{{-   $fontSize = dig "ui" "font_size" $fontSize (include $dataPath | fromToml) -}}
+{{- end -}}
+{{- $fontSize -}}
