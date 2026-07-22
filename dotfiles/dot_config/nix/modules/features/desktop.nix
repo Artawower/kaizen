@@ -3,7 +3,7 @@
   description = "Desktop utilities: launcher, menu bar, file manager, cleaner";
   category = "desktop";
   packages.darwin.casks = [
-    "jordanbaird-ice"
+    "thaw"
     "stats"
     "clop"
     "marta"
