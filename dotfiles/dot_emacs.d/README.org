@@ -3003,6 +3003,39 @@ def servers():
     (when (bound-and-true-p eglot-inlay-hints-mode)
       (eglot-inlay-hints-mode -1)))
 
+  (defun my/eglot-completion-label-suffix (candidate)
+    (when-let* ((item (get-text-property 0 'eglot--lsp-item candidate))
+                (label (string-trim-left (or (plist-get item :label) "")))
+                ((string-prefix-p candidate label))
+                (suffix (string-trim (substring label (length candidate))))
+                ((not (string-empty-p suffix))))
+      suffix))
+
+  (defun my/eglot-completion-add-label-suffix (capf)
+    (when-let* ((properties (nthcdr 3 capf))
+                (annotate (plist-get properties :annotation-function)))
+      (plist-put
+       properties
+       :annotation-function
+       (lambda (candidate)
+         (let ((suffix (my/eglot-completion-label-suffix candidate))
+               (annotation (funcall annotate candidate)))
+           (cond
+            ((not suffix) annotation)
+            ((and annotation (string-search suffix annotation)) annotation)
+            (annotation
+             (concat " "
+                     (propertize suffix 'face 'completions-annotations)
+                     annotation))
+            (t
+             (concat " "
+                     (propertize suffix 'face 'completions-annotations))))))))
+    capf)
+
+  (advice-add 'eglot-completion-at-point
+              :filter-return
+              #'my/eglot-completion-add-label-suffix)
+
   (defun my/eglot-key-matches-mode-p (key mode)
     (cond
      ((eq key mode) t)
