@@ -1191,7 +1191,7 @@ Move to husky
 
 *** Standard editing
 #+BEGIN_SRC emacs-lisp
-(global-set-key (kbd "TAB") 'tab-to-tab-stop)
+(global-set-key (kbd "TAB") 'indent-for-tab-command)
 (global-set-key (kbd "s-v") 'yank)
 (global-set-key (kbd "s-s") 'save-buffer)
 (global-set-key (kbd "s-u") 'revert-buffer)
@@ -3554,11 +3554,13 @@ Clone this repo for js debug git@github.com:microsoft/vscode-js-debug.git
 #+BEGIN_SRC emacs-lisp :results silent
 (use-package uv-mode
   :defer t
-  :hook (pythons-ts-mode . uv-mode))
+  :hook (python-ts-mode . uv-mode-auto-activate-hook))
 #+END_SRC
 *** Virtualenv
 #+BEGIN_SRC emacs-lisp :results silent
-(use-package pyvenv :ensure t :hook (pythons-ts-mode . pyvenv-mode))
+(use-package pyvenv
+  :ensure t
+  :defer t)
 #+END_SRC
 
 ** Nix

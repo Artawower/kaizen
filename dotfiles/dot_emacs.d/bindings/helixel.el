@@ -51,7 +51,7 @@
     (helixel-define-key state (kbd "C-o") #'better-jumper-jump-backward)
     (helixel-define-key state (kbd "C-S-o") #'better-jumper-jump-forward))
 
-  (helixel-define-key 'insert (kbd "TAB") #'self-insert-command))
+  (helixel-define-key 'insert (kbd "TAB") #'indent-for-tab-command))
 
 (dolist (map (list minibuffer-local-map
                    minibuffer-local-ns-map
