@@ -27,7 +27,12 @@ app_to_window = {
     "^Discord": "entertainment",
     "^Lightroom": "entertainment",
     "^Chromium": "10",
-    "^OrbStack": "12"
+    "^OrbStack": "12",
+    "^Happ": "9",
+    "^orgnote": "study",
+    "^Audacity": "9",
+    "^Helium": "www",
+    "^Anki": "study"
 }
 
 def order_windows():
