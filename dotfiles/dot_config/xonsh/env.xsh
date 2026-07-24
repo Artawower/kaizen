@@ -1,11 +1,14 @@
 import os.path as op
 import platform
+import socket as _socket
 import subprocess as _subprocess
 
 _secrets = op.expanduser('~/.config/xonsh/.secrets.xsh')
 if op.exists(_secrets):
     source @(_secrets)
 del _secrets, op
+
+$HOSTNAME = _socket.gethostname()
 
 $EDITOR   = 'hx'
 $VISUAL   = 'hx'
@@ -42,4 +45,4 @@ if platform.system() == 'Darwin':
 if platform.system() == 'Linux':
     $FREETYPE_PROPERTIES = 'cff:no-stem-darkening=0 autofitter:no-stem-darkening=0'
 
-del _subprocess, platform
+del _subprocess, _socket, platform
