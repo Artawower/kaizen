@@ -87,19 +87,19 @@ checksum = "sha256:cc5149eabd53779ce1e7bdc5401643622d0c7e6800ade18928a767e940bb0
 url = "https://nodejs.org/dist/v24.15.0/node-v24.15.0-win-x64.zip"
 
 [[tools."npm:@angular/cli"]]
-version = "22.0.7"
+version = "22.0.8"
 backend = "npm:@angular/cli"
 
 [[tools."npm:@angular/language-server"]]
-version = "22.0.7"
+version = "22.0.8"
 backend = "npm:@angular/language-server"
 
 [[tools."npm:@angular/language-service"]]
-version = "22.0.7"
+version = "22.0.8"
 backend = "npm:@angular/language-service"
 
 [[tools."npm:@earendil-works/pi-coding-agent"]]
-version = "0.80.7"
+version = "0.82.0"
 backend = "npm:@earendil-works/pi-coding-agent"
 
 [[tools."npm:@github/copilot-language-server"]]
@@ -159,7 +159,7 @@ version = "11.0.0"
 backend = "npm:env-cmd"
 
 [[tools."npm:eslint"]]
-version = "10.7.0"
+version = "10.8.0"
 backend = "npm:eslint"
 
 [[tools."npm:git-trim"]]
@@ -175,7 +175,7 @@ version = "1.0.0"
 backend = "npm:mcp-codex-cli"
 
 [[tools."npm:mem0ai"]]
-version = "3.1.0"
+version = "3.1.2"
 backend = "npm:mem0ai"
 
 [[tools."npm:ngx-unused-css"]]
@@ -183,7 +183,7 @@ version = "4.0.0-1"
 backend = "npm:ngx-unused-css"
 
 [[tools."npm:npm-check-updates"]]
-version = "22.2.9"
+version = "23.0.0"
 backend = "npm:npm-check-updates"
 
 [[tools."npm:npm-upgrade"]]
@@ -191,7 +191,7 @@ version = "3.3.0"
 backend = "npm:npm-upgrade"
 
 [[tools."npm:opencode-ai"]]
-version = "1.18.4"
+version = "1.18.7"
 backend = "npm:opencode-ai"
 
 [tools."npm:opencode-ai".options]
@@ -218,7 +218,7 @@ version = "^1.59.1"
 backend = "npm:playwright"
 
 [[tools."npm:prettier"]]
-version = "3.9.5"
+version = "3.9.6"
 backend = "npm:prettier"
 
 [[tools."npm:pretty-ts-errors-markdown"]]
@@ -234,7 +234,7 @@ version = "1.5.20"
 backend = "npm:skills"
 
 [[tools."npm:stylelint"]]
-version = "17.14.0"
+version = "17.14.1"
 backend = "npm:stylelint"
 
 [[tools."npm:typescript"]]

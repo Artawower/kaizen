@@ -1,5 +1,5 @@
 {
-  "lastChangelogVersion": "0.80.7",
+  "lastChangelogVersion": "0.82.0",
   "hideThinkingBlock": true,
   "quietStartup": true,
   "enableSkillCommands": true,
@@ -124,9 +124,9 @@
     "npm:pi-alibaba-models",
     "npm:pi-opencode-bridge"
   ],
-  "defaultProvider": "openai-codex",
-  "defaultModel": "gpt-5.6-sol",
-  "defaultThinkingLevel": "high",
+  "defaultProvider": "opencode-go",
+  "defaultModel": "kimi-k3",
+  "defaultThinkingLevel": "xhigh",
   "collapseChangelog": false,
   "dark-or-light": {
     "dark": "gruvbox-dark",

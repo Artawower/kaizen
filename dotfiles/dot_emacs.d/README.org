@@ -2955,6 +2955,7 @@ def servers():
 def servers():
     return [
         ['ty', '--server'],
+        ['ruff', 'server'],
         ['codebook-lsp', 'serve'],
     ]
 #+END_SRC
@@ -2998,6 +2999,7 @@ def servers():
   :config
   (require 'cl-lib)
   (require 'subr-x)
+  (setq project-vc-extra-root-markers '(".venv" ".node_modules"))
 
   (defun my/eglot-disable-inline-hints ()
     (when (bound-and-true-p eglot-inlay-hints-mode)
@@ -3410,6 +3412,21 @@ Compilation always at right
        eol)
    'compile-eslint--find-filename
    2 3 1)
+  
+(my/register-compilation-regexp
+   'my-ruff
+   (rx bol
+       (* blank)
+       "-->"
+       (+ blank)
+       (group (+ (not (any ":" "\n")))) ; filename
+       ":"
+       (group (+ digit))                ; line
+       ":"
+       (group (+ digit))                ; column
+       (* blank)
+       eol)
+   1 2 3 2)
 
   ;; Generic TS/JS style:
   ;; path/to/file.ts:12:34 - error ...

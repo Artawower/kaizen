@@ -28,6 +28,7 @@
       yaml-language-server
       multimarkdown
       unrar
+      dtach
     ];
     darwin.brews = [ "mole" ];
   };
