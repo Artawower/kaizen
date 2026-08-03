@@ -124,8 +124,8 @@
     "npm:pi-alibaba-models",
     "npm:pi-opencode-bridge"
   ],
-  "defaultProvider": "opencode-go",
-  "defaultModel": "kimi-k3",
+  "defaultProvider": "openai-codex",
+  "defaultModel": "gpt-5.6-sol",
   "defaultThinkingLevel": "xhigh",
   "collapseChangelog": false,
   "dark-or-light": {
