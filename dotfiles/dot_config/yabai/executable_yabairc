@@ -158,14 +158,14 @@ CNORM=$(echo $color1 | sed 's/#//')
 CINSE=$(echo $foreground | sed 's/#//')
 
 
-borders \
-  "active_color=gradient(top_left=0xff8b5cf6,bottom_right=0xff5b21b6)" \
-  "inactive_color=gradient(top_left=0xff2e2a3a,bottom_right=0xff1f1b2e)" \
-  "blacklist=,qemu-system-aarch64,Simulator,iPhone Mirroring" \
-  width=2.0 \
-  hidpi=on \
-  order=above \
-  style=round &
+# borders \
+#   "active_color=gradient(top_left=0xff8b5cf6,bottom_right=0xff5b21b6)" \
+#   "inactive_color=gradient(top_left=0xff2e2a3a,bottom_right=0xff1f1b2e)" \
+#   "blacklist=,qemu-system-aarch64,Simulator,iPhone Mirroring" \
+#   width=2.0 \
+#   hidpi=on \
+#   order=above \
+#   style=round &
 
 
 echo "yabai configuration loaded.."

@@ -20,6 +20,9 @@
                     (bound-and-true-p helixel-visual-state))
           (helixel-normal-state 1)))))
 
+  (add-hook 'fundamental-mode-hook
+            #'kaizen/enable-helixel-normal-state-in-buffer)
+
   ;; Scratch usually uses `lisp-interaction-mode`.
   (add-hook 'lisp-interaction-mode-hook
             #'kaizen/enable-helixel-normal-state-in-buffer)

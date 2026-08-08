@@ -414,8 +414,9 @@ but it does not copy $SHELL into `shell-file-name'."
         (setq envvars (nreverse envvars))
 
         ;; Import environment variables.
-        (setq process-environment
-              (append environment process-environment))
+        (setq process-environment environment)
+        ;; (setq process-environment
+        ;;       (append environment process-environment))
 
         ;; Sync `exec-path' from imported PATH, if PATH exists in FILE.
         ;; Use the value from FILE directly, not whatever PATH happened
@@ -3850,6 +3851,12 @@ Requires Emacs 30+
   (kubernetes-redraw-frequency 3600))
 
 (use-package k8s-mode
+  :defer t)
+#+END_SRC
+
+** Protobuf
+#+BEGIN_SRC emacs-lisp :results silent
+(use-package protobuf-ts-mode
   :defer t)
 #+END_SRC
 
