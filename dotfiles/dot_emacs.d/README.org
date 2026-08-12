@@ -3963,6 +3963,12 @@ Requires Emacs 30+
      org-babel-load-languages))
   )
 #+END_SRC
+
+*** Ob golang
+#+BEGIN_SRC emacs-lisp :results silent
+(use-package ob-go
+  :ensure (:type git :host github :repo "pope/ob-go"))
+#+END_SRC
 ** Justfile
 #+BEGIN_SRC emacs-lisp :results silent
 (use-package just-ts-mode
