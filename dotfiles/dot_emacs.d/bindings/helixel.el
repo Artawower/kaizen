@@ -138,6 +138,7 @@
   "q" #'delete-window
   "v" #'split-window-right
   "h" #'split-window-below
+  "R" #'rotate-layout
   "r" #'rotate-window)
 
 (defun kaizen/helixel-bind-leader ()
