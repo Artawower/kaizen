@@ -1,0 +1,9 @@
+description = "Productivity: notes, tasks, time-tracking"
+category = "productivity"
+
+[macos]
+cask = ["obsidian", "ticktick", "wakatime", "stretchly", "loom", "macshot"]
+
+[linux]
+dnf = ["obsidian"]
+apt = ["obsidian"]

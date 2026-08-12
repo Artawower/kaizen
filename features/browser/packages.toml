@@ -1,0 +1,8 @@
+description = "Web browser: Zen"
+category = "desktop"
+
+[macos]
+cask = ["zen"]
+
+[linux]
+flatpak = ["app.zen_browser.zen"]

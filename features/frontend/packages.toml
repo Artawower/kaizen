@@ -1,0 +1,12 @@
+description = "Frontend development tooling"
+category = "dev"
+
+[macos]
+brew = ["lua-language-server"]
+
+[linux]
+dnf = ["lua-language-server"]
+apt = ["lua-language-server"]
+
+[all]
+mise = ["npm:@mermaid-js/mermaid-cli"]

@@ -1,0 +1,5 @@
+description = "API client tools"
+category = "dev"
+
+[macos]
+cask = ["hoppscotch"]

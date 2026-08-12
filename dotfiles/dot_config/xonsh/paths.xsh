@@ -15,11 +15,8 @@ for _p in [
     home / '.cargo/bin',
     home / 'go/bin',
     home / '.go/bin',
-    home / '.nix-profile/bin',
 ]:
     $PATH.insert(0, str(_p))
-
-$PATH.insert(0, '/nix/var/nix/profiles/default/bin')
 
 if IS_DARWIN:
     for _p in ['/opt/homebrew/sbin', '/opt/homebrew/bin', '/opt/homebrew/opt/libpq/bin']:
@@ -35,7 +32,6 @@ if IS_DARWIN:
     del _sdk
 
 if IS_LINUX:
-    # System paths after Nix so Nix binaries take precedence
     for _p in ['/usr/sbin', '/usr/bin', '/usr/local/bin']:
         $PATH.insert(0, _p)
 

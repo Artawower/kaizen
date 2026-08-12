@@ -1,0 +1,6 @@
+description = "AI inline autocomplete"
+category = "ai"
+
+[macos]
+taps = ["FuJacob/cotabby"]
+cask = ["cotabby"]

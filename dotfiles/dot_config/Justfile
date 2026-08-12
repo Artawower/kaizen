@@ -1,209 +1,27 @@
-# Interactive recipe chooser
 default:
-    just --choose
+    just --list
 
-# Switch keyboard layout (colemak/qwerty); no arg = print current
+sync:
+    kaizen sync
+
+update:
+    kaizen update
+
+bump:
+    kaizen bump
+
+capture:
+    kaizen capture
+
+status:
+    kaizen status
+
 layout layout="":
     ~/.config/scripts/layout {{ layout }}
 
-[private]
-fedora-deps:
-    ~/.config/scripts/setup-fedora-deps
-
-[private]
-flatpak:
-    flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
-    flatpak install -y flathub io.github.seadve.Kooha
-    flatpak install -y flathub com.mattermost.Desktop
-    flatpak install -y flathub org.telegram.desktop
-    flatpak install -y flathub eu.betterbird.Betterbird
-    flatpak install -y flathub com.github.KRTirtho.Spotube
-
-# Install mise tools and trust config (mise.toml → deployed)
-mise:
-    mise install
-    mise trust ~/.config/mise.toml
-    just opencode-postinstall
-
-[private]
-opencode-postinstall:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    prefix="$(mise where npm:opencode-ai 2>/dev/null || true)"
-    if [ -z "$prefix" ]; then
-        exit 0
-    fi
-    package_dir="$prefix/lib/node_modules/opencode-ai"
-    if [ -f "$package_dir/postinstall.mjs" ]; then
-        (cd "$package_dir" && node postinstall.mjs)
-    fi
-
-[private]
-mise-bump:
-    ~/.config/scripts/upgrade
-
-# Apply chezmoi config and rebuild Nix (home-manager switch / darwin-rebuild)
-[working-directory("./nix")]
-nix:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    chezmoi apply --force
-    git -C "$HOME/.config" add -A
-    case "$(uname -s)" in
-        Darwin)
-            sudo -v
-            sudo env USER="$USER" HOME="$HOME" KAIZEN_USER="$USER" KAIZEN_HOME="$HOME" /run/current-system/sw/bin/darwin-rebuild switch --flake "$HOME/.config/nix" --impure
-            nix run home-manager/master -- switch -b backup --flake ".#${USER}@mac" --impure
-            ;;
-        Linux)
-            nix run home-manager/master -- switch -b backup --flake ".#${USER}@linux" --impure
-            ;;
-        *)
-            echo "Unsupported OS: $(uname -s)" >&2
-            exit 1
-            ;;
-    esac
-
-# Update nix flake inputs (flake.lock); readd=true also saves lock to chezmoi sources
-[working-directory("./nix")]
-nix-update readd="false":
-    #!/usr/bin/env bash
-    set -euo pipefail
-    nix flake update
-    if [ "{{ readd }}" = "true" ]; then
-        chezmoi re-add "$HOME/.config/nix/flake.lock"
-    fi
-
-[private]
-nix-clean:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    if [ "$(uname -s)" != "Darwin" ]; then
-        exit 0
-    fi
-    find "$HOME" \
-        -path "$HOME/OrbStack/*" -prune -o \
-        -path "$HOME/Library/Containers/*" -prune -o \
-        \( -type l ! -exec test -e {} \; -print0 \) | \
-        while IFS= read -r -d '' link; do \
-            echo "Removing broken link: $link"; \
-            rm -f "$link" 2>/dev/null || true; \
-        done
-
-[private]
-manual-deps:
-    ~/.config/scripts/setup-manual-deps
-
-[private]
-systemd-services:
-    ~/.config/scripts/setup-systemd-services
-
-[private]
-fedora-files:
-    ln -s "$HOME/.config/vicinae/scripts" "$HOME/.local/share/vicinae/scripts"
-    echo "$(whoami) ALL=(root) NOPASSWD: $HOME/.local/bin/cpu-profile-apply" | sudo tee /etc/sudoers.d/cpu-profile
-    sudo chmod 440 /etc/sudoers.d/cpu-profile
-
-# Bootstrap current OS from scratch (packages, Nix, mise, services)
-init:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    case "$(uname -s)" in
-        Linux)
-            just flatpak
-            just fedora-deps
-            just nix
-            just mise
-            uv tool upgrade --all
-            just manual-deps
-            just fedora-files
-            just systemd-services
-            ;;
-        Darwin)
-            just quasiqwerty
-            just nix
-            just nix-clean
-            just mise
-            uv tool upgrade --all
-            ;;
-    esac
-
-# Fedora major-version upgrade. Downloads first, then reboots into offline upgrade.
 fedora-upgrade VERSION="44":
-    sudo env -u LD_LIBRARY_PATH dnf system-upgrade download --releasever={{VERSION}} --allowerasing
-    sudo env -u LD_LIBRARY_PATH dnf system-upgrade reboot
+    sudo dnf system-upgrade download --releasever={{VERSION}} --allowerasing
+    sudo dnf system-upgrade reboot
 
-# Full sync: upgrade everything, bump version pins, save state to chezmoi sources
-sync:
-    just upgrade
-    just mise-bump
-    chezmoi re-add "$HOME/.config/nix/flake.lock"
-    chezmoi re-add ~/.pi/agent/settings.json
-
-# Upgrade everything: OS packages, Nix flake inputs + rebuild, mise tools, uv, pi extensions
-upgrade:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    case "$(uname -s)" in
-        Linux)
-            sudo env -u LD_LIBRARY_PATH dnf upgrade --refresh -y
-            flatpak update -y
-            ;;
-        Darwin)
-            ;;
-        *)
-            echo "Unsupported OS: $(uname -s)" >&2
-            exit 1
-            ;;
-    esac
-    just nix-update readd=true
-    just nix
-    mise upgrade --exclude pnpm
-    mise trust ~/.config/mise.toml
-    just opencode-postinstall
-    uv tool upgrade --all
-    if [ "$(uname -s)" = "Linux" ]; then
-        just manual-deps
-    fi
-    pi update --extensions
-    printenv > ~/.emacs.d/.local/env
-
-# Garbage-collect Nix store, prune Docker, clean OS package caches
-clean:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    nix-collect-garbage --delete-older-than 7d
-    nix-store --optimise 2>/dev/null || true
-    docker system prune -f 2>/dev/null || true
-    docker builder prune -f --filter "until=24h" 2>/dev/null || true
-    case "$(uname -s)" in
-        Linux)
-            sudo dnf clean all
-            sudo journalctl --vacuum-time=7d
-            ;;
-        Darwin)
-            brew cleanup
-            ;;
-    esac
-
-# Print environment diagnostics (shell, PATH, toolchain locations)
-doctor:
-    @echo "Shell: $$SHELL"
-    @echo "PATH entries:"; printf '%s\n' "$${PATH//:/\n}"
-    @echo "LD_LIBRARY_PATH=$${LD_LIBRARY_PATH-<unset>}"
-    @echo "which ld: $$(which ld || true)"
-    @echo "ldd --version:"; ldd --version | head -n1 || true
-    @echo "rustc: $$(command -v rustc || true)"
-    @echo "cargo: $$(command -v cargo || true)"
-
-[private]
-quasiqwerty:
-    ~/.config/scripts/setup-quasiqwerty
-
-# Apply chezmoi dotfiles (source → deployed)
 apply:
     chezmoi apply
-
-
-help:
-    just --list

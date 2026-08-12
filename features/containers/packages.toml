@@ -1,0 +1,9 @@
+description = "Container and VM tooling"
+category = "dev"
+
+[macos]
+cask = ["orbstack"]
+
+[linux]
+dnf = ["podman", "podman-compose"]
+apt = ["podman", "podman-compose"]

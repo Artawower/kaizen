@@ -90,7 +90,7 @@ end
 if not wezterm.target_triple:find("linux") then
   local current_path = os.getenv("PATH") or ""
   local home = os.getenv("HOME") or ""
-  local my_paths = "/opt/homebrew/bin:" .. home .. "/.nix-profile/bin:/usr/local/bin:" .. current_path
+  local my_paths = "/opt/homebrew/bin:/usr/local/bin:" .. current_path
 
   config.set_environment_variables = {
     PATH = my_paths
@@ -190,8 +190,5 @@ config.keys = {
 }
 
 config.default_prog = { "zellij" }
--- config.set_environment_variables = {
---   PATH = "<home>/.nix-profile/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
--- }
 
 return config

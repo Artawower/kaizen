@@ -1,0 +1,12 @@
+description = "Terminal, TUI tools, and shell"
+category = "terminal"
+
+[macos]
+taps = ["muxy-app/tap"]
+brew = ["herdr", "yazi", "starship", "zoxide", "eza", "fastfetch", "direnv", "xonsh"]
+cask = ["ghostty"]
+
+[linux]
+dnf = ["herdr", "yazi", "starship", "zoxide", "eza", "fastfetch", "direnv"]
+apt = ["herdr", "yazi", "starship", "zoxide", "eza", "fastfetch", "direnv"]
+flatpak = ["com.mitchellh.ghostty"]

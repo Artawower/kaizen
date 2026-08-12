@@ -1973,10 +1973,7 @@ Allow to transform PASCAL_CASE -> camelCase -> snake_case
          ("C-c o t" . ghostel-project)
          ("C-c C-l" . my/ghostel-clear))
   :custom
-  (ghostel-shell (or
-                  (executable-find "/Users/darkawower/.nix-profile/bin/xonsh")
-                  (executable-find "/home/darkawower/.nix-profile/bin/xonsh")
-                  (executable-find "xonsh")))
+  (ghostel-shell (executable-find "xonsh"))
   (ghostel-max-scrollback (* 5 1024 1024))  ; 5MB default
   (ghostel-enable-url-detection t)
   (ghostel-enable-file-detection t)
@@ -4970,9 +4967,7 @@ Manage your dot files like a God
 
 * Overrides
 #+BEGIN_SRC emacs-lisp :results silent
-(if (eq system-type 'darwin)
-    (setenv "SHELL" "/Users/darkawower/.nix-profile/bin/dash")
-  (setenv "SHELL" (executable-find "dash")))
+(setenv "SHELL" (executable-find "dash"))
 
 #+END_SRC
 

@@ -68,7 +68,6 @@ def log(message):
 
 def find_yabai():
     for path in (
-        Path.home() / ".nix-profile/bin/yabai",
         Path("/opt/homebrew/bin/yabai"),
         Path("/usr/local/bin/yabai"),
     ):
@@ -97,7 +96,8 @@ def yabai(*args):
 
 
 def query(name):
-    return json.loads(yabai("query", "--" + name).stdout)
+    output = yabai("query", "--" + name).stdout
+    return json.JSONDecoder().decode(output)
 
 
 def get_active_monitors(displays):
@@ -229,10 +229,7 @@ def get_misplaced(displays, spaces, plan):
 def move_space(space, target):
     selector = space["label"] or str(space["index"])
 
-    log(
-        f"move {space['label'] or selector}: "
-        f"{space['display']} -> {target['index']}"
-    )
+    log(f"move {space['label'] or selector}: {space['display']} -> {target['index']}")
 
     yabai(
         "space",

@@ -1,0 +1,25 @@
+[user]
+email = "you@example.com"
+full_name = "Your Name"
+layout = "qwerty"
+
+[ui]
+font_size = 14
+
+[features]
+core = true
+terminal = true
+vcs = true
+emacs = true
+helix = false
+keyboard = true
+ai = true
+fonts = true
+frontend = false
+go = false
+python = false
+rust = false
+
+[features.tiling]
+enabled = true
+variant = "yabai"

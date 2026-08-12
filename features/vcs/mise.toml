@@ -1,0 +1,3 @@
+[tools]
+"cargo:gitu" = "latest"
+"npm:git-trim" = "0.2.1"

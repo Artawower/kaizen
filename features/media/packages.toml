@@ -1,0 +1,10 @@
+description = "Media players: VLC, Spotube"
+category = "media"
+
+[macos]
+taps = ["krtirtho/apps"]
+cask = ["vlc", "krtirtho/apps/spotube"]
+
+[linux]
+dnf = ["vlc"]
+apt = ["vlc"]

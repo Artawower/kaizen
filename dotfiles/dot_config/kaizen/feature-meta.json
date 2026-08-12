@@ -120,7 +120,6 @@
     "bump": {
       "before": [],
       "capture": [
-        "~/.config/nix/flake.lock"
       ],
       "run": [
         {

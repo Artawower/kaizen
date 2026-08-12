@@ -1,0 +1,5 @@
+description = "Android development"
+category = "dev"
+
+[macos]
+cask = ["android-studio"]

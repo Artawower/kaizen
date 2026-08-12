@@ -1,0 +1,12 @@
+description = "Rust toolchain"
+category = "dev"
+
+[macos]
+brew = ["gcc", "cmake"]
+
+[linux]
+dnf = ["gcc", "cmake", "clang"]
+apt = ["gcc", "cmake", "clang"]
+
+[all]
+mise = ["rust@latest"]

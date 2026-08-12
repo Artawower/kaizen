@@ -1,9 +1,0 @@
-[meta]
-description = "Beta feature"
-
-[programs]
-packages = ["curl"]
-
-[hooks]
-post_install = ["echo beta-post-install"]
-post_update = ["echo beta-post-update"]

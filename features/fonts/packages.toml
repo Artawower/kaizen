@@ -1,0 +1,15 @@
+description = "Fonts and Nerd Fonts"
+category = "system"
+
+[macos]
+cask = [
+  "font-jetbrains-mono-nerd-font",
+  "font-fira-code-nerd-font",
+  "font-caskaydia-cove-nerd-font",
+  "font-liga-comic-mono",
+  "font-monaspace-nerd-font",
+]
+
+[linux]
+dnf = ["jetbrains-mono-fonts", "fira-code-fonts"]
+apt = ["fonts-jetbrains-mono", "fonts-firacode"]

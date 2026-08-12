@@ -1,5 +1,0 @@
-id = "hel"
-slot = "emacs.binding-scheme"
-title = "hel (Helix-style modal editing)"
-stability = "stable"
-default = true
