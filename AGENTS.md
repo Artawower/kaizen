@@ -100,6 +100,7 @@ jj --config 'signing.behavior="drop"' describe -m "..."  # update description
 - `kaizen.py` is the only orchestrator; do not add new Python files unless adding a `post_install.py` to a feature.
 - Package names must be valid for their manager — verify before adding (e.g., `go-tools` does not exist in Homebrew).
 - Prefer adding features over modifying `kaizen.py`.
+- Put idempotent OS configuration in a feature's `post_install.py`; keep privileged or security-sensitive changes opt-in.
 
 ## Adding a feature
 

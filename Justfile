@@ -1,5 +1,12 @@
 kaizen_dir := justfile_directory()
 
+default:
+    just --choose
+
+# Transfer dotfiles to a new machine
+apply:
+    chezmoi apply
+
 # Install packages and apply dotfiles
 sync:
     python3 kaizen.py sync
