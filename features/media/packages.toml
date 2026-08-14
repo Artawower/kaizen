@@ -8,3 +8,4 @@ cask = ["vlc", "krtirtho/apps/spotube"]
 [linux]
 dnf = ["vlc"]
 apt = ["vlc"]
+

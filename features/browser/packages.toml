@@ -2,7 +2,7 @@ description = "Web browser: Zen"
 category = "desktop"
 
 [macos]
-cask = ["zen"]
+cask = ["zen", "helium"]
 
 [linux]
 flatpak = ["app.zen_browser.zen"]

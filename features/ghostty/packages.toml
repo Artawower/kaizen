@@ -1,9 +1,0 @@
-description = "Ghostty terminal emulator"
-category = "terminal"
-
-[macos]
-cask = ["ghostty"]
-
-[linux]
-# ghostty не в стандартных репозиториях — ставим из flatpak или собираем
-flatpak = ["com.mitchellh.ghostty"]
