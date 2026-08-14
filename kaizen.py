@@ -117,9 +117,11 @@ def _mise_key(name: str) -> str:
     return f'"{name}"' if any(c in name for c in (":", "@", "/")) else name
 
 
-def _write_mise_toml(tools: dict, dest: Path) -> None:
+def _write_mise_toml(tools: dict[str, str], dest: Path) -> None:
     lines = ["[tools]"]
     for name, version in tools.items():
+        if not isinstance(version, str):
+            raise TypeError(f"mise version for {name} must be a string")
         lines.append(f'{_mise_key(name)} = "{version}"')
     dest.write_text("\n".join(lines) + "\n")
 
@@ -239,7 +241,7 @@ class Kaizen:
             feature_tools = load_toml(feature.mise_file).get("tools", {})
             updated = {k: live_tools.get(k, v) for k, v in feature_tools.items()}
             if updated != feature_tools:
-                _write_mise_toml({"tools": updated}, feature.mise_file)
+                _write_mise_toml(updated, feature.mise_file)
                 print(f"  updated {feature.mise_file.relative_to(KAIZEN_DIR)}")
 
 

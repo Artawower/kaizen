@@ -13,6 +13,7 @@ def fixed_decode(s, encoding=None):
 xonsh.tools.decode = fixed_decode
 
 import platform
+import shutil
 import subprocess
 from pathlib import Path
 from pprint import pprint
@@ -40,6 +41,26 @@ except Exception as _e:
 
 source @(config_dir / 'env.xsh')
 source @(config_dir / 'paths.xsh')
+_mise_bin = shutil.which('mise')
+if _mise_bin:
+    _mise_activation = subprocess.run(
+        [_mise_bin, 'activate', 'xonsh'],
+        env=__xonsh__.env.detype(),
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout
+    execx(_mise_activation, 'exec', __xonsh__.ctx, filename='mise')
+    _mise_environment = subprocess.run(
+        [_mise_bin, 'hook-env', '-s', 'xonsh'],
+        env=__xonsh__.env.detype(),
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout
+    execx(_mise_environment, 'exec', __xonsh__.ctx, filename='mise-hook')
+    del _mise_activation, _mise_environment
+del _mise_bin
 source @(config_dir / 'project-marker.xsh')
 source @(config_dir / 'keybindings.xsh')
 source @(config_dir / 'hooks.xsh')
