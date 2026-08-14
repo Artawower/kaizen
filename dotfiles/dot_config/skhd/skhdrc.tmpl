@@ -1,4 +1,4 @@
-{{- $wm := dig "tiling" "wm" "yabai" . -}}
+{{- $wm := dig "tiling" "variant" "yabai" . -}}
 {{- if eq $wm "komorebi" -}}
 {{ include "dot_config/skhd/skhdrc-komorebi" }}
 {{- else if eq .layout "colemak" -}}

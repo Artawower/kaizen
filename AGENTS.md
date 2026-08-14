@@ -12,6 +12,8 @@ features/<name>/
   post_install.py   # runs after packages, receives OS name as argv[1] (optional)
   variants/<name>/
     packages.toml   # additional packages for this variant
+    mise.toml       # additional runtime tools (optional)
+    post_install.py # variant-specific setup (optional)
 
 dotfiles/           # chezmoi source tree (dot_config/ → ~/.config/, etc.)
 kaizen.py           # orchestrator — the only Python source file
@@ -57,13 +59,21 @@ go = "latest"
 `~/.config/kaizen/config.toml` (user edits this, not committed):
 
 ```toml
+layout = "colemak"
+
 [features]
-core    = true
-tiling  = { enabled = true, variant = "yabai" }
-go      = false
+core = true
+go = false
+tiling = true
+
+[tiling]
+variant = "yabai"
+
+[kaizen.shortcuts]
+"nav.down" = ["n"]
 ```
 
-`dotfiles/.chezmoidata.toml` — chezmoi template data (committed); must stay in sync with user config. Currently updated manually.
+`dotfiles/.chezmoidata.toml` contains committed defaults. Kaizen deep-merges the user config over those defaults and generates the ignored `dotfiles/.chezmoidata/99-user.toml` symlink before applying chezmoi. Dictionaries merge recursively; lists and scalar values are replaced.
 
 ## Key commands
 
@@ -107,4 +117,4 @@ jj --config 'signing.behavior="drop"' describe -m "..."  # update description
 1. Create `features/<name>/packages.toml` with OS sections.
 2. Optionally add `features/<name>/mise.toml` for runtime tools.
 3. Enable in `config.example.toml` under `[features]`.
-4. For tiling variants: add `features/tiling/variants/<name>/packages.toml`.
+4. For tiling variants: add `features/tiling/variants/<name>/packages.toml` and set `[tiling].variant`.

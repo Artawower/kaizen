@@ -1,4 +1,3 @@
-[user]
 email = "you@example.com"
 full_name = "Your Name"
 layout = "qwerty"
@@ -7,19 +6,31 @@ layout = "qwerty"
 font_size = 14
 
 [features]
-core = true
-terminal = true
-vcs = true
-emacs = true
-helix = false
-keyboard = true
 ai = true
+android = false
+api = false
+battery = false
+browser = false
+containers = false
+core = true
+database = false
+desktop = true
+emacs = true
 fonts = true
 frontend = false
 go = false
+helix = false
+keyboard = true
+media = false
+productivity = false
 python = false
 rust = false
+screencast = false
+security = false
+social = false
+terminal = true
+tiling = true
+vcs = true
 
-[features.tiling]
-enabled = true
+[tiling]
 variant = "yabai"

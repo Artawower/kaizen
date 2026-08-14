@@ -14,20 +14,25 @@ KAIZEN_DIR = Path(__file__).parent
 FEATURES_DIR = KAIZEN_DIR / "features"
 DOTFILES_DIR = KAIZEN_DIR / "dotfiles"
 CONFIG_FILE = Path.home() / ".config" / "kaizen" / "config.toml"
+DEFAULTS_FILE = DOTFILES_DIR / ".chezmoidata.toml"
+USER_DATA_FILE = DOTFILES_DIR / ".chezmoidata" / "99-user.toml"
 MISE_CONFIG = Path.home() / ".config" / "mise.toml"
 
 _CAPTURE_PATHS = [
     Path.home() / ".pi" / "agent" / "settings.json",
     Path.home() / ".pi" / "agent" / "mcp.json",
 ]
+_VARIANT_FILES = ("packages.toml", "mise.toml", "post_install.py")
 
 
 class PackageManager(ABC):
     @abstractmethod
-    def install(self, packages: dict) -> None: ...
+    def install(self, packages: dict) -> None:
+        raise NotImplementedError
 
     @abstractmethod
-    def update(self) -> None: ...
+    def update(self) -> None:
+        raise NotImplementedError
 
     def _run(self, cmd: list[str], env: dict | None = None) -> None:
         print(f"  $ {' '.join(cmd)}")
@@ -94,7 +99,7 @@ def detect_os() -> str:
             if line.startswith("ID="):
                 return line.split("=", 1)[1].strip().strip('"')
     except FileNotFoundError:
-        pass
+        return "linux"
     return "linux"
 
 
@@ -111,6 +116,24 @@ def load_toml(path: Path) -> dict:
     except (OSError, tomllib.TOMLDecodeError) as e:
         print(f"  warning: {path}: {e}")
         return {}
+
+
+def read_toml(path: Path) -> dict:
+    try:
+        with open(path, "rb") as file:
+            return tomllib.load(file)
+    except (OSError, tomllib.TOMLDecodeError) as error:
+        raise ValueError(f"{path}: {error}") from error
+
+
+def merge_config(defaults: dict, overrides: dict) -> dict:
+    merged = defaults.copy()
+    for key, value in overrides.items():
+        if isinstance(value, dict) and isinstance(merged.get(key), dict):
+            merged[key] = merge_config(merged[key], value)
+        else:
+            merged[key] = value
+    return merged
 
 
 def _mise_key(name: str) -> str:
@@ -132,35 +155,87 @@ class Feature:
     variant: str | None = None
 
     @property
+    def directory(self) -> Path:
+        return FEATURES_DIR / self.name
+
+    @property
+    def variant_directory(self) -> Path | None:
+        if not self.variant:
+            return None
+        return self.directory / "variants" / self.variant
+
+    @property
     def label(self) -> str:
         return f"{self.name}/{self.variant}" if self.variant else self.name
 
     @property
     def packages_file(self) -> Path:
-        return FEATURES_DIR / self.name / "packages.toml"
+        return self.directory / "packages.toml"
 
     @property
     def mise_file(self) -> Path:
-        return FEATURES_DIR / self.name / "mise.toml"
+        return self.directory / "mise.toml"
 
     @property
     def variant_packages_file(self) -> Path | None:
-        if not self.variant:
+        if not self.variant_directory:
             return None
-        return FEATURES_DIR / self.name / "variants" / self.variant / "packages.toml"
+        return self.variant_directory / "packages.toml"
 
     @property
     def post_install(self) -> Path:
-        return FEATURES_DIR / self.name / "post_install.py"
+        return self.directory / "post_install.py"
+
+    @property
+    def variant_mise_file(self) -> Path | None:
+        if not self.variant_directory:
+            return None
+        return self.variant_directory / "mise.toml"
+
+    @property
+    def variant_post_install(self) -> Path | None:
+        if not self.variant_directory:
+            return None
+        return self.variant_directory / "post_install.py"
 
 
 def parse_features(config: dict) -> list[Feature]:
+    configured = config.get("features", {})
+    if not isinstance(configured, dict):
+        raise TypeError("features must be a table")
+    available = {path.name for path in FEATURES_DIR.iterdir() if path.is_dir()}
+    unknown = sorted(set(configured) - available)
+    if unknown:
+        raise ValueError(f"unknown features: {', '.join(unknown)}")
     result = []
-    for name, val in config.get("features", {}).items():
-        if isinstance(val, bool) and val:
-            result.append(Feature(name))
-        elif isinstance(val, dict) and val.get("enabled", True):
-            result.append(Feature(name, val.get("variant")))
+    for name, enabled in configured.items():
+        if not isinstance(enabled, bool):
+            raise TypeError(f"feature {name} must be true or false")
+        if not enabled:
+            continue
+        settings = config.get(name, {})
+        if not isinstance(settings, dict):
+            raise TypeError(f"settings for {name} must be a table")
+        variant = settings.get("variant")
+        if variant is not None and not isinstance(variant, str):
+            raise TypeError(f"variant for {name} must be a string")
+        feature = Feature(name, variant)
+        variants_directory = feature.directory / "variants"
+        available_variants = (
+            {
+                path.name
+                for path in variants_directory.iterdir()
+                if path.is_dir()
+                and any((path / filename).exists() for filename in _VARIANT_FILES)
+            }
+            if variants_directory.exists()
+            else set()
+        )
+        if available_variants and not variant:
+            raise ValueError(f"feature {name} requires a variant")
+        if variant and variant not in available_variants:
+            raise ValueError(f"unknown variant: {feature.label}")
+        result.append(feature)
     return result
 
 
@@ -172,6 +247,7 @@ class Kaizen:
 
     def sync(self) -> None:
         features = parse_features(self._config)
+        self._write_user_data()
         print(f"OS: {self._os}\n")
         for feature in features:
             self._install_packages(feature)
@@ -203,13 +279,21 @@ class Kaizen:
                 print(f"  captured {path}")
 
     def status(self) -> None:
-        print(f"OS      : {self._os}")
-        print(f"config  : {CONFIG_FILE}")
+        features = parse_features(self._config)
+        print(f"OS       : {self._os}")
+        print(f"config   : {CONFIG_FILE}")
+        print(f"features : {', '.join(feature.label for feature in features)}")
         print(
-            f"mise    : {MISE_CONFIG} {'(exists)' if MISE_CONFIG.exists() else '(not generated yet)'}"
+            f"mise     : {MISE_CONFIG} {'(exists)' if MISE_CONFIG.exists() else '(not generated yet)'}"
         )
-        print(f"chezmoi : {shutil.which('chezmoi') or 'not found'}")
-        print(f"mise    : {shutil.which('mise') or 'not found'}")
+        print(f"chezmoi  : {shutil.which('chezmoi') or 'not found'}")
+        print(f"mise     : {shutil.which('mise') or 'not found'}")
+
+    def _write_user_data(self) -> None:
+        USER_DATA_FILE.parent.mkdir(parents=True, exist_ok=True)
+        if USER_DATA_FILE.is_symlink() or USER_DATA_FILE.exists():
+            USER_DATA_FILE.unlink()
+        USER_DATA_FILE.symlink_to(CONFIG_FILE)
 
     def _install_packages(self, feature: Feature) -> None:
         print(f"[{feature.label}]")
@@ -220,12 +304,19 @@ class Kaizen:
             subprocess.run(
                 [sys.executable, str(feature.post_install), self._os], check=False
             )
+        if feature.variant_post_install and feature.variant_post_install.exists():
+            subprocess.run(
+                [sys.executable, str(feature.variant_post_install), self._os],
+                check=False,
+            )
         print()
 
     def _generate_mise_config(self, features: list[Feature]) -> None:
         tools: dict = {}
         for feature in features:
             tools.update(load_toml(feature.mise_file).get("tools", {}))
+            if feature.variant_mise_file:
+                tools.update(load_toml(feature.variant_mise_file).get("tools", {}))
         if not tools:
             return
         print("[mise config]")
@@ -236,13 +327,17 @@ class Kaizen:
     def _capture_mise_versions(self, features: list[Feature]) -> None:
         live_tools = load_toml(MISE_CONFIG).get("tools", {})
         for feature in features:
-            if not feature.mise_file.exists():
-                continue
-            feature_tools = load_toml(feature.mise_file).get("tools", {})
-            updated = {k: live_tools.get(k, v) for k, v in feature_tools.items()}
-            if updated != feature_tools:
-                _write_mise_toml(updated, feature.mise_file)
-                print(f"  updated {feature.mise_file.relative_to(KAIZEN_DIR)}")
+            files = [feature.mise_file]
+            if feature.variant_mise_file:
+                files.append(feature.variant_mise_file)
+            for mise_file in files:
+                if not mise_file.exists():
+                    continue
+                feature_tools = load_toml(mise_file).get("tools", {})
+                updated = {k: live_tools.get(k, v) for k, v in feature_tools.items()}
+                if updated != feature_tools:
+                    _write_mise_toml(updated, mise_file)
+                    print(f"  updated {mise_file.relative_to(KAIZEN_DIR)}")
 
 
 _COMMANDS = {"sync", "update", "bump", "capture", "status"}
@@ -256,4 +351,10 @@ if __name__ == "__main__":
         print(f"config not found: {CONFIG_FILE}")
         print("copy config.example.toml to ~/.config/kaizen/config.toml")
         sys.exit(1)
-    getattr(Kaizen(load_toml(CONFIG_FILE)), cmd)()
+    try:
+        overrides = read_toml(CONFIG_FILE)
+        config = merge_config(read_toml(DEFAULTS_FILE), overrides)
+        getattr(Kaizen(config), cmd)()
+    except (OSError, TypeError, ValueError, tomllib.TOMLDecodeError) as error:
+        print(f"error: {error}")
+        sys.exit(1)

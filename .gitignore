@@ -33,6 +33,7 @@ plans/*
 
 .pi/
 .pi-lens/
+/dotfiles/.chezmoidata/99-user.toml
 
 .DS_Store
 **/.DS_Store

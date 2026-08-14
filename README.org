@@ -7,51 +7,18 @@
 #+HTML: <img src="./images/logo.png" width="220" height="220" alt="Kaizen">
 #+HTML: </div>
 
-#+HTML: <p align="center">
-#+HTML: <a href="https://github.com/artawower/kaizen"><img src="https://img.shields.io/badge/GitHub-kaizen-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub"></a>
-#+HTML: <a href="https://github.com/artawower/kaizen/releases"><img src="https://img.shields.io/github/v/release/artawower/kaizen?style=for-the-badge" alt="Release"></a>
-#+HTML: </p>
-
-#+HTML: <p align="center">
-#+HTML: <a href="https://www.rust-lang.org/"><img src="https://img.shields.io/badge/Rust-000000?style=for-the-badge&logo=rust&logoColor=white" alt="Rust"></a>
-#+HTML: <a href="https://www.chezmoi.io/"><img src="https://img.shields.io/badge/Chezmoi-Dotfiles-6B46C1?style=for-the-badge" alt="Chezmoi"></a>
-#+HTML: <a href="https://nixos.org/"><img src="https://img.shields.io/badge/Nix-supported-5277C3?style=for-the-badge&logo=nixos&logoColor=white" alt="Nix"></a>
-#+HTML: </p>
-
-#+HTML: <p align="center">
-#+HTML: <a href="https://www.paypal.me/darkawower"><img src="https://img.shields.io/badge/PayPal-Donate-00457C?style=for-the-badge&logo=paypal&logoColor=white" alt="PayPal"></a>
-#+HTML: <a href="https://patreon.com/artawower"><img src="https://img.shields.io/badge/Patreon-Support-F96854?style=for-the-badge&logo=patreon&logoColor=white" alt="Patreon"></a>
-#+HTML: </p>
-
 * What is Kaizen?
 
-~Kaizen~ is an opinionated, keyboard-driven development workflow manager.
+Kaizen is an opinionated, keyboard-driven developer environment manager for
+macOS and Linux. It installs native packages, runtime tools, and dotfiles from
+one feature configuration.
 
-Instead of assembling tools from scratch, you select high-level features and Kaizen installs the curated packages, dotfiles, language servers, and integrations that go with them — consistently, across machines.
+Its components are deliberately small:
 
-Kaizen is built around one idea:
-
-#+BEGIN_QUOTE
-Do not waste time choosing and wiring tools. Use a proven workflow, improve it collectively, and focus on building.
-#+END_QUOTE
-
-Available features: ~core~, ~terminal~, ~vcs~, ~emacs~, ~helix~, ~keyboard~, ~frontend~, ~go~, ~python~, ~rust~, ~ai~, ~tiling~.
-
-* Philosophy
-
-** Opinionated and keyboard-first
-
-Kaizen chooses tools, defaults, shortcuts, and integrations for you. It is not a toolkit for assembling a random dotfiles collection and does not expose every internal decision as a user preference.
-
-The workflow is keyboard-driven by design. Navigation, editing, window management, search, and command execution should be as fast and consistent as possible.
-
-** Improvable, not just configurable
-
-If you find a better tool or default, open a discussion upstream. Kaizen evolves through shared review, benchmarks, and real usage — not private forks that diverge silently.
-
-** One tool per task, open source first
-
-For each task Kaizen uses the smallest reasonable number of tools, and prefers open-source software. Tools are replaced when something demonstrably better appears.
+- Python 3.11+ orchestrates the workflow;
+- Homebrew, dnf, or apt installs system packages;
+- mise installs runtimes and global development tools;
+- chezmoi renders and applies dotfiles.
 
 * Install
 
@@ -59,133 +26,115 @@ For each task Kaizen uses the smallest reasonable number of tools, and prefers o
 curl -fsSL https://raw.githubusercontent.com/artawower/kaizen/master/install.sh | sh
 #+END_SRC
 
-The installer publishes binaries for macOS. The binary is placed in =~/.local/bin= if the system directory is not writable (no sudo required).
+The installer clones Kaizen to =~/.local/share/kaizen=, creates
+=~/.config/kaizen/config.toml=, configures chezmoi, and installs a
+=~/.local/bin/kaizen= wrapper.
 
-Install a specific release or choose a custom destination:
-
-#+BEGIN_SRC shell
-curl -fsSL https://raw.githubusercontent.com/artawower/kaizen/master/install.sh | sh -s -- --tag v0.1.0
-curl -fsSL https://raw.githubusercontent.com/artawower/kaizen/master/install.sh | sh -s -- --to ~/.local/bin
-#+END_SRC
-
-Build from source:
+Edit the generated config, then run:
 
 #+BEGIN_SRC shell
-git clone https://github.com/artawower/kaizen
-cd kaizen
-cargo install --path crates/kaizen-cli
+kaizen sync
 #+END_SRC
 
 * Repository layout
 
-This is a monorepo: the ~kaizen~ CLI and the default curated dotfiles live together.
+#+BEGIN_SRC text
+features/<name>/
+  packages.toml
+  mise.toml
+  post_install.py
+  variants/<name>/
+    packages.toml
+    mise.toml
+    post_install.py
 
-#+BEGIN_SRC
-kaizen/
-├── .chezmoiroot                  ← chezmoi uses dotfiles/ as its source root
-├── crates/                       ← Rust source for the kaizen CLI
-└── dotfiles/                     ← chezmoi source root (applied to ~/)
-    ├── .chezmoiignore
-    ├── kaizen/
-    └── dot_config/
-        ├── kaizen/
-        │   └── feature-meta.json ← seed: description + category per feature
-        ├── nix/
-        │   ├── flake.nix
-        │   ├── darwin.nix        ← nix-darwin: system config + feature-conditional brew
-        │   ├── hosts/
-        │   │   ├── mac.nix       ← home-manager macOS config (reads data.toml)
-        │   │   └── linux.nix     ← home-manager Linux config (reads data.toml)
-        │   └── modules/
-        │       ├── options.nix         ← conf.* option declarations
-        │       ├── feature-loader.nix  ← auto-imports features/, writes feature-meta.json
-        │       ├── features/           ← one .nix per user-visible feature ✦
-        │       │   ├── core.nix
-        │       │   ├── helix.nix
-        │       │   └── ...             ← adding X.nix here is the only step
-        │       └── system/             ← infrastructure (fonts, darkman, …)
-        └── mise.toml.tmpl        ← dev tools, feature-conditional via data.toml
+dotfiles/             # chezmoi source
+dotfiles/.chezmoidata.toml
+config.example.toml
+kaizen.py
 #+END_SRC
 
-✦ See [[./docs/feature-format.org][docs/feature-format.org]] for the feature module format.
-
-Because of =.chezmoiroot=, the effective chezmoi source path is
-=~/.local/share/chezmoi/dotfiles/= (run =chezmoi source-path= to confirm).
-
-Kaizen writes its canonical state to =~/.config/kaizen/data.toml=.
-Nix modules and chezmoi templates read this file to know which features are enabled.
-
-Users who prefer their own dotfiles can set a custom URL during ~kaizen configure~.
-Custom repos must include =dot_config/kaizen/feature-meta.json= and Nix feature
-modules following the same conventions.
+Only =packages.toml= is required. The remaining feature and variant files are
+optional.
 
 * Usage
 
 #+BEGIN_SRC shell
-kaizen install    # fresh-machine bootstrap: wizard if needed, then sync
-kaizen configure  # re-run the feature selection wizard
-kaizen sync       # reconcile system to config: packages + dotfiles + mise
-kaizen apply      # dotfiles + mise only, no package manager
-kaizen update     # upgrade packages, mise tools, and run featureRegistry update hooks; --flake also updates flake inputs
-kaizen clean      # remove old Nix generations, OS caches, Docker layers
-kaizen uninstall  # remove managed dotfiles, config, and chezmoi source
-kaizen doctor     # check tool availability and backend status
-kaizen features   # list available workflow features
-kaizen bump       # upgrade version pins (mise, nix) and save lock files back to source
-kaizen re-add     # re-add bump capture paths to chezmoi source; --only FEATURE
-kaizen self-update  # replace the kaizen binary with the latest release
+kaizen sync      # install enabled features, mise tools, and dotfiles
+kaizen update    # upgrade native packages and mise tools
+kaizen bump      # update mise pins in feature-local manifests
+kaizen capture   # re-add known mutable dotfiles to the source
+kaizen status    # show active platform, features, and tool locations
 #+END_SRC
 
-- ~kaizen install~ — entry point for a fresh machine. Runs ~configure~ if no config is found, then ~sync~.
-- ~kaizen sync~ — primary day-to-day command. Writes =~/.config/kaizen/data.toml=, then runs:
-  1. =chezmoi apply= — renders =mise.toml.tmpl= and deploys dotfiles.
-  2. =home-manager switch= — installs Nix packages from enabled feature modules.
-  3. =darwin-rebuild switch= — applies nix-darwin config (macOS only); installs feature-conditional brew casks.
-  4. =mise install= — installs dev tools declared in =mise.toml.tmpl=.
-  On activation, =home-manager= also regenerates =~/.config/kaizen/feature-meta.json=.
-- ~kaizen bump~ — upgrades version pins (mise tools, nix flake inputs) and runs =chezmoi re-add= on the changed lock files. Bump workflows are declared in Nix =featureRegistry= (=bump.before= / =bump.run= / =bump.capture= per feature). Use =--only FEATURE= to run a single feature.
-- ~kaizen re-add~ — runs =chezmoi re-add= for the =bump.capture= paths of enabled features without executing =bump.before= or =bump.run=. Use =--only FEATURE= to target a single feature. Example: =kaizen re-add --only ai= re-adds =~/.pi/agent/settings.json=.
-- ~kaizen uninstall~ — removes managed dotfiles and the chezmoi source. Does *not* uninstall Nix (system-level dependency; see [[https://docs.determinate.systems/determinate-nix/#uninstalling][Determinate Nix uninstall guide]]).
+~kaizen sync~ performs these steps:
+
+1. Validate enabled features and selected variants.
+2. Install packages with the native platform package manager.
+3. Merge enabled feature and variant =mise.toml= files.
+4. Run =mise install=.
+5. Generate the machine-local chezmoi data overlay.
+6. Run =chezmoi apply=.
 
 * Configuration
 
-Feature selection is stored in =~/.config/kaizen/config.toml= and applied via =~/.config/kaizen/data.toml=:
+Committed defaults live in =dotfiles/.chezmoidata.toml=. Machine-local
+overrides live in =~/.config/kaizen/config.toml=:
 
 #+BEGIN_SRC toml
-[features.core]
-enabled = true
+layout = "colemak"
 
-[features.frontend]
-enabled = true
+[ui]
+font_size = 16
 
-[features.emacs]
-enabled = true
+[features]
+core = true
+frontend = true
+tiling = true
 
-[features.ai]
-enabled = true
+[tiling]
+variant = "yabai"
+
+[kaizen.shortcuts]
+"nav.down" = ["n"]
+"nav.up" = ["e"]
+
+[models]
+default = "anthropic/claude-sonnet-4-6"
 #+END_SRC
 
-Run ~kaizen configure~ to update feature selection interactively.
+Kaizen recursively merges dictionaries. Scalars and lists replace their
+default values, so every setting, model, and shortcut can be overridden.
 
-* Connected links
+Before applying dotfiles, Kaizen links the user config as the ignored
+=dotfiles/.chezmoidata/99-user.toml=. Chezmoi reads this overlay automatically,
+so direct =chezmoi diff= and =chezmoi apply= commands always use current values.
 
-- [[https://www.chezmoi.io/][chezmoi]] — dotfiles management and templating.
-- [[https://nix-community.github.io/home-manager/][Home Manager]] — Nix-based user environment management (primary backend).
-- [[https://github.com/sigoden/upt][upt]] — unified cross-platform package installer (non-Nix fallback).
+* Variants
 
-* Status
+A feature with variants reads its base manifest and the selected variant:
 
-Kaizen is in active development. The core install/sync/uninstall flow works on macOS. Expect breaking changes while the feature set stabilises.
+#+BEGIN_SRC text
+features/tiling/packages.toml
+features/tiling/variants/yabai/packages.toml
+#+END_SRC
 
-* Contribute guide
+Select it in the user config:
 
-Kaizen evolves through discussion and continuous improvement. To propose a new tool, shortcut, or feature, open an issue or discussion with clear reasoning covering:
+#+BEGIN_SRC toml
+[features]
+tiling = true
 
-- what problem is being solved;
-- what current choice it replaces or improves;
-- why the new approach is better and what trade-offs it introduces;
-- whether it benefits many users, not only one private setup.
+[tiling]
+variant = "yabai"
+#+END_SRC
 
-Please read [[./CONTRIBUTING.md][CONTRIBUTING.md]] before submitting changes.
+Available tiling variants are =aerospace=, =glazewm=, =komorebi=, and =yabai=.
+Changing a variant does not uninstall packages from the previously selected
+variant.
 
-I would also appreciate it if you would consider becoming my [[https://www.patreon.com/artawower][patron]].
+* Links
+
+- [[https://www.chezmoi.io/][chezmoi]]
+- [[https://mise.jdx.dev/][mise]]
+- [[https://brew.sh/][Homebrew]]
