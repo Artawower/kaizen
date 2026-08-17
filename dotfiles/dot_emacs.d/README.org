@@ -584,6 +584,7 @@ Modeline inactive color
         (set-face-attribute 'font-lock-comment-face frame :inherit 'my/comic-face)
         (set-face-attribute 'font-lock-keyword-face frame :inherit 'my/comic-face)
 
+        (setq-default line-spacing 0.3)
         (setq line-spacing 0.3)
         (when (fboundp 'set-fontset-font)
           (set-fontset-font t 'symbol (font-spec :family "Apple Color Emoji") nil 'prepend))))
