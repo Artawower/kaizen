@@ -1,1 +1,36 @@
-/Users/darkawower/.config/kaizen/config.toml
+layout = "colemak"
+schema_version = 1
+
+[ui]
+font_size = 14.0
+
+[features]
+ai = true
+android = true
+api = true
+battery = true
+browser = true
+containers = true
+core = true
+database = true
+desktop = true
+emacs = true
+fonts = true
+frontend = true
+go = true
+helix = true
+keyboard = true
+media = true
+productivity = true
+python = true
+rust = true
+screencast = true
+security = true
+social = true
+terminal = true
+tiling = true
+vcs = true
+
+[dotfiles]
+backend = "chezmoi"
+source = "https://github.com/Artawower/kaizen"
