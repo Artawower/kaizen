@@ -60,18 +60,18 @@ input {
 
     // Focus windows and outputs automatically when moving the mouse into them.
     // Setting max-scroll-amount="0%" makes it work only on windows already fully on screen.
-    // focus-follows-mouse max-scroll-amount="0%"
+    focus-follows-mouse max-scroll-amount="0%"
 }
 output "HDMI-A-1" {
     mode "3840x2160@60.000"
     scale 2
-    position x=1512 y=0
+    position x=0 y=0
  // Positioned to the right of eDP-1    focus-at-startup
 }
 output "eDP-1" {
     mode "3024x1964@60.004"
     scale 2
-    position x=0 y=0
+    position x=0 y=1080
 }
 workspace "soc" {
     open-on-output "eDP-1"

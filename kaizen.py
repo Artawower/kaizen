@@ -67,10 +67,10 @@ class Brew(PackageManager):
 class Dnf(PackageManager):
     def install(self, packages: dict[str, object]) -> None:
         section = _table(packages.get("linux"))
-        if pkgs := _string_list(section.get("dnf")):
-            self._run(["sudo", "dnf", "install", "-y", *pkgs])
+        for pkg in _string_list(section.get("dnf")):
+            self._run(["sudo", "dnf", "install", "-y", pkg])
         for app in _string_list(section.get("flatpak")):
-            self._run(["flatpak", "install", "-y", "flathub", app])
+            self._run(["sudo", "flatpak", "install", "--system", "-y", "flathub", app])
 
     def update(self) -> None:
         self._run(["sudo", "dnf", "upgrade", "-y"])
@@ -79,10 +79,10 @@ class Dnf(PackageManager):
 class Apt(PackageManager):
     def install(self, packages: dict[str, object]) -> None:
         section = _table(packages.get("linux"))
-        if pkgs := _string_list(section.get("apt")):
-            self._run(["sudo", "apt", "install", "-y", *pkgs])
+        for pkg in _string_list(section.get("apt")):
+            self._run(["sudo", "apt", "install", "-y", pkg])
         for app in _string_list(section.get("flatpak")):
-            self._run(["flatpak", "install", "-y", "flathub", app])
+            self._run(["sudo", "flatpak", "install", "--system", "-y", "flathub", app])
 
     def update(self) -> None:
         self._run(["sudo", "apt", "update"])
@@ -133,7 +133,9 @@ def read_toml(path: Path) -> dict[str, object]:
         raise ValueError(f"{path}: {error}") from error
 
 
-def merge_config(defaults: dict[str, object], overrides: dict[str, object]) -> dict[str, object]:
+def merge_config(
+    defaults: dict[str, object], overrides: dict[str, object]
+) -> dict[str, object]:
     merged = defaults.copy()
     for key, value in overrides.items():
         current = merged.get(key)
@@ -166,7 +168,11 @@ def _mise_key(name: str) -> str:
 
 
 def _toml_key(name: str) -> str:
-    return name if re.fullmatch(r"[A-Za-z0-9_-]+", name) else json.dumps(name, ensure_ascii=False)
+    return (
+        name
+        if re.fullmatch(r"[A-Za-z0-9_-]+", name)
+        else json.dumps(name, ensure_ascii=False)
+    )
 
 
 def _toml_value(value: object) -> str:
@@ -220,7 +226,9 @@ def _write_mise_toml(tools: dict[str, str], dest: Path) -> None:
     _ = dest.write_text("\n".join(lines) + "\n")
 
 
-def normalize_config(raw: dict[str, object]) -> tuple[dict[str, object], list[str], bool]:
+def normalize_config(
+    raw: dict[str, object],
+) -> tuple[dict[str, object], list[str], bool]:
     legacy_schema = False
     renamed_features: set[str] = set()
     ignored_features: set[str] = set()
@@ -403,7 +411,9 @@ class Kaizen:
             _ = subprocess.run(["mise", "install"], check=True)
             print()
         print("[dotfiles]")
-        _ = subprocess.run(["chezmoi", "apply", "--source", str(DOTFILES_DIR)], check=True)
+        _ = subprocess.run(
+            ["chezmoi", "apply", "--source", str(DOTFILES_DIR)], check=True
+        )
 
     def update(self) -> None:
         self._adapter.update()
@@ -465,7 +475,9 @@ class Kaizen:
         for feature in features:
             tools.update(_string_map(load_toml(feature.mise_file).get("tools")))
             if feature.variant_mise_file:
-                tools.update(_string_map(load_toml(feature.variant_mise_file).get("tools")))
+                tools.update(
+                    _string_map(load_toml(feature.variant_mise_file).get("tools"))
+                )
         if not tools:
             return
         print("[mise config]")

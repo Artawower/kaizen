@@ -2,7 +2,7 @@ description = "Version control tooling"
 category = "vcs"
 
 [macos]
-brew = ["git", "gh", "jj", "jjui", "git-delta", "gnupg", "pinentry-mac"]
+brew = ["git", "gh", "jj", "git-delta", "gnupg", "pinentry-mac"]
 
 [linux]
 dnf = ["git", "gh", "jj", "git-delta", "gnupg2", "pinentry"]

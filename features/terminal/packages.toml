@@ -3,10 +3,38 @@ category = "terminal"
 
 [macos]
 taps = ["muxy-app/tap"]
-brew = ["ghostty", "herdr", "yazi", "starship", "zoxide", "eza", "fastfetch", "direnv", "xonsh"]
+brew = [
+  "ghostty",
+  "herdr",
+  "yazi",
+  "starship",
+  "zoxide",
+  "eza",
+  "fastfetch",
+  "direnv",
+  "xonsh",
+]
 cask = ["ghostty"]
 
 [linux]
-dnf = ["herdr", "yazi", "starship", "zoxide", "eza", "fastfetch", "direnv"]
-apt = ["herdr", "yazi", "starship", "zoxide", "eza", "fastfetch", "direnv"]
+dnf = [
+  "herdr",
+  "yazi",
+  "starship",
+  "zoxide",
+  "eza",
+  "fastfetch",
+  "direnv",
+  "xonsh",
+]
+apt = [
+  "herdr",
+  "yazi",
+  "starship",
+  "zoxide",
+  "eza",
+  "fastfetch",
+  "direnv",
+  "xonsh",
+]
 flatpak = ["com.mitchellh.ghostty"]
