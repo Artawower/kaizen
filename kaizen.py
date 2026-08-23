@@ -408,7 +408,7 @@ class Kaizen:
         self._generate_mise_config(features)
         if shutil.which("mise"):
             print("[mise]")
-            _ = subprocess.run(["mise", "install"], check=True)
+            _ = subprocess.run(["mise", "install", "--jobs=1"], check=True)
             print()
         print("[dotfiles]")
         _ = subprocess.run(
@@ -519,6 +519,10 @@ if __name__ == "__main__":
         for warning in warnings:
             print(warning)
         getattr(Kaizen(config, normalized_overrides, link_user_config), cmd)()
+    except subprocess.CalledProcessError as error:
+        command = " ".join(str(part) for part in error.cmd)
+        print(f"error: {command} failed with exit code {error.returncode}")
+        sys.exit(error.returncode)
     except (OSError, TypeError, ValueError, tomllib.TOMLDecodeError) as error:
         print(f"error: {error}")
         sys.exit(1)
