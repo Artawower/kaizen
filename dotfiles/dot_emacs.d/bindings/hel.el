@@ -262,6 +262,14 @@
   "] g" #'git-gutter:next-hunk
   "[ g" #'git-gutter:previous-hunk)
 
+(with-eval-after-load 'magit
+  (hel-keymap-global-set :state '(normal motion)
+    (concat "SPC " (or (bound-and-true-p kaizen/vcs-ui) "v l")) #'magit-status))
+
+(with-eval-after-load 'git-timemachine
+  (hel-keymap-global-set :state 'normal
+    (concat "SPC " (or (bound-and-true-p kaizen/vcs-history) "v h")) #'git-timemachine))
+
 (with-eval-after-load 'blamer
   (add-hook 'hel-insert-state-enter-hook #'my/disable-blamer-mode)
   (add-hook 'hel-normal-state-enter-hook #'blamer-mode))
@@ -372,10 +380,10 @@
     "z a" #'husky-fold-toggle
     fold-next #'husky-fold-next
     "z M"     #'husky-fold-close-all
-    fold-prev #'husky-fold-previous))
+    fold-prev #'husky-fold-previous)
 
 ;; Activate after all state/keymap configuration is complete
-(hel-mode))
+(hel-mode)
 
 
 

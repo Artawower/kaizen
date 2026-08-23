@@ -23,7 +23,8 @@ Accepted entries live in `dotfiles/kaizen/keybindings.toml`.
 | `projects.pick` | `p p`                                     | accepted |
 | `pane.split.*`  | `w v`, `w s`                              | accepted |
 | `pane.focus.*`  | `CTRL ALT arrows`                         | accepted |
-| `vcs.ui`        | `g g`                                     | accepted |
+| `vcs.ui`        | `v l` — Zed lazygit, Helix gitu, Emacs magit-status, xonsh `vl` → jjui | accepted |
+| `vcs.history`   | `v h` — Zed `git::FileHistory`, Helix per-file git log, Emacs git-timemachine | accepted |
 
 Everything else in this file is research / candidate backlog.
 
@@ -170,7 +171,7 @@ These are useful facts but should probably not be forced into the shared catalog
 | WezTerm     | `cmd+w`                            | Close pane                                  | `wezterm/wezterm.lua`              | Terminal-native.                                                          |
 | WezTerm     | `cmd+c/v`                          | Copy/paste                                  | same                               | Terminal-native.                                                          |
 | WezTerm     | `cmd+shift+left/right`             | Move tab relative                           | same                               | App-specific.                                                             |
-| WezTerm     | `ctrl+\`` / `ctrl+~`               | Send tmux prefix                            | same                               | Terminal-multiplexer bridge.                                              |
+| WezTerm     | `ctrl+\`` /`ctrl+~`               | Send tmux prefix                            | same                               | Terminal-multiplexer bridge.                                              |
 | WezTerm     | `cmd+shift+r`                      | Reload config                               | same                               | App-specific.                                                             |
 | WezTerm     | `cmd+shift+y`                      | Switch theme                                | same                               | Local-only example: do not promote until another app shares `theme.pick`. |
 | Vicinae     | `super+K`                          | Toggle action panel                         | `vicinae/settings.json.tmpl`       | Launcher-specific.                                                        |
@@ -204,7 +205,7 @@ These are useful facts but should probably not be forced into the shared catalog
 
 | Area                     | Current inconsistency                                                                                           | Possible decision                                                                                                   |
 | ------------------------ | --------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| VCS prefix               | Draft uses `v*`, Helix/Zed mostly use `g*`.                                                                     | Pick one vocabulary: `v` for VCS semantics or `g` for git muscle memory.                                            |
+| VCS prefix               | Resolved: catalog uses `v` — `vcs.ui = v l`, `vcs.history = v h`. Zed (lazygit / `git::FileHistory`), Helix (gitu / per-file git log), Emacs (`SPC v l` magit-status, `SPC v h` git-timemachine), xonsh (`vl` → jjui) all follow the full path. Legacy `g`-family (hunks, smerge, revert) stays app-owned.                                              | Closed: `v` is the VCS prefix.                                                                                       |
 | File finder              | Helix uses `space f f`; Zed uses `space space` for file finder and `space f f` for command palette.             | Normalize action names before changing keys.                                                                        |
 | Project picker           | Draft uses `p p`; Zed `space p p` opens recent projects; Cmux `cmd+p` goes to workspace; Xonsh can expose `pp`. | Decide whether project/workspace are separate concepts; shell alias can be a compact surface for the same mnemonic. |
 | Direction keys           | Global macOS uses `ralt+rshift`; Niri uses `alt+shift`; apps use their own leaders.                             | Keep prefixes out of catalog; only share `nav.*`.                                                                   |
