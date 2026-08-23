@@ -23,7 +23,7 @@ Accepted entries live in `dotfiles/kaizen/keybindings.toml`.
 | `projects.pick` | `p p`                                     | accepted |
 | `pane.split.*`  | `w v`, `w s`                              | accepted |
 | `pane.focus.*`  | `CTRL ALT arrows`                         | accepted |
-| `vcs.ui`        | `v l` — Zed lazygit, Helix gitu, Emacs magit-status, xonsh `vl` → jjui | accepted |
+| `vcs.ui`        | `v l` — Zed native git panel, Helix gitu, Emacs magit-status, xonsh `vl` → jjui; lazygit moved to `space g G` (Zed/Helix) | accepted |
 | `vcs.history`   | `v h` — Zed `git::FileHistory`, Helix per-file git log, Emacs git-timemachine | accepted |
 
 Everything else in this file is research / candidate backlog.
@@ -205,7 +205,7 @@ These are useful facts but should probably not be forced into the shared catalog
 
 | Area                     | Current inconsistency                                                                                           | Possible decision                                                                                                   |
 | ------------------------ | --------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| VCS prefix               | Resolved: catalog uses `v` — `vcs.ui = v l`, `vcs.history = v h`. Zed (lazygit / `git::FileHistory`), Helix (gitu / per-file git log), Emacs (`SPC v l` magit-status, `SPC v h` git-timemachine), xonsh (`vl` → jjui) all follow the full path. Legacy `g`-family (hunks, smerge, revert) stays app-owned.                                              | Closed: `v` is the VCS prefix.                                                                                       |
+| VCS prefix               | Resolved: catalog uses `v` — `vcs.ui = v l`, `vcs.history = v h`. Zed (native git panel / `git::FileHistory`), Helix (gitu / per-file git log), Emacs (`SPC v l` magit-status, `SPC v h` git-timemachine), xonsh (`vl` → jjui) all follow the full path. Legacy `g`-family (hunks, smerge, revert) stays app-owned.                                              | Closed: `v` is the VCS prefix.                                                                                       |
 | File finder              | Helix uses `space f f`; Zed uses `space space` for file finder and `space f f` for command palette.             | Normalize action names before changing keys.                                                                        |
 | Project picker           | Draft uses `p p`; Zed `space p p` opens recent projects; Cmux `cmd+p` goes to workspace; Xonsh can expose `pp`. | Decide whether project/workspace are separate concepts; shell alias can be a compact surface for the same mnemonic. |
 | Direction keys           | Global macOS uses `ralt+rshift`; Niri uses `alt+shift`; apps use their own leaders.                             | Keep prefixes out of catalog; only share `nav.*`.                                                                   |
