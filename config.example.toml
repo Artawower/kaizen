@@ -22,6 +22,7 @@ go = false
 helix = false
 keyboard = true
 media = false
+neovim = false
 productivity = false
 python = false
 rust = false

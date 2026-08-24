@@ -1,0 +1,9 @@
+description = "Neovim editor"
+category = "editor"
+
+[macos]
+brew = ["neovim"]
+
+[linux]
+dnf = ["neovim"]
+apt = ["neovim"]

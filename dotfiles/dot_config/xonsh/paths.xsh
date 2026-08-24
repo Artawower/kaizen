@@ -15,6 +15,8 @@ for _p in [
     home / '.cargo/bin',
     home / 'go/bin',
     home / '.go/bin',
+    home / '.steel/bin',
+    home / '.local/share/steel/bin',
 ]:
     $PATH.insert(0, str(_p))
 
