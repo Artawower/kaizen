@@ -25,6 +25,7 @@ dnf = [
   "eza",
   "fastfetch",
   "direnv",
+  "python3-pip",
   "xonsh",
 ]
 apt = [
@@ -35,6 +36,7 @@ apt = [
   "eza",
   "fastfetch",
   "direnv",
+  "python3-pip",
   "xonsh",
 ]
 flatpak = ["com.mitchellh.ghostty"]

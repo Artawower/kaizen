@@ -19,6 +19,13 @@ from pathlib import Path
 from pprint import pprint
 
 config_dir = Path.home() / '.config/xonsh'
+try:
+    import xontrib.sh
+    $XONTRIB_SH_SHELLS = ['bash', 'sh']
+    xontrib load sh
+except Exception as _sh_error:
+    print(f"warning: failed to load xontrib-sh: {_sh_error}")
+
 # xontrib-runner: project-aware task picker (justfile/package.json/Makefile/Cargo.toml)
 try:
     import sys as _sys_runner

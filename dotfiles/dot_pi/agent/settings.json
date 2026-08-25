@@ -1,5 +1,5 @@
 {
-  "lastChangelogVersion": "0.83.0",
+  "lastChangelogVersion": "0.84.2",
   "hideThinkingBlock": true,
   "quietStartup": true,
   "enableSkillCommands": true,
@@ -122,7 +122,8 @@
     "npm:context-mode",
     "npm:pi-jj-auto",
     "npm:pi-alibaba-models",
-    "npm:pi-opencode-bridge"
+    "npm:pi-opencode-bridge",
+    "npm:pi-job-search"
   ],
   "defaultProvider": "openai-codex",
   "defaultModel": "gpt-5.6-sol",
