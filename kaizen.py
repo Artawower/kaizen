@@ -410,6 +410,8 @@ class Kaizen:
             print("[mise]")
             _ = subprocess.run(["mise", "install", "--jobs=1"], check=True)
             print()
+        for feature in features:
+            self._run_post_install(feature)
         print("[dotfiles]")
         _ = subprocess.run(
             ["chezmoi", "apply", "--source", str(DOTFILES_DIR)], check=True
@@ -459,15 +461,18 @@ class Kaizen:
         self._adapter.install(load_toml(feature.packages_file))
         if feature.variant_packages_file:
             self._adapter.install(load_toml(feature.variant_packages_file))
-        if feature.post_install.exists():
-            _ = subprocess.run(
-                [sys.executable, str(feature.post_install), self._os], check=False
-            )
-        if feature.variant_post_install and feature.variant_post_install.exists():
-            _ = subprocess.run(
-                [sys.executable, str(feature.variant_post_install), self._os],
-                check=False,
-            )
+        print()
+
+    def _run_post_install(self, feature: Feature) -> None:
+        scripts = [feature.post_install]
+        if feature.variant_post_install:
+            scripts.append(feature.variant_post_install)
+        existing = [script for script in scripts if script.exists()]
+        if not existing:
+            return
+        print(f"[{feature.label} post-install]")
+        for script in existing:
+            _ = subprocess.run([sys.executable, str(script), self._os], check=False)
         print()
 
     def _generate_mise_config(self, features: list[Feature]) -> None:

@@ -1,11 +1,8 @@
 return {
-
     {
         "MunifTanjim/nui.nvim"
     },
-
     {"folke/which-key.nvim", lazy = true},
-
     {
         "francoiscabrol/ranger.vim",
         config = function()
@@ -16,29 +13,23 @@ return {
         "mikavilpas/yazi.nvim",
         event = "VeryLazy",
         keys = {
-
             {
                 "<leader>-",
                 "<cmd>Yazi<cr>",
                 desc = "Open yazi at the current file"
             },
             {
-
                 "<leader>cw",
                 "<cmd>Yazi cwd<cr>",
                 desc = "Open the file manager in nvim's working directory"
             },
             {
-
-                
                 "<c-up>",
                 "<cmd>Yazi toggle<cr>",
                 desc = "Resume the last yazi session"
             }
         },
-
         opts = {
-
             open_for_directories = false,
             keymaps = {
                 show_help = "<f1>"
@@ -51,20 +42,16 @@ return {
             require("nvimtree_config")
         end
     },
-
     "folke/neodev.nvim",
-
-    
     {
         "catppuccin/nvim",
         name = "catppuccin",
         config = function()
             require("catppuccin").setup(
                 {
-                    flavour = "frappe", 
+                    flavour = "frappe",
                     transparent_background = true,
                     background = {
-
                         light = "latte",
                         dark = "mocha"
                     },
@@ -79,7 +66,6 @@ return {
                         },
                         notify = false,
                         mini = false
-
                     }
                 }
             )
@@ -121,20 +107,19 @@ return {
     {
         "romgrk/barbar.nvim",
         dependencies = {
-            "lewis6991/gitsigns.nvim", 
-            "nvim-tree/nvim-web-devicons" 
+            "lewis6991/gitsigns.nvim",
+            "nvim-tree/nvim-web-devicons"
         },
         init = function()
             vim.g.barbar_auto_setup = false
             require("tabbar_config")
         end,
         opts = {},
-        version = "^1.0.0" 
+        version = "^1.0.0"
     },
     "norcalli/nvim-colorizer.lua",
     "sakshamgupta05/vim-todo-highlight",
     "VonHeikemen/searchbox.nvim",
-
     {
         "s1n7ax/nvim-window-picker",
         name = "window-picker",
@@ -144,21 +129,13 @@ return {
             require("choosewin_config")
         end
     },
-
-    
-
-    
-
-    
     {
-        "phaazon/hop.nvim",
-        branch = "v2", 
+        "borber/hop.nvim",
         keys = {
             {"f", ":HopChar1<CR>", desc = "Jump to char", mode = "n"},
             {"<leader>j", ":HopChar1<CR>", desc = "Jump to char", mode = "n"}
         },
         config = function()
-
             require "hop".setup {keys = "etovxqpdygfblzhckisuran"}
         end
     },
@@ -168,14 +145,12 @@ return {
             require("bookmarks_config")
         end
     },
-
     {
         "L3MON4D3/LuaSnip"
     },
-
     {
         "kylechui/nvim-surround",
-        version = "*", 
+        version = "*",
         event = "VeryLazy",
         config = function()
             require("nvim-surround").setup({})
@@ -207,7 +182,6 @@ return {
         "windwp/nvim-ts-autotag",
         opts = {}
     },
-
     "williamboman/mason.nvim",
     "williamboman/mason-lspconfig.nvim",
     {
@@ -218,7 +192,6 @@ return {
     },
     "joeveiga/ng.nvim",
     "nvimdev/lspsaga.nvim",
-
     {
         "zbirenbaum/copilot.lua",
         config = function()
@@ -243,36 +216,28 @@ return {
         dependencies = {{"nvim-lua/plenary.nvim"}}
     },
     "onsails/lspkind-nvim",
-
     "mfussenegger/nvim-dap",
     "rcarriga/nvim-dap-ui",
-
-    
     {
         "voldikss/vim-translator",
         config = function()
             require("translate_config")
         end
     },
-
     "wakatime/vim-wakatime",
-
     "airblade/vim-rooter",
-
     {
         "akinsho/toggleterm.nvim",
         config = function()
             require("toggleterm_config")
         end
     },
-
     {
         "lewis6991/gitsigns.nvim",
         config = function()
             require("gitsigns_config")
         end
     },
-
     {
         "fredehoey/tardis.nvim",
         dependencies = {"nvim-lua/plenary.nvim"},
@@ -290,7 +255,6 @@ return {
             require("neogit-config")
         end
     },
-
     "dunstontc/projectile.nvim",
     "nvim-telescope/telescope-project.nvim",
     {
@@ -299,9 +263,7 @@ return {
             require("project_nvim").setup(require("project_config"))
         end
     },
-
     "tom-anders/telescope-vim-bookmarks.nvim",
-
     {
         "nvim-treesitter/nvim-treesitter",
         branch = "main",
@@ -328,78 +290,63 @@ return {
             }
         end
     },
-
     "kamykn/popup-menu.nvim",
     "kamykn/spelunker.vim",
-
     "mattn/emmet-vim",
-
     {
         "mikesmithgh/kitty-scrollback.nvim",
         enabled = true,
         lazy = true,
         cmd = {"KittyScrollbackGenerateKittens", "KittyScrollbackCheckHealth"},
         event = {"User KittyScrollbackLaunch"},
-
-        
         config = function()
             require("kitty-scrollback").setup()
         end
     },
-
     {
         "greggh/claude-code.nvim",
         dependencies = {"nvim-lua/plenary.nvim"},
         config = function()
             require("claude-code").setup(
                 {
-
                     window = {
-                        split_ratio = 0.5, 
-                        position = "vertical", 
-                        enter_insert = true, 
-                        hide_numbers = true, 
-                        hide_signcolumn = true 
+                        split_ratio = 0.5,
+                        position = "vertical",
+                        enter_insert = true,
+                        hide_numbers = true,
+                        hide_signcolumn = true
                     },
-
                     refresh = {
-                        enable = true, 
-                        updatetime = 100, 
-                        timer_interval = 1000, 
-                        show_notifications = true 
+                        enable = true,
+                        updatetime = 100,
+                        timer_interval = 1000,
+                        show_notifications = true
                     },
-
                     git = {
-                        use_git_root = true 
+                        use_git_root = true
                     },
-
                     shell = {
-                        separator = "&&", 
-                        pushd_cmd = "pushd", 
-                        popd_cmd = "popd" 
+                        separator = "&&",
+                        pushd_cmd = "pushd",
+                        popd_cmd = "popd"
                     },
-
-                    command = "claude", 
-
+                    command = "claude",
                     command_variants = {
-
-                        continue = "--continue", 
-                        resume = "--resume", 
-
-                        verbose = "--verbose" 
+                        continue = "--continue",
+                        resume = "--resume",
+                        verbose = "--verbose"
                     },
-
                     keymaps = {
                         toggle = {
-                            normal = "<C-,>", 
-                            terminal = "<C-,>", 
+                            normal = "<C-,>",
+                            terminal = "<C-,>",
                             variants = {
-                                continue = "<leader>cC", 
-                                verbose = "<leader>cV" 
+                                continue = "<leader>cC",
+                                verbose = "<leader>cV"
                             }
                         },
-                        window_navigation = true, 
-                        scrolling = true 
+                        window_navigation = true,
+                        scrolling = true
                     }
                 }
             )
@@ -410,30 +357,6 @@ return {
             {"<leader>co", desc = "Continue Claude Code conversation"}
         }
     },
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
     {
         "tpope/vim-dadbod",
         dependencies = {
@@ -456,11 +379,10 @@ return {
             {"<leader>dbl", "<cmd>DBUILastQueryInfo<cr>", desc = "Last Query Info"}
         }
     },
-
     {
         "alex-popov-tech/store.nvim",
         dependencies = {
-            "OXY2DEV/markview.nvim" 
+            "OXY2DEV/markview.nvim"
         },
         cmd = "Store",
         keys = {
@@ -500,122 +422,12 @@ return {
             require("floaterm_config").setup()
         end
     },
-
     {
-  "editor-code-assistant/eca-nvim",
-  dependencies = {
-    "MunifTanjim/nui.nvim",   
-    "nvim-lua/plenary.nvim",  
-  },
-  opts = {}
-}
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
+        "editor-code-assistant/eca-nvim",
+        dependencies = {
+            "MunifTanjim/nui.nvim",
+            "nvim-lua/plenary.nvim"
+        },
+        opts = {}
+    }
 }

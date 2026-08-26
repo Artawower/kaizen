@@ -1,0 +1,27 @@
+(provide kaizen-layout
+  kaizen-nav-left
+  kaizen-nav-down
+  kaizen-nav-up
+  kaizen-nav-right
+  kaizen-nav-insert
+  kaizen-line-start
+  kaizen-line-end
+  kaizen-split-right
+  kaizen-split-down
+  kaizen-window-rotate
+  kaizen-vcs-ui
+  kaizen-vcs-history)
+
+(define kaizen-layout "{{ .layout }}")
+(define kaizen-nav-left "{{ last (index .kaizen.shortcuts "nav.left") }}")
+(define kaizen-nav-down "{{ last (index .kaizen.shortcuts "nav.down") }}")
+(define kaizen-nav-up "{{ last (index .kaizen.shortcuts "nav.up") }}")
+(define kaizen-nav-right "{{ last (index .kaizen.shortcuts "nav.right") }}")
+(define kaizen-nav-insert "{{ last (index .kaizen.shortcuts "nav.insert") }}")
+(define kaizen-line-start "{{ last (index .kaizen.shortcuts "editor.line.start") }}")
+(define kaizen-line-end "{{ last (index .kaizen.shortcuts "editor.line.end") }}")
+(define kaizen-split-right "{{ last (index .kaizen.shortcuts "pane.split.right") }}")
+(define kaizen-split-down "{{ last (index .kaizen.shortcuts "pane.split.down") }}")
+(define kaizen-window-rotate "{{ last (index .kaizen.shortcuts "window.rotate") }}")
+(define kaizen-vcs-ui "{{ last (index .kaizen.shortcuts "vcs.ui") }}")
+(define kaizen-vcs-history "{{ last (index .kaizen.shortcuts "vcs.history") }}")
