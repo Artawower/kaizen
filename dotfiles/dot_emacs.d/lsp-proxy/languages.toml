@@ -1,0 +1,142 @@
+[language-server.ty]
+command = "ty"
+args = ["server"]
+
+[language-server.ruff]
+command = "ruff"
+args = ["server"]
+
+[language-server.codebook]
+command = "codebook-lsp"
+args = ["serve"]
+
+[language-server.typescript-language-server]
+command = "typescript-language-server"
+args = ["--stdio"]
+config.hostInfo = "Emacs"
+config.tsserver.fallbackPath = "tsserver"
+
+[language-server.angular]
+command = "ngserver"
+args = [
+  "--stdio",
+  "--tsProbeLocations",
+  ".",
+  "--ngProbeLocations",
+  "."
+]
+
+[language-server.vue-language-server]
+command = "vue-language-server"
+args = ["--stdio"]
+
+[language-server.vue-language-server.config.typescript]
+tsdk = "node_modules/typescript/lib"
+
+[language-server.vue-language-server.config.vue]
+hybridMode = false
+
+[language-server.vscode-html-language-server]
+command = "vscode-html-language-server"
+args = ["--stdio"]
+
+[language-server.gopls]
+command = "gopls"
+
+[language-server.rust-analyzer]
+command = "rust-analyzer"
+
+[[language]]
+name = "python"
+language-id = "python"
+file-types = ["py", "pyi"]
+roots = [
+  "pyproject.toml",
+  "uv.lock",
+  "requirements.txt",
+  "setup.py",
+  "setup.cfg"
+]
+language-servers = [
+  "ty",
+  { name = "ruff", only-features = ["diagnostics", "pull-diagnostics", "code-action", "format"] },
+  { name = "codebook", only-features = ["diagnostics", "code-action"] }
+]
+
+[[language]]
+name = "javascript"
+language-id = "javascript"
+file-types = ["js", "mjs", "cjs"]
+roots = ["package.json", "jsconfig.json", "tsconfig.json"]
+language-servers = [
+  { name = "typescript-language-server", support-workspace = ["package.json"] },
+  { name = "codebook", only-features = ["diagnostics", "code-action"] }
+]
+
+[[language]]
+name = "jsx"
+language-id = "javascriptreact"
+file-types = ["jsx"]
+roots = ["package.json", "jsconfig.json", "tsconfig.json"]
+language-servers = [
+  { name = "typescript-language-server", support-workspace = ["package.json"] },
+  { name = "codebook", only-features = ["diagnostics", "code-action"] }
+]
+
+[[language]]
+name = "typescript"
+language-id = "typescript"
+file-types = ["ts", "mts", "cts"]
+roots = ["angular.json", "package.json", "tsconfig.json"]
+language-servers = [
+  { name = "typescript-language-server", support-workspace = ["angular.json"] },
+  { name = "angular", support-workspace = ["angular.json"], config-files = ["angular.json"] },
+  { name = "codebook", only-features = ["diagnostics", "code-action"] }
+]
+
+[[language]]
+name = "tsx"
+language-id = "typescriptreact"
+file-types = ["tsx"]
+roots = ["package.json", "tsconfig.json"]
+language-servers = [
+  { name = "typescript-language-server", support-workspace = ["package.json"] },
+  { name = "codebook", only-features = ["diagnostics", "code-action"] }
+]
+
+[[language]]
+name = "vue"
+language-id = "vue"
+file-types = ["vue"]
+roots = ["package.json", "tsconfig.json"]
+language-servers = [
+  { name = "vue-language-server", support-workspace = ["package.json"] },
+  { name = "codebook", only-features = ["diagnostics", "code-action"] }
+]
+
+[[language]]
+name = "html"
+language-id = "html"
+file-types = ["html", "htm"]
+roots = ["angular.json", "package.json"]
+language-servers = [
+  { name = "vscode-html-language-server", support-workspace = ["angular.json", "package.json"] },
+  { name = "angular", support-workspace = ["angular.json"], config-files = ["angular.json"] },
+  { name = "codebook", only-features = ["diagnostics", "code-action"] }
+]
+
+[[language]]
+name = "go"
+language-id = "go"
+file-types = ["go"]
+roots = ["go.work", "go.mod"]
+language-servers = ["gopls"]
+
+[[language]]
+name = "rust"
+language-id = "rust"
+file-types = ["rs"]
+roots = ["Cargo.toml", "Cargo.lock"]
+language-servers = [
+  { name = "rust-analyzer", library-directories = ["~/.cargo/registry/src", "~/.rustup/toolchains"] }
+]

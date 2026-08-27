@@ -19,7 +19,7 @@ require("toggleterm").setup {
     persist_size = true,
     direction = "float",
     close_on_exit = true, 
-    shell = vim.o.shell, 
+    shell = vim.env.SHELL or vim.o.shell, 
 
     float_opts = {
 

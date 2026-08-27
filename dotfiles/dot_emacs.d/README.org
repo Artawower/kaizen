@@ -2921,14 +2921,7 @@ Function for search in buffer depends or visual or normal line
 #+END_SRC
 
 * Programming
-** Lsp manager
-#+BEGIN_SRC emacs-lisp :results silent
-(use-package mason
-  :defer t
-  :config
-  (mason-ensure))
-#+END_SRC
-** Lsp (Eglot)
+** COMMENT Lsp (Eglot)
 *** Rassumfrassum - LSP multiplexer
 [[https://github.com/joaotavora/rassumfrassum][rassumfrassum]] connects multiple LSP servers to one client.
 
@@ -3166,6 +3159,59 @@ def servers():
     (user-error "Eglot is not loaded")))
 #+END_SRC
 
+** Lsp-proxy (rust implementation)
+#+BEGIN_SRC emacs-lisp :results silent
+(use-package lsp-proxy
+  :ensure (:type git
+           :host github
+           :repo "jadestrong/lsp-proxy"
+           :files ("*.el"))
+
+  :bind
+  (("C-c g i" . lsp-proxy-find-implementations)
+   ("C-c l r" . lsp-proxy-rename)
+   ("C-c r l" . lsp-proxy-mode)
+   ("C-c l d" . lsp-proxy-find-type-definition)
+   ("C-c l f" . lsp-proxy-find-references)
+   ("C-c l a" . lsp-proxy-execute-code-action)
+   ("C-c l h" . lsp-proxy-describe-thing-at-point)
+   ("C-c l R" . lsp-proxy-workspace-restart))
+
+  :hook
+  ((typescript-mode
+    typescript-ts-mode
+    tsx-ts-mode
+    js-mode
+    js-ts-mode
+    ng2-ts-mode
+    html-ts-mode
+    rust-mode
+    rust-ts-mode
+    python-ts-mode
+    go-ts-mode
+    vue-ts-mode
+    org-mode)
+   . lsp-proxy-mode)
+
+  :custom
+  (lsp-proxy-diagnostics-provider :flymake)
+
+  (lsp-proxy-inlay-hints-mode-config nil)
+
+  (lsp-proxy-log-max 0)
+  (lsp-proxy-log-level 0)
+
+  ;; Org Babel.
+  (lsp-proxy-enable-org-babel t)
+  (lsp-proxy-org-edit-special-enable-lsp t)
+  (lsp-proxy-org-babel-enabled-languages
+   '("python" "typescript" "javascript" "tsx"
+     "bash" "rust" "go"))
+
+  :config
+  (add-to-list 'project-vc-extra-root-markers ".venv")
+  (add-to-list 'project-vc-extra-root-markers ".node_modules"))
+#+END_SRC
 ** Flymake
 *** Functions
 **** Flymake, copy errors

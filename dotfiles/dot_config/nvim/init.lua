@@ -1,3 +1,9 @@
+local command_shell = vim.fn.exepath("dash")
+if command_shell == "" then
+    command_shell = vim.fn.exepath("sh")
+end
+vim.opt.shell = command_shell
+
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 
 if not vim.uv.fs_stat(lazypath) then
