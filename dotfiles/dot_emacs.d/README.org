@@ -1877,6 +1877,7 @@ Allow to transform PASCAL_CASE -> camelCase -> snake_case
   (dirvish-quick-access-entries ; It's a custom option, `setq' won't work
    `(("h" "~/"                          "Home")
      ("d" "~/Downloads/"                "Downloads")
+     ("D" "~/Documents/"                "Documents")
      ("p" "~/projects/pet"              "Pet")
      ("o" "~/projects/pet/orgnote"      "Orgnote")
      ("s" "~/Pictures/screenshots"      "Screenshots")
@@ -2007,8 +2008,24 @@ Allow to transform PASCAL_CASE -> camelCase -> snake_case
   (define-key ghostel-mode-map (kbd "C-c C-l") 'my/ghostel-clear))
 #+END_SRC
 
+Open ghostel in the current file directory
 
-Comile mode
+#+BEGIN_SRC emacs-lisp :results silent
+(defun my/ghostel-here ()
+  "Open or reuse a Ghostel terminal for the current buffer directory."
+  (interactive)
+  (require 'ghostel)
+  (let* ((dir (file-name-as-directory
+               (expand-file-name default-directory)))
+         (default-directory dir)
+         (ghostel-buffer-name
+          (format "*ghostel:%s*"
+                  (abbreviate-file-name
+                   (directory-file-name dir)))))
+    (ghostel)))
+#+END_SRC
+
+Compile mode
 #+BEGIN_SRC emacs-lisp :results silent
 (use-package ghostel-compile
   :ensure nil
