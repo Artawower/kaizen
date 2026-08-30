@@ -1,0 +1,30 @@
+description = "Emacs editor"
+category = "editor"
+
+[macos]
+taps = ["d12frosted/emacs-plus"]
+brew = ["emacs-plus@31", "imagemagick", "tree-sitter"]
+
+[macos.brew_args]
+"emacs-plus@31" = ["--with-xwidgets", "--with-dbus", "--build-from-source"]
+
+[linux]
+dnf = [
+  "emacs",
+  "enchant2-devel",
+  "pkg-config",
+  "isync",
+  "msmtp",
+  "ca-certificates",
+  "imagemagick",
+  "libtree-sitter-devel",
+]
+apt = [
+  "emacs",
+  "libenchant-2-dev",
+  "pkg-config",
+  "isync",
+  "msmtp",
+  "ca-certificates",
+  "imagemagick",
+]

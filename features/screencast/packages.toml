@@ -1,0 +1,5 @@
+description = "Screencasting and demo tools"
+category = "media"
+
+[macos]
+cask = ["licecap", "keycastr"]

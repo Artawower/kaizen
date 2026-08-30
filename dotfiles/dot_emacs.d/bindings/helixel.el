@@ -322,6 +322,17 @@
   (helixel-define-key state (kbd "] g") #'git-gutter:next-hunk)
   (helixel-define-key state (kbd "[ g") #'git-gutter:previous-hunk))
 
+(with-eval-after-load 'magit
+  (dolist (state '(normal motion))
+    (helixel-define-key state
+                        (kbd (concat "SPC " (or (bound-and-true-p kaizen/vcs-ui) "g g")))
+                        #'magit-status)))
+
+(with-eval-after-load 'git-timemachine
+  (helixel-define-key 'normal
+                      (kbd (concat "SPC " (or (bound-and-true-p kaizen/vcs-history) "v h")))
+                      #'git-timemachine))
+
 (with-eval-after-load 'blamer
   (add-hook 'helixel-state-change-hook
             (lambda ()

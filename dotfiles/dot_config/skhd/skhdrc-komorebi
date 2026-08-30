@@ -1,4 +1,4 @@
-:: default : PATH=/opt/homebrew/bin:/Users/darkawower/.nix-profile/bin:$PATH
+:: default : PATH=/opt/homebrew/bin:$PATH
 
 # ── FOCUS ─────────────────────────────────────────────────────────────────────
 ralt + rshift - h : ~/.config/komorebi/scripts/focus.sh left

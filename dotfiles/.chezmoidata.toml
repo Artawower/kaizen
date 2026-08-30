@@ -11,489 +11,159 @@ binding-scheme = "helixel"
 
 [features]
 ai = true
+android = false
+api = false
+battery = false
+browser = false
+containers = false
 core = true
+database = false
+desktop = true
 emacs = true
-frontend = true
-go = true
-helix = true
+fonts = true
+frontend = false
+go = false
+helix = false
 keyboard = true
-python = true
-rust = true
+media = false
+neovim = false
+productivity = false
+python = false
+rust = false
+screencast = false
+security = false
+social = false
 terminal = true
 tiling = true
 vcs = true
 
 [kaizen.base_shortcuts]
-"app.buffers.pick" = [
-    "Opt",
-    "b",
-]
-"app.pane.focus.down" = [
-    "Ctrl",
-    "Opt",
-    "j",
-]
-"app.pane.focus.left" = [
-    "Ctrl",
-    "Opt",
-    "h",
-]
-"app.pane.focus.right" = [
-    "Ctrl",
-    "Opt",
-    "l",
-]
-"app.pane.focus.up" = [
-    "Ctrl",
-    "Opt",
-    "k",
-]
-"app.pane.move.down" = [
-    "Ctrl",
-    "Opt",
-    "Shift",
-    "j",
-]
-"app.pane.move.left" = [
-    "Ctrl",
-    "Opt",
-    "Shift",
-    "h",
-]
-"app.pane.move.right" = [
-    "Ctrl",
-    "Opt",
-    "Shift",
-    "l",
-]
-"app.pane.move.up" = [
-    "Ctrl",
-    "Opt",
-    "Shift",
-    "k",
-]
-"app.projects.pick" = [
-    "Opt",
-    "p",
-]
-"app.tab.next" = [
-    "Cmd",
-    "Shift",
-    "l",
-]
-"app.tab.previous" = [
-    "Cmd",
-    "Shift",
-    "h",
-]
-"app.tab.switch" = [
-    "Cmd",
-    "1..9",
-]
-"app.tabs.pick" = [
-    "Opt",
-    "t",
-]
-"app.workspace.next" = [
-    "Cmd",
-    "Shift",
-    "j",
-]
-"app.workspace.previous" = [
-    "Cmd",
-    "Shift",
-    "k",
-]
-"app.workspace.switch" = [
-    "Cmd",
-    "Shift",
-    "1..9",
-]
-"app.workspaces.pick" = [
-    "Opt",
-    "w",
-]
-"bookmark.list" = [
-    "b",
-    "l",
-]
-"bookmark.next" = [
-    "]",
-    "m",
-]
-"bookmark.previous" = [
-    "[",
-    "m",
-]
-"bookmark.toggle" = [
-    "b",
-    "m",
-]
+"app.buffers.pick" = ["Opt", "b"]
+"app.pane.focus.down" = ["Ctrl", "Opt", "j"]
+"app.pane.focus.left" = ["Ctrl", "Opt", "h"]
+"app.pane.focus.right" = ["Ctrl", "Opt", "l"]
+"app.pane.focus.up" = ["Ctrl", "Opt", "k"]
+"app.pane.move.down" = ["Ctrl", "Opt", "Shift", "j"]
+"app.pane.move.left" = ["Ctrl", "Opt", "Shift", "h"]
+"app.pane.move.right" = ["Ctrl", "Opt", "Shift", "l"]
+"app.pane.move.up" = ["Ctrl", "Opt", "Shift", "k"]
+"app.projects.pick" = ["Opt", "p"]
+"app.tab.next" = ["Cmd", "Shift", "l"]
+"app.tab.previous" = ["Cmd", "Shift", "h"]
+"app.tab.switch" = ["Cmd", "1..9"]
+"app.tabs.pick" = ["Opt", "t"]
+"app.workspace.next" = ["Cmd", "Shift", "j"]
+"app.workspace.previous" = ["Cmd", "Shift", "k"]
+"app.workspace.switch" = ["Cmd", "Shift", "1..9"]
+"app.workspaces.pick" = ["Opt", "w"]
+"bookmark.list" = ["b", "l"]
+"bookmark.next" = ["]", "m"]
+"bookmark.previous" = ["[", "m"]
+"bookmark.toggle" = ["b", "m"]
 "editor.line.end" = ["$"]
 "editor.line.start" = ["0"]
-"file.find" = [
-    "f",
-    "f",
-]
-"fold.close-all" = [
-    "z",
-    "M",
-]
-"fold.next" = [
-    "z",
-    "j",
-]
-"fold.open" = [
-    "z",
-    "r",
-]
-"fold.open-all" = [
-    "z",
-    "R",
-]
-"fold.previous" = [
-    "z",
-    "k",
-]
-"fold.toggle" = [
-    "z",
-    "a",
-]
-"fold.toggle-all" = [
-    "z",
-    "A",
-]
+"file.find" = ["f", "f"]
+"fold.close-all" = ["z", "M"]
+"fold.next" = ["z", "j"]
+"fold.open" = ["z", "r"]
+"fold.open-all" = ["z", "R"]
+"fold.previous" = ["z", "k"]
+"fold.toggle" = ["z", "a"]
+"fold.toggle-all" = ["z", "A"]
 "jjui.edit" = ["e"]
 "jjui.interactive" = ["i"]
 "jjui.new" = ["n"]
-"lsp.action" = [
-    "l",
-    "a",
-]
-"lsp.diagnostics" = [
-    "l",
-    "d",
-]
-"lsp.format" = [
-    "l",
-    "f",
-]
-"lsp.hover" = [
-    "l",
-    "h",
-]
-"lsp.rename" = [
-    "l",
-    "r",
-]
-"lsp.symbols" = [
-    "l",
-    "s",
-]
+"lsp.action" = ["l", "a"]
+"lsp.diagnostics" = ["l", "d"]
+"lsp.format" = ["l", "f"]
+"lsp.hover" = ["l", "h"]
+"lsp.rename" = ["l", "r"]
+"lsp.symbols" = ["l", "s"]
 "nav.down" = ["j"]
 "nav.insert" = ["i"]
 "nav.left" = ["h"]
 "nav.right" = ["l"]
 "nav.up" = ["k"]
-"pane.focus.down" = [
-    "Ctrl",
-    "Opt",
-    "Down",
-]
-"pane.focus.left" = [
-    "Ctrl",
-    "Opt",
-    "Left",
-]
-"pane.focus.right" = [
-    "Ctrl",
-    "Opt",
-    "Right",
-]
-"pane.focus.up" = [
-    "Ctrl",
-    "Opt",
-    "Up",
-]
-"pane.split.down" = [
-    "w",
-    "h",
-]
-"pane.split.right" = [
-    "w",
-    "v",
-]
+"pane.focus.down" = ["Ctrl", "Opt", "Down"]
+"pane.focus.left" = ["Ctrl", "Opt", "Left"]
+"pane.focus.right" = ["Ctrl", "Opt", "Right"]
+"pane.focus.up" = ["Ctrl", "Opt", "Up"]
+"pane.split.down" = ["w", "h"]
+"pane.split.right" = ["w", "v"]
 "prefix.editor" = ["space"]
-"prefix.multiplexer" = [
-    "Ctrl",
-    "b",
-]
+"prefix.multiplexer" = ["Ctrl", "b"]
 "prefix.wm" = ["Caps"]
-"projects.pick" = [
-    "p",
-    "p",
-]
-"run.task" = [
-    "space",
-    "r",
-    "t",
-]
-"vcs.history" = [
-    "v",
-    "h",
-]
-"vcs.ui" = [
-    "v",
-    "l",
-]
-"window.close" = [
-    "w",
-    "q",
-]
-"window.rotate" = [
-    "w",
-    "r",
-]
-"window.zoom" = [
-    "w",
-    "f",
-]
+"projects.pick" = ["p", "p"]
+"run.task" = ["space", "r", "t"]
+"vcs.history" = ["v", "h"]
+"vcs.ui" = ["v", "l"]
+"window.close" = ["w", "q"]
+"window.rotate" = ["w", "r"]
+"window.zoom" = ["w", "f"]
 
 [kaizen.shortcuts]
-"app.buffers.pick" = [
-    "Opt",
-    "b",
-]
-"app.pane.focus.down" = [
-    "Ctrl",
-    "Opt",
-    "n",
-]
-"app.pane.focus.left" = [
-    "Ctrl",
-    "Opt",
-    "h",
-]
-"app.pane.focus.right" = [
-    "Ctrl",
-    "Opt",
-    "i",
-]
-"app.pane.focus.up" = [
-    "Ctrl",
-    "Opt",
-    "e",
-]
-"app.pane.move.down" = [
-    "Ctrl",
-    "Opt",
-    "Shift",
-    "n",
-]
-"app.pane.move.left" = [
-    "Ctrl",
-    "Opt",
-    "Shift",
-    "h",
-]
-"app.pane.move.right" = [
-    "Ctrl",
-    "Opt",
-    "Shift",
-    "i",
-]
-"app.pane.move.up" = [
-    "Ctrl",
-    "Opt",
-    "Shift",
-    "e",
-]
-"app.projects.pick" = [
-    "Opt",
-    "p",
-]
-"app.tab.next" = [
-    "Cmd",
-    "Shift",
-    "i",
-]
-"app.tab.previous" = [
-    "Cmd",
-    "Shift",
-    "h",
-]
-"app.tab.switch" = [
-    "Cmd",
-    "1..9",
-]
-"app.tabs.pick" = [
-    "Opt",
-    "t",
-]
-"app.workspace.next" = [
-    "Cmd",
-    "Shift",
-    "n",
-]
-"app.workspace.previous" = [
-    "Cmd",
-    "Shift",
-    "e",
-]
-"app.workspace.switch" = [
-    "Cmd",
-    "Shift",
-    "1..9",
-]
-"app.workspaces.pick" = [
-    "Opt",
-    "w",
-]
-"bookmark.list" = [
-    "b",
-    "l",
-]
-"bookmark.next" = [
-    "]",
-    "m",
-]
-"bookmark.previous" = [
-    "[",
-    "m",
-]
-"bookmark.toggle" = [
-    "b",
-    "m",
-]
+"app.buffers.pick" = ["Opt", "b"]
+"app.pane.focus.down" = ["Ctrl", "Opt", "n"]
+"app.pane.focus.left" = ["Ctrl", "Opt", "h"]
+"app.pane.focus.right" = ["Ctrl", "Opt", "i"]
+"app.pane.focus.up" = ["Ctrl", "Opt", "e"]
+"app.pane.move.down" = ["Ctrl", "Opt", "Shift", "n"]
+"app.pane.move.left" = ["Ctrl", "Opt", "Shift", "h"]
+"app.pane.move.right" = ["Ctrl", "Opt", "Shift", "i"]
+"app.pane.move.up" = ["Ctrl", "Opt", "Shift", "e"]
+"app.projects.pick" = ["Opt", "p"]
+"app.tab.next" = ["Cmd", "Shift", "i"]
+"app.tab.previous" = ["Cmd", "Shift", "h"]
+"app.tab.switch" = ["Cmd", "1..9"]
+"app.tabs.pick" = ["Opt", "t"]
+"app.workspace.next" = ["Cmd", "Shift", "n"]
+"app.workspace.previous" = ["Cmd", "Shift", "e"]
+"app.workspace.switch" = ["Cmd", "Shift", "1..9"]
+"app.workspaces.pick" = ["Opt", "w"]
+"bookmark.list" = ["b", "l"]
+"bookmark.next" = ["]", "m"]
+"bookmark.previous" = ["[", "m"]
+"bookmark.toggle" = ["b", "m"]
 "editor.line.end" = ["$"]
 "editor.line.start" = ["0"]
-"file.find" = [
-    "f",
-    "f",
-]
-"fold.close-all" = [
-    "z",
-    "M",
-]
-"fold.next" = [
-    "z",
-    "n",
-]
-"fold.open" = [
-    "z",
-    "r",
-]
-"fold.open-all" = [
-    "z",
-    "R",
-]
-"fold.previous" = [
-    "z",
-    "e",
-]
-"fold.toggle" = [
-    "z",
-    "a",
-]
-"fold.toggle-all" = [
-    "z",
-    "A",
-]
+"file.find" = ["f", "f"]
+"fold.close-all" = ["z", "M"]
+"fold.next" = ["z", "n"]
+"fold.open" = ["z", "r"]
+"fold.open-all" = ["z", "R"]
+"fold.previous" = ["z", "e"]
+"fold.toggle" = ["z", "a"]
+"fold.toggle-all" = ["z", "A"]
 "jjui.edit" = ["k"]
 "jjui.interactive" = ["l"]
 "jjui.new" = ["j"]
-"lsp.action" = [
-    "l",
-    "a",
-]
-"lsp.diagnostics" = [
-    "l",
-    "d",
-]
-"lsp.format" = [
-    "l",
-    "f",
-]
-"lsp.hover" = [
-    "l",
-    "h",
-]
-"lsp.rename" = [
-    "l",
-    "r",
-]
-"lsp.symbols" = [
-    "l",
-    "s",
-]
+"lsp.action" = ["l", "a"]
+"lsp.diagnostics" = ["l", "d"]
+"lsp.format" = ["l", "f"]
+"lsp.hover" = ["l", "h"]
+"lsp.rename" = ["l", "r"]
+"lsp.symbols" = ["l", "s"]
 "nav.down" = ["n"]
 "nav.insert" = ["l"]
 "nav.left" = ["h"]
 "nav.right" = ["i"]
 "nav.up" = ["e"]
-"pane.focus.down" = [
-    "Ctrl",
-    "Opt",
-    "Down",
-]
-"pane.focus.left" = [
-    "Ctrl",
-    "Opt",
-    "Left",
-]
-"pane.focus.right" = [
-    "Ctrl",
-    "Opt",
-    "Right",
-]
-"pane.focus.up" = [
-    "Ctrl",
-    "Opt",
-    "Up",
-]
-"pane.split.down" = [
-    "w",
-    "h",
-]
-"pane.split.right" = [
-    "w",
-    "v",
-]
+"pane.focus.down" = ["Ctrl", "Opt", "Down"]
+"pane.focus.left" = ["Ctrl", "Opt", "Left"]
+"pane.focus.right" = ["Ctrl", "Opt", "Right"]
+"pane.focus.up" = ["Ctrl", "Opt", "Up"]
+"pane.split.down" = ["w", "h"]
+"pane.split.right" = ["w", "v"]
 "prefix.editor" = ["space"]
-"prefix.multiplexer" = [
-    "Ctrl",
-    "b",
-]
+"prefix.multiplexer" = ["Ctrl", "b"]
 "prefix.wm" = ["Caps"]
-"projects.pick" = [
-    "p",
-    "p",
-]
-"run.task" = [
-    "space",
-    "r",
-    "t",
-]
-"vcs.history" = [
-    "v",
-    "h",
-]
-"vcs.ui" = [
-    "v",
-    "l",
-]
-"window.close" = [
-    "w",
-    "q",
-]
-"window.rotate" = [
-    "w",
-    "r",
-]
-"window.zoom" = [
-    "w",
-    "f",
-]
+"projects.pick" = ["p", "p"]
+"run.task" = ["space", "r", "t"]
+"vcs.history" = ["v", "h"]
+"vcs.ui" = ["v", "l"]
+"window.close" = ["w", "q"]
+"window.rotate" = ["w", "r"]
+"window.zoom" = ["w", "f"]
 
 [models]
 coder = "anthropic/claude-sonnet-4-6"
@@ -504,7 +174,7 @@ research = "openai-codex/gpt-5.4"
 reviewer = "openai-codex/gpt-5.5"
 
 [tiling]
-wm = "yabai"
+variant = "yabai"
 
 [ui]
 font_size = 14

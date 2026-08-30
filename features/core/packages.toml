@@ -1,0 +1,50 @@
+description = "Core CLI utilities"
+category = "system"
+
+[macos]
+brew = [
+  "ripgrep",
+  "fd",
+  "fzf",
+  "jq",
+  "tree",
+  "htop",
+  "ncdu",
+  "sqlite",
+  "just",
+  "mise",
+  "mole",
+  "pandoc",
+  "wget",
+  "dtach",
+  "dash",
+]
+
+[linux]
+dnf = [
+  "ripgrep",
+  "fd-find",
+  "fzf",
+  "jq",
+  "tree",
+  "htop",
+  "ncdu",
+  "sqlite",
+  "just",
+  "pandoc",
+  "wget",
+  "dash",
+]
+apt = [
+  "ripgrep",
+  "fd-find",
+  "fzf",
+  "jq",
+  "tree",
+  "htop",
+  "ncdu",
+  "sqlite",
+  "pandoc",
+  "wget",
+  "dash",
+]

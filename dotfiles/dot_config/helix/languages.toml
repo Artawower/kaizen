@@ -129,9 +129,16 @@ auto-format = true
 language-servers = ["copilot"]
 indent = { tab-width = 2, unit = "  " }
 
+# [language-server.typescript-language-server]
+# command = "typescript-language-server"
+# args = ["--stdio"]
+
 [language-server.typescript-language-server]
 command = "typescript-language-server"
 args = ["--stdio"]
+
+[language-server.typescript-language-server.config.tsserver]
+path = "/Users/darkawower/.local/share/mise/installs/npm-typescript/6.0.3/lib/node_modules/typescript/lib"
 
 [language-server.vue-language-server]
 command = "vue-language-server"

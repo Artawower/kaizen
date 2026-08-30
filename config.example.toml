@@ -1,0 +1,37 @@
+email = "you@example.com"
+full_name = "Your Name"
+layout = "qwerty"
+
+[ui]
+font_size = 14
+
+[features]
+ai = true
+android = false
+api = false
+battery = false
+browser = false
+containers = false
+core = true
+database = false
+desktop = true
+emacs = true
+fonts = true
+frontend = false
+go = false
+helix = false
+keyboard = true
+media = false
+neovim = false
+productivity = false
+python = false
+rust = false
+screencast = false
+security = false
+social = false
+terminal = true
+tiling = true
+vcs = true
+
+[tiling]
+variant = "yabai"

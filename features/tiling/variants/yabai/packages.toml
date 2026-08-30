@@ -1,0 +1,9 @@
+description = "yabai tiling WM for macOS"
+
+[macos]
+taps = ["koekeishiya/formulae", "FelixKratz/formulae"]
+brew = [
+  "koekeishiya/formulae/yabai",
+  "koekeishiya/formulae/skhd",
+  "FelixKratz/formulae/borders",
+]

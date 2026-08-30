@@ -1,0 +1,5 @@
+description = "GlazeWM tiling WM"
+
+[macos]
+taps = ["glzr-io/tap"]
+cask = ["glzr-io/tap/glazewm", "glzr-io/tap/zebar"]

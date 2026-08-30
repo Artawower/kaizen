@@ -1,0 +1,9 @@
+description = "Helix editor"
+category = "editor"
+
+[macos]
+brew = ["git", "marksman"]
+
+[linux]
+dnf = ["git", "marksman"]
+apt = ["git", "marksman"]

@@ -252,7 +252,7 @@ alt-shift-ctrl-o = 'exec-and-forget /opt/homebrew/bin/wallboy open'
 esc = ['reload-config', 'mode main']
 e = ['flatten-workspace-tree', 'mode main'] # reset layout
 r = ['reload-config', 'mode main'] # reload config
-p = ['exec-and-forget ~/.nix-profile/bin/walsh set', 'mode main'] # set random wallpaper
+p = ['exec-and-forget walsh set', 'mode main'] # set random wallpaper
 backspace = ['close-all-windows-but-current', 'mode main']
 b = ['balance-sizes', 'mode main'] # balance window sizes
 # Clean all ghost windows https://github.com/nikitabobko/AeroSpace/issues/1615

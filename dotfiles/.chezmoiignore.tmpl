@@ -1,4 +1,7 @@
 kaizen/
+{{- if not (dig "features" "neovim" false .) }}
+.config/nvim/
+{{- end }}
 {{- if eq .chezmoi.os "darwin" }}
 .var/app/org.wezfurlong.wezterm/
 .config/niri/
@@ -8,7 +11,7 @@ kaizen/
 .config/noctalia/
 .config/systemd/
 .config/autostart/
-{{- $wm := dig "tiling" "wm" "yabai" . }}
+{{- $wm := dig "tiling" "variant" "yabai" . }}
 {{- if ne $wm "yabai" }}
 .config/yabai/
 {{- end }}

@@ -1,0 +1,5 @@
+(require "core.scm")
+(require "appearance.scm")
+(require "bindings.scm")
+(require "steel.scm")
+(require "wakatime/wakatime.scm")

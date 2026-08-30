@@ -408,6 +408,14 @@
   (define-key meow-normal-state-keymap (kbd "]g") #'git-gutter:next-hunk)
   (define-key meow-normal-state-keymap (kbd "[g") #'git-gutter:previous-hunk))
 
+(with-eval-after-load 'magit
+  (define-key meow-normal-state-keymap
+    (kbd (concat "SPC " (or (bound-and-true-p kaizen/vcs-ui) "v l"))) #'magit-status))
+
+(with-eval-after-load 'git-timemachine
+  (define-key meow-normal-state-keymap
+    (kbd (concat "SPC " (or (bound-and-true-p kaizen/vcs-history) "v h"))) #'git-timemachine))
+
 (with-eval-after-load 'blamer
   (add-hook 'meow-insert-mode-hook #'my/disable-blamer-mode)
   (add-hook 'meow-normal-mode-hook #'blamer-mode))

@@ -12,7 +12,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-
 SCRIPT_PATH = Path.home() / ".config/yabai/order_windows.py"
 
 
@@ -21,7 +20,6 @@ def build_environment() -> dict[str, str]:
 
     # GUI applications on macOS often receive a limited PATH.
     extra_paths = [
-        str(Path.home() / ".nix-profile/bin"),
         "/opt/homebrew/bin",
         "/usr/local/bin",
         "/usr/bin",
@@ -31,9 +29,7 @@ def build_environment() -> dict[str, str]:
     ]
 
     current_path = env.get("PATH", "")
-    env["PATH"] = os.pathsep.join(
-        path for path in [*extra_paths, current_path] if path
-    )
+    env["PATH"] = os.pathsep.join(path for path in [*extra_paths, current_path] if path)
 
     return env
 
@@ -61,8 +57,7 @@ def main() -> int:
         return result.returncode
 
     moved_windows = sum(
-        line.startswith("Moving window")
-        for line in result.stdout.splitlines()
+        line.startswith("Moving window") for line in result.stdout.splitlines()
     )
 
     if moved_windows:

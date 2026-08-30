@@ -1,5 +1,0 @@
-id = "meow"
-slot = "emacs.binding-scheme"
-title = "meow (selection-first modal editing)"
-stability = "stable"
-default = false

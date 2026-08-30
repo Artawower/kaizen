@@ -1,0 +1,9 @@
+description = "Database GUI tools"
+category = "dev"
+
+[macos]
+cask = ["db-browser-for-sqlite", "mongodb-compass"]
+
+[linux]
+dnf = ["sqlitebrowser"]
+apt = ["sqlitebrowser"]

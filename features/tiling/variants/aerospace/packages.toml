@@ -1,0 +1,5 @@
+description = "Aerospace tiling WM for macOS"
+
+[macos]
+taps = ["nikitabobko/tap"]
+cask = ["nikitabobko/tap/aerospace"]

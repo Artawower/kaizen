@@ -1,0 +1,5 @@
+[tools]
+"npm:orgnote-cli" = "latest"
+"npm:@mermaid-js/mermaid-cli" = "11.14.0"
+"pipx:rassumfrassum" = "latest"
+"pipx:black" = "latest"

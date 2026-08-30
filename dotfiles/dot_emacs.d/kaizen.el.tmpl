@@ -10,6 +10,8 @@
 (defvar kaizen/nav-insert "{{ last (index .kaizen.shortcuts "nav.insert") }}")
 (defvar kaizen/line-start "{{ last (index .kaizen.shortcuts "editor.line.start") }}")
 (defvar kaizen/line-end "{{ last (index .kaizen.shortcuts "editor.line.end") }}")
+(defvar kaizen/vcs-ui "{{ join " " (index .kaizen.shortcuts "vcs.ui") }}")
+(defvar kaizen/vcs-history "{{ join " " (index .kaizen.shortcuts "vcs.history") }}")
 (defvar kaizen/binding-scheme "{{ dig "emacs" "binding-scheme" "meow" . }}")
 
 (provide 'kaizen)

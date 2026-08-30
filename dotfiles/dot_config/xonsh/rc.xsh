@@ -13,22 +13,19 @@ def fixed_decode(s, encoding=None):
 xonsh.tools.decode = fixed_decode
 
 import platform
+import shutil
 import subprocess
 from pathlib import Path
 from pprint import pprint
 
-import sys as _sys
-# xontrib-sh: lets xonsh source bash/sh scripts (needed for hm-session-vars below)
-if 'xontrib.sh' not in _sys.modules:
-    try:
-        import xontrib.sh
-        $XONTRIB_SH_SHELLS = ["bash", "sh"]
-        xontrib load sh
-    except Exception as e:
-        print(f"warning: failed to load xontrib-sh: {e}")
-del _sys
-
 config_dir = Path.home() / '.config/xonsh'
+try:
+    import xontrib.sh
+    $XONTRIB_SH_SHELLS = ['bash', 'sh']
+    xontrib load sh
+except Exception as _sh_error:
+    print(f"warning: failed to load xontrib-sh: {_sh_error}")
+
 # xontrib-runner: project-aware task picker (justfile/package.json/Makefile/Cargo.toml)
 try:
     import sys as _sys_runner
@@ -51,6 +48,26 @@ except Exception as _e:
 
 source @(config_dir / 'env.xsh')
 source @(config_dir / 'paths.xsh')
+_mise_bin = shutil.which('mise')
+if _mise_bin:
+    _mise_activation = subprocess.run(
+        [_mise_bin, 'activate', 'xonsh'],
+        env=__xonsh__.env.detype(),
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout
+    execx(_mise_activation, 'exec', __xonsh__.ctx, filename='mise')
+    _mise_environment = subprocess.run(
+        [_mise_bin, 'hook-env', '-s', 'xonsh'],
+        env=__xonsh__.env.detype(),
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout
+    execx(_mise_environment, 'exec', __xonsh__.ctx, filename='mise-hook')
+    del _mise_activation, _mise_environment
+del _mise_bin
 source @(config_dir / 'project-marker.xsh')
 source @(config_dir / 'keybindings.xsh')
 source @(config_dir / 'hooks.xsh')
@@ -68,15 +85,11 @@ source @(config_dir / 'generated.xsh')
 source @(config_dir / 'autoenv.xsh')
 source @(config_dir / 'smartenv.xsh')
 
-source-bash ~/.nix-profile/etc/profile.d/hm-session-vars.sh  # Home Manager session env vars (PATH, LOCALE, etc.)
 
-# Nix home-manager sets LD_LIBRARY_PATH with Nix libs, which breaks
 # Fedora system binaries (e.g. libz version mismatch in binutils).
-# Nix binaries don't need it — they use RPATH. Just unset it.
 if platform.system() == 'Linux':
     if 'LD_LIBRARY_PATH' in ${...}:
         del $LD_LIBRARY_PATH
-    # Let Nix GUI/OpenGL apps discover Fedora Mesa/GLVND drivers.
     $__EGL_VENDOR_LIBRARY_FILENAMES = '/usr/share/glvnd/egl_vendor.d/50_mesa.json'
     $__GLX_VENDOR_LIBRARY_NAME = 'mesa'
     $LIBGL_DRIVERS_PATH = '/usr/lib64/dri'
@@ -85,7 +98,7 @@ if platform.system() == 'Linux':
     $VK_ICD_FILENAMES = '/usr/share/vulkan/icd.d/asahi_icd.aarch64.json'
     $VK_LAYER_PATH = '/usr/share/vulkan/explicit_layer.d:/usr/share/vulkan/implicit_layer.d'
     $XDG_DATA_DIRS = [p for p in $XDG_DATA_DIRS if p and not p.startswith('/opt/homebrew/') and '/Library/' not in p]
-    for _share_dir in ['/usr/local/share', '/usr/share', str(Path.home() / '.local/share/flatpak/exports/share'), '/var/lib/flatpak/exports/share', str(Path.home() / '.nix-profile/share'), '/nix/var/nix/profiles/default/share']:
+    for _share_dir in ['/usr/local/share', '/usr/share', str(Path.home() / '.local/share/flatpak/exports/share'), '/var/lib/flatpak/exports/share']:
         if _share_dir not in $XDG_DATA_DIRS:
             $XDG_DATA_DIRS.append(_share_dir)
     if 'QT_PLUGIN_PATH' in ${...}:

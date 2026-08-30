@@ -1,172 +1,86 @@
 #!/bin/sh
 set -eu
 
-repo="artawower/kaizen"
-crate="kaizen"
-force="false"
-tag=""
-dest=""
-dest_explicit="false"
+REPO="${KAIZEN_REPO:-https://github.com/artawower/kaizen.git}"
+REF="${KAIZEN_REF:-master}"
+INSTALL_DIR="${KAIZEN_DIR:-$HOME/.local/share/kaizen}"
+SOURCE_DIR="${KAIZEN_SOURCE_DIR:-}"
+CONFIG_DIR="$HOME/.config/kaizen"
+BIN_DIR="$HOME/.local/bin"
 
-say() {
-	printf '%s\n' "$*" >&2
-}
-
+say() { printf '%s\n' "$*" >&2; }
 die() {
 	say "error: $*"
 	exit 1
 }
+need() { command -v "$1" >/dev/null 2>&1 || die "missing: $1"; }
 
-need() {
-	command -v "$1" >/dev/null 2>&1 || die "missing required command: $1"
+need python3
+
+python_ok() {
+	python3 -c "import sys,tomllib; assert sys.version_info >= (3,11)" 2>/dev/null
 }
 
-usage() {
-	cat <<EOF
-Install the latest Kaizen release for macOS.
+python_ok || die "python 3.11+ required (current: $(python3 --version))"
 
-Usage:
-  install.sh [--tag VERSION] [--to DIR] [--force]
+OS=$(uname -s)
+case "$OS" in
+Darwin) need brew ;;
+Linux)
+	command -v dnf >/dev/null 2>&1 || command -v apt >/dev/null 2>&1 ||
+		die "supported package managers: dnf, apt"
+	;;
+*) die "unsupported OS: $OS" ;;
+esac
 
-Options:
-  --tag VERSION  Install a specific release tag
-  --to DIR       Install to a specific directory
-  --force        Overwrite an existing binary
-  -h, --help     Show this message
+if [ -n "$SOURCE_DIR" ]; then
+	SOURCE_DIR=$(cd "$SOURCE_DIR" && pwd)
+	[ -f "$SOURCE_DIR/kaizen.py" ] || die "kaizen.py not found in $SOURCE_DIR"
+	[ -f "$SOURCE_DIR/config.example.toml" ] || die "config.example.toml not found in $SOURCE_DIR"
+	INSTALL_DIR="$SOURCE_DIR"
+	say "using local kaizen source at $INSTALL_DIR"
+else
+	need git
+	if [ -d "$INSTALL_DIR/.git" ]; then
+		say "updating kaizen $REF at $INSTALL_DIR"
+		git -C "$INSTALL_DIR" fetch --depth=1 origin "$REF"
+		git -C "$INSTALL_DIR" checkout -B "$REF" FETCH_HEAD
+	elif [ -e "$INSTALL_DIR" ]; then
+		die "$INSTALL_DIR exists and is not a git checkout"
+	else
+		say "cloning kaizen $REF to $INSTALL_DIR"
+		git clone --depth=1 --branch "$REF" "$REPO" "$INSTALL_DIR"
+	fi
+fi
 
-If the default system directory is not writable, the installer falls back to
-~/.local/bin instead of requiring sudo.
+mkdir -p "$CONFIG_DIR"
+if [ ! -f "$CONFIG_DIR/config.toml" ]; then
+	cp "$INSTALL_DIR/config.example.toml" "$CONFIG_DIR/config.toml"
+	say "created $CONFIG_DIR/config.toml — edit it to enable features"
+fi
+
+mkdir -p "$HOME/.config/chezmoi"
+cat >"$HOME/.config/chezmoi/chezmoi.toml" <<EOF
+[chezmoi]
+  sourceDir = "$INSTALL_DIR/dotfiles"
 EOF
-}
+say "configured chezmoi source → $INSTALL_DIR/dotfiles"
 
-while [ "$#" -gt 0 ]; do
-	case "$1" in
-	--tag)
-		[ "$#" -ge 2 ] || die "missing value for --tag"
-		tag="$2"
-		shift
-		;;
-	--to)
-		[ "$#" -ge 2 ] || die "missing value for --to"
-		dest="$2"
-		dest_explicit="true"
-		shift
-		;;
-	--force | -f)
-		force="true"
-		;;
-	--help | -h)
-		usage
-		exit 0
-		;;
-	*)
-		die "unknown option: $1"
-		;;
-	esac
-	shift
-done
+mkdir -p "$BIN_DIR"
+cat >"$BIN_DIR/kaizen" <<EOF
+#!/bin/sh
+exec python3 "$INSTALL_DIR/kaizen.py" "\$@"
+EOF
+chmod +x "$BIN_DIR/kaizen"
 
-need curl
-need install
-need mktemp
-need tar
-need uname
-
-os=$(uname -s)
-[ "$os" = "Darwin" ] || die "the installer currently supports macOS only"
-
-arch=$(uname -m)
-case "$arch" in
-arm64 | aarch64)
-	target="aarch64-apple-darwin"
-	;;
-x86_64)
-	target="x86_64-apple-darwin"
-	;;
-*)
-	die "unsupported architecture: $arch"
-	;;
-esac
-
-if [ -n "$tag" ]; then
-	case "$tag" in
-	v*) ;;
-	*) tag="v$tag" ;;
-	esac
-fi
-
-if [ -z "$dest" ]; then
-	if command -v brew >/dev/null 2>&1; then
-		prefix=$(brew --prefix 2>/dev/null || true)
-		if [ -n "$prefix" ]; then
-			dest="$prefix/bin"
-		fi
-	fi
-fi
-
-if [ -z "$dest" ]; then
-	dest="/usr/local/bin"
-fi
-
-if [ -n "$tag" ]; then
-	base_url="https://github.com/$repo/releases/download/$tag"
-else
-	base_url="https://github.com/$repo/releases/latest/download"
-fi
-
-asset="$crate-$target.tar.gz"
-url="$base_url/$asset"
-
-sudo_cmd=""
-user_bin="$HOME/.local/bin"
-
-use_user_bin() {
-	dest="$user_bin"
-	mkdir -p "$dest"
-}
-
-if [ ! -d "$dest" ]; then
-	if mkdir -p "$dest" 2>/dev/null; then
-		:
-	elif [ "$dest_explicit" = "true" ] && command -v sudo >/dev/null 2>&1; then
-		sudo_cmd="sudo"
-		"$sudo_cmd" mkdir -p "$dest"
-	else
-		use_user_bin
-	fi
-fi
-
-if [ ! -w "$dest" ] && [ -z "$sudo_cmd" ]; then
-	if [ "$dest_explicit" = "true" ] && command -v sudo >/dev/null 2>&1; then
-		sudo_cmd="sudo"
-	else
-		use_user_bin
-	fi
-fi
-
-binary_path="$dest/$crate"
-
-tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/kaizen.XXXXXX")
-trap 'rm -rf "$tmpdir"' EXIT HUP INT TERM
-
-say "downloading $url"
-curl -fsSL "$url" -o "$tmpdir/$asset"
-tar -xzf "$tmpdir/$asset" -C "$tmpdir"
-
-[ -x "$tmpdir/$crate" ] || die "archive did not contain $crate"
-
-if [ -n "$sudo_cmd" ]; then
-	"$sudo_cmd" install -m 755 "$tmpdir/$crate" "$binary_path"
-else
-	install -m 755 "$tmpdir/$crate" "$binary_path"
-fi
-
-say "installed $crate to $binary_path"
 case ":$PATH:" in
-*":$dest:"*) ;;
-*) say "add $dest to your PATH if the command is not available yet" ;;
+*":$BIN_DIR:"*) KAIZEN_COMMAND="kaizen" ;;
+*)
+	KAIZEN_COMMAND="$BIN_DIR/kaizen"
+	say "add $BIN_DIR to your PATH to use kaizen without its full path"
+	;;
 esac
 
-# When piped through curl | sh, stdin is the pipe — not a TTY.
-# Redirect from /dev/tty so dialoguer can open interactive prompts.
-"$binary_path" install </dev/tty
+say ""
+say "installed kaizen at $INSTALL_DIR"
+say "edit $CONFIG_DIR/config.toml, then run: $KAIZEN_COMMAND sync"

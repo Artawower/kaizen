@@ -1,5 +1,0 @@
-id = "helixel"
-slot = "emacs.binding-scheme"
-title = "helixel (Helix-style modal editing, selection-first)"
-stability = "stable"
-default = false

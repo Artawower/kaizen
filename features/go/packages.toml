@@ -1,0 +1,6 @@
+description = "Go development tooling"
+category = "dev"
+
+[linux]
+dnf = ["golang-x-tools-gopls"]
+apt = ["gopls"]

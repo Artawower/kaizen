@@ -1,0 +1,4 @@
+[tools]
+python = "latest"
+"pipx:basedpyright" = "latest"
+"pipx:uv" = "latest"

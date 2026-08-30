@@ -1,0 +1,10 @@
+description = "AI coding agents and tooling"
+category = "ai"
+
+[macos]
+brew = ["podman"]
+cask = ["claude-code"]
+
+[linux]
+dnf = ["podman"]
+apt = ["podman"]

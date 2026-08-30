@@ -1,80 +1,37 @@
+kaizen_dir := justfile_directory()
+
 default:
     just --choose
 
-# Generate docs/shortcuts-ref.md from keybindings.toml
-shortcuts-ref:
-    cargo run -q --bin kaizen -- shortcuts --markdown > docs/shortcuts-ref.md
-    @echo "→ docs/shortcuts-ref.md updated"
+# Transfer dotfiles to a new machine
+apply:
+    chezmoi apply
 
-run *args:
-    cargo run --bin kaizen -- {{args}}
+# Install packages and apply dotfiles
+sync:
+    python3 kaizen.py sync
 
-test:
-    cargo test --workspace
+# Upgrade all packages and runtime tools
+update:
+    python3 kaizen.py update
 
-check:
-    cargo clippy --workspace --all-targets -- -D warnings
+# Interactively bump mise tool versions and capture lock files
+bump:
+    python3 kaizen.py bump
 
-build:
-    cargo build --release
-
-release-macos *args:
-    bash scripts/release-macos-local.sh {{args}}
-
-e2e:
-    bash tests/e2e/test.sh
-
-# Uninstall Nix from macOS (pass --dry-run to preview)
-nix-uninstall *args:
-    bash scripts/nix-uninstall-macos.sh {{args}}
-
-
-kaizen_dir := justfile_directory()
-
-dev-link:
-    ln -s "{{kaizen_dir}}" ~/.local/share/chezmoi
-
-# Apply dotfiles source → home, then upgrade all tools and dependencies
-deploy:
-    kaizen apply
-    kaizen update
-
-# Pull mutable deployed dotfile state back into this repo's dotfiles source
+# Pull deployed dotfile changes back into the source tree
 capture:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    source_dir="{{kaizen_dir}}/dotfiles"
+    python3 kaizen.py capture
 
-    readd_if_exists() {
-        if [ -e "$1" ]; then
-            chezmoi --source "$source_dir" re-add "$1"
-        fi
-    }
+# Show environment status
+status:
+    python3 kaizen.py status
 
-    capture_dir_if_exists() {
-        if [ ! -d "$1" ]; then
-            return
-        fi
-        chezmoi --source "$source_dir" re-add "$1"
-        while IFS= read -r -d '' path; do
-            chezmoi --source "$source_dir" add "$path"
-        done < <(chezmoi --source "$source_dir" unmanaged --path-style absolute --nul-path-separator "$1")
-    }
+# Bootstrap from the current checkout
+install:
+    KAIZEN_SOURCE_DIR="{{kaizen_dir}}" bash install.sh
+    ~/.local/bin/kaizen sync
 
-    readd_if_exists "$HOME/.config/nix/flake.lock"
-    readd_if_exists "$HOME/.config/mise.lock"
-    readd_if_exists "$HOME/.config/kaizen/feature-meta.json"
-    capture_dir_if_exists "$HOME/.config/kaizen/decisions"
-    capture_dir_if_exists "$HOME/.config/kaizen/user-features"
-    readd_if_exists "$HOME/.emacs.d/elpaca.lock"
-
-    readd_if_exists "$HOME/.pi/agent/settings.json"
-    readd_if_exists "$HOME/.pi/agent/mcp.json"
-    capture_dir_if_exists "$HOME/.pi/agent/agents"
-    capture_dir_if_exists "$HOME/.pi/agent/prompts"
-    capture_dir_if_exists "$HOME/.pi/themes"
-
-    readd_if_exists "$HOME/.agents/skill-lock.json"
-    readd_if_exists "$HOME/skills-lock.json"
-    capture_dir_if_exists "$HOME/.agents/skills"
-
+# Dev: symlink repo as chezmoi source instead of copying
+dev-link:
+    ln -sf "{{kaizen_dir}}/dotfiles" ~/.local/share/chezmoi

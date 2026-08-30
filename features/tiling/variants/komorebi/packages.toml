@@ -1,0 +1,9 @@
+description = "Komorebi tiling WM for macOS"
+
+[macos]
+taps = ["lgug2z/tap", "koekeishiya/formulae", "FelixKratz/formulae"]
+brew = [
+  "lgug2z/tap/komorebi-for-mac",
+  "koekeishiya/formulae/skhd",
+  "FelixKratz/formulae/borders",
+]

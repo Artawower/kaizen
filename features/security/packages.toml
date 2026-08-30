@@ -1,0 +1,9 @@
+description = "Security: firewall, password manager, VPN"
+category = "security"
+
+[macos]
+cask = ["lulu", "bitwarden", "openvpn-connect", "amneziavpn", "rustdesk"]
+
+[linux]
+dnf = ["bitwarden-cli"]
+apt = ["bitwarden-cli"]

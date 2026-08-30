@@ -1,0 +1,5 @@
+description = "Desktop utilities: launcher, menu bar, file manager, cleaner"
+category = "desktop"
+
+[macos]
+cask = ["thaw", "stats", "clop", "marta", "pearcleaner", "vicinae"]

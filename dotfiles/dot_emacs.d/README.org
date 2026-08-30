@@ -584,6 +584,7 @@ Modeline inactive color
         (set-face-attribute 'font-lock-comment-face frame :inherit 'my/comic-face)
         (set-face-attribute 'font-lock-keyword-face frame :inherit 'my/comic-face)
 
+        (setq-default line-spacing 0.3)
         (setq line-spacing 0.3)
         (when (fboundp 'set-fontset-font)
           (set-fontset-font t 'symbol (font-spec :family "Apple Color Emoji") nil 'prepend))))
@@ -1876,6 +1877,7 @@ Allow to transform PASCAL_CASE -> camelCase -> snake_case
   (dirvish-quick-access-entries ; It's a custom option, `setq' won't work
    `(("h" "~/"                          "Home")
      ("d" "~/Downloads/"                "Downloads")
+     ("D" "~/Documents/"                "Documents")
      ("p" "~/projects/pet"              "Pet")
      ("o" "~/projects/pet/orgnote"      "Orgnote")
      ("s" "~/Pictures/screenshots"      "Screenshots")
@@ -1973,10 +1975,7 @@ Allow to transform PASCAL_CASE -> camelCase -> snake_case
          ("C-c o t" . ghostel-project)
          ("C-c C-l" . my/ghostel-clear))
   :custom
-  (ghostel-shell (or
-                  (executable-find "/Users/darkawower/.nix-profile/bin/xonsh")
-                  (executable-find "/home/darkawower/.nix-profile/bin/xonsh")
-                  (executable-find "xonsh")))
+  (ghostel-shell (executable-find "xonsh"))
   (ghostel-max-scrollback (* 5 1024 1024))  ; 5MB default
   (ghostel-enable-url-detection t)
   (ghostel-enable-file-detection t)
@@ -2009,8 +2008,24 @@ Allow to transform PASCAL_CASE -> camelCase -> snake_case
   (define-key ghostel-mode-map (kbd "C-c C-l") 'my/ghostel-clear))
 #+END_SRC
 
+Open ghostel in the current file directory
 
-Comile mode
+#+BEGIN_SRC emacs-lisp :results silent
+(defun my/ghostel-here ()
+  "Open or reuse a Ghostel terminal for the current buffer directory."
+  (interactive)
+  (require 'ghostel)
+  (let* ((dir (file-name-as-directory
+               (expand-file-name default-directory)))
+         (default-directory dir)
+         (ghostel-buffer-name
+          (format "*ghostel:%s*"
+                  (abbreviate-file-name
+                   (directory-file-name dir)))))
+    (ghostel)))
+#+END_SRC
+
+Compile mode
 #+BEGIN_SRC emacs-lisp :results silent
 (use-package ghostel-compile
   :ensure nil
@@ -2286,6 +2301,9 @@ Setup blamer face
          ("C-n" . magit-section-forward)
          ("C-e" . magit-section-backward))
   :ensure (:host github :repo "0WD0/majutsu")
+  :custom
+  (majutsu-diff-refine-hunk t)
+  (majutsu-diff-fontify-hunk t)
   :config
   (with-eval-after-load 'with-editor
     (setq with-editor-emacsclient-executable
@@ -2920,14 +2938,7 @@ Function for search in buffer depends or visual or normal line
 #+END_SRC
 
 * Programming
-** Lsp manager
-#+BEGIN_SRC emacs-lisp :results silent
-(use-package mason
-  :defer t
-  :config
-  (mason-ensure))
-#+END_SRC
-** Lsp (Eglot)
+** COMMENT Lsp (Eglot)
 *** Rassumfrassum - LSP multiplexer
 [[https://github.com/joaotavora/rassumfrassum][rassumfrassum]] connects multiple LSP servers to one client.
 
@@ -3165,6 +3176,59 @@ def servers():
     (user-error "Eglot is not loaded")))
 #+END_SRC
 
+** Lsp-proxy (rust implementation)
+#+BEGIN_SRC emacs-lisp :results silent
+(use-package lsp-proxy
+  :ensure (:type git
+           :host github
+           :repo "jadestrong/lsp-proxy"
+           :files ("*.el"))
+
+  :bind
+  (("C-c g i" . lsp-proxy-find-implementations)
+   ("C-c l r" . lsp-proxy-rename)
+   ("C-c r l" . lsp-proxy-mode)
+   ("C-c l d" . lsp-proxy-find-type-definition)
+   ("C-c l f" . lsp-proxy-find-references)
+   ("C-c l a" . lsp-proxy-execute-code-action)
+   ("C-c l h" . lsp-proxy-describe-thing-at-point)
+   ("C-c l R" . lsp-proxy-workspace-restart))
+
+  :hook
+  ((typescript-mode
+    typescript-ts-mode
+    tsx-ts-mode
+    js-mode
+    js-ts-mode
+    ng2-ts-mode
+    html-ts-mode
+    rust-mode
+    rust-ts-mode
+    python-ts-mode
+    go-ts-mode
+    vue-ts-mode
+    org-mode)
+   . lsp-proxy-mode)
+
+  :custom
+  (lsp-proxy-diagnostics-provider :flymake)
+
+  (lsp-proxy-inlay-hints-mode-config nil)
+
+  (lsp-proxy-log-max 0)
+  (lsp-proxy-log-level 0)
+
+  ;; Org Babel.
+  (lsp-proxy-enable-org-babel t)
+  (lsp-proxy-org-edit-special-enable-lsp t)
+  (lsp-proxy-org-babel-enabled-languages
+   '("python" "typescript" "javascript" "tsx"
+     "bash" "rust" "go"))
+
+  :config
+  (add-to-list 'project-vc-extra-root-markers ".venv")
+  (add-to-list 'project-vc-extra-root-markers ".node_modules"))
+#+END_SRC
 ** Flymake
 *** Functions
 **** Flymake, copy errors
@@ -4970,9 +5034,7 @@ Manage your dot files like a God
 
 * Overrides
 #+BEGIN_SRC emacs-lisp :results silent
-(if (eq system-type 'darwin)
-    (setenv "SHELL" "/Users/darkawower/.nix-profile/bin/dash")
-  (setenv "SHELL" (executable-find "dash")))
+(setenv "SHELL" (executable-find "dash"))
 
 #+END_SRC
 

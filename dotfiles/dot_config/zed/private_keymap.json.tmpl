@@ -6,6 +6,14 @@
 {{- $tabNext  := last (index .kaizen.shortcuts "app.tab.next") -}}
 {{- $wsPrev   := last (index .kaizen.shortcuts "app.workspace.previous") -}}
 {{- $wsNext   := last (index .kaizen.shortcuts "app.workspace.next") -}}
+{{- $projPick  := last (index .kaizen.shortcuts "app.projects.pick") -}}
+{{- $tabsPick  := last (index .kaizen.shortcuts "app.tabs.pick") -}}
+{{- $bufsPick  := last (index .kaizen.shortcuts "app.buffers.pick") -}}
+{{- $vcsHistory := join " " (index .kaizen.shortcuts "vcs.history") -}}
+{{- $lspFormat  := join " " (index .kaizen.shortcuts "lsp.format") -}}
+{{- $lspDiag    := join " " (index .kaizen.shortcuts "lsp.diagnostics") -}}
+{{- $foldOpen   := join " " (index .kaizen.shortcuts "fold.open") -}}
+{{- $runTask    := join " " (index .kaizen.shortcuts "run.task") -}}
 {{/* Cmd+key uses QWERTY on macOS regardless of Colemak layout — use base shortcuts */}}
 {{- $tabNextBase := last (index .kaizen.base_shortcuts "app.tab.next") -}}
 {{- $wsPrevBase  := last (index .kaizen.base_shortcuts "app.workspace.previous") -}}
@@ -35,9 +43,9 @@
       "ctrl-alt-shift-{{ $appRight }}": ["workspace::MoveItemToPaneInDirection", { "direction": "right" }],
       "cmd-shift-[": "pane::ActivatePreviousItem",
       "cmd-shift-]": "pane::ActivateNextItem",
-      "alt-b": "tab_switcher::Toggle",
-      "alt-p": "projects::OpenRecent",
-      "alt-t": "tab_switcher::Toggle",
+      "alt-{{ $bufsPick }}": "tab_switcher::Toggle",
+      "alt-{{ $projPick }}": "projects::OpenRecent",
+      "alt-{{ $tabsPick }}": "tab_switcher::Toggle",
       "cmd-\\": "workspace::ToggleBottomDock",
       "cmd-w": "pane::CloseActiveItem",
       "cmd-p": "file_finder::Toggle",
@@ -52,7 +60,7 @@
       "cmd-l": "editor::AcceptEditPrediction",
       "cmd-.": "workspace::ActivateNextPane",
       "ctrl-.": "agent::ToggleFocus",
-      "cmd-j": "copilot::Suggest",
+      "cmd-j": "editor::ShowEditPrediction",
       "cmd-\\": "workspace::ToggleBottomDock",
       "cmd-<": "zed::OpenKeymap",
       "cmd->": "agent::ToggleFocus",
@@ -101,7 +109,7 @@
       "cmd-y": "agent::Keep",
       "cmd-n": "agent::Reject",
       "space {{ join " " (index .kaizen.shortcuts "projects.pick") }}": "projects::OpenRecent",
-      "cmd-j": "copilot::Suggest",
+      "cmd-j": "editor::ShowEditPrediction",
       "cmd-l": "editor::AcceptEditPrediction",
       "space g R": "editor::ExpandAllDiffHunks",
       "space g r": "editor::ToggleSelectedDiffHunks",
@@ -119,9 +127,11 @@
       "space o T": "workspace::OpenInTerminal",
       "\\ p": "editor::Format",
       "\\m": "pane::JoinAll",
-      // "\\h": "editor::ShowHover",
-      "space {{ join " " (index .kaizen.shortcuts "vcs.ui") }}": ["task::Spawn", { "task_name": "lazygit" }],
-      "space r t": "task::Spawn",
+      // "\\h": "editor::Hover",
+      "space {{ join " " (index .kaizen.shortcuts "vcs.ui") }}": "git_panel::ToggleFocus",
+      "space g G": ["task::Spawn", { "task_name": "lazygit" }],
+      "space {{ $vcsHistory }}": "git::FileHistory",
+      "{{ $runTask }}": "task::Spawn",
       "space b b": "tab_switcher::Toggle",
       "space b k": "pane::CloseActiveItem",
       "space {{ join " " (index .kaizen.shortcuts "pane.split.right") }}": "pane::SplitRight",
@@ -135,6 +145,7 @@
       "{{ join " " (index .kaizen.shortcuts "bookmark.next") }}": "editor::GoToNextBookmark",
       "{{ join " " (index .kaizen.shortcuts "bookmark.previous") }}": "editor::GoToPreviousBookmark",
       "{{ join " " (index .kaizen.shortcuts "fold.toggle") }}": "editor::Fold",
+      "{{ $foldOpen }}": "editor::UnfoldRecursive",
       "{{ join " " (index .kaizen.shortcuts "fold.open-all") }}": "editor::UnfoldAll",
       "{{ join " " (index .kaizen.shortcuts "fold.close-all") }}": "editor::FoldAll",
       "space w h": "workspace::ActivatePaneLeft",
@@ -153,6 +164,8 @@
       "space {{ join " " (index .kaizen.shortcuts "lsp.action") }}": "editor::ToggleCodeActions",
       "space {{ join " " (index .kaizen.shortcuts "lsp.hover") }}": "editor::Hover",
       "space {{ join " " (index .kaizen.shortcuts "lsp.symbols") }}": "outline::Toggle",
+      "space {{ $lspFormat }}": "editor::Format",
+      "space {{ $lspDiag }}": "diagnostics::Deploy",
       "g d": "editor::GoToDefinition",
       "g D": "editor::GoToDefinitionSplit",
       "g r": "editor::FindAllReferences",
@@ -188,9 +201,9 @@
       "ctrl-alt-i": "workspace::ActivatePaneRight",
       "space l r": "editor::Rename",
       "space l a": "editor::ToggleCodeActions",
-      "space l f": "editor::Format",
       "space l h": "editor::Hover",
       "space l s": "outline::Toggle",
+      "space {{ $lspFormat }}": "editor::Format",
     },
   },
   {
