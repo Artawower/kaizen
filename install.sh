@@ -1,8 +1,10 @@
 #!/bin/sh
 set -eu
 
-REPO="https://github.com/artawower/kaizen"
+REPO="${KAIZEN_REPO:-https://github.com/artawower/kaizen.git}"
+REF="${KAIZEN_REF:-master}"
 INSTALL_DIR="${KAIZEN_DIR:-$HOME/.local/share/kaizen}"
+SOURCE_DIR="${KAIZEN_SOURCE_DIR:-}"
 CONFIG_DIR="$HOME/.config/kaizen"
 BIN_DIR="$HOME/.local/bin"
 
@@ -13,8 +15,6 @@ die() {
 }
 need() { command -v "$1" >/dev/null 2>&1 || die "missing: $1"; }
 
-need curl
-need git
 need python3
 
 python_ok() {
@@ -33,12 +33,24 @@ Linux)
 *) die "unsupported OS: $OS" ;;
 esac
 
-if [ -d "$INSTALL_DIR/.git" ]; then
-	say "updating existing kaizen at $INSTALL_DIR"
-	git -C "$INSTALL_DIR" pull --ff-only
+if [ -n "$SOURCE_DIR" ]; then
+	SOURCE_DIR=$(cd "$SOURCE_DIR" && pwd)
+	[ -f "$SOURCE_DIR/kaizen.py" ] || die "kaizen.py not found in $SOURCE_DIR"
+	[ -f "$SOURCE_DIR/config.example.toml" ] || die "config.example.toml not found in $SOURCE_DIR"
+	INSTALL_DIR="$SOURCE_DIR"
+	say "using local kaizen source at $INSTALL_DIR"
 else
-	say "cloning kaizen to $INSTALL_DIR"
-	git clone --depth=1 "$REPO" "$INSTALL_DIR"
+	need git
+	if [ -d "$INSTALL_DIR/.git" ]; then
+		say "updating kaizen $REF at $INSTALL_DIR"
+		git -C "$INSTALL_DIR" fetch --depth=1 origin "$REF"
+		git -C "$INSTALL_DIR" checkout -B "$REF" FETCH_HEAD
+	elif [ -e "$INSTALL_DIR" ]; then
+		die "$INSTALL_DIR exists and is not a git checkout"
+	else
+		say "cloning kaizen $REF to $INSTALL_DIR"
+		git clone --depth=1 --branch "$REF" "$REPO" "$INSTALL_DIR"
+	fi
 fi
 
 mkdir -p "$CONFIG_DIR"
@@ -62,10 +74,13 @@ EOF
 chmod +x "$BIN_DIR/kaizen"
 
 case ":$PATH:" in
-*":$BIN_DIR:"*) ;;
-*) say "add $BIN_DIR to your PATH to use the kaizen command" ;;
+*":$BIN_DIR:"*) KAIZEN_COMMAND="kaizen" ;;
+*)
+	KAIZEN_COMMAND="$BIN_DIR/kaizen"
+	say "add $BIN_DIR to your PATH to use kaizen without its full path"
+	;;
 esac
 
 say ""
 say "installed kaizen at $INSTALL_DIR"
-say "edit $CONFIG_DIR/config.toml, then run: kaizen sync"
+say "edit $CONFIG_DIR/config.toml, then run: $KAIZEN_COMMAND sync"

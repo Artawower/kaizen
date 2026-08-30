@@ -506,12 +506,23 @@ class Kaizen:
                     print(f"  updated {mise_file.relative_to(KAIZEN_DIR)}")
 
 
-_COMMANDS = {"sync", "update", "bump", "capture", "status"}
+_COMMANDS = {
+    "sync": "Install enabled packages, mise tools, and dotfiles",
+    "update": "Upgrade native packages and mise tools",
+    "bump": "Interactively upgrade and capture mise versions",
+    "capture": "Capture mutable dotfiles into the source tree",
+    "status": "Show the active platform, features, and tools",
+}
 
 if __name__ == "__main__":
     cmd = sys.argv[1] if len(sys.argv) > 1 else "sync"
+    if cmd in {"help", "-h", "--help"}:
+        print("Usage: kaizen [command]\n\nCommands:")
+        for name, description in _COMMANDS.items():
+            print(f"  {name:<8} {description}")
+        sys.exit()
     if cmd not in _COMMANDS:
-        print(f"unknown command: {cmd}. available: {', '.join(sorted(_COMMANDS))}")
+        print(f"unknown command: {cmd}. available: {', '.join(_COMMANDS)}")
         sys.exit(1)
     if not CONFIG_FILE.exists():
         print(f"config not found: {CONFIG_FILE}")

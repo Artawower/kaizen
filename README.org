@@ -22,11 +22,13 @@ Its components are deliberately small:
 
 * Install
 
+Requires Python 3.11+, Git, and Homebrew, dnf, or apt.
+
 #+BEGIN_SRC shell
 curl -fsSL https://raw.githubusercontent.com/artawower/kaizen/master/install.sh | sh
 #+END_SRC
 
-The installer clones Kaizen to =~/.local/share/kaizen=, creates
+The remote script clones Kaizen to =~/.local/share/kaizen=, creates
 =~/.config/kaizen/config.toml=, configures chezmoi, and installs a
 =~/.local/bin/kaizen= wrapper.
 
@@ -35,6 +37,9 @@ Edit the generated config, then run:
 #+BEGIN_SRC shell
 kaizen sync
 #+END_SRC
+
+If =~/.local/bin= is not yet on =PATH=, the installer prints the equivalent
+command with its full path.
 
 * Repository layout
 

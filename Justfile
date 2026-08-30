@@ -27,10 +27,10 @@ capture:
 status:
     python3 kaizen.py status
 
-# Bootstrap a fresh machine
+# Bootstrap from the current checkout
 install:
-    bash install.sh
-    just sync
+    KAIZEN_SOURCE_DIR="{{kaizen_dir}}" bash install.sh
+    ~/.local/bin/kaizen sync
 
 # Dev: symlink repo as chezmoi source instead of copying
 dev-link:
