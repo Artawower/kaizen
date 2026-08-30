@@ -7,6 +7,9 @@ sync:
 update:
     kaizen update
 
+self-update:
+    kaizen self-update
+
 bump:
     kaizen bump
 

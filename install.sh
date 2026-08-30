@@ -5,6 +5,7 @@ REPO="${KAIZEN_REPO:-https://github.com/artawower/kaizen.git}"
 REF="${KAIZEN_REF:-master}"
 INSTALL_DIR="${KAIZEN_DIR:-$HOME/.local/share/kaizen}"
 SOURCE_DIR="${KAIZEN_SOURCE_DIR:-}"
+INSTALL_MODE="managed"
 CONFIG_DIR="$HOME/.config/kaizen"
 BIN_DIR="$HOME/.local/bin"
 
@@ -38,6 +39,7 @@ if [ -n "$SOURCE_DIR" ]; then
 	[ -f "$SOURCE_DIR/kaizen.py" ] || die "kaizen.py not found in $SOURCE_DIR"
 	[ -f "$SOURCE_DIR/config.example.toml" ] || die "config.example.toml not found in $SOURCE_DIR"
 	INSTALL_DIR="$SOURCE_DIR"
+	INSTALL_MODE="development"
 	say "using local kaizen source at $INSTALL_DIR"
 else
 	need git
@@ -69,6 +71,7 @@ say "configured chezmoi source → $INSTALL_DIR/dotfiles"
 mkdir -p "$BIN_DIR"
 cat >"$BIN_DIR/kaizen" <<EOF
 #!/bin/sh
+export KAIZEN_INSTALL_MODE="$INSTALL_MODE"
 exec python3 "$INSTALL_DIR/kaizen.py" "\$@"
 EOF
 chmod +x "$BIN_DIR/kaizen"

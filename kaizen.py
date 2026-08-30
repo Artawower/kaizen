@@ -8,6 +8,7 @@ import subprocess
 import sys
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from enum import Enum
 from pathlib import Path
 from typing import cast
 
@@ -17,6 +18,7 @@ KAIZEN_DIR = Path(__file__).parent
 FEATURES_DIR = KAIZEN_DIR / "features"
 DOTFILES_DIR = KAIZEN_DIR / "dotfiles"
 CONFIG_FILE = Path.home() / ".config" / "kaizen" / "config.toml"
+CONFIG_EXAMPLE_FILE = KAIZEN_DIR / "config.example.toml"
 DEFAULTS_FILE = DOTFILES_DIR / ".chezmoidata.toml"
 USER_DATA_FILE = DOTFILES_DIR / ".chezmoidata" / "99-user.toml"
 MISE_CONFIG = Path.home() / ".config" / "mise.toml"
@@ -30,14 +32,71 @@ _FEATURE_ALIASES = {"battery-thresholds": "battery"}
 _IGNORED_FEATURES = {"mise", "nix-system"}
 
 
+class InstallMode(Enum):
+    DEVELOPMENT = "development"
+    MANAGED = "managed"
+
+
+class CheckoutIssue(Enum):
+    NOT_GIT = "is not a Git checkout"
+    DIRTY = "has local changes"
+    DETACHED = "has a detached HEAD"
+
+
+class KaizenError(Exception):
+    pass
+
+
+class InstallModeError(KaizenError):
+    def __init__(self, mode: str) -> None:
+        self.mode = mode
+        super().__init__(f"unknown installation mode: {mode}")
+
+
+class CommandModeError(KaizenError):
+    def __init__(
+        self,
+        command: str,
+        current_mode: InstallMode,
+        required_mode: InstallMode,
+    ) -> None:
+        self.command = command
+        self.current_mode = current_mode
+        self.required_mode = required_mode
+        super().__init__(
+            f"{command} requires {required_mode.value} mode "
+            f"(current: {current_mode.value})"
+        )
+
+
+class ExecutableNotFoundError(KaizenError):
+    def __init__(self, executable: str) -> None:
+        self.executable = executable
+        super().__init__(f"executable not found: {executable}")
+
+
+class CheckoutError(KaizenError):
+    def __init__(self, path: Path, issue: CheckoutIssue) -> None:
+        self.path = path
+        self.issue = issue
+        super().__init__(f"self-update refused: {path} {issue.value}")
+
+
+class ConfigNotFoundError(KaizenError):
+    def __init__(self, path: Path, example: Path) -> None:
+        self.path = path
+        self.example = example
+        super().__init__(f"config not found: {path}; copy {example} there")
+
+
 class PackageManager(ABC):
     @abstractmethod
     def install(self, packages: dict[str, object]) -> None:
-        raise NotImplementedError
+        pass
 
     @abstractmethod
     def update(self) -> None:
-        raise NotImplementedError
+        pass
 
     def _run(self, cmd: list[str], env: dict[str, str] | None = None) -> None:
         print(f"  $ {' '.join(cmd)}")
@@ -386,6 +445,59 @@ def parse_features(config: dict[str, object]) -> list[Feature]:
     return result
 
 
+def _install_mode() -> InstallMode:
+    mode = os.environ.get("KAIZEN_INSTALL_MODE", InstallMode.DEVELOPMENT.value)
+    try:
+        return InstallMode(mode)
+    except ValueError as error:
+        raise InstallModeError(mode) from error
+
+
+def _require_install_mode(command: str, required_mode: InstallMode) -> None:
+    current_mode = _install_mode()
+    if current_mode != required_mode:
+        raise CommandModeError(command, current_mode, required_mode)
+
+
+def _git_output(*args: str) -> str:
+    result = subprocess.run(
+        ["git", "-C", str(KAIZEN_DIR), *args],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return result.stdout.strip()
+
+
+def _self_update_branch() -> str:
+    _require_install_mode("self-update", InstallMode.MANAGED)
+    if not shutil.which("git"):
+        raise ExecutableNotFoundError("git")
+    if not (KAIZEN_DIR / ".git").exists():
+        raise CheckoutError(KAIZEN_DIR, CheckoutIssue.NOT_GIT)
+    if _git_output("status", "--porcelain"):
+        raise CheckoutError(KAIZEN_DIR, CheckoutIssue.DIRTY)
+    branch = _git_output("branch", "--show-current")
+    if not branch:
+        raise CheckoutError(KAIZEN_DIR, CheckoutIssue.DETACHED)
+    return branch
+
+
+def self_update() -> None:
+    branch = _self_update_branch()
+    before = _git_output("rev-parse", "--short", "HEAD")
+    _ = subprocess.run(
+        ["git", "-C", str(KAIZEN_DIR), "pull", "--ff-only", "origin", branch],
+        check=True,
+    )
+    after = _git_output("rev-parse", "--short", "HEAD")
+    if before == after:
+        print(f"kaizen is already up to date ({after})")
+        return
+    print(f"updated kaizen: {before} -> {after}")
+    print("run kaizen sync to apply the updated configuration")
+
+
 class Kaizen:
     def __init__(
         self,
@@ -423,11 +535,13 @@ class Kaizen:
             _ = subprocess.run(["mise", "upgrade"], check=True)
 
     def bump(self) -> None:
+        _require_install_mode("bump", InstallMode.DEVELOPMENT)
         _ = subprocess.run(["mise", "upgrade", "--bump", "--interactive"], check=False)
         self._capture_mise_versions(parse_features(self._config))
         self.capture()
 
     def capture(self) -> None:
+        _require_install_mode("capture", InstallMode.DEVELOPMENT)
         for path in _CAPTURE_PATHS:
             if path.exists():
                 _ = subprocess.run(
@@ -438,7 +552,10 @@ class Kaizen:
 
     def status(self) -> None:
         features = parse_features(self._config)
+        mode = _install_mode()
         print(f"OS       : {self._os}")
+        print(f"mode     : {mode.value}")
+        print(f"source   : {KAIZEN_DIR}")
         print(f"config   : {CONFIG_FILE}")
         print(f"features : {', '.join(feature.label for feature in features)}")
         print(
@@ -509,8 +626,9 @@ class Kaizen:
 _COMMANDS = {
     "sync": "Install enabled packages, mise tools, and dotfiles",
     "update": "Upgrade native packages and mise tools",
-    "bump": "Interactively upgrade and capture mise versions",
-    "capture": "Capture mutable dotfiles into the source tree",
+    "self-update": "Update a managed Kaizen installation",
+    "bump": "Developer: upgrade and capture mise versions",
+    "capture": "Developer: capture mutable dotfiles",
     "status": "Show the active platform, features, and tools",
 }
 
@@ -519,26 +637,35 @@ if __name__ == "__main__":
     if cmd in {"help", "-h", "--help"}:
         print("Usage: kaizen [command]\n\nCommands:")
         for name, description in _COMMANDS.items():
-            print(f"  {name:<8} {description}")
+            print(f"  {name:<12} {description}")
         sys.exit()
     if cmd not in _COMMANDS:
         print(f"unknown command: {cmd}. available: {', '.join(_COMMANDS)}")
         sys.exit(1)
-    if not CONFIG_FILE.exists():
-        print(f"config not found: {CONFIG_FILE}")
-        print("copy config.example.toml to ~/.config/kaizen/config.toml")
-        sys.exit(1)
     try:
-        overrides = read_toml(CONFIG_FILE)
-        normalized_overrides, warnings, link_user_config = normalize_config(overrides)
-        config = merge_config(read_toml(DEFAULTS_FILE), normalized_overrides)
-        for warning in warnings:
-            print(warning)
-        getattr(Kaizen(config, normalized_overrides, link_user_config), cmd)()
+        if cmd == "self-update":
+            self_update()
+        else:
+            if not CONFIG_FILE.exists():
+                raise ConfigNotFoundError(CONFIG_FILE, CONFIG_EXAMPLE_FILE)
+            overrides = read_toml(CONFIG_FILE)
+            normalized_overrides, warnings, link_user_config = normalize_config(
+                overrides
+            )
+            config = merge_config(read_toml(DEFAULTS_FILE), normalized_overrides)
+            for warning in warnings:
+                print(warning)
+            getattr(Kaizen(config, normalized_overrides, link_user_config), cmd)()
     except subprocess.CalledProcessError as error:
         command = " ".join(str(part) for part in error.cmd)
         print(f"error: {command} failed with exit code {error.returncode}")
         sys.exit(error.returncode)
-    except (OSError, TypeError, ValueError, tomllib.TOMLDecodeError) as error:
+    except (
+        KaizenError,
+        OSError,
+        TypeError,
+        ValueError,
+        tomllib.TOMLDecodeError,
+    ) as error:
         print(f"error: {error}")
         sys.exit(1)

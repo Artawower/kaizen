@@ -80,10 +80,11 @@ variant = "yabai"
 | Command | Effect |
 | --- | --- |
 | `just sync` | install packages → generate mise.toml → mise install → chezmoi apply |
-| `just bump` | mise upgrade --interactive → capture new versions to feature mise.toml files |
-| `just capture` | chezmoi re-add for known mutable paths (pi settings, mcp config) |
+| `kaizen self-update` | fast-forward a managed installation; unavailable in development mode |
+| `just bump` | developer-only: mise upgrade --interactive → capture versions to feature mise.toml files |
+| `just capture` | developer-only: chezmoi re-add for known mutable paths (pi settings, mcp config) |
 | `just update` | brew/dnf upgrade + mise upgrade |
-| `just status` | show OS, config path, tool locations |
+| `just status` | show installation mode, source, OS, config, and tool locations |
 
 ## VCS — jj (not git)
 

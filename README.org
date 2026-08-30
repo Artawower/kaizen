@@ -65,12 +65,17 @@ optional.
 * Usage
 
 #+BEGIN_SRC shell
-kaizen sync      # install enabled features, mise tools, and dotfiles
-kaizen update    # upgrade native packages and mise tools
-kaizen bump      # update mise pins in feature-local manifests
-kaizen capture   # re-add known mutable dotfiles to the source
-kaizen status    # show active platform, features, and tool locations
+kaizen sync         # install enabled features, mise tools, and dotfiles
+kaizen update       # upgrade native packages and mise tools
+kaizen self-update  # fast-forward a managed installation from its remote branch
+kaizen bump         # developer: update mise pins in feature-local manifests
+kaizen capture      # developer: re-add known mutable dotfiles to the source
+kaizen status       # show installation mode, source, features, and tools
 #+END_SRC
+
+~kaizen self-update~ updates only remote installations created by the installer.
+It refuses development checkouts, detached branches, and installations with
+local changes. Run ~kaizen sync~ separately after an update.
 
 ~kaizen sync~ performs these steps:
 
