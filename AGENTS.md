@@ -3,6 +3,10 @@
 Kaizen is a dotfiles and developer environment manager. No Nix, no Rust.
 Stack: **Python 3.11+**, **chezmoi** (dotfiles), **mise** (runtimes), **brew/dnf/apt** (packages).
 
+The installer reuses Python 3.11+ or bootstraps an isolated Python through uv.
+Native package managers are runtime dependencies of `sync`/`update`, not installer
+prerequisites. Missing Homebrew is offered interactively through its official installer.
+
 ## Repository layout
 
 ```

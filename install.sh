@@ -8,6 +8,10 @@ SOURCE_DIR="${KAIZEN_SOURCE_DIR:-}"
 INSTALL_MODE="managed"
 CONFIG_DIR="$HOME/.config/kaizen"
 BIN_DIR="$HOME/.local/bin"
+RUNTIME_DIR="${KAIZEN_RUNTIME_DIR:-$HOME/.local/share/kaizen-runtime}"
+PYTHON_VERSION="${KAIZEN_PYTHON_VERSION:-3.12}"
+PYTHON="${KAIZEN_PYTHON:-$(command -v python3 || true)}"
+UV="${KAIZEN_UV:-$RUNTIME_DIR/bin/uv}"
 
 say() { printf '%s\n' "$*" >&2; }
 die() {
@@ -16,23 +20,35 @@ die() {
 }
 need() { command -v "$1" >/dev/null 2>&1 || die "missing: $1"; }
 
-need python3
-
 python_ok() {
-	python3 -c "import sys,tomllib; assert sys.version_info >= (3,11)" 2>/dev/null
+	[ -n "$1" ] && "$1" -c "import sys,tomllib; assert sys.version_info >= (3,11)" 2>/dev/null
 }
 
-python_ok || die "python 3.11+ required (current: $(python3 --version))"
+install_python() {
+	if [ ! -x "$UV" ]; then
+		need curl
+		mkdir -p "$RUNTIME_DIR/bin"
+		say "installing uv to $RUNTIME_DIR/bin"
+		curl -LsSf https://astral.sh/uv/install.sh |
+			UV_UNMANAGED_INSTALL="$RUNTIME_DIR/bin" sh
+	fi
+	mkdir -p "$RUNTIME_DIR/python"
+	say "installing Python $PYTHON_VERSION to $RUNTIME_DIR/python"
+	UV_PYTHON_INSTALL_DIR="$RUNTIME_DIR/python" \
+		"$UV" python install "$PYTHON_VERSION" --no-bin
+	PYTHON=$(UV_PYTHON_INSTALL_DIR="$RUNTIME_DIR/python" \
+		"$UV" python find "$PYTHON_VERSION" --managed-python)
+}
 
-OS=$(uname -s)
-case "$OS" in
-Darwin) need brew ;;
-Linux)
-	command -v dnf >/dev/null 2>&1 || command -v apt >/dev/null 2>&1 ||
-		die "supported package managers: dnf, apt"
-	;;
-*) die "unsupported OS: $OS" ;;
+case "$(uname -s)" in
+Darwin | Linux) ;;
+*) die "unsupported OS: $(uname -s)" ;;
 esac
+
+if ! python_ok "$PYTHON"; then
+	install_python
+fi
+python_ok "$PYTHON" || die "failed to install Python 3.11+"
 
 if [ -n "$SOURCE_DIR" ]; then
 	SOURCE_DIR=$(cd "$SOURCE_DIR" && pwd)
@@ -72,7 +88,7 @@ mkdir -p "$BIN_DIR"
 cat >"$BIN_DIR/kaizen" <<EOF
 #!/bin/sh
 export KAIZEN_INSTALL_MODE="$INSTALL_MODE"
-exec python3 "$INSTALL_DIR/kaizen.py" "\$@"
+exec "$PYTHON" "$INSTALL_DIR/kaizen.py" "\$@"
 EOF
 chmod +x "$BIN_DIR/kaizen"
 

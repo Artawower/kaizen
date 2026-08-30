@@ -22,7 +22,8 @@ Its components are deliberately small:
 
 * Install
 
-Requires Python 3.11+, Git, and Homebrew, dnf, or apt.
+Requires Git and curl. The installer reuses Python 3.11+ when available or
+installs an isolated Python 3.12 runtime through standalone uv.
 
 #+BEGIN_SRC shell
 curl -fsSL https://raw.githubusercontent.com/artawower/kaizen/master/install.sh | sh
@@ -30,7 +31,9 @@ curl -fsSL https://raw.githubusercontent.com/artawower/kaizen/master/install.sh 
 
 The remote script clones Kaizen to =~/.local/share/kaizen=, creates
 =~/.config/kaizen/config.toml=, configures chezmoi, and installs a
-=~/.local/bin/kaizen= wrapper.
+=~/.local/bin/kaizen= wrapper pinned to the selected Python interpreter. Native
+package managers are checked only by commands that use them. On macOS, Kaizen
+offers to run the official Homebrew installer when required.
 
 Edit the generated config, then run:
 

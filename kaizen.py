@@ -30,6 +30,10 @@ _CAPTURE_PATHS = [
 _VARIANT_FILES = ("packages.toml", "mise.toml", "post_install.py")
 _FEATURE_ALIASES = {"battery-thresholds": "battery"}
 _IGNORED_FEATURES = {"mise", "nix-system"}
+_HOMEBREW_INSTALL_URL = (
+    "https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh"
+)
+_HOMEBREW_PATHS = (Path("/opt/homebrew/bin/brew"), Path("/usr/local/bin/brew"))
 
 
 class InstallMode(Enum):
@@ -89,6 +93,80 @@ class ConfigNotFoundError(KaizenError):
         super().__init__(f"config not found: {path}; copy {example} there")
 
 
+class DependencyNotFoundError(KaizenError):
+    def __init__(self, dependency: str, required_by: str, install_hint: str) -> None:
+        self.dependency = dependency
+        self.required_by = required_by
+        self.install_hint = install_hint
+        super().__init__(
+            f"{dependency} is required by {required_by}; install it from {install_hint}"
+        )
+
+
+class DependencyInstallError(KaizenError):
+    def __init__(self, dependency: str, exit_code: int | None = None) -> None:
+        self.dependency = dependency
+        self.exit_code = exit_code
+        detail = f" with exit code {exit_code}" if exit_code is not None else ""
+        super().__init__(f"failed to install {dependency}{detail}")
+
+
+def _find_homebrew() -> str | None:
+    if executable := shutil.which("brew"):
+        return executable
+    for path in _HOMEBREW_PATHS:
+        if executable := shutil.which(str(path)):
+            return executable
+    return None
+
+
+def _activate_homebrew(executable: str) -> str:
+    bin_directory = str(Path(executable).parent)
+    current_path = os.environ.get("PATH", "")
+    entries = current_path.split(os.pathsep) if current_path else []
+    if bin_directory not in entries:
+        os.environ["PATH"] = os.pathsep.join([bin_directory, *entries])
+    return executable
+
+
+def _approve_install(dependency: str, required_by: str, install_source: str) -> bool:
+    if not sys.stdin.isatty():
+        return False
+    try:
+        answer = input(
+            f"{dependency} is required by {required_by}. "
+            f"Install it now from {install_source}? [y/N] "
+        )
+    except EOFError:
+        return False
+    return answer.strip().lower() in {"y", "yes"}
+
+
+def _install_homebrew() -> str:
+    if not shutil.which("curl"):
+        raise ExecutableNotFoundError("curl")
+    try:
+        download = subprocess.run(
+            ["curl", "-fsSL", _HOMEBREW_INSTALL_URL],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        result = subprocess.run(
+            ["/bin/bash"],
+            input=download.stdout,
+            text=True,
+            env={**os.environ, "NONINTERACTIVE": "1"},
+        )
+    except subprocess.CalledProcessError as error:
+        raise DependencyInstallError("Homebrew", error.returncode) from error
+    if result.returncode != 0:
+        raise DependencyInstallError("Homebrew", result.returncode)
+    if executable := _find_homebrew():
+        return executable
+    raise DependencyInstallError("Homebrew")
+
+
 class PackageManager(ABC):
     @abstractmethod
     def install(self, packages: dict[str, object]) -> None:
@@ -99,6 +177,8 @@ class PackageManager(ABC):
         pass
 
     def _run(self, cmd: list[str], env: dict[str, str] | None = None) -> None:
+        if not shutil.which(cmd[0]):
+            raise ExecutableNotFoundError(cmd[0])
         print(f"  $ {' '.join(cmd)}")
         result = subprocess.run(cmd, env=env or os.environ)
         if result.returncode != 0:
@@ -108,19 +188,40 @@ class PackageManager(ABC):
 class Brew(PackageManager):
     def install(self, packages: dict[str, object]) -> None:
         section = _table(packages.get("macos"))
-        for tap in _string_list(section.get("taps")):
-            self._run(["brew", "tap", tap])
+        taps = _string_list(section.get("taps"))
+        formulae = _string_list(section.get("brew"))
+        casks = _string_list(section.get("cask"))
+        if not taps and not formulae and not casks:
+            return
+        brew = self._require("sync")
+        for tap in taps:
+            self._run([brew, "tap", tap])
         brew_args = _table(section.get("brew_args"))
-        for pkg in _string_list(section.get("brew")):
+        for package in formulae:
             self._run(
-                ["brew", "install", "--yes", pkg, *_string_list(brew_args.get(pkg))]
+                [
+                    brew,
+                    "install",
+                    "--yes",
+                    package,
+                    *_string_list(brew_args.get(package)),
+                ]
             )
-        if casks := _string_list(section.get("cask")):
-            self._run(["brew", "install", "--yes", "--cask", *casks])
+        if casks:
+            self._run([brew, "install", "--yes", "--cask", *casks])
 
     def update(self) -> None:
-        self._run(["brew", "update"])
-        self._run(["brew", "upgrade", "--yes"])
+        brew = self._require("update")
+        self._run([brew, "update"])
+        self._run([brew, "upgrade", "--yes"])
+
+    @staticmethod
+    def _require(required_by: str) -> str:
+        if executable := _find_homebrew():
+            return _activate_homebrew(executable)
+        if _approve_install("Homebrew", required_by, _HOMEBREW_INSTALL_URL):
+            return _activate_homebrew(_install_homebrew())
+        raise DependencyNotFoundError("Homebrew", required_by, "https://brew.sh")
 
 
 class Dnf(PackageManager):
