@@ -68,6 +68,8 @@ optional.
 * Usage
 
 #+BEGIN_SRC shell
+kaizen              # show command help and documentation
+kaizen docs         # show documentation and local paths
 kaizen sync         # install enabled features, mise tools, and dotfiles
 kaizen update       # upgrade native packages and mise tools
 kaizen self-update  # fast-forward a managed installation from its remote branch
@@ -75,6 +77,9 @@ kaizen bump         # developer: update mise pins in feature-local manifests
 kaizen capture      # developer: re-add known mutable dotfiles to the source
 kaizen status       # show installation mode, source, features, and tools
 #+END_SRC
+
+Running ~kaizen~ without arguments is safe: it prints help instead of changing the
+system. The same output is available through ~kaizen help~ and ~kaizen --help~.
 
 ~kaizen self-update~ updates only remote installations created by the installer.
 It refuses development checkouts, detached branches, and installations with

@@ -30,6 +30,7 @@ _CAPTURE_PATHS = [
 _VARIANT_FILES = ("packages.toml", "mise.toml", "post_install.py")
 _FEATURE_ALIASES = {"battery-thresholds": "battery"}
 _IGNORED_FEATURES = {"mise", "nix-system"}
+_DOCUMENTATION_URL = "https://github.com/artawower/kaizen#readme"
 _HOMEBREW_INSTALL_URL = (
     "https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh"
 )
@@ -728,17 +729,35 @@ _COMMANDS = {
     "sync": "Install enabled packages, mise tools, and dotfiles",
     "update": "Upgrade native packages and mise tools",
     "self-update": "Update a managed Kaizen installation",
+    "status": "Show the active platform, features, and tools",
     "bump": "Developer: upgrade and capture mise versions",
     "capture": "Developer: capture mutable dotfiles",
-    "status": "Show the active platform, features, and tools",
+    "docs": "Show documentation and configuration paths",
+    "help": "Show this help",
 }
 
+
+def _print_help() -> None:
+    print("Usage: kaizen <command>\n\nCommands:")
+    for name, description in _COMMANDS.items():
+        print(f"  {name:<12} {description}")
+    print(f"\nDocumentation:\n  {_DOCUMENTATION_URL}")
+    print(f"\nConfiguration:\n  {CONFIG_FILE}")
+
+
+def _print_docs() -> None:
+    print(f"Documentation: {_DOCUMENTATION_URL}")
+    print(f"Configuration: {CONFIG_FILE}")
+    print(f"Installed source: {KAIZEN_DIR}")
+
+
 if __name__ == "__main__":
-    cmd = sys.argv[1] if len(sys.argv) > 1 else "sync"
+    cmd = sys.argv[1] if len(sys.argv) > 1 else "help"
     if cmd in {"help", "-h", "--help"}:
-        print("Usage: kaizen [command]\n\nCommands:")
-        for name, description in _COMMANDS.items():
-            print(f"  {name:<12} {description}")
+        _print_help()
+        sys.exit()
+    if cmd == "docs":
+        _print_docs()
         sys.exit()
     if cmd not in _COMMANDS:
         print(f"unknown command: {cmd}. available: {', '.join(_COMMANDS)}")

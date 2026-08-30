@@ -2303,7 +2303,7 @@ Setup blamer face
   :ensure (:host github :repo "0WD0/majutsu")
   :custom
   (majutsu-diff-refine-hunk t)
-  (majutsu-diff-fontify-hunk t)
+  (majutsu-diff-fontify-hunk nil)
   :config
   (with-eval-after-load 'with-editor
     (setq with-editor-emacsclient-executable

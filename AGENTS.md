@@ -83,6 +83,8 @@ variant = "yabai"
 
 | Command | Effect |
 | --- | --- |
+| `kaizen` / `kaizen help` | show commands, documentation URL, and config path |
+| `kaizen docs` | show documentation, config, and installed source paths |
 | `just sync` | install packages → generate mise.toml → mise install → chezmoi apply |
 | `kaizen self-update` | fast-forward a managed installation; unavailable in development mode |
 | `just bump` | developer-only: mise upgrade --interactive → capture versions to feature mise.toml files |
