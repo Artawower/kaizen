@@ -666,16 +666,19 @@ class Kaizen:
             _ = subprocess.run(["mise", "install", "--jobs=1"], check=True)
             print()
         for feature in features:
-            self._run_post_install(feature)
+            self._run_post_install(feature, "sync")
         print("[dotfiles]")
         _ = subprocess.run(
             ["chezmoi", "apply", "--source", str(DOTFILES_DIR)], check=True
         )
 
     def update(self) -> None:
+        features = parse_features(self._config)
         self._adapter.update()
         if shutil.which("mise"):
             _ = subprocess.run(["mise", "upgrade"], check=True)
+        for feature in features:
+            self._run_post_install(feature, "update")
 
     def bump(self) -> None:
         _require_install_mode("bump", InstallMode.DEVELOPMENT)
@@ -734,7 +737,7 @@ class Kaizen:
             self._adapter.install(load_toml(feature.variant_packages_file))
         print()
 
-    def _run_post_install(self, feature: Feature) -> None:
+    def _run_post_install(self, feature: Feature, action: str) -> None:
         scripts = [feature.post_install]
         if feature.variant_post_install:
             scripts.append(feature.variant_post_install)
@@ -743,7 +746,9 @@ class Kaizen:
             return
         print(f"[{feature.label} post-install]")
         for script in existing:
-            _ = subprocess.run([sys.executable, str(script), self._os], check=False)
+            _ = subprocess.run(
+                [sys.executable, str(script), self._os, action], check=True
+            )
         print()
 
     def _generate_mise_config(self, features: list[Feature]) -> None:
@@ -779,7 +784,7 @@ class Kaizen:
 
 _COMMANDS = {
     "sync": "Install enabled packages, mise tools, and dotfiles",
-    "update": "Upgrade native packages and mise tools",
+    "update": "Upgrade native packages, mise tools, and feature integrations",
     "self-update": "Update a managed Kaizen installation",
     "status": "Show the active platform, features, and tools",
     "bump": "Developer: upgrade and capture mise versions",

@@ -1,4 +1,5 @@
 (require "moka/moka.scm")
+(require "scopeline/scopeline.scm")
 
 ;; Nord
 (moka-configure!

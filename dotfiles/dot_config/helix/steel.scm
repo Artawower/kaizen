@@ -1,7 +1,5 @@
 (require "helix/configuration.scm")
 (require "helix/keymaps.scm")
-(require "nrepl.hx/nrepl.scm")
-(require "paredit.hx/paredit.scm")
 (require (only-in "helix/ext.scm" evalp eval-buffer))
 
 (keymap (global)

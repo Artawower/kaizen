@@ -71,7 +71,7 @@ optional.
 kaizen              # show command help and documentation
 kaizen docs         # show documentation and local paths
 kaizen sync         # install enabled features, mise tools, and dotfiles
-kaizen update       # upgrade native packages and mise tools
+kaizen update       # upgrade native packages, mise tools, and feature integrations
 kaizen self-update  # fast-forward a managed installation from its remote branch
 kaizen bump         # developer: update mise pins in feature-local manifests
 kaizen capture      # developer: re-add known mutable dotfiles to the source
@@ -90,11 +90,16 @@ local changes. Run ~kaizen sync~ separately after an update.
 ~kaizen sync~ performs these steps:
 
 1. Validate enabled features and selected variants.
-2. Install packages with the native platform package manager.
-3. Merge enabled feature and variant =mise.toml= files.
-4. Run =mise install=.
-5. Generate the machine-local chezmoi data overlay.
+2. Generate the machine-local chezmoi data overlay.
+3. Install packages with the native platform package manager.
+4. Merge enabled feature and variant =mise.toml= files and run =mise install=.
+5. Install missing feature integrations without refreshing existing ones.
 6. Run =chezmoi apply=.
+
+~kaizen update~ upgrades native packages and mise tools, then refreshes enabled
+feature integrations. Helix Steel fetches and rebuilds only when its source
+revision changes; Forge packages are reinstalled only when their remote revision
+changes.
 
 * Configuration
 
