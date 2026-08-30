@@ -27,8 +27,7 @@ org-mode
 ":ID: " (p (org-id-new) note-id) n
 ":END:" n n
 "#+TITLE: " (p "title") n
-"#+FILETAGS: " (p "tags") n
-"#+STARTUP: " (p "content" startup) n n n
+"#+FILETAGS: " (p "tags") n n n
 "* Links" n
 "- " n
 "* Explanation" n
