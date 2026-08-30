@@ -2,4 +2,5 @@
 (require "appearance.scm")
 (require "bindings.scm")
 (require "steel.scm")
+(require "modeline.scm")
 (require "wakatime/wakatime.scm")

@@ -4069,8 +4069,7 @@ Requires Emacs 30+
 (setq flymake-err-line-patterns nil)
 
 (use-package eca
-   ;; :ensure (:type git :host github :repo "editor-code-assistant/eca-emacs" :files (:defaults "*.el"))
-   ;; :ensure (:type git :host github :repo "artawower/eca-emacs" :files (:defaults "*.el"))
+  :ensure (:type git :host github :repo "editor-code-assistant/eca-emacs" :files (:defaults "*.el"))
   :demand t
   :bind (("C-c a e" . eca)
          ("s-g" . eca-transient-menu))
@@ -4081,32 +4080,28 @@ Requires Emacs 30+
   (eca-chat-mcp-tool-call-success-symbol
    (propertize "󰄭" 'face 'font-lock-string-face 'display '(height 1.3)))
   (eca-chat-mcp-tool-call-loading-symbol
-   (propertize "" 'face 'default 'display '(height 1.3)))
+   (propertize "󰔟" 'face 'default 'display '(height 1.3)))
   (eca-chat-mcp-tool-call-error-symbol
-   (propertize "" 'face 'font-lock-builtin-face 'display '(height 1.3)))
-
+   (propertize "󰅙" 'face 'font-lock-builtin-face 'display '(height 1.3)))
   :config
   (define-key eca-chat-mode-map (kbd "<tab>") 'eca-chat-toggle-expandable-block)
   (define-key eca-chat-mode-map (kbd "C-c C-v") 'my/open-last-view-diff)
   (define-key eca-chat-mode-map (kbd "s-<return>") 'eca-chat--key-pressed-return)
   (define-key eca-chat-mode-map (kbd "<return>") 'eca-chat--key-pressed-newline)
   (define-key eca-chat-mode-map (kbd "RET") 'eca-chat--key-pressed-newline)
-
   (define-key eca-chat-mode-map (kbd "C-n") 'eca-chat--key-pressed-next-prompt-history)
   (define-key eca-chat-mode-map (kbd "C-e") 'eca-chat--key-pressed-previous-prompt-history)
   (define-key eca-chat-mode-map (kbd "C-S-j") 'eca-chat-go-to-next-expandable-block)
   (define-key eca-chat-mode-map (kbd "C-S-k") 'eca-chat-go-to-prev-expandable-block)
-
   (define-key global-map (kbd "s-g") 'eca-transient-menu)
-
   (add-to-list
    'display-buffer-alist
-  '("<eca-chat.*"
-    (my/display-buffer-right-smart)
-    (window-width . 0.4))))
+   '("<eca-chat.*"
+     (my/display-buffer-right-smart)
+     (window-width . 0.4))))
 #+END_SRC
 
-** Copilot
+** COMMENT Copilot
 deps
 #+BEGIN_SRC emacs-lisp
 (use-package track-changes
@@ -4136,6 +4131,32 @@ deps
   :config)
 #+END_SRC
 
+** Minuet
+#+BEGIN_SRC emacs-lisp :results silent
+(use-package minuet
+  :hook
+  (prog-mode . minuet-auto-suggestion-mode)
+  (text-mode . minuet-auto-suggestion-mode)
+  :bind
+  (("s-]" . minuet-next-suggestion)
+   ("s-[" . minuet-previous-suggestion)
+   ("s-l" . minuet-accept-suggestion)
+   ("s-k" . minuet-accept-suggestion)
+   ("s-j" . minuet-show-suggestion)
+   ("s-;" . minuet-accept-suggestion-word)
+   ("s-/" . minuet-accept-suggestion-line))
+  :config
+  (setq minuet-provider 'openai-fim-compatible)
+  (plist-put minuet-openai-fim-compatible-options :max_tokens 64)
+  (plist-put minuet-openai-fim-compatible-options :end-point "http://localhost:11434/v1/completions")
+  (plist-put minuet-openai-fim-compatible-options :name "Ollama")
+  (plist-put minuet-openai-fim-compatible-options :api-key "TERM")
+  (plist-put minuet-openai-fim-compatible-options :model "qwen2.5-coder:1.5b")
+  (setq minuet-n-completions 1)
+  (setq minuet-context-window 512)
+  (setq minuet-auto-suggestion-debounce-delay 0.1)
+  (setq minuet-auto-suggestion-throttle-delay 0.3))
+#+END_SRC
 * Org mode
 ** Org GPG encryption
 #+BEGIN_SRC emacs-lisp

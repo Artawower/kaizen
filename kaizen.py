@@ -10,7 +10,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
-from typing import cast
+from typing import TextIO, cast
 
 import tomllib
 
@@ -35,6 +35,45 @@ _HOMEBREW_INSTALL_URL = (
     "https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh"
 )
 _HOMEBREW_PATHS = (Path("/opt/homebrew/bin/brew"), Path("/usr/local/bin/brew"))
+_ANSI_BOLD = "\033[1m"
+_ANSI_CYAN = "\033[36m"
+_ANSI_GREEN = "\033[32m"
+_ANSI_YELLOW = "\033[33m"
+_ANSI_RED = "\033[31m"
+_ANSI_UNDERLINE = "\033[4m"
+_ANSI_RESET = "\033[0m"
+
+
+def _supports_color(stream: TextIO) -> bool:
+    return (
+        stream.isatty()
+        and "NO_COLOR" not in os.environ
+        and os.environ.get("TERM", "").lower() != "dumb"
+    )
+
+
+def _paint(text: object, *styles: str, stream: TextIO | None = None) -> str:
+    output = stream if stream is not None else sys.stdout
+    value = str(text)
+    if not styles or not _supports_color(output):
+        return value
+    return f"{''.join(styles)}{value}{_ANSI_RESET}"
+
+
+def _print_field(label: str, value: object, *styles: str) -> None:
+    key = _paint(f"{label:<13}:", _ANSI_CYAN)
+    print(f"{key} {_paint(value, *styles)}")
+
+
+def _print_warning(message: str) -> None:
+    print(_paint(message, _ANSI_YELLOW, stream=sys.stderr), file=sys.stderr)
+
+
+def _print_error(message: str) -> None:
+    print(
+        _paint(f"error: {message}", _ANSI_RED, stream=sys.stderr),
+        file=sys.stderr,
+    )
 
 
 class InstallMode(Enum):
@@ -183,7 +222,9 @@ class PackageManager(ABC):
         print(f"  $ {' '.join(cmd)}")
         result = subprocess.run(cmd, env=env or os.environ)
         if result.returncode != 0:
-            print(f"  warning: command failed (exit {result.returncode}), continuing")
+            _print_warning(
+                f"  warning: command failed (exit {result.returncode}), continuing"
+            )
 
 
 class Brew(PackageManager):
@@ -281,8 +322,8 @@ def load_toml(path: Path) -> dict[str, object]:
     try:
         with open(path, "rb") as f:
             return tomllib.load(f)
-    except (OSError, tomllib.TOMLDecodeError) as e:
-        print(f"  warning: {path}: {e}")
+    except (OSError, tomllib.TOMLDecodeError) as error:
+        _print_warning(f"  warning: {path}: {error}")
         return {}
 
 
@@ -655,16 +696,27 @@ class Kaizen:
     def status(self) -> None:
         features = parse_features(self._config)
         mode = _install_mode()
-        print(f"OS       : {self._os}")
-        print(f"mode     : {mode.value}")
-        print(f"source   : {KAIZEN_DIR}")
-        print(f"config   : {CONFIG_FILE}")
-        print(f"features : {', '.join(feature.label for feature in features)}")
-        print(
-            f"mise     : {MISE_CONFIG} {'(exists)' if MISE_CONFIG.exists() else '(not generated yet)'}"
+        mise_exists = MISE_CONFIG.exists()
+        chezmoi = shutil.which("chezmoi")
+        mise = shutil.which("mise")
+        _print_field("OS", self._os)
+        _print_field(
+            "mode",
+            mode.value,
+            _ANSI_GREEN if mode is InstallMode.MANAGED else _ANSI_YELLOW,
         )
-        print(f"chezmoi  : {shutil.which('chezmoi') or 'not found'}")
-        print(f"mise     : {shutil.which('mise') or 'not found'}")
+        _print_field("source", KAIZEN_DIR)
+        _print_field("config", CONFIG_FILE)
+        _print_field("features", ", ".join(feature.label for feature in features))
+        _print_field(
+            "mise config",
+            f"{MISE_CONFIG} {'(exists)' if mise_exists else '(not generated yet)'}",
+            _ANSI_GREEN if mise_exists else _ANSI_YELLOW,
+        )
+        _print_field(
+            "chezmoi", chezmoi or "not found", _ANSI_GREEN if chezmoi else _ANSI_RED
+        )
+        _print_field("mise", mise or "not found", _ANSI_GREEN if mise else _ANSI_RED)
 
     def _write_user_data(self) -> None:
         USER_DATA_FILE.parent.mkdir(parents=True, exist_ok=True)
@@ -738,17 +790,21 @@ _COMMANDS = {
 
 
 def _print_help() -> None:
-    print("Usage: kaizen <command>\n\nCommands:")
+    print(f"{_paint('Usage:', _ANSI_BOLD)} kaizen <command>\n")
+    print(_paint("Commands:", _ANSI_BOLD))
     for name, description in _COMMANDS.items():
-        print(f"  {name:<12} {description}")
-    print(f"\nDocumentation:\n  {_DOCUMENTATION_URL}")
-    print(f"\nConfiguration:\n  {CONFIG_FILE}")
+        command = _paint(f"{name:<12}", _ANSI_CYAN)
+        print(f"  {command} {description}")
+    print(f"\n{_paint('Documentation:', _ANSI_BOLD)}")
+    print(f"  {_paint(_DOCUMENTATION_URL, _ANSI_CYAN, _ANSI_UNDERLINE)}")
+    print(f"\n{_paint('Configuration:', _ANSI_BOLD)}")
+    print(f"  {CONFIG_FILE}")
 
 
 def _print_docs() -> None:
-    print(f"Documentation: {_DOCUMENTATION_URL}")
-    print(f"Configuration: {CONFIG_FILE}")
-    print(f"Installed source: {KAIZEN_DIR}")
+    _print_field("Documentation", _DOCUMENTATION_URL, _ANSI_CYAN, _ANSI_UNDERLINE)
+    _print_field("Configuration", CONFIG_FILE)
+    _print_field("Installed source", KAIZEN_DIR)
 
 
 if __name__ == "__main__":
@@ -760,7 +816,7 @@ if __name__ == "__main__":
         _print_docs()
         sys.exit()
     if cmd not in _COMMANDS:
-        print(f"unknown command: {cmd}. available: {', '.join(_COMMANDS)}")
+        _print_error(f"unknown command: {cmd}. available: {', '.join(_COMMANDS)}")
         sys.exit(1)
     try:
         if cmd == "self-update":
@@ -774,11 +830,11 @@ if __name__ == "__main__":
             )
             config = merge_config(read_toml(DEFAULTS_FILE), normalized_overrides)
             for warning in warnings:
-                print(warning)
+                _print_warning(warning)
             getattr(Kaizen(config, normalized_overrides, link_user_config), cmd)()
     except subprocess.CalledProcessError as error:
         command = " ".join(str(part) for part in error.cmd)
-        print(f"error: {command} failed with exit code {error.returncode}")
+        _print_error(f"{command} failed with exit code {error.returncode}")
         sys.exit(error.returncode)
     except (
         KaizenError,
@@ -787,5 +843,5 @@ if __name__ == "__main__":
         ValueError,
         tomllib.TOMLDecodeError,
     ) as error:
-        print(f"error: {error}")
+        _print_error(str(error))
         sys.exit(1)

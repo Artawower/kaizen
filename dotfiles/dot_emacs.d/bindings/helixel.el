@@ -524,6 +524,29 @@
                   #'helixel-select-line
                 #'ignore)))
 
+
+(with-eval-after-load 'minuet
+  (add-hook 'helixel-state-change-hook
+            (lambda ()
+              (cond
+               ((eq helixel--current-state 'insert)
+                (setq blamer--block-render-p t)
+                (when (fboundp 'blamer--clear-overlay)
+                  (blamer--clear-overlay)))
+               ((eq helixel--current-state 'normal)
+                (setq blamer--block-render-p nil)
+                (when (fboundp 'minuet-dismiss-suggestion)
+                  (minuet-dismiss-suggestion))))))
+
+  (add-hook 'minuet-auto-suggestion-block-predicates
+            (lambda ()
+              (not (eq helixel--current-state 'insert))))
+
+  (advice-add 'minuet-show-suggestion :around
+              (lambda (orig-fun &rest args)
+                (unless (eq helixel--current-state 'normal)
+                  (apply orig-fun args)))))
+
 (with-eval-after-load 'copilot
   (add-hook 'helixel-state-change-hook
             (lambda ()

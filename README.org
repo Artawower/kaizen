@@ -80,6 +80,8 @@ kaizen status       # show installation mode, source, features, and tools
 
 Running ~kaizen~ without arguments is safe: it prints help instead of changing the
 system. The same output is available through ~kaizen help~ and ~kaizen --help~.
+Interactive help, documentation, status, warnings, and errors use restrained ANSI
+colors. Colors are disabled for pipes, redirects, =TERM=dumb=, and =NO_COLOR=.
 
 ~kaizen self-update~ updates only remote installations created by the installer.
 It refuses development checkouts, detached branches, and installations with
