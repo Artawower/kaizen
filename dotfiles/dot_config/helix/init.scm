@@ -11,3 +11,4 @@
 (require "steel.scm")
 (require "modeline.scm")
 (require "file-manager.scm")
+(require "file-info/file-info.scm")
