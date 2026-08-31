@@ -16,18 +16,25 @@ or:
 variant = "steel"
 ```
 
-`config.toml` is the shared configuration for both variants. Official Helix reads it and ignores the Scheme files. The Steel variant reads the same TOML configuration, then loads plugins and plugin-specific behavior from `init.scm`.
+The Steel variant uses Scheme as its primary configuration. `config.toml` stays empty so TOML keymaps do not conflict with Scheme keymaps. Official Helix ignores the Scheme files and therefore uses its defaults unless the TOML backup is restored manually.
 
-- `config.toml.tmpl` owns shared editor options and keymaps.
+- `core.scm` owns Steel editor options.
+- `bindings.scm` owns Steel keymaps.
+- `config.toml.bak` preserves the previous TOML configuration.
 - `languages.toml` owns language-server configuration.
-- `init.scm` loads Steel plugins and Scheme integrations.
+- `init.scm` loads the Scheme configuration and Steel plugins.
 - `appearance.scm` selects `my` or `my_light` from the system color scheme for Steel.
 - `steel.scm` owns NREPL, Paredit, and Scheme language setup.
 - `modeline.scm` configures Moka and Scopeline.
 - `file-manager.scm` configures Forest.
 - `helix.scm` exports commands to the Steel runtime.
 - `kaizen.scm` is generated from the shared Kaizen shortcut registry.
-- `core.scm.bak` and `bindings.scm.bak` preserve the previous Scheme configuration.
+
+Scheme keybindings include:
+
+- `Space b b`: open the buffer picker.
+- `Space ]` / `Space [`: go to the next / previous buffer.
+- `Ctrl+n` / `Ctrl+e` on Colemak and `Ctrl+j` / `Ctrl+k` on QWERTY: go to the next / previous diagnostic.
 
 The `standard` variant installs the platform Helix package. The `steel` variant builds the fork, installs Forge packages, and links its runtime into `~/.config/helix/runtime`.
 

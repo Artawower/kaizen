@@ -71,12 +71,16 @@
         ":quit-all"
         "/"
         "global_search"
+        "["
+        "goto_previous_buffer"
+        "]"
+        "goto_next_buffer"
         "e"
         "file_explorer"
         "o"
         (hash "j" jjui-actions)
         "b"
-        (hash "]" "goto_next_buffer" "[" "goto_previous_buffer" "q" ":buffer-close")
+        (hash "b" "buffer_picker" "]" "goto_next_buffer" "[" "goto_previous_buffer" "q" ":buffer-close")
         "w"
         (hash kaizen-split-right "vsplit"
           kaizen-split-down
@@ -177,9 +181,9 @@
     "normal"
     (hash
       (string-append "C-" kaizen-nav-down)
-      "goto_next_buffer"
+      "goto_next_diag"
       (string-append "C-" kaizen-nav-up)
-      "goto_previous_buffer"
+      "goto_prev_diag"
       "C-A-left"
       "jump_view_left"
       "C-A-right"

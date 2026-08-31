@@ -1,4 +1,6 @@
+(require "core.scm")
 (require "appearance.scm")
+(require "bindings.scm")
 (require "nrepl.hx/nrepl.scm")
 (require "paredit.hx/paredit.scm")
 (require "forest/forest.scm")
