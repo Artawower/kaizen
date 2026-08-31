@@ -1545,9 +1545,9 @@ The format is:
 *** Undo sessions (history saving)
 #+BEGIN_SRC emacs-lisp
 (use-package undo-fu-session
-  :after undo-fu
+  :demand t
   :config
-  (global-undo-fu-session-mode))
+  (undo-fu-session-global-mode 1))
 #+END_SRC
 ** Disable sgml-mode bindings
 #+BEGIN_SRC emacs-lisp
