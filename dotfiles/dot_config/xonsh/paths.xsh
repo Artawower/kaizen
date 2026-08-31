@@ -5,7 +5,7 @@ home = Path.home()
 IS_DARWIN = platform.system() == 'Darwin'
 IS_LINUX  = platform.system() == 'Linux'
 
-for _p in [
+_paths = [
     home / 'bin',
     home / '.local/bin',
     home / '.config/bin',
@@ -17,24 +17,25 @@ for _p in [
     home / '.go/bin',
     home / '.steel/bin',
     home / '.local/share/steel/bin',
-]:
-    $PATH.insert(0, str(_p))
+]
 
 if IS_DARWIN:
-    for _p in ['/opt/homebrew/sbin', '/opt/homebrew/bin', '/opt/homebrew/opt/libpq/bin']:
-        $PATH.insert(0, _p)
-
-    $PATH.insert(0, str(home / '.orbstack/bin'))
+    _paths.extend(['/opt/homebrew/sbin', '/opt/homebrew/bin', '/opt/homebrew/opt/libpq/bin'])
+    _paths.append(home / '.orbstack/bin')
 
     _sdk = home / 'Library/Android/sdk'
     $ANDROID_SDK_ROOT = str(_sdk)
     $ANDROID_HOME     = str(_sdk)
-    $PATH.insert(0, str(_sdk / 'cmdline-tools/latest/bin'))
-    $PATH.insert(0, str(_sdk / 'platform-tools'))
+    _paths.extend([_sdk / 'cmdline-tools/latest/bin', _sdk / 'platform-tools'])
     del _sdk
 
 if IS_LINUX:
-    for _p in ['/usr/sbin', '/usr/bin', '/usr/local/bin']:
-        $PATH.insert(0, _p)
+    _paths.extend(['/usr/sbin', '/usr/bin', '/usr/local/bin'])
 
-del _p, home, IS_DARWIN, IS_LINUX, platform, Path
+for _p in reversed(_paths):
+    _path = str(_p)
+    if _path in $PATH:
+        $PATH.remove(_path)
+    $PATH.insert(0, _path)
+
+del _p, _path, _paths, home, IS_DARWIN, IS_LINUX, platform, Path

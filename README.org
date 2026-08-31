@@ -115,7 +115,11 @@ font_size = 16
 [features]
 core = true
 frontend = true
+helix = true
 tiling = true
+
+[helix]
+variant = "standard"
 
 [tiling]
 variant = "yabai"
@@ -155,6 +159,7 @@ variant = "yabai"
 #+END_SRC
 
 Available tiling variants are =aerospace=, =glazewm=, =komorebi=, and =yabai=.
+Helix supports =standard= (official release) and =steel= (plugin-enabled fork).
 Changing a variant does not uninstall packages from the previously selected
 variant.
 

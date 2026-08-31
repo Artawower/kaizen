@@ -9,6 +9,9 @@ username = "darkawower"
 [emacs]
 binding-scheme = "helixel"
 
+[helix]
+variant = "standard"
+
 [features]
 ai = true
 android = false

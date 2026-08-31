@@ -1,0 +1,9 @@
+i = "extend_char_right"
+j = "search_next"
+k = "extend_next_word_end"
+l = "insert_mode"
+J = "search_prev"
+K = "extend_next_long_word_end"
+L = "insert_at_line_start"
+e = ["extend_line_up", "extend_to_line_bounds"]
+n = ["extend_line_down", "extend_to_line_bounds"]

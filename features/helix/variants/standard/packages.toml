@@ -1,0 +1,9 @@
+description = "Official Helix editor"
+category = "editor"
+
+[macos]
+brew = ["helix"]
+
+[linux]
+dnf = ["helix"]
+apt = ["hx"]
