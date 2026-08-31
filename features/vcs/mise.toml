@@ -1,4 +1,5 @@
 [tools]
 "cargo:gitu" = "latest"
 "github:idursun/jjui" = "latest"
-"npm:git-trim" = "0.2.1"
+"npm:git-trim" = "0.3.1"
+hunk = "latest"

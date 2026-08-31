@@ -1,109 +1,237 @@
+[language-server.ty]
+command = "ty"
+args = ["server"]
+
+[language-server.ruff]
+command = "ruff"
+args = ["server"]
+
+[language-server.codebook]
+command = "codebook-lsp"
+args = ["serve"]
+
+[language-server.typescript-language-server]
+command = "typescript-language-server"
+args = ["--stdio"]
+config.hostInfo = "helix"
+config.tsserver.fallbackPath = "tsserver"
+
+[language-server.angular]
+command = "ngserver"
+args = [
+  "--stdio",
+  "--tsProbeLocations",
+  ".",
+  "--ngProbeLocations",
+  ".",
+]
+required-root-patterns = ["angular.json"]
+
+[language-server.vue-language-server]
+command = "vue-language-server"
+args = ["--stdio"]
+
+[language-server.vue-language-server.config.typescript]
+tsdk = "node_modules/typescript/lib"
+
+[language-server.vue-language-server.config.vue]
+hybridMode = false
+
+[language-server.vscode-html-language-server]
+command = "vscode-html-language-server"
+args = ["--stdio"]
+
+[language-server.vscode-eslint-language-server]
+command = "vscode-eslint-language-server"
+args = ["--stdio"]
+
+[language-server.vscode-eslint-language-server.config]
+validate = "on"
+run = "onType"
+
+[language-server.copilot]
+command = "copilot-language-server"
+args = ["--stdio"]
+
+[language-server.copilot.config]
+editorInfo = { name = "Helix", version = "25.07.1" }
+editorPluginInfo = { name = "helix-copilot", version = "0.1.0" }
+
+[language-server.gopls]
+command = "gopls"
+config.ui.completion.usePlaceholders = true
+
+[language-server.rust-analyzer]
+command = "rust-analyzer"
+
+[language-server.lua-language-server]
+command = "lua-language-server"
+config.Lua.runtime.version = "LuaJIT"
+
+[language-server.vscode-css-language-server]
+command = "vscode-css-language-server"
+args = ["--stdio"]
+
+[language-server.yaml-language-server]
+command = "yaml-language-server"
+args = ["--stdio"]
+
+[language-server.yaml-language-server.config.yaml.schemas]
+"https://json.schemastore.org/github-workflow" = ".github/workflows/*"
+"https://json.schemastore.org/kustomization" = "kustomization.{yml,yaml}"
+"https://raw.githubusercontent.com/kubernetes/kubernetes/master/api/openapi-spec/swagger.json" = "*.k8s.{yml,yaml}"
+
+[language-server.marksman]
+command = "marksman"
+args = ["server"]
+
+[language-server.csharp-language-server]
+command = "csharp-ls"
+args = ["-v", "-loglevel", "trace"]
+
 [[language]]
-name = "typescript"
+name = "python"
+roots = [
+  "pyproject.toml",
+  "uv.lock",
+  "requirements.txt",
+  "setup.py",
+  "setup.cfg",
+]
 language-servers = [
-  "typescript-language-server",
-  "vscode-eslint-language-server",
-  "copilot",
-  "codebook",
+  "ty",
+  { name = "ruff", only-features = ["diagnostics", "pull-diagnostics", "code-action", "format"] },
+  { name = "copilot", only-features = ["completion"] },
+  { name = "codebook", only-features = ["diagnostics", "code-action"] },
 ]
 auto-format = true
-indent = { tab-width = 2, unit = "  " }
+indent = { tab-width = 4, unit = "    " }
 
 [[language]]
 name = "javascript"
+roots = ["package.json", "jsconfig.json", "tsconfig.json"]
 language-servers = [
   "typescript-language-server",
-  "vscode-eslint-language-server",
-  "copilot",
-  "codebook",
+  { name = "vscode-eslint-language-server", only-features = ["diagnostics", "code-action"] },
+  { name = "copilot", only-features = ["completion"] },
+  { name = "codebook", only-features = ["diagnostics", "code-action"] },
 ]
 auto-format = true
+formatter = { command = "prettier", args = ["--stdin-filepath", "%{buffer_name}"] }
 indent = { tab-width = 2, unit = "  " }
 
 [[language]]
 name = "jsx"
+roots = ["package.json", "jsconfig.json", "tsconfig.json"]
 language-servers = [
   "typescript-language-server",
-  "vscode-eslint-language-server",
-  "copilot",
-  "codebook",
+  { name = "vscode-eslint-language-server", only-features = ["diagnostics", "code-action"] },
+  { name = "copilot", only-features = ["completion"] },
+  { name = "codebook", only-features = ["diagnostics", "code-action"] },
 ]
 auto-format = true
+formatter = { command = "prettier", args = ["--stdin-filepath", "%{buffer_name}"] }
+indent = { tab-width = 2, unit = "  " }
+
+[[language]]
+name = "typescript"
+roots = ["angular.json", "package.json", "tsconfig.json"]
+language-servers = [
+  "typescript-language-server",
+  "angular",
+  { name = "vscode-eslint-language-server", only-features = ["diagnostics", "code-action"] },
+  { name = "copilot", only-features = ["completion"] },
+  { name = "codebook", only-features = ["diagnostics", "code-action"] },
+]
+auto-format = true
+formatter = { command = "prettier", args = ["--stdin-filepath", "%{buffer_name}"] }
 indent = { tab-width = 2, unit = "  " }
 
 [[language]]
 name = "tsx"
+roots = ["package.json", "tsconfig.json"]
 language-servers = [
   "typescript-language-server",
-  "vscode-eslint-language-server",
-  "copilot",
-  "codebook",
+  { name = "vscode-eslint-language-server", only-features = ["diagnostics", "code-action"] },
+  { name = "copilot", only-features = ["completion"] },
+  { name = "codebook", only-features = ["diagnostics", "code-action"] },
+]
+auto-format = true
+formatter = { command = "prettier", args = ["--stdin-filepath", "%{buffer_name}"] }
+indent = { tab-width = 2, unit = "  " }
+
+[[language]]
+name = "vue"
+roots = ["package.json", "tsconfig.json"]
+language-servers = [
+  "vue-language-server",
+  { name = "vscode-eslint-language-server", only-features = ["diagnostics", "code-action"] },
+  { name = "copilot", only-features = ["completion"] },
+  { name = "codebook", only-features = ["diagnostics", "code-action"] },
+]
+auto-format = true
+formatter = { command = "prettier", args = ["--stdin-filepath", "%{buffer_name}"] }
+indent = { tab-width = 2, unit = "  " }
+
+[[language]]
+name = "html"
+roots = ["angular.json", "package.json"]
+language-servers = [
+  "vscode-html-language-server",
+  "angular",
+  { name = "codebook", only-features = ["diagnostics", "code-action"] },
 ]
 auto-format = true
 indent = { tab-width = 2, unit = "  " }
 
 [[language]]
-name = "python"
-language-servers = ["pyrefly", "copilot", "codebook"]
-auto-format = true
-formatter = { command = "black", args = ["--quiet", "-"] }
-indent = { tab-width = 4, unit = "    " }
-
-[[language]]
 name = "go"
-language-servers = ["gopls", "codebook"]
+roots = ["go.work", "go.mod"]
+language-servers = ["gopls"]
 auto-format = true
 formatter = { command = "gofmt" }
 indent = { tab-width = 4, unit = "\t" }
 
 [[language]]
+name = "rust"
+roots = ["Cargo.toml", "Cargo.lock"]
+language-servers = ["rust-analyzer"]
+auto-format = true
+indent = { tab-width = 4, unit = "    " }
+
+[[language]]
 name = "lua"
-language-servers = ["lua-language-server", "codebook"]
+language-servers = [
+  "lua-language-server",
+  { name = "codebook", only-features = ["diagnostics", "code-action"] },
+]
 auto-format = true
 indent = { tab-width = 2, unit = "  " }
 
 [[language]]
 name = "css"
-language-servers = ["vscode-css-language-server", "codebook"]
+language-servers = [
+  "vscode-css-language-server",
+  { name = "codebook", only-features = ["diagnostics", "code-action"] },
+]
 auto-format = true
 indent = { tab-width = 2, unit = "  " }
 
 [[language]]
 name = "scss"
-language-servers = ["vscode-css-language-server", "codebook"]
-auto-format = true
-indent = { tab-width = 2, unit = "  " }
-
-[[language]]
-name = "html"
-language-servers = ["angularls", "vscode-html-language-server", "codebook"]
+language-servers = [
+  "vscode-css-language-server",
+  { name = "codebook", only-features = ["diagnostics", "code-action"] },
+]
 auto-format = true
 indent = { tab-width = 2, unit = "  " }
 
 [[language]]
 name = "c-sharp"
-language-servers = ["csharp-language-server", "codebook"]
-
-[[language]]
-name = "rust"
-language-servers = ["rust-analyzer", "codebook"]
-auto-format = true
-indent = { tab-width = 4, unit = "    " }
-
-
-[language-server.typescript-language-server.config]
-hostInfo = "helix"
-
-[[language]]
-name = "vue"
-auto-format = true
 language-servers = [
-  "vue-language-server",
-  "vscode-eslint-language-server",
-  "copilot",
-  "codebook",
+  "csharp-language-server",
+  { name = "codebook", only-features = ["diagnostics", "code-action"] },
 ]
-formatter = { command = "prettier", args = ["--parser", "vue"] }
 
 [[language]]
 name = "yaml"
@@ -125,127 +253,6 @@ indent = { tab-width = 2, unit = "  " }
 
 [[language]]
 name = "toml"
+language-servers = [{ name = "copilot", only-features = ["completion"] }]
 auto-format = true
-language-servers = ["copilot"]
 indent = { tab-width = 2, unit = "  " }
-
-# [language-server.typescript-language-server]
-# command = "typescript-language-server"
-# args = ["--stdio"]
-
-[language-server.typescript-language-server]
-command = "typescript-language-server"
-args = ["--stdio"]
-
-[language-server.typescript-language-server.config.tsserver]
-path = "/Users/darkawower/.local/share/mise/installs/npm-typescript/6.0.3/lib/node_modules/typescript/lib"
-
-[language-server.vue-language-server]
-command = "vue-language-server"
-args = ["--stdio"]
-config = { typescript = { tsdk = "node_modules/typescript/lib" } }
-
-[language-server.typescript-language-server.config.typescript]
-updateImportsOnFileMove.enabled = "always"
-suggest.completeFunctionCalls = true
-inlayHints.parameterNames.enabled = "all"
-inlayHints.parameterTypes.enabled = true
-inlayHints.variableTypes.enabled = true
-inlayHints.propertyDeclarationTypes.enabled = true
-inlayHints.functionLikeReturnTypes = true
-inlayHints.enumMemberValues.enabled = true
-format.enable = false
-format.semicolons = "remove"
-preferences.importModuleSpecifier = "non-relative"
-preferences.importModuleSpecifierEnding = "auto"
-tsserver.pluginPaths = ["./node_modules"]
-
-[language-server.pyrefly]
-command = "pyrefly"
-args = ["lsp"]
-
-[language-server.ruff-lsp]
-command = "ruff-lsp"
-
-[language-server.gopls]
-command = "gopls"
-config.ui.completion.usePlaceholders = true
-
-[language-server.lua-language-server]
-command = "lua-language-server"
-config.Lua.runtime.version = "LuaJIT"
-
-[language-server.vscode-css-language-server]
-command = "vscode-css-language-server"
-args = ["--stdio"]
-
-[language-server.vscode-html-language-server]
-command = "vscode-html-language-server"
-args = ["--stdio"]
-
-[language-server.angularls]
-command = "ngserver"
-args = ["--stdio", "--tsProbeLocations", ".", "--ngProbeLocations", "."]
-
-
-[language-server.yaml-language-server]
-command = "yaml-language-server"
-args = ["--stdio"]
-
-[language-server.yaml-language-server.config.yaml.schemas]
-"https://json.schemastore.org/github-workflow" = ".github/workflows/*"
-"https://json.schemastore.org/kustomization" = "kustomization.{yml,yaml}"
-"https://raw.githubusercontent.com/kubernetes/kubernetes/master/api/openapi-spec/swagger.json" = "*.k8s.{yml,yaml}"
-
-[language-server.vscode-eslint-language-server]
-command = "vscode-eslint-language-server"
-args = ["--stdio"]
-
-[language-server.vscode-eslint-language-server.config]
-validate = "on"
-experimental = { useFlatConfig = false }
-rulesCustomizations = []
-run = "onType"
-problems = { shortenToSingleLine = false }
-nodePath = ""
-
-[language-server.marksman]
-command = "marksman"
-args = ["server"]
-
-
-[language-server.copilot]
-command = "copilot-language-server"
-args = ["--stdio"]
-
-[language-server.copilot.config]
-editorInfo = { name = "Helix", version = "25.07.1" }
-editorPluginInfo = { name = "helix-copilot", version = "0.1.0" }
-
-[language-server.harper-ls]
-args = ["--stdio"]
-command = "harper-ls"
-config = { harper-ls = { diagnosticSeverity = "error", linters = { long_sentences = false } } }
-
-
-[language-server.csharp-language-server]
-command = "csharp-ls"
-args = ["-v", "-loglevel", "trace"]
-
-[language-server.rust-analyzer]
-command = "rust-analyzer"
-
-[language-server.rust-analyzer.config]
-check.command = "clippy"
-cargo.features = "all"
-inlayHints.bindingModeHints.enable = true
-inlayHints.closingBraceHints.minLines = 10
-inlayHints.closureReturnTypeHints.enable = "with_block"
-inlayHints.discriminantHints.enable = "fieldless"
-inlayHints.lifetimeElisionHints.enable = "skip_trivial"
-inlayHints.typeHints.hideClosureInitialization = false
-
-
-[language-server.codebook]
-command = "codebook-lsp"
-args = ["serve"]
