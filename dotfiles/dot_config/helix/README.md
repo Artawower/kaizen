@@ -37,6 +37,8 @@ Scheme keybindings include:
 - `Ctrl+n` / `Ctrl+e` on Colemak and `Ctrl+j` / `Ctrl+k` on QWERTY: go to the next / previous diagnostic.
 - `k` / `K` on Colemak and `n` / `N` on QWERTY: go to the next / previous search match.
 - `/`: open the search prompt, or search immediately for the current non-empty selection.
+- `Space o f`: open or focus Forest.
+- `Space o F`: close Forest when visible, otherwise open it. Forest captures keys while focused, so use `Escape` first or close it directly with `q`.
 
 `languages.toml` mirrors the primary LSP setup from Emacs for Python, JavaScript, TypeScript, Vue, HTML, Go, and Rust. ESLint contributes only diagnostics and code actions, while Copilot contributes only completions. Angular starts only when the selected project root contains `angular.json`.
 

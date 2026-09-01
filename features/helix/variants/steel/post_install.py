@@ -121,6 +121,14 @@ def install_packages(forge: str, git: str, update: bool) -> None:
             raise RuntimeError(f"Forge package installation failed: {name}")
 
 
+def patch_forest_redraw() -> None:
+    path = steel_home / "cogs" / "forest" / "forest.scm"
+    contents = path.read_text()
+    patched = contents.replace("(helix.redraw '())", "(helix.redraw)")
+    if patched != contents:
+        path.write_text(patched)
+
+
 def link_runtime() -> None:
     target = source / "runtime"
     runtime.parent.mkdir(parents=True, exist_ok=True)
@@ -148,6 +156,7 @@ def main() -> None:
         state.parent.mkdir(parents=True, exist_ok=True)
         state.write_text(revision + "\n")
     install_packages(require_executable("forge"), git, action == "update")
+    patch_forest_redraw()
     link_runtime()
     print(f"  Helix Steel ready at {revision[:12]}")
 

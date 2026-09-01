@@ -80,7 +80,7 @@
         "e"
         "file_explorer"
         "o"
-        (hash "j" jjui-actions)
+        (hash "f" ":forest-open" "F" ":forest-toggle" "j" jjui-actions)
         "b"
         (hash "b" "buffer_picker" "]" "goto_next_buffer" "[" "goto_previous_buffer" "q" ":buffer-close")
         "w"
