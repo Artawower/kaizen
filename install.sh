@@ -7,11 +7,14 @@ INSTALL_DIR="${KAIZEN_DIR:-$HOME/.local/share/kaizen}"
 SOURCE_DIR="${KAIZEN_SOURCE_DIR:-}"
 INSTALL_MODE="managed"
 CONFIG_DIR="$HOME/.config/kaizen"
+CONFIG_FILE="$CONFIG_DIR/config.toml"
 BIN_DIR="$HOME/.local/bin"
 RUNTIME_DIR="${KAIZEN_RUNTIME_DIR:-$HOME/.local/share/kaizen-runtime}"
 PYTHON_VERSION="${KAIZEN_PYTHON_VERSION:-3.12}"
 PYTHON="${KAIZEN_PYTHON:-$(command -v python3 || true)}"
 UV="${KAIZEN_UV:-$RUNTIME_DIR/bin/uv}"
+EMAIL_PLACEHOLDER="you@example.com"
+FULL_NAME_PLACEHOLDER="Your Name"
 
 say() { printf '%s\n' "$*" >&2; }
 die() {
@@ -19,6 +22,34 @@ die() {
 	exit 1
 }
 need() { command -v "$1" >/dev/null 2>&1 || die "missing: $1"; }
+
+config_has_placeholders() {
+	grep -Fq "$EMAIL_PLACEHOLDER" "$CONFIG_FILE" ||
+		grep -Fq "$FULL_NAME_PLACEHOLDER" "$CONFIG_FILE"
+}
+
+open_config() {
+	editor="${VISUAL:-${EDITOR:-vi}}"
+	say "opening $CONFIG_FILE in $editor — set your email and full_name"
+	"$PYTHON" -c 'import os, shlex, sys; command = shlex.split(sys.argv[1]); command or sys.exit(127); os.execvp(command[0], [*command, sys.argv[2]])' \
+		"$editor" "$CONFIG_FILE" </dev/tty >/dev/tty
+}
+
+offer_sync() {
+	if config_has_placeholders; then
+		say "config still has placeholder values"
+		return
+	fi
+	printf 'run kaizen sync now? [y/N] ' >&2
+	read -r answer </dev/tty || answer=""
+	answer=$(printf '%s' "$answer" | tr '[:upper:]' '[:lower:]')
+	if [ "$answer" != "y" ] && [ "$answer" != "yes" ]; then
+		return
+	fi
+	say "running kaizen sync"
+	"$KAIZEN_COMMAND" sync
+	exit 0
+}
 
 python_ok() {
 	[ -n "$1" ] && "$1" -c "import sys,tomllib; assert sys.version_info >= (3,11)" 2>/dev/null
@@ -72,9 +103,10 @@ else
 fi
 
 mkdir -p "$CONFIG_DIR"
-if [ ! -f "$CONFIG_DIR/config.toml" ]; then
-	cp "$INSTALL_DIR/config.example.toml" "$CONFIG_DIR/config.toml"
-	say "created $CONFIG_DIR/config.toml — edit it to enable features"
+if [ ! -f "$CONFIG_FILE" ]; then
+	cp "$INSTALL_DIR/config.example.toml" "$CONFIG_FILE"
+	CONFIG_CREATED=1
+	say "created $CONFIG_FILE — edit it to enable features"
 fi
 
 mkdir -p "$HOME/.config/chezmoi"
@@ -102,4 +134,17 @@ esac
 
 say ""
 say "installed kaizen at $INSTALL_DIR"
-say "edit $CONFIG_DIR/config.toml, then run: $KAIZEN_COMMAND sync"
+
+if [ -n "${CONFIG_CREATED:-}" ] && (: </dev/tty) 2>/dev/null; then
+	if ! open_config; then
+		say "warning: could not open $editor"
+	fi
+	offer_sync
+fi
+
+if config_has_placeholders; then
+	say "edit $CONFIG_FILE, then run: $KAIZEN_COMMAND sync"
+	exit 0
+fi
+
+say "run when ready: $KAIZEN_COMMAND sync"

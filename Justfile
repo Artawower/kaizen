@@ -3,6 +3,9 @@ kaizen_dir := justfile_directory()
 default:
     just --choose
 
+test:
+    bash tests/install.sh
+
 # Transfer dotfiles to a new machine
 apply:
     chezmoi apply

@@ -35,7 +35,12 @@ The remote script clones Kaizen to =~/.local/share/kaizen=, creates
 package managers are checked only by commands that use them. On macOS, Kaizen
 offers to run the official Homebrew installer when required.
 
-Edit the generated config, then run:
+On a first install, the script opens the generated config in your editor
+(=$VISUAL=, =$EDITOR=, or =vi=) so you can replace the placeholder identity
+and enable features. After you save and quit, the installer offers to run
+=kaizen sync= immediately. A config still containing placeholder values falls
+back to manual instructions, as do sessions without a controlling TTY. If you
+decline the prompt or skip editing, run later:
 
 #+BEGIN_SRC shell
 kaizen sync
