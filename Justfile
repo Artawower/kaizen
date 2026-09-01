@@ -5,6 +5,7 @@ default:
 
 test:
     bash tests/install.sh
+    bash tests/dependencies.sh
 
 # Transfer dotfiles to a new machine
 apply:

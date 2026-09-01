@@ -94,10 +94,10 @@ local changes. Run ~kaizen sync~ separately after an update.
 
 ~kaizen sync~ performs these steps:
 
-1. Validate enabled features and selected variants.
+1. Validate enabled features, selected variants, and user dependencies.
 2. Generate the machine-local chezmoi data overlay.
-3. Install packages with the native platform package manager.
-4. Merge enabled feature and variant =mise.toml= files and run =mise install=.
+3. Install feature and user packages with the native package manager.
+4. Merge feature and user tools into the generated mise config and install them.
 5. Install missing feature integrations without refreshing existing ones.
 6. Run =chezmoi apply=.
 
@@ -139,6 +139,32 @@ default = "anthropic/claude-sonnet-4-6"
 
 Kaizen recursively merges dictionaries. Scalars and lists replace their
 default values, so every setting, model, and shortcut can be overridden.
+
+Additional machine-local packages and mise tools can be declared in
+=~/.config/kaizen/dependencies.toml=:
+
+#+BEGIN_SRC toml
+[tools]
+node = "22"
+"npm:typescript" = "latest"
+
+[macos]
+brew = ["jq", "shellcheck"]
+cask = ["zed"]
+
+[macos.brew_args]
+jq = ["--HEAD"]
+
+[linux]
+dnf = ["jq", "ShellCheck"]
+apt = ["jq", "shellcheck"]
+flatpak = ["dev.zed.Zed"]
+#+END_SRC
+
+The file is optional. Kaizen validates it before making changes, installs its
+native packages after enabled feature packages, and gives its =[tools]= entries
+precedence over feature mise versions. Kaizen does not modify this user-owned
+file during =bump=.
 
 Before applying dotfiles, Kaizen links the user config as the ignored
 =dotfiles/.chezmoidata/99-user.toml=. Chezmoi reads this overlay automatically,

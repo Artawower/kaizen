@@ -18,6 +18,7 @@ KAIZEN_DIR = Path(__file__).parent
 FEATURES_DIR = KAIZEN_DIR / "features"
 DOTFILES_DIR = KAIZEN_DIR / "dotfiles"
 CONFIG_FILE = Path.home() / ".config" / "kaizen" / "config.toml"
+USER_DEPENDENCIES_FILE = CONFIG_FILE.with_name("dependencies.toml")
 CONFIG_EXAMPLE_FILE = KAIZEN_DIR / "config.example.toml"
 DEFAULTS_FILE = DOTFILES_DIR / ".chezmoidata.toml"
 USER_DATA_FILE = DOTFILES_DIR / ".chezmoidata" / "99-user.toml"
@@ -28,6 +29,8 @@ _CAPTURE_PATHS = [
     Path.home() / ".pi" / "agent" / "mcp.json",
 ]
 _VARIANT_FILES = ("packages.toml", "mise.toml", "post_install.py")
+_USER_MACOS_DEPENDENCY_LISTS = ("taps", "brew", "cask")
+_USER_LINUX_DEPENDENCY_LISTS = ("dnf", "apt", "flatpak")
 _FEATURE_ALIASES = {"battery-thresholds": "battery"}
 _IGNORED_FEATURES = {"mise", "nix-system"}
 _DOCUMENTATION_URL = "https://github.com/artawower/kaizen#readme"
@@ -365,8 +368,69 @@ def _string_map(value: object) -> dict[str, str]:
     return {key: item for key, item in table.items() if isinstance(item, str)}
 
 
-def _mise_key(name: str) -> str:
-    return f'"{name}"' if any(c in name for c in (":", "@", "/")) else name
+def _validate_keys(table: dict[str, object], allowed: set[str], label: str) -> None:
+    unknown = sorted(set(table) - allowed)
+    if not unknown:
+        return
+    raise ValueError(f"{label}: unknown keys: {', '.join(unknown)}")
+
+
+def _dependency_table(
+    dependencies: dict[str, object], key: str, path: Path
+) -> dict[str, object]:
+    value = dependencies.get(key)
+    if value is None:
+        return {}
+    if not isinstance(value, dict):
+        raise TypeError(f"{path}: {key} must be a table")
+    return cast(dict[str, object], value)
+
+
+def _validate_string_list(table: dict[str, object], key: str, label: str) -> None:
+    value = table.get(key)
+    if value is None:
+        return
+    if isinstance(value, list) and all(
+        isinstance(item, str) and item for item in value
+    ):
+        return
+    raise TypeError(f"{label}.{key} must be a list of non-empty strings")
+
+
+def _validate_string_map(table: dict[str, object], label: str) -> None:
+    invalid = sorted(
+        key
+        for key, value in table.items()
+        if not key or not isinstance(value, str) or not value
+    )
+    if not invalid:
+        return
+    raise TypeError(f"{label} values must be non-empty strings: {', '.join(invalid)}")
+
+
+def load_user_dependencies(
+    path: Path = USER_DEPENDENCIES_FILE,
+) -> dict[str, object]:
+    if not path.exists():
+        return {}
+    dependencies = read_toml(path)
+    _validate_keys(dependencies, {"tools", "macos", "linux"}, str(path))
+    tools = _dependency_table(dependencies, "tools", path)
+    _validate_string_map(tools, f"{path}: tools")
+    macos = _dependency_table(dependencies, "macos", path)
+    _validate_keys(
+        macos, {*_USER_MACOS_DEPENDENCY_LISTS, "brew_args"}, f"{path}: macos"
+    )
+    for key in _USER_MACOS_DEPENDENCY_LISTS:
+        _validate_string_list(macos, key, f"{path}: macos")
+    brew_args = _dependency_table(macos, "brew_args", path)
+    for package in brew_args:
+        _validate_string_list(brew_args, package, f"{path}: macos.brew_args")
+    linux = _dependency_table(dependencies, "linux", path)
+    _validate_keys(linux, set(_USER_LINUX_DEPENDENCY_LISTS), f"{path}: linux")
+    for key in _USER_LINUX_DEPENDENCY_LISTS:
+        _validate_string_list(linux, key, f"{path}: linux")
+    return dependencies
 
 
 def _toml_key(name: str) -> str:
@@ -424,7 +488,7 @@ def _write_mise_toml(tools: dict[str, str], dest: Path) -> None:
     for name, version in tools.items():
         if not isinstance(version, str):
             raise TypeError(f"mise version for {name} must be a string")
-        lines.append(f'{_mise_key(name)} = "{version}"')
+        lines.append(f"{_toml_key(name)} = {_toml_value(version)}")
     _ = dest.write_text("\n".join(lines) + "\n")
 
 
@@ -656,11 +720,13 @@ class Kaizen:
 
     def sync(self) -> None:
         features = parse_features(self._config)
+        user_dependencies = load_user_dependencies()
         self._write_user_data()
         print(f"OS: {self._os}\n")
         for feature in features:
             self._install_packages(feature)
-        self._generate_mise_config(features)
+        self._install_user_packages(user_dependencies)
+        self._generate_mise_config(features, user_dependencies)
         if shutil.which("mise"):
             print("[mise]")
             _ = subprocess.run(["mise", "install", "--jobs=1"], check=True)
@@ -682,8 +748,11 @@ class Kaizen:
 
     def bump(self) -> None:
         _require_install_mode("bump", InstallMode.DEVELOPMENT)
+        features = parse_features(self._config)
+        user_dependencies = load_user_dependencies()
+        user_tools = set(_string_map(user_dependencies.get("tools")))
         _ = subprocess.run(["mise", "upgrade", "--bump", "--interactive"], check=False)
-        self._capture_mise_versions(parse_features(self._config))
+        self._capture_mise_versions(features, user_tools)
         self.capture()
 
     def capture(self) -> None:
@@ -698,7 +767,9 @@ class Kaizen:
 
     def status(self) -> None:
         features = parse_features(self._config)
+        _ = load_user_dependencies()
         mode = _install_mode()
+        dependencies_exist = USER_DEPENDENCIES_FILE.exists()
         mise_exists = MISE_CONFIG.exists()
         chezmoi = shutil.which("chezmoi")
         mise = shutil.which("mise")
@@ -710,6 +781,12 @@ class Kaizen:
         )
         _print_field("source", KAIZEN_DIR)
         _print_field("config", CONFIG_FILE)
+        _print_field(
+            "dependencies",
+            f"{USER_DEPENDENCIES_FILE} "
+            f"{'(configured)' if dependencies_exist else '(not configured)'}",
+            _ANSI_GREEN if dependencies_exist else _ANSI_YELLOW,
+        )
         _print_field("features", ", ".join(feature.label for feature in features))
         _print_field(
             "mise config",
@@ -737,6 +814,14 @@ class Kaizen:
             self._adapter.install(load_toml(feature.variant_packages_file))
         print()
 
+    def _install_user_packages(self, dependencies: dict[str, object]) -> None:
+        platform_key = "macos" if self._os == "macos" else "linux"
+        if not _table(dependencies.get(platform_key)):
+            return
+        print("[user dependencies]")
+        self._adapter.install(dependencies)
+        print()
+
     def _run_post_install(self, feature: Feature, action: str) -> None:
         scripts = [feature.post_install]
         if feature.variant_post_install:
@@ -751,7 +836,9 @@ class Kaizen:
             )
         print()
 
-    def _generate_mise_config(self, features: list[Feature]) -> None:
+    def _generate_mise_config(
+        self, features: list[Feature], user_dependencies: dict[str, object]
+    ) -> None:
         tools: dict[str, str] = {}
         for feature in features:
             tools.update(_string_map(load_toml(feature.mise_file).get("tools")))
@@ -759,14 +846,18 @@ class Kaizen:
                 tools.update(
                     _string_map(load_toml(feature.variant_mise_file).get("tools"))
                 )
+        tools.update(_string_map(user_dependencies.get("tools")))
         if not tools:
+            MISE_CONFIG.unlink(missing_ok=True)
             return
         print("[mise config]")
         _write_mise_toml(tools, MISE_CONFIG)
         print(f"  written {MISE_CONFIG}")
         print()
 
-    def _capture_mise_versions(self, features: list[Feature]) -> None:
+    def _capture_mise_versions(
+        self, features: list[Feature], user_tools: set[str]
+    ) -> None:
         live_tools = _string_map(load_toml(MISE_CONFIG).get("tools"))
         for feature in features:
             files = [feature.mise_file]
@@ -776,7 +867,10 @@ class Kaizen:
                 if not mise_file.exists():
                     continue
                 feature_tools = _string_map(load_toml(mise_file).get("tools"))
-                updated = {k: live_tools.get(k, v) for k, v in feature_tools.items()}
+                updated = {
+                    key: version if key in user_tools else live_tools.get(key, version)
+                    for key, version in feature_tools.items()
+                }
                 if updated != feature_tools:
                     _write_mise_toml(updated, mise_file)
                     print(f"  updated {mise_file.relative_to(KAIZEN_DIR)}")
@@ -803,12 +897,14 @@ def _print_help() -> None:
     print(f"\n{_paint('Documentation:', _ANSI_BOLD)}")
     print(f"  {_paint(_DOCUMENTATION_URL, _ANSI_CYAN, _ANSI_UNDERLINE)}")
     print(f"\n{_paint('Configuration:', _ANSI_BOLD)}")
-    print(f"  {CONFIG_FILE}")
+    print(f"  settings:     {CONFIG_FILE}")
+    print(f"  dependencies: {USER_DEPENDENCIES_FILE}")
 
 
 def _print_docs() -> None:
     _print_field("Documentation", _DOCUMENTATION_URL, _ANSI_CYAN, _ANSI_UNDERLINE)
     _print_field("Configuration", CONFIG_FILE)
+    _print_field("Dependencies", USER_DEPENDENCIES_FILE)
     _print_field("Installed source", KAIZEN_DIR)
 
 
