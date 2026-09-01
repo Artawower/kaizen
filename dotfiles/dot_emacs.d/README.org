@@ -18,12 +18,12 @@ Enable lexical binding for tangled file
 
 * Installation
 #+BEGIN_SRC bash :tangle no
-brew install emacs-plus@31 --with-debug --with-xwidgets --with-imagemagick --with-native-comp --with-modern-doom3-icon --with-dbus
+brew install emacs-plus@32 --with-xwidgets --with-dbus --build-from-source
 #+END_SRC
 
-[[https://www.reddit.com/r/emacs/comments/1cu82z8/comment/l4izeij/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button][Move to applications folder]]
-#+BEGIN_SRC emacs-lisp  :tangle no
-osascript -e 'tell application "Finder" to make alias file to posix file "/opt/homebrew/opt/emacs-plus@31/Emacs.app" at POSIX file "/Applications" with properties {name:"Emacs.app"}'
+Kaizen installs =Emacs.app= and builds =Emacs Client.app= for the Homebrew daemon during sync.
+#+BEGIN_SRC bash :tangle no
+kaizen sync
 #+END_SRC
 
 * Patches

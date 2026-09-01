@@ -12,7 +12,7 @@ aliases['b']  = 'cd -'
 aliases['h']  = '/usr/bin/hx'
 aliases['p']  = 'pi'
 aliases['o']  = 'opencode'
-aliases['e']  = 'emacsclient -ac ""'
+aliases['e']  = ['emacsclient', '-a', '', '-c', '-n']
 
 # VCS
 aliases['g']  = 'gitu'

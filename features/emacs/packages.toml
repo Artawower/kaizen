@@ -3,10 +3,10 @@ category = "editor"
 
 [macos]
 taps = ["d12frosted/emacs-plus"]
-brew = ["emacs-plus@31", "imagemagick", "tree-sitter"]
+brew = ["emacs-plus@32", "imagemagick", "tree-sitter"]
 
 [macos.brew_args]
-"emacs-plus@31" = ["--with-xwidgets", "--with-dbus", "--build-from-source"]
+"emacs-plus@32" = ["--with-xwidgets", "--with-dbus", "--build-from-source"]
 
 [linux]
 dnf = [

@@ -295,7 +295,7 @@ alt-shift-b = 'split horizontal'
 
 
 # Quick focus apps
-d = ['exec-and-forget open -a Emacs.app', 'mode main']
+d = ['exec-and-forget open -a "Emacs Client"', 'mode main']
 f = ['exec-and-forget open -a Finder.app', 'mode main'] # Toggle between floating and tiling layout
 t = ['exec-and-forget open -a wezterm.app', 'mode main']
 m = ['exec-and-forget open -a Telegram.app', 'mode main']
