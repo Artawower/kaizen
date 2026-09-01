@@ -35,6 +35,8 @@
       (list "select_mode" "extend_to_line_bounds")
       "esc"
       (list "collapse_selection" "keep_primary_selection")
+      "/"
+      ":search-smart"
       "*"
       (list "move_prev_word_start" "move_next_word_end" "search_selection" "global_search")
       "A-["
@@ -158,6 +160,8 @@
     "select"
     (hash
       "/"
+      ":search-smart"
+      "C-c"
       "toggle_comments"
       "y"
       "yank_to_clipboard"
@@ -231,13 +235,13 @@
         kaizen-nav-insert
         "insert_mode"
         "j"
-        "search_next"
-        "k"
         "move_next_word_end"
+        "k"
+        "search_next"
         "J"
-        "search_prev"
-        "K"
         "move_next_long_word_end"
+        "K"
+        "search_prev"
         "L"
         "insert_at_line_start"
         "E"
@@ -249,13 +253,13 @@
         kaizen-nav-insert
         "insert_mode"
         "j"
-        "search_next"
-        "k"
         "extend_next_word_end"
+        "k"
+        "extend_search_next"
         "J"
-        "search_prev"
-        "K"
         "extend_next_long_word_end"
+        "K"
+        "extend_search_prev"
         "L"
         "insert_at_line_start"
         "e"
