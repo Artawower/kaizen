@@ -75,7 +75,8 @@ optional.
 #+BEGIN_SRC shell
 kaizen              # show command help and documentation
 kaizen docs         # show documentation and local paths
-kaizen sync         # install enabled features, mise tools, and dotfiles
+kaizen install      # install packages and tools without applying dotfiles
+kaizen sync         # install dependencies and apply dotfiles
 kaizen update       # upgrade native packages, mise tools, and feature integrations
 kaizen self-update  # fast-forward a managed installation from its remote branch
 kaizen bump         # developer: update mise pins in feature-local manifests
@@ -92,14 +93,16 @@ colors. Colors are disabled for pipes, redirects, =TERM=dumb=, and =NO_COLOR=.
 It refuses development checkouts, detached branches, and installations with
 local changes. Run ~kaizen sync~ separately after an update.
 
-~kaizen sync~ performs these steps:
+~kaizen install~ performs these steps:
 
 1. Validate enabled features, selected variants, and user dependencies.
-2. Generate the machine-local chezmoi data overlay.
-3. Install feature and user packages with the native package manager.
-4. Merge feature and user tools into the generated mise config and install them.
-5. Install missing feature integrations without refreshing existing ones.
-6. Run =chezmoi apply=.
+2. Install feature and user packages with the native package manager.
+3. Merge feature and user tools into the generated mise config and install them.
+4. Install missing feature integrations without refreshing existing ones.
+
+It does not generate the chezmoi data overlay or apply dotfiles. ~kaizen sync~
+validates the same inputs, generates the overlay, runs the dependency workflow,
+and then runs =chezmoi apply=.
 
 ~kaizen update~ upgrades native packages and mise tools, then refreshes enabled
 feature integrations. Helix Steel fetches and rebuilds only when its source

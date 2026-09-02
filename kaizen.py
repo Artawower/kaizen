@@ -718,21 +718,16 @@ class Kaizen:
         self._os = detect_os()
         self._adapter = adapter_for(self._os)
 
+    def install(self) -> None:
+        features = parse_features(self._config)
+        user_dependencies = load_user_dependencies()
+        self._install_dependencies(features, user_dependencies)
+
     def sync(self) -> None:
         features = parse_features(self._config)
         user_dependencies = load_user_dependencies()
         self._write_user_data()
-        print(f"OS: {self._os}\n")
-        for feature in features:
-            self._install_packages(feature)
-        self._install_user_packages(user_dependencies)
-        self._generate_mise_config(features, user_dependencies)
-        if shutil.which("mise"):
-            print("[mise]")
-            _ = subprocess.run(["mise", "install", "--jobs=1"], check=True)
-            print()
-        for feature in features:
-            self._run_post_install(feature, "sync")
+        self._install_dependencies(features, user_dependencies)
         print("[dotfiles]")
         _ = subprocess.run(
             ["chezmoi", "apply", "--source", str(DOTFILES_DIR)], check=True
@@ -807,6 +802,21 @@ class Kaizen:
             return
         write_toml(self._user_data, USER_DATA_FILE)
 
+    def _install_dependencies(
+        self, features: list[Feature], user_dependencies: dict[str, object]
+    ) -> None:
+        print(f"OS: {self._os}\n")
+        for feature in features:
+            self._install_packages(feature)
+        self._install_user_packages(user_dependencies)
+        self._generate_mise_config(features, user_dependencies)
+        if shutil.which("mise"):
+            print("[mise]")
+            _ = subprocess.run(["mise", "install", "--jobs=1"], check=True)
+            print()
+        for feature in features:
+            self._run_post_install(feature, "sync")
+
     def _install_packages(self, feature: Feature) -> None:
         print(f"[{feature.label}]")
         self._adapter.install(load_toml(feature.packages_file))
@@ -877,7 +887,8 @@ class Kaizen:
 
 
 _COMMANDS = {
-    "sync": "Install enabled packages, mise tools, and dotfiles",
+    "install": "Install enabled packages, mise tools, and integrations",
+    "sync": "Install dependencies and apply dotfiles",
     "update": "Upgrade native packages, mise tools, and feature integrations",
     "self-update": "Update a managed Kaizen installation",
     "status": "Show the active platform, features, and tools",

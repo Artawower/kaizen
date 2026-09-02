@@ -132,36 +132,64 @@ def test_bump_preserves_user_overrides() -> None:
         assert tools == {"node": "20", "python": "3.12"}
 
 
-def test_sync_loads_dependencies_before_changes() -> None:
+def test_install_does_not_apply_dotfiles() -> None:
     events: list[object] = []
     instance = object.__new__(kaizen.Kaizen)
     instance._config = {}
-    instance._os = "macos"
     original_parse = kaizen.parse_features
     original_load = kaizen.load_user_dependencies
-    original_which = kaizen.shutil.which
     original_run = kaizen.subprocess.run
     kaizen.parse_features = lambda _: events.append("features") or []
     kaizen.load_user_dependencies = lambda: events.append("dependencies") or {}
-    kaizen.shutil.which = lambda _: None
     kaizen.subprocess.run = lambda command, **_: events.append(command)
     instance._write_user_data = lambda: events.append("write")
-    instance._install_user_packages = lambda _: events.append("packages")
-    instance._generate_mise_config = lambda *_: events.append("mise")
+    instance._install_dependencies = lambda *_: events.append("install")
     try:
+        instance.install()
+        assert events == ["features", "dependencies", "install"]
+        events.clear()
         instance.sync()
     finally:
         kaizen.parse_features = original_parse
         kaizen.load_user_dependencies = original_load
+        kaizen.subprocess.run = original_run
+    assert events[:4] == ["features", "dependencies", "write", "install"]
+    assert events[4][0:2] == ["chezmoi", "apply"]
+
+
+def test_dependency_workflow_runs_integrations() -> None:
+    events: list[object] = []
+    instance = object.__new__(kaizen.Kaizen)
+    instance._os = "macos"
+    feature = kaizen.Feature("sample")
+    original_which = kaizen.shutil.which
+    original_run = kaizen.subprocess.run
+    kaizen.shutil.which = lambda _: "/tmp/mise"
+    kaizen.subprocess.run = lambda command, **_: events.append(command)
+    instance._install_packages = lambda item: events.append(("packages", item))
+    instance._install_user_packages = lambda _: events.append("user packages")
+    instance._generate_mise_config = lambda *_: events.append("mise config")
+    instance._run_post_install = lambda item, action: events.append((item, action))
+    try:
+        instance._install_dependencies([feature], {})
+    finally:
         kaizen.shutil.which = original_which
         kaizen.subprocess.run = original_run
-    assert events[:5] == ["features", "dependencies", "write", "packages", "mise"]
+    assert events == [
+        ("packages", feature),
+        "user packages",
+        "mise config",
+        ["mise", "install", "--jobs=1"],
+        (feature, "sync"),
+    ]
+    assert "install" in kaizen._COMMANDS
 
 
 test_manifest_validation()
 test_package_adapter_reuse()
 test_user_tools_override_features()
 test_bump_preserves_user_overrides()
-test_sync_loads_dependencies_before_changes()
+test_install_does_not_apply_dotfiles()
+test_dependency_workflow_runs_integrations()
 print("dependency tests passed")
 PY

@@ -32,7 +32,7 @@ capture:
 status:
     python3 kaizen.py status
 
-# Bootstrap from the current checkout
+# Bootstrap from the current checkout and run a full sync
 install:
     KAIZEN_SOURCE_DIR="{{kaizen_dir}}" bash install.sh
     ~/.local/bin/kaizen sync
