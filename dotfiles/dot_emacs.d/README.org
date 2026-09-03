@@ -4226,7 +4226,11 @@ Dependency
 #+END_SRC
 *** Golang
 #+BEGIN_SRC emacs-lisp
-(use-package ob-go :defer t)
+   (use-package ob-go
+     :ensure (:type git :host github :repo "pope/ob-go")
+     :after org
+     :config
+     (my/org-babel-enable-language 'go))
 #+END_SRC
 *** Rust
 #+BEGIN_SRC emacs-lisp
@@ -4770,7 +4774,7 @@ Automatically creates parent directories if needed."
 #+END_SRC
 
 
-** Orgnote. Roam publisher for second brain project
+** COMMENT Orgnote. Roam publisher for second brain project
 My own package for publish roam files
 #+BEGIN_SRC emacs-lisp
 (use-package orgnote
