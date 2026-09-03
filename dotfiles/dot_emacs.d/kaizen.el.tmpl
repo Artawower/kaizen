@@ -3,6 +3,7 @@
 
 (setq my/font-height {{ template "ui-font-size" . }})
 
+(defvar kaizen/preferred-vcs "{{ dig "preferred_vcs" "jj" . }}")
 (defvar kaizen/nav-left  "{{ last (index .kaizen.shortcuts "nav.left") }}")
 (defvar kaizen/nav-down  "{{ last (index .kaizen.shortcuts "nav.down") }}")
 (defvar kaizen/nav-up    "{{ last (index .kaizen.shortcuts "nav.up") }}")

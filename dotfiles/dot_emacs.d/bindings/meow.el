@@ -408,9 +408,9 @@
   (define-key meow-normal-state-keymap (kbd "]g") #'git-gutter:next-hunk)
   (define-key meow-normal-state-keymap (kbd "[g") #'git-gutter:previous-hunk))
 
-(with-eval-after-load 'magit
-  (define-key meow-normal-state-keymap
-    (kbd (concat "SPC " (or (bound-and-true-p kaizen/vcs-ui) "v l"))) #'magit-status))
+(define-key meow-normal-state-keymap
+  (kbd (concat "SPC " (or (bound-and-true-p kaizen/vcs-ui) "v l")))
+  #'kaizen/open-vcs-ui)
 
 (with-eval-after-load 'git-timemachine
   (define-key meow-normal-state-keymap

@@ -4,6 +4,7 @@ gpg_key_darwin = "4357424B95BAB5C5"
 gpg_key_linux = "542983F6B228CCC1"
 hostname = "Arturs-MacBook-Pro"
 layout = "colemak"
+preferred_vcs = "jj"
 username = "darkawower"
 
 [emacs]

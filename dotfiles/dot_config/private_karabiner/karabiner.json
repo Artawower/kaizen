@@ -348,7 +348,8 @@
                       "^org\\.mozilla\\.firefox$",
                       "^org\\.mozilla\\.com\\.zen\\.browser$",
                       "^app\\.zen-browser\\.zen$",
-                      "^net\\.imput\\.helium$"
+                      "^net\\.imput\\.helium$",
+                      "^net\\.librewolf\\.librewolf$"
                     ],
                     "type": "frontmost_application_if"
                   }
@@ -375,7 +376,8 @@
                       "^org\\.mozilla\\.firefox$",
                       "^org\\.mozilla\\.com\\.zen\\.browser$",
                       "^app\\.zen-browser\\.zen$",
-                      "^net\\.imput\\.helium$"
+                      "^net\\.imput\\.helium$",
+                      "^net\\.librewolf\\.librewolf$"
                     ],
                     "type": "frontmost_application_if"
                   }
@@ -402,7 +404,8 @@
                       "^org\\.mozilla\\.firefox$",
                       "^org\\.mozilla\\.com\\.zen\\.browser$",
                       "^app\\.zen-browser\\.zen$",
-                      "^net\\.imput\\.helium$"
+                      "^net\\.imput\\.helium$",
+                      "^net\\.librewolf\\.librewolf$"
                     ],
                     "type": "frontmost_application_if"
                   }

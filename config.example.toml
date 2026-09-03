@@ -1,6 +1,7 @@
 email = "you@example.com"
 full_name = "Your Name"
 layout = "qwerty"
+preferred_vcs = "jj"
 
 [ui]
 font_size = 14

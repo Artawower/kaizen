@@ -103,7 +103,7 @@
   (hel-search-interactively))
 
 (defvar-keymap kaizen/hel-vcs-map
-  "l" #'majutsu
+  "l" #'kaizen/open-vcs-ui
   "h" #'git-timemachine)
 
 (defvar-keymap kaizen/hel-bookmark-map
@@ -261,10 +261,6 @@
   "SPC g r" #'git-gutter:revert-hunk
   "] g" #'git-gutter:next-hunk
   "[ g" #'git-gutter:previous-hunk)
-
-(with-eval-after-load 'magit
-  (hel-keymap-global-set :state '(normal motion)
-    (concat "SPC " (or (bound-and-true-p kaizen/vcs-ui) "v l")) #'magit-status))
 
 (with-eval-after-load 'git-timemachine
   (hel-keymap-global-set :state 'normal

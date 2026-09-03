@@ -120,7 +120,7 @@
     (call-interactively #'helixel-search-at-point-next))))
 
 (defvar-keymap kaizen/helixel-vcs-map
-  "l" #'majutsu
+  "l" #'kaizen/open-vcs-ui
   "h" #'git-timemachine)
 
 (defvar-keymap kaizen/helixel-bookmark-map
@@ -321,12 +321,6 @@
   (helixel-define-key state (kbd "SPC g r") #'git-gutter:revert-hunk)
   (helixel-define-key state (kbd "] g") #'git-gutter:next-hunk)
   (helixel-define-key state (kbd "[ g") #'git-gutter:previous-hunk))
-
-(with-eval-after-load 'magit
-  (dolist (state '(normal motion))
-    (helixel-define-key state
-                        (kbd (concat "SPC " (or (bound-and-true-p kaizen/vcs-ui) "g g")))
-                        #'magit-status)))
 
 (with-eval-after-load 'git-timemachine
   (helixel-define-key 'normal
