@@ -15,6 +15,7 @@ FORGE_PACKAGES = {
     "scopeline": "https://github.com/Ra77a3l3-jar/scopeline.git",
     "trail": "https://github.com/Ra77a3l3-jar/trail.hx.git",
     "forest": "https://github.com/Ra77a3l3-jar/forest.hx.git",
+    "oil": "https://github.com/Ra77a3l3-jar/oil.hx.git",
 }
 REQUIRED_BINARIES = (
     "hx",
