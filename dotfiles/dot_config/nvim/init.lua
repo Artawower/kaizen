@@ -1,24 +1,19 @@
-local command_shell = vim.fn.exepath("dash")
-if command_shell == "" then
-    command_shell = vim.fn.exepath("sh")
-end
-vim.opt.shell = command_shell
-
-local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
-
-if not vim.uv.fs_stat(lazypath) then
-    vim.fn.system(
-        {
-            "git",
-            "clone",
-            "--filter=blob:none",
-            "https://github.com/folke/lazy.nvim.git",
-            "--branch=stable",
-            lazypath
-        }
-    )
-end
-vim.opt.rtp:prepend(lazypath)
-
-require("lazy").setup("plugins")
 require("core")
+require("system")
+require("statusline")
+require("theme")
+require("lsp")
+require("completion")
+require("keybindings")
+require("diagnostic")
+require("formatter")
+require("editing")
+require("file-manager")
+require("ai")
+require("navigation")
+require("picker")
+require("projects")
+require("vcs")
+require("compilation")
+require("buffers")
+require("dap-debug")

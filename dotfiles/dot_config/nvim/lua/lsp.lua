@@ -1,257 +1,332 @@
+vim.pack.add({
+  { src = "https://github.com/neovim/nvim-lspconfig" },
+})
 
+local map = vim.keymap.set
 
-local on_attach = function(client, bufnr)
-    local function buf_set_keymap(...)
-        vim.api.nvim_buf_set_keymap(bufnr, ...)
+-- Lua
+vim.lsp.config("lua_ls", {
+  settings = {
+    Lua = {
+      runtime = {
+        version = "LuaJIT",
+      },
+      diagnostics = {
+        globals = { "vim" },
+      },
+      workspace = {
+        checkThirdParty = false,
+        library = {
+          vim.env.VIMRUNTIME,
+        },
+      },
+    },
+  },
+})
+
+-- Python
+vim.lsp.config("ty", {
+  root_markers = {
+    "ty.toml",
+    "pyproject.toml",
+    "uv.lock",
+    "requirements.txt",
+    "setup.py",
+    "setup.cfg",
+    ".git",
+  },
+})
+
+vim.lsp.config("ruff", {
+  root_markers = {
+    "pyproject.toml",
+    "ruff.toml",
+    ".ruff.toml",
+    "uv.lock",
+    "requirements.txt",
+    "setup.py",
+    "setup.cfg",
+    ".git",
+  },
+})
+
+-- Go
+vim.lsp.config("gopls", {
+  settings = {
+    gopls = {
+      usePlaceholders = true,
+    },
+  },
+})
+
+-- ESLint
+vim.lsp.config("eslint", {
+  filetypes = {
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact",
+    "vue",
+  },
+  settings = {
+    validate = "on",
+    run = "onType",
+    format = false,
+  },
+})
+
+-- Vue
+local function get_vue_language_server_path()
+  local executable = vim.fn.exepath("vue-language-server")
+
+  if executable == "" then
+    return nil
+  end
+
+  local realpath = vim.uv.fs_realpath(executable) or executable
+
+  return vim.fs.dirname(vim.fs.dirname(realpath))
+end
+
+local vue_language_server_path = get_vue_language_server_path()
+
+if vue_language_server_path then
+  vim.lsp.config("ts_ls", {
+    filetypes = {
+      "javascript",
+      "javascriptreact",
+      "typescript",
+      "typescriptreact",
+      "vue",
+    },
+    init_options = {
+      plugins = {
+        {
+          name = "@vue/typescript-plugin",
+          location = vue_language_server_path,
+          languages = { "vue" },
+          configNamespace = "typescript",
+        },
+      },
+    },
+  })
+end
+
+-- YAML
+vim.lsp.config("yamlls", {
+  settings = {
+    yaml = {
+      schemas = {
+        ["https://json.schemastore.org/github-workflow"] = ".github/workflows/*",
+        ["https://json.schemastore.org/kustomization"] = "kustomization.{yml,yaml}",
+        ["https://raw.githubusercontent.com/kubernetes/kubernetes/master/api/openapi-spec/swagger.json"] =
+        "*.k8s.{yml,yaml}",
+      },
+    },
+  },
+})
+
+-- Codebook
+vim.lsp.config("codebook", {
+  filetypes = {
+    "python",
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact",
+    "vue",
+    "html",
+    "htmlangular",
+    "lua",
+    "css",
+    "scss",
+    "cs",
+    "toml"
+  },
+})
+
+-- Copilot
+vim.lsp.config("copilot", {
+  filetypes = {
+    "python",
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact",
+    "vue",
+    "toml",
+  },
+})
+
+-- LSP attach
+vim.api.nvim_create_autocmd("LspAttach", {
+  callback = function(args)
+    local client = vim.lsp.get_client_by_id(args.data.client_id)
+
+    if not client then
+      return
     end
 
-    vim.bo[bufnr].omnifunc = "v:lua.vim.lsp.omnifunc"
+    -- Prefer ty hover over Ruff
+    if client.name == "ruff" then
+      client.server_capabilities.hoverProvider = false
+    end
 
-    local opts = {noremap = true, silent = true}
+    -- Copilot inline completion
+    if
+        client.name == "copilot"
+        and client:supports_method(
+          vim.lsp.protocol.Methods.textDocument_inlineCompletion,
+          args.buf
+        )
+    then
+      vim.lsp.inline_completion.enable(true, {
+        bufnr = args.buf,
+      })
 
-    buf_set_keymap("n", "gd", "<cmd>lua vim.lsp.buf.definition()<CR>", opts)
-    buf_set_keymap("n", "K", "<cmd>lua vim.lsp.buf.hover()<CR>", opts)
-    buf_set_keymap("n", "<C-k>", "<cmd>lua vim.lsp.buf.signature_help()<CR>", opts)
-    buf_set_keymap("n", "<space>wa", "<cmd>lua vim.lsp.buf.add_workspace_folder()<CR>", opts)
-    buf_set_keymap("n", "<space>wr", "<cmd>lua vim.lsp.buf.remove_workspace_folder()<CR>", opts)
-    buf_set_keymap("n", "<space>wl", "<cmd>lua print(vim.inspect(vim.lsp.buf.list_workspace_folders()))<CR>", opts)
-    buf_set_keymap("n", "<space>D", "<cmd>lua vim.lsp.buf.type_definition()<CR>", opts)
-    buf_set_keymap("n", "<space>rn", "<cmd>lua vim.lsp.buf.rename()<CR>", opts)
-    buf_set_keymap("n", "<space>ca", "<cmd>lua vim.lsp.buf.code_action()<CR>", opts)
-    buf_set_keymap("n", "gr", "<cmd>lua vim.lsp.buf.references()<CR>", opts)
-    buf_set_keymap("n", "<space>e", "<cmd>lua vim.diagnostic.open_float()<CR>", opts)
-    buf_set_keymap("n", "<space>q", "<cmd>lua vim.diagnostic.setloclist()<CR>", opts)
-    buf_set_keymap("n", "<space>f", "<cmd>lua vim.lsp.buf.format()<CR>", opts)
+      map("i", "<C-f>", vim.lsp.inline_completion.get, {
+        buffer = args.buf,
+        desc = "Accept Copilot completion",
+      })
+    end
+  end,
+})
+
+-- Enable servers
+vim.lsp.enable({
+  "ty",
+  "ruff",
+
+  "ts_ls",
+  "angularls",
+  "vue_ls",
+  "eslint",
+
+  "html",
+  "cssls",
+  "jsonls",
+  "yamlls",
+
+  "gopls",
+  "rust_analyzer",
+  "lua_ls",
+  "csharp_ls",
+  "marksman",
+
+  "codebook",
+  "copilot",
+})
+
+
+local function without_selection(fn)
+  return function(...)
+    if vim.fn.mode():match("[vV\22]") then
+      vim.cmd("normal! \27")
+    end
+
+    return fn(...)
+  end
 end
 
-local capabilities = require("cmp_nvim_lsp").default_capabilities()
-
-local function setup_lsp(name, config)
-    vim.lsp.config[name] = vim.tbl_extend("force", {
-        capabilities = capabilities,
-        on_attach = on_attach,
-    }, config or {})
-end
-
-setup_lsp('ts_ls', {
-    cmd = {'typescript-language-server', '--stdio'},
-    root_dir = vim.fs.root(0, {'package.json', 'tsconfig.json', 'jsconfig.json'}),
-    filetypes = {'javascript', 'javascriptreact', 'typescript', 'typescriptreact'},
+-- LSP navigation
+map({ "n", "x" }, "gd", without_selection(vim.lsp.buf.definition), {
+  desc = "Go to definition",
 })
 
-setup_lsp('stylelint_lsp', {
-    cmd = {'stylelint-lsp', '--stdio'},
-    root_dir = vim.fs.root(0, {'.stylelintrc', '.stylelintrc.json', '.stylelintrc.js'}),
-    filetypes = {'css', 'scss', 'less', 'sass'},
-    settings = {
-        stylelintplus = {}
-    }
+map({ "n", "x" }, "<leader>la", without_selection(vim.lsp.buf.code_action), {
+  desc = "Code action",
 })
 
-setup_lsp('cssls', {
-    cmd = {'vscode-css-language-server', '--stdio'},
-    root_dir = vim.fs.root(0, {'package.json'}),
-    filetypes = {'css', 'scss', 'less'},
+map({ "n", "x" }, "<leader>lr", without_selection(vim.lsp.buf.rename), {
+  desc = "Rename symbol",
 })
 
-setup_lsp('pyright', {
-    cmd = {'pyright-langserver', '--stdio'},
-    root_dir = vim.fs.root(0, {'pyproject.toml', 'setup.py', 'setup.cfg', 'requirements.txt', 'Pipfile'}),
-    filetypes = {'python'},
+map({ "n", "x" }, "<leader>lh", without_selection(vim.lsp.buf.hover), {
+  desc = "Hover",
 })
 
-setup_lsp('vuels', {
-    cmd = {'vls'},
-    root_dir = vim.fs.root(0, {'package.json', 'vue.config.js'}),
-    filetypes = {'vue'},
+-- Breadcrumbs
+vim.pack.add({ "https://github.com/nvim-treesitter/nvim-treesitter-context" })
+
+require 'treesitter-context'.setup {
+  enable = true,            -- Enable this plugin (Can be enabled/disabled later via commands)
+  multiwindow = false,      -- Enable multiwindow support.
+  max_lines = 0,            -- How many lines the window should span. Values <= 0 mean no limit.
+  min_window_height = 0,    -- Minimum editor window height to enable context. Values <= 0 mean no limit.
+  line_numbers = true,
+  multiline_threshold = 20, -- Maximum number of lines to show for a single context
+  trim_scope = 'outer',     -- Which context lines to discard if `max_lines` is exceeded. Choices: 'inner', 'outer'
+  mode = 'cursor',          -- Line used to calculate context. Choices: 'cursor', 'topline'
+  -- Separator between context and content. Should be a single character string, like '-'.
+  -- When separator is set, the context will only show up when there are at least 2 lines above cursorline.
+  separator = nil,
+  zindex = 20,     -- The Z-index of the context window
+  on_attach = nil, -- (fun(buf: integer): boolean) return false to disable attaching
+}
+
+
+-- Highlight the symbol
+-- Highlight references under cursor
+vim.api.nvim_create_autocmd("LspAttach", {
+  callback = function(args)
+    local client = vim.lsp.get_client_by_id(args.data.client_id)
+
+    if not client
+        or not client:supports_method("textDocument/documentHighlight")
+    then
+      return
+    end
+
+    local group = vim.api.nvim_create_augroup(
+      "LspDocumentHighlight_" .. args.buf,
+      { clear = true }
+    )
+
+    vim.api.nvim_create_autocmd({ "CursorHold", "CursorHoldI" }, {
+      group = group,
+      buffer = args.buf,
+      callback = vim.lsp.buf.document_highlight,
+    })
+
+    vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI" }, {
+      group = group,
+      buffer = args.buf,
+      callback = vim.lsp.buf.clear_references,
+    })
+  end,
 })
 
-setup_lsp('gopls', {
-    cmd = {'gopls'},
-    root_dir = vim.fs.root(0, {'go.mod', 'go.work'}),
-    filetypes = {'go', 'gomod', 'gowork', 'gotmpl'},
+
+-- Linters
+vim.pack.add({
+  "https://github.com/mfussenegger/nvim-lint",
 })
 
-setup_lsp('lua_ls', {
-    cmd = {'lua-language-server'},
-    root_dir = vim.fs.root(0, {'.luarc.json', '.luarc.jsonc', '.git'}),
-    filetypes = {'lua'},
-    on_init = function(client)
-        local path = client.workspace_folders and client.workspace_folders[1] and client.workspace_folders[1].name
-        if path and not vim.uv.fs_stat(path .. "/.luarc.json") and not vim.uv.fs_stat(path .. "/.luarc.jsonc") then
-            client.config.settings = vim.tbl_deep_extend("force", client.config.settings or {}, {
-                Lua = {
-                    runtime = {
-                        version = "LuaJIT"
-                    },
-                    workspace = {
-                        checkThirdParty = false,
-                        library = {
-                            vim.env.VIMRUNTIME
-                        }
-                    }
-                }
-            })
-            client.notify("workspace/didChangeConfiguration", {settings = client.config.settings})
-        end
-        return true
-    end,
-    settings = {
-        Lua = {
-            runtime = {version = "LuaJIT"},
-            workspace = {
-                checkThirdParty = false,
-                library = {vim.env.VIMRUNTIME}
-            }
-        }
-    }
-})
+local lint = require("lint")
 
-setup_lsp('yamlls', {
-    cmd = {'yaml-language-server', '--stdio'},
-    root_dir = vim.fs.root(0, {'.git'}),
-    filetypes = {'yaml', 'yml'},
-    settings = {
-        yaml = {
-            trace = {server = "verbose"},
-            schemas = {
-                ["https://json.schemastore.org/github-workflow.json"] = "/.github/workflows/*",
-                ["https://raw.githubusercontent.com/instrumenta/kubernetes-json-schema/master/v1.18.0-standalone-strict/all.json"] = "/*.k8s.yaml",
-                kubernetes = "/*.yaml"
-            },
-            schemaDownloads = {enable = true},
-            validate = true
-        }
-    }
-})
+lint.linters_by_ft = {
+  go = { "golangcilint" },
 
-local ngserver = vim.fn.exepath("ngserver")
-local angular_cmd = {ngserver ~= "" and ngserver or "ngserver", "--stdio"}
-if ngserver ~= "" then
-    local node_modules = vim.fs.dirname(vim.fs.dirname(ngserver))
-    vim.list_extend(angular_cmd, {"--tsProbeLocations", node_modules, "--ngProbeLocations", node_modules})
-end
+  css = { "stylelint" },
+  scss = { "stylelint" },
+  vue = { "stylelint" },
 
-setup_lsp('angularls', {
-    cmd = angular_cmd,
-    root_dir = vim.fs.root(0, {'angular.json', 'project.json'}),
-    filetypes = {'typescript', 'html', 'typescriptreact'},
-})
+  sh = { "shellcheck" },
+}
 
-setup_lsp('volar', {
-    cmd = {'vue-language-server', '--stdio'},
-    root_dir = vim.fs.root(0, {'package.json'}),
-    filetypes = {'vue', 'typescript', 'javascript', 'javascriptreact', 'typescriptreact', 'json'},
-})
-
+-- Lint when filetype becomes available
 vim.api.nvim_create_autocmd("FileType", {
-    group = vim.api.nvim_create_augroup("LspAttach", {clear = true}),
-    callback = function(args)
-        local bufnr = args.buf
-        local filetype = vim.bo[bufnr].filetype
-
-        
-        local ft_to_lsp = {
-            lua = 'lua_ls',
-            python = 'pyright',
-            javascript = 'ts_ls',
-            javascriptreact = 'ts_ls',
-            typescript = 'ts_ls',
-            typescriptreact = 'ts_ls',
-            vue = 'volar',
-            css = 'cssls',
-            scss = 'stylelint_lsp',
-            less = 'stylelint_lsp',
-            sass = 'stylelint_lsp',
-            go = 'gopls',
-            yaml = 'yamlls',
-            yml = 'yamlls',
-        }
-
-        local lsp_name = ft_to_lsp[filetype]
-        if lsp_name and vim.lsp.config[lsp_name] then
-            vim.lsp.enable(lsp_name)
-        end
-    end,
+  callback = function()
+    require("lint").try_lint()
+  end,
 })
 
-local ng_ok, ng = pcall(require, "ng")
-if ng_ok then
-    local opts = {noremap = true, silent = true}
-    vim.keymap.set("n", "<leader>at", ng.goto_template_for_component, opts)
-    vim.keymap.set("n", "<leader>ac", ng.goto_component_with_template_file, opts)
-    vim.keymap.set("n", "<leader>aT", ng.get_template_tcb, opts)
-end
-
-local saga_ok, saga = pcall(require, "lspsaga")
-if saga_ok then
-    saga.setup({
-        ui = {
-            border = "single",
-            code_action = " ",
-        },
-        symbol_in_winbar = {
-            enable = true,
-        },
-        lightbulb = {
-            enable = true,
-            sign = true,
-            virtual_text = true,
-        },
-        finder = {
-            max_height = 0.6,
-            keys = {
-                toggle_or_open = "o",
-                vsplit = "s",
-                split = "i",
-                quit = "q",
-                tabe = "t",
-                scroll_down = "<C-f>",
-                scroll_up = "<C-b>"
-            }
-        },
-        code_action = {
-            keys = {
-                quit = "q",
-                exec = "<CR>"
-            }
-        },
-        rename = {
-            keys = {
-                quit = "<C-c>",
-                exec = "<CR>"
-            }
-        },
-    })
-end
-
-local wk_ok, wk = pcall(require, "which-key")
-if wk_ok then
-    wk.add({
-        { "<space>", group = "Lsp prompts" },
-        { "<space>h", group = "Lsp prompts - Hover and Signature" },
-        { "<space>hd", ":lua require('lspsaga.hover').render_hover_doc()<CR>", desc = "Show nice docs" },
-        { "<space>hs", ":lua require('lspsaga.signaturehelp').signature_help()<CR>", desc = "Show signature of method" },
-        { "<space>hh", ":lua require'lspsaga.provider'.lsp_finder()<CR>", desc = "Lsp saga events" },
-
-        { "<space>c", group = "Lsp code action" },
-        { "<space>cr", ":Lspsaga rename<CR>", desc = "Lsp rename" },
-
-        { "<space>f", group = "Flycheck error" },
-        { "<space>fp", "<cmd>lua vim.diagnostic.goto_prev()<CR>", desc = "Prev error" },
-        { "<space>fn", "<cmd>lua vim.diagnostic.goto_next()<CR>", desc = "Next error" },
-        { "<space>f[", "<cmd>lua vim.diagnostic.goto_prev()<CR>", desc = "Prev error" },
-        { "<space>f]", "<cmd>lua vim.diagnostic.goto_next()<CR>", desc = "Next error" },
-
-        { "<space>l", group = "Lsp list" },
-        { "<space>lr", ":Lspsaga lsp_finder<CR>", desc = "Find references" },
-        { "<leader>l", ":lua require('lspsaga.codeaction').range_code_action()<CR>", desc = "Code actions" },
-        { "<leader>d", ":lua require('lspsaga.provider').preview_definition()<CR>", desc = "Show definition" },
-        { "<leader>i", ":lua require('lspsaga.hover').render_hover_doc()<CR>", desc = "Show docs" },
-
-        { "g", group = "Go" },
-        { "gd", ":lua vim.lsp.buf.definition()<CR>", desc = "Go to definition" },
-        { "gD", ":lua vim.lsp.buf.declaration()<CR>", desc = "Go to declaration" },
-        { "gi", ":lua vim.lsp.buf.implementation()<CR>", desc = "Go to implementation" },
-    })
-end
+-- Lint after changes
+vim.api.nvim_create_autocmd({
+  "BufWritePost",
+  "InsertLeave",
+}, {
+  callback = function()
+    require("lint").try_lint()
+  end,
+})
