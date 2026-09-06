@@ -23,15 +23,33 @@ org-mode
 (quote "#+BEGIN_QUOTE" n> p n "#+END_QUOTE")
 (begin-latex "\\begin{aligned}" n p n "\\end{aligned}")
 
-(note ":PROPERTIES:" n
-":ID: " (p (org-id-new) note-id) n
-":END:" n n
-"#+TITLE: " (p "title") n
-"#+FILETAGS: " (p "tags") n n n
-"* Links" n
-"- " n
-"* Explanation" n
-"- " n n)
+org-mode
+
+(note
+ ":PROPERTIES:" n
+ ":ID: " (p (org-id-new) note-id) n
+ ":END:" n n
+
+ "#+TITLE: "
+ (p (file-name-base buffer-file-name) title) n
+
+ "#+FILETAGS: "
+ (p
+  (let* ((dir (file-name-nondirectory
+               (directory-file-name
+                (file-name-directory buffer-file-name)))))
+    (if (string-match-p "^[0-9]+ " dir)
+        ""
+      (format ":%s:"
+              (replace-regexp-in-string
+               "[ -]+" "_"
+               (downcase dir)))))
+  tags) n n
+
+ "* Links" n
+ "- " n
+ "* Explanation" n
+ "- " q)
 
 
 (pg-note ":PROPERTIES:" n

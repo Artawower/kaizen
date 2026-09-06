@@ -33,8 +33,8 @@ aliases["pip"] = "pip3"
 aliases["python"] = "python3"
 
 # File listing
-aliases["ls"] = "eza --icons"
-aliases["tree"] = "eza --tree"
+aliases["ls"] = "eza --icons=auto"
+aliases["tree"] = lambda args: $[eza @(args) - -tree]
 
 # Bun
 aliases["br"] = "bun run"

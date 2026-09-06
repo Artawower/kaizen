@@ -1,4 +1,3 @@
-
 #+STARTUP: content
 #+DESCRIPTION: Minimalistic emacs.
 #+PROPERTY: header-args :results silent :tangle-mode (identity #o644) :mkdirp yes
@@ -697,16 +696,36 @@ Modeline inactive color
 #+BEGIN_SRC emacs-lisp
 (use-package auto-dark
   :init
-  (auto-dark-mode)
-  :config
-  (setq auto-dark-allow-osascript nil)
+  ;; Neomacs doesn't provide the native macOS appearance hook,
+  ;; so let auto-dark detect appearance via osascript.
+  (when (eq window-system 'neo)
+    (setq auto-dark-allow-osascript t))
+
   (setq auto-dark-polling-interval-seconds 5)
+
+  :config
   (setq auto-dark-themes
-   '((modern-tokyo)
-     (modern-catppuccin-latte)))
-  ;; (setq auto-dark-allow-osascript t)
+        '((modern-tokyo)
+          (modern-catppuccin-latte)))
+
+  (auto-dark-mode 1)
+
   (add-hook 'after-make-frame-functions #'my/server-auto-dark))
 #+END_SRC
+
+Fix neomacs issue
+#+BEGIN_SRC emacs-lisp :results silent
+(defun my/auto-dark-check-system-change-only ()
+  (let ((appearance (auto-dark--current-system-mode)))
+    (unless (eq appearance auto-dark--last-dark-mode-state)
+      (auto-dark--set-theme appearance))))
+
+(when (eq window-system 'neo)
+  (advice-add 'auto-dark--check-and-set-dark-mode
+              :override
+              #'my/auto-dark-check-system-change-only))
+#+END_SRC
+
 
 #+BEGIN_SRC emacs-lisp :results silent
 (defun my/server-auto-dark (frame)
@@ -1657,6 +1676,20 @@ The format is:
         (directory-files my/templates-dir t "\\`[^.].*\\'")))
 #+END_SRC
 
+*** Auto insertion buffer content
+#+BEGIN_SRC emacs-lisp :results silent
+(use-package autoinsert
+  :ensure nil
+  :defer 3
+  :config
+  (setq auto-insert-query nil)
+  (auto-insert-mode 1)
+
+  (define-auto-insert
+    "\\.org\\'"
+    (lambda ()
+      (tempel-insert 'note))))
+#+END_SRC
 ** Treesitter
 *** Core package
 #+BEGIN_SRC emacs-lisp
@@ -1713,9 +1746,11 @@ The format is:
           (tsx "https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src")
           (typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src")
           (yaml "https://github.com/ikatyang/tree-sitter-yaml")))
-
-  (setq treesit-extra-load-path '("~/.emacs.d/tree-sitter"))
-  (setq treesit-font-lock-level 3))
+  
+  (add-to-list 'treesit-extra-load-path
+               (expand-file-name "tree-sitter/" user-emacs-directory))
+  
+  (setq treesit-font-lock-level 4))
 
 
 #+END_SRC
@@ -5122,6 +5157,27 @@ Manage your dot files like a God
 (load (expand-file-name "keybindings.el" user-emacs-directory) nil t)
 #+END_SRC
 * End config
+
 #+BEGIN_SRC emacs-lisp
 (elpaca-wait)
+#+END_SRC
+
+
+* Some neomacs patches :review:
+
+Keybindings
+
+#+BEGIN_SRC emacs-lisp :results silent
+(global-set-key (kbd "M-∏") #'eval-expression)
+(global-set-key (kbd "M-'") #'eval-expression)
+(global-set-key (kbd "M-’") #'eval-expression)
+
+#+END_SRC
+
+Top bar issue
+
+#+BEGIN_SRC emacs-lisp :results silent
+(set-frame-parameter nil 'undecorated-round t)
+(add-to-list 'default-frame-alist
+             '(ns-transparent-titlebar . t))
 #+END_SRC

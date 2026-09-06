@@ -10,9 +10,9 @@ del _secrets, op
 
 $HOSTNAME = _socket.gethostname()
 
-$EDITOR   = 'hx'
-$VISUAL   = 'hx'
-$JJ_EDITOR = 'hx'
+$EDITOR   = 'nvim'
+$VISUAL   = 'nvim'
+$JJ_EDITOR = 'nvim'
 
 $VI_MODE = 'INSIDE_EMACS' not in ${...}
 $AUTO_CD  = True

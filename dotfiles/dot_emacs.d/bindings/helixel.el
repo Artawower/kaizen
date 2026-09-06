@@ -212,6 +212,7 @@
        (up       (or (bound-and-true-p kaizen/nav-up)     "e"))
        (right    (or (bound-and-true-p kaizen/nav-right)  "i"))
        (ins      (or (bound-and-true-p kaizen/nav-insert) "l"))
+       (line-beg (or (bound-and-true-p kaizen/nav-beg) "0"))
        (line-end (or (bound-and-true-p kaizen/line-end)   "$")))
 
   ;; Generic navigation for normal/motion buffers.
@@ -221,6 +222,7 @@
     (helixel-define-key state (kbd down)     #'helixel-next-line)
     (helixel-define-key state (kbd up)       #'helixel-previous-line)
     (helixel-define-key state (kbd right)    #'helixel-forward-char)
+    (helixel-define-key state (kbd line-beg)  #'helixel-go-beginning-line)
     (helixel-define-key state (kbd line-end) #'helixel-go-end-line))
 
   ;; Count prefix: bind 0-9 to `digit-argument'.
@@ -229,6 +231,7 @@
 
   (helixel-define-key 'normal (kbd ins)          #'helixel-insert)
   (helixel-define-key 'normal (kbd (upcase ins)) #'kaizen/helixel-insert-at-indentation)
+  (helixel-define-key 'normal "0"                #'helixel-go-beginning-line)
   (helixel-define-key 'normal "k"                #'kaizen/helixel-search-or-next)
   (helixel-define-key 'normal "K"                #'helixel-search-repeat-reverse)
   (helixel-define-key 'normal "r"                #'helixel-replace)

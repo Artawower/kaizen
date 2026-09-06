@@ -1,5 +1,5 @@
 {
-  "lastChangelogVersion": "0.84.2",
+  "lastChangelogVersion": "0.85.0",
   "hideThinkingBlock": true,
   "quietStartup": true,
   "enableSkillCommands": true,
@@ -140,5 +140,5 @@
     "-extensions/agent-team.ts"
   ],
   "autocompleteMaxVisible": 3,
-  "theme": "light"
+  "theme": "catppuccin-mocha"
 }
