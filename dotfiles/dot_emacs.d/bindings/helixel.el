@@ -481,6 +481,9 @@
   (helixel-define-key 'normal (kbd "SPC l f") #'eglot-format-buffer)
   (helixel-define-key 'normal (kbd "SPC l d") #'flymake-show-buffer-diagnostics))
 
+(with-eval-after-load 'lsp-proxy
+  (helixel-define-key 'normal (kbd "SPC l a") #'lsp-proxy-execute-code-action))
+
 (with-eval-after-load 'corfu
   (add-hook 'helixel-normal-state-hook
             (lambda ()

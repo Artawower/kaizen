@@ -86,12 +86,15 @@ Function for getting config related paths
 (unless (boundp 'my/font-height)
   (setq my/font-height (if (eq system-type 'darwin) 18 14)))
 (setq my/font-default "Myna Nerd Font")
-(setq my/font-comic   "Myna Nerd Font")
+(setq my/font-comic   "Liga Comic mono")
 (setq my/ui-box-padding 6)
 (setq my/org-tag-color "#ff5555")
 
 (defface my/comic-face
-  `((t :inherit 'shadow :family ,my/font-comic :height 1.0 :italic t))
+  `((t (:inherit shadow
+        :family ,my/font-comic
+        :height 0.9
+        :slant italic)))
   "Face for funny font."
   :group 'my-faces)
 #+END_SRC
@@ -570,29 +573,29 @@ Modeline inactive color
 *** Function to apply frame fonts
 #+BEGIN_SRC emacs-lisp
 (defun my/setup-fonts-to-frame (&optional frame)
-  "Apply font settings to FRAME (or selected frame if called interactively)."
   (interactive)
   (let ((frame (or frame (selected-frame))))
-    (with-selected-frame frame
-      (when (display-graphic-p frame)
-        (set-frame-font (format "%s-%d" my/font-default my/font-height) nil t)
-        (set-face-attribute 'default frame :family my/font-default :height (* 10 my/font-height))
-        (set-face-attribute 'fixed-pitch frame :family my/font-default :height 1.0)
-        (set-face-attribute 'variable-pitch frame :family my/font-default :height 1.07)
-        (set-face-attribute 'font-lock-string-face  frame :inherit 'my/comic-face)
-        (set-face-attribute 'font-lock-comment-face frame :inherit 'my/comic-face)
-        (set-face-attribute 'font-lock-keyword-face frame :inherit 'my/comic-face)
+    (when (display-graphic-p frame)
+      (with-selected-frame frame
+        (set-frame-font
+         (format "%s-%d" my/font-default my/font-height))
 
-        (setq-default line-spacing 0.3)
-        (setq line-spacing 0.3)
-        (when (fboundp 'set-fontset-font)
-          (set-fontset-font t 'symbol (font-spec :family "Apple Color Emoji") nil 'prepend))))
+        (set-face-attribute 'default frame
+                            :family my/font-default
+                            :height (* 10 my/font-height))
 
-(set-face-attribute 'font-lock-string-face  nil :inherit nil :family 'unspecified :font 'unspecified)
-(set-face-attribute 'font-lock-comment-face nil :inherit nil :family 'unspecified :font 'unspecified)
-(set-face-attribute 'font-lock-keyword-face nil :inherit nil :family 'unspecified :font 'unspecified)
+        (dolist (face '(font-lock-string-face
+                        font-lock-comment-face))
+          (set-face-attribute face frame
+                              :family 'unspecified
+                              :height 'unspecified
+                              :slant 'unspecified
+                              :inherit 'my/comic-face))
 
-))
+        (set-fontset-font
+         t 'symbol
+         (font-spec :family "Apple Color Emoji")
+         nil 'prepend)))))
 
 #+END_SRC
 
@@ -3736,7 +3739,9 @@ Clone this repo for js debug git@github.com:microsoft/vscode-js-debug.git
          ("C-c o e" . outline-hide-entry)
          ("C-c o n" . outline-toggle-children)
          ("C-c o b" . outline-cycle-buffer)
-         ("C-c C-c e" . eval-buffer)))
+         ("C-c C-c e" . eval-buffer))
+  :custom
+  (elisp-fontify-semantically t))
 #+END_SRC
 
 *** Package development
@@ -3745,12 +3750,6 @@ Clone this repo for js debug git@github.com:microsoft/vscode-js-debug.git
 (use-package package-lint :defer t)
 #+END_SRC
 
-*** Semantic highlight
-#+BEGIN_SRC emacs-lisp
-(use-package semel
-  :ensure (semel :repo "eshelyaron/semel" :host github)
-  :hook (emacs-lisp-mode . semel-mode))
-#+END_SRC
 
 ** Typescript
 *** COMMENT Pretty ts error
@@ -4576,7 +4575,6 @@ Automatically creates parent directories if needed."
   (defun org-babel-execute:typescript (body params)
     (let ((org-babel-js-cmd "npx ts-node < "))
       (org-babel-execute:js body params))))
-
 #+END_SRC
 
 
@@ -4732,28 +4730,37 @@ Automatically creates parent directories if needed."
   :bind (("C-c o a" . org-menu)))
 #+END_SRC
 
-** Prettify org priority
-#+BEGIN_SRC emacs-lisp
-(use-package org-fancy-priorities
-  :hook (org-mode . org-fancy-priorities-mode)
+
+** Modern org
+#+BEGIN_SRC emacs-lisp :results silent
+(use-package org-modern
+  :hook (org-mode . org-modern-mode)
   :custom
-  (org-fancy-priorities-list '((?A . "󰈸")
-                               (?B . "")
-                               (?C . "󱈸")
-                               (?D . "")
-                               (?E . "")
-                               (?1 . "󰈸")
-                               (?2 . "")
-                               (?3 . "⮮")
-                               (?4 . "󰅶")
-                               (?I . ""))))
+  (org-modern-block-name nil)
+  (org-modern-block-fringe nil)
+  (org-modern-star 'fold)
+  (org-modern-list
+   '((?+ . "◦")
+     (?- . "–")
+     (?* . "•")))
+  (org-modern-checkbox
+   '((?X . "☑")
+     (?- . "□–")
+     (?\s . "□")))
+  (org-modern-todo nil)
+  (org-modern-tag nil)
+  (org-modern-timestamp nil)
+  (org-modern-block-name nil)
+  (org-modern-table nil)
+
+  (org-modern-priority
+   '((?A . "󰈸")
+     (?B . "")
+     (?C . "󱈸")
+     (?D . "")
+     (?E . ""))))
 #+END_SRC
 
-** Pretty org stars
-#+BEGIN_SRC emacs-lisp
-(use-package org-superstar
-  :hook (org-mode . org-superstar-mode))
-#+END_SRC
 
 ** Custom org creation function
 #+BEGIN_SRC emacs-lisp :results silent
