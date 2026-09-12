@@ -1,31 +1,65 @@
+org-mode
+
 (readme-iconed-modern
  ":PROPERTIES:" n
  ":ID: " (p (org-id-new) note-id) n
  ":END:" n n
 
- "#+TITLE: ✨ " (p "title") n n
+ ;; Title
+ "#+TITLE: ✨ " (p "title" title) n n
 
- "#+HTML: <div align=\"center\">" n
- "#+HTML: <img src=\"./images/" (p "logo name") "\" width=\"" (p "image width") "\" height=\"" (p "image height") "\" alt=\"" (p "title") "\">" n
- "#+HTML: </div>" n n
-
+ ;; Logo
  "#+HTML: <p align=\"center\">" n
- "#+HTML: <a href=\"https://github.com/artawower/" (p "repo id" repo-id) "\"><img src=\"https://img.shields.io/badge/GitHub-" (p "repo id" repo-id) "-181717?style=for-the-badge&logo=github&logoColor=white\" alt=\"GitHub\"></a>" n
- "#+HTML: <a href=\"https://wakatime.com/badge/github/Artawower/" (p "repo id" repo-id) "\"><img src=\"https://img.shields.io/endpoint?style=for-the-badge&url=https://wakatime.com/badge/github/Artawower/" (p "repo id" repo-id) ".json\" alt=\"Wakatime\"></a>" n
- "#+HTML: <a href=\"https://github.com/artawower/" (p "repo id" repo-id) "/actions/workflows/melpazoid.yml\"><img src=\"https://img.shields.io/github/actions/workflow/status/artawower/" (p "repo id" repo-id) "/melpazoid.yml?style=for-the-badge&logo=githubactions&logoColor=white&label=CI\" alt=\"CI\"></a>" n
- "#+HTML: <a href=\"https://www.gnu.org/software/emacs/\"><img src=\"https://img.shields.io/badge/Emacs-7F5AB6?style=for-the-badge&logo=gnuemacs&logoColor=white\" alt=\"Emacs\"></a>" n
+ "#+HTML: <img src=\"./images/" (p "logo.png" logo-name)
+ "\" width=\"180\" alt=\"" title "\">" n
  "#+HTML: </p>" n n
 
+ ;; Technology badges
  "#+HTML: <p align=\"center\">" n
+ (p "#+HTML: <a href=\"https://www.gnu.org/software/emacs/\"><img src=\"https://img.shields.io/badge/Emacs-7F5AB6?style=for-the-badge&logo=gnuemacs&logoColor=white\" alt=\"Emacs\"></a>"
+    technology-badges)
+ n
+ "#+HTML: </p>" n n
+
+ ;; Project badges
+ "#+HTML: <p align=\"center\">" n
+
+ "#+HTML: <a href=\"https://github.com/artawower/"
+ (p "repo-id" repo-id)
+ "\"><img src=\"https://img.shields.io/badge/GitHub-"
+ repo-id
+ "-181717?style=for-the-badge&logo=github&logoColor=white\" alt=\"GitHub\"></a>" n
+
+ "#+HTML: <a href=\"https://github.com/artawower/"
+ repo-id
+ "/actions/workflows/"
+ (p "melpazoid.yml" ci-workflow)
+ "\"><img src=\"https://img.shields.io/github/actions/workflow/status/artawower/"
+ repo-id
+ "/"
+ ci-workflow
+ "?style=for-the-badge&logo=githubactions&logoColor=white&label=CI\" alt=\"CI\"></a>" n
+
+ "#+HTML: <a href=\"https://wakatime.com/badge/github/Artawower/"
+ repo-id
+ "\"><img src=\"https://img.shields.io/endpoint?style=for-the-badge&url=https://wakatime.com/badge/github/Artawower/"
+ repo-id
+ ".json\" alt=\"WakaTime\"></a>" n
+
+ "#+HTML: </p>" n n
+
+ ;; Support badges
+ "#+HTML: <p align=\"center\">" n
+
  "#+HTML: <a href=\"https://www.paypal.me/darkawower\"><img src=\"https://img.shields.io/badge/PayPal-Donate-00457C?style=for-the-badge&logo=paypal&logoColor=white\" alt=\"PayPal\"></a>" n
+
+ "#+HTML: <a href=\"https://ko-fi.com/artawower\"><img src=\"https://img.shields.io/badge/Ko--fi-Support-FF5E5B?style=for-the-badge&logo=kofi&logoColor=white\" alt=\"Ko-fi\"></a>" n
+
  "#+HTML: <a href=\"https://patreon.com/artawower\"><img src=\"https://img.shields.io/badge/Patreon-Support-F96854?style=for-the-badge&logo=patreon&logoColor=white\" alt=\"Patreon\"></a>" n
+
  "#+HTML: </p>" n n
 
- "#+HTML: <p align=\"center\">" n
- (p "modern badges"
-    "#+HTML: <a href=\"https://www.gnu.org/software/emacs/\"><img src=\"https://img.shields.io/badge/Emacs-7F5AB6?style=for-the-badge&logo=gnuemacs&logoColor=white\" alt=\"Emacs\"></a>") n
- "#+HTML: </p>" n n
-
+ ;; Content
  "* Introduction" n n
  (p "description") n n
 
@@ -40,5 +74,7 @@
 
  "* 🍩 Contribute guide" n n
  "Any contribution is very much appreciated! Please read the [[./CONTRIBUTE.org][style guide]] before contributing to avoid misunderstandings!" n
- "I would also appreciate it if you would consider becoming my [[https://www.patreon.com/artawower][patron]]." n n
- (p "contribute") n)
+
+ "I would also appreciate it if you would consider supporting my work via [[https://ko-fi.com/artawower][Ko-fi]], [[https://www.paypal.me/darkawower][PayPal]], or becoming my [[https://www.patreon.com/artawower][patron]]." n n
+
+ (p "contribute"))
