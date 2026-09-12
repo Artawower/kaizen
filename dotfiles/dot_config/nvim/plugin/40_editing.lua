@@ -186,6 +186,22 @@ require("oil").setup({
   view_options = {
     show_hidden = true,
   },
+  keymaps = {
+    ["<leader>sd"] = {
+      desc = "Sort by mtime",
+      callback = function()
+        local oil = require("oil")
+        oil.set_sort({ { "mtime", "desc" }, { "name", "asc" } })
+      end,
+    },
+    ["<leader>sn"] = {
+      desc = "Sort by name",
+      callback = function()
+        local oil = require("oil")
+        oil.set_sort({ { "type", "asc" }, { "name", "asc" } })
+      end,
+    },
+  },
 })
 
 vim.keymap.set("n", "<leader>.", "<cmd>Oil<CR>", {

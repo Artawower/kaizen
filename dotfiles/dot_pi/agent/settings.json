@@ -1,76 +1,20 @@
 {
-  "lastChangelogVersion": "0.85.0",
   "hideThinkingBlock": true,
   "quietStartup": true,
   "enableSkillCommands": true,
-  "npmCommand": [
-    "npm"
-  ],
+
   "packages": [
-    {
-      "source": "npm:pi-web-access",
-      "extensions": [
-        "-index.ts"
-      ],
-      "skills": [
-        "-skills/librarian/SKILL.md"
-      ]
-    },
-    {
-      "source": "npm:oh-pi",
-      "skills": [
-        "-pi-package/skills/liquid-glass/SKILL.md",
-        "-pi-package/skills/glassmorphism/SKILL.md",
-        "+pi-package/skills/git-workflow/SKILL.md",
-        "-pi-package/skills/debug-helper/SKILL.md",
-        "-pi-package/skills/neubrutalism/SKILL.md",
-        "-pi-package/skills/quick-setup/SKILL.md",
-        "+pi-package/skills/context7/SKILL.md"
-      ],
-      "extensions": [
-        "-pi-package/extensions/bg-process.ts",
-        "-pi-package/extensions/custom-footer.ts",
-        "-pi-package/extensions/ant-colony/index.ts",
-        "-pi-package/extensions/auto-update.ts",
-        "-pi-package/extensions/auto-session-name.ts",
-        "-pi-package/extensions/compact-header.ts",
-        "-pi-package/extensions/git-guard.ts",
-        "-pi-package/extensions/safe-guard.ts"
-      ],
-      "themes": [
-        "-pi-package/themes/catppuccin-mocha.json"
-      ]
-    },
-    "npm:pi-copy-output",
+    "npm:@tian.zuo/pi-antigravity",
+
     "npm:@sherif-fanous/pi-catppuccin",
-    "npm:pi-notify",
-    {
-      "source": "npm:pi-tool-display",
-      "extensions": [
-        "+index.ts"
-      ]
-    },
+    "npm:@mjakl/pi-dark-or-light",
+
     {
       "source": "npm:pi-usage-bars",
-      "extensions": [
-        "+extensions/usage-bars/index.ts"
-      ]
+      "extensions": ["+extensions/usage-bars/index.ts"]
     },
-    {
-      "source": "npm:@tintinweb/pi-subagents",
-      "extensions": [
-        "-src/index.ts"
-      ]
-    },
-    "npm:@mjakl/pi-dark-or-light",
-    "npm:@ifi/oh-pi-themes",
-    "npm:@benvargas/pi-exa-mcp",
-    {
-      "source": "git:github.com/hk-vk/pi-connect",
-      "extensions": [
-        "-index.ts"
-      ]
-    },
+    "npm:@tmustier/pi-usage-extension",
+
     {
       "source": "npm:pi-free",
       "extensions": [
@@ -80,65 +24,42 @@
         "-providers/nvidia.ts"
       ]
     },
-    {
-      "source": "npm:pi-image-preview",
-      "extensions": [
-        "-index.ts"
-      ]
-    },
-    "npm:pi-skills-sh",
-    "npm:pi-secret-guard",
-    "npm:pi-extension-manager",
-    {
-      "source": "npm:pi-btw",
-      "extensions": [
-        "-extensions/btw.ts"
-      ]
-    },
-    "npm:pi-session-switch",
-    {
-      "source": "npm:@dkmnx/pi-clarify",
-      "extensions": [
-        "-index.ts"
-      ]
-    },
-    "npm:pi-bailian-models",
     "npm:@thesethrose/pi-zai-provider",
+    "npm:pi-alibaba-models",
+    "npm:@benvargas/pi-claude-code-use",
+    "npm:pi-opencode-bridge",
+
+    "npm:pi-link",
+
     "git:github.com/HazAT/pi-interactive-subagents",
+
     {
       "source": "npm:pi-lens",
-      "extensions": [
-        "+index.ts"
-      ],
-      "skills": [
-        "+skills/ast-grep/SKILL.md",
-        "+skills/lsp-navigation/SKILL.md"
-      ]
+      "extensions": ["+index.ts"],
+      "skills": ["+skills/ast-grep/SKILL.md", "+skills/lsp-navigation/SKILL.md"]
     },
-    "npm:pi-link",
-    "git:github.com/tomooshi/condensed-milk-pi",
-    "npm:@tmustier/pi-usage-extension",
-    "npm:@benvargas/pi-claude-code-use",
-    "npm:context-mode",
+
+    "npm:pi-secret-guard",
+    "npm:pi-notify",
+    "npm:pi-copy-output",
+    "npm:pi-session-switch",
     "npm:pi-jj-auto",
-    "npm:pi-alibaba-models",
-    "npm:pi-opencode-bridge",
-    "npm:pi-job-search"
+    "npm:@tomooshi/condensed-milk-pi",
+    "npm:pi-glance",
+    "npm:pi-observational-memory"
   ],
+
   "defaultProvider": "openai-codex",
   "defaultModel": "gpt-5.6-sol",
   "defaultThinkingLevel": "xhigh",
-  "collapseChangelog": false,
+
+  "collapseChangelog": true,
+  "autocompleteMaxVisible": 3,
+  "theme": "catppuccin-mocha",
+
   "dark-or-light": {
     "dark": "gruvbox-dark",
     "light": "catppuccin-latte",
     "default": "dark"
-  },
-  "extensions": [
-    "-extensions/subagent/index.ts",
-    "-extensions/subagent/notify.ts",
-    "-extensions/agent-team.ts"
-  ],
-  "autocompleteMaxVisible": 3,
-  "theme": "catppuccin-mocha"
+  }
 }

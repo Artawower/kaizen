@@ -4199,7 +4199,7 @@ deps
   (setq minuet-auto-suggestion-debounce-delay 0.1)
   (setq minuet-auto-suggestion-throttle-delay 0.3))
 #+END_SRC
-* Org mode
+ rrrg mode
 ** Org GPG encryption
 #+BEGIN_SRC emacs-lisp
 (setq epa-pinentry-mode 'loopback)
