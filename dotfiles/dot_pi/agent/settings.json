@@ -2,19 +2,10 @@
   "hideThinkingBlock": true,
   "quietStartup": true,
   "enableSkillCommands": true,
-
   "packages": [
     "npm:@tian.zuo/pi-antigravity",
-
     "npm:@sherif-fanous/pi-catppuccin",
     "npm:@mjakl/pi-dark-or-light",
-
-    {
-      "source": "npm:pi-usage-bars",
-      "extensions": ["+extensions/usage-bars/index.ts"]
-    },
-    "npm:@tmustier/pi-usage-extension",
-
     {
       "source": "npm:pi-free",
       "extensions": [
@@ -28,38 +19,50 @@
     "npm:pi-alibaba-models",
     "npm:@benvargas/pi-claude-code-use",
     "npm:pi-opencode-bridge",
-
-    "npm:pi-link",
-
-    "git:github.com/HazAT/pi-interactive-subagents",
-
+    {
+      "source": "npm:pi-link",
+      "extensions": ["-index.ts"],
+      "skills": []
+    },
+    {
+      "source": "git:github.com/HazAT/pi-interactive-subagents",
+      "extensions": ["-pi-extension/subagents/index.ts"]
+    },
+    "npm:@andrewjacop/pi-herdr",
     {
       "source": "npm:pi-lens",
       "extensions": ["+index.ts"],
       "skills": ["+skills/ast-grep/SKILL.md", "+skills/lsp-navigation/SKILL.md"]
     },
-
     "npm:pi-secret-guard",
     "npm:pi-notify",
     "npm:pi-copy-output",
     "npm:pi-session-switch",
     "npm:pi-jj-auto",
     "npm:@tomooshi/condensed-milk-pi",
-    "npm:pi-glance",
-    "npm:pi-observational-memory"
-  ],
+    "npm:pi-observational-memory",
+    "npm:pi-tool-stats",
+    "npm:@observal/pi-insights",
+    "npm:pi-provider-fallback",
+    "npm:pi-open-tui",
+    "npm:@tmustier/pi-usage-extension",
+    "npm:@singh-gur/pi-usage",
+    "npm:pi-context-view",
 
+    "npm:pi-trace-extension",
+    "npm:pi-stats-ext",
+    "npm:pi-open-agents"
+  ],
   "defaultProvider": "openai-codex",
   "defaultModel": "gpt-5.6-sol",
-  "defaultThinkingLevel": "xhigh",
-
+  "defaultThinkingLevel": "high",
   "collapseChangelog": true,
   "autocompleteMaxVisible": 3,
   "theme": "catppuccin-mocha",
-
   "dark-or-light": {
-    "dark": "gruvbox-dark",
+    "dark": "catppuccin-mocha",
     "light": "catppuccin-latte",
-    "default": "dark"
-  }
+    "default": "light"
+  },
+  "lastChangelogVersion": "0.85.1"
 }
