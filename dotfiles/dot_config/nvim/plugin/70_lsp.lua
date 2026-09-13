@@ -1,16 +1,6 @@
--- Packages
-vim.pack.add({
-  { src = "https://github.com/neovim/nvim-lspconfig" },
-  { src = "https://github.com/nvim-treesitter/nvim-treesitter-context" },
-  { src = "https://github.com/mfussenegger/nvim-lint" },
-  { src = "https://github.com/stevearc/quicker.nvim" },
-})
-
 local map = vim.keymap.set
 
--- Server configs
-
--- Lua
+local function configure_servers()
 vim.lsp.config("lua_ls", {
   settings = {
     Lua = {
@@ -163,8 +153,121 @@ vim.lsp.config("copilot", {
     "toml",
   },
 })
+end
 
 -- LSP attach
+
+local servers = {
+  "ty",
+  "ruff",
+  "ts_ls",
+  "angularls",
+  "vue_ls",
+  "eslint",
+  "html",
+  "cssls",
+  "jsonls",
+  "yamlls",
+  "gopls",
+  "rust_analyzer",
+  "lua_ls",
+  "csharp_ls",
+  "marksman",
+  "codebook",
+  "copilot",
+}
+
+vim.pack.add({
+  {
+    src = "https://github.com/neovim/nvim-lspconfig",
+    data = {
+      event = { "BufReadPost", "BufNewFile" },
+      cmd = { "LspInfo", "LspLog", "LspRestart", "LspStart", "LspStop" },
+      after = function()
+        configure_servers()
+        vim.lsp.enable(servers)
+      end,
+    },
+  },
+  {
+    src = "https://github.com/j-hui/fidget.nvim",
+    data = {
+      event = "LspAttach",
+      cmd = "Fidget",
+      after = function()
+        require("fidget").setup()
+      end,
+    },
+  },
+  {
+    src = "https://github.com/nvim-treesitter/nvim-treesitter-context",
+    data = {
+      event = "DeferredUIEnter",
+      cmd = "TSContextToggle",
+      after = function()
+        require("treesitter-context").setup({
+          enable = true,
+          multiwindow = false,
+          max_lines = 0,
+          min_window_height = 0,
+          line_numbers = true,
+          multiline_threshold = 20,
+          trim_scope = "outer",
+          mode = "cursor",
+          separator = nil,
+          zindex = 20,
+          on_attach = nil,
+        })
+      end,
+    },
+  },
+  {
+    src = "https://github.com/mfussenegger/nvim-lint",
+    data = {
+      ft = { "go", "css", "scss", "vue", "sh" },
+      after = function()
+        require("lint").linters_by_ft = {
+          go = { "golangcilint" },
+          css = { "stylelint" },
+          scss = { "stylelint" },
+          vue = { "stylelint" },
+          sh = { "shellcheck" },
+        }
+      end,
+    },
+  },
+  {
+    src = "https://github.com/stevearc/quicker.nvim",
+    data = {
+      ft = "qf",
+      cmd = { "QuickerToggle", "QuickerOpen" },
+      after = function()
+        require("quicker").setup({
+          keys = {
+            {
+              ">",
+              function()
+                require("quicker").expand({
+                  before = 2,
+                  after = 2,
+                  add_to_existing = true,
+                })
+              end,
+              desc = "Expand context",
+            },
+            {
+              "<",
+              function()
+                require("quicker").collapse()
+              end,
+              desc = "Collapse context",
+            },
+          },
+        })
+      end,
+    },
+  },
+}, { load = require("lz.n").load })
 
 vim.api.nvim_create_autocmd("LspAttach", {
   callback = function(args)
@@ -174,12 +277,12 @@ vim.api.nvim_create_autocmd("LspAttach", {
       return
     end
 
-    -- Prefer ty hover over Ruff
+    require("lz.n").trigger_load("fidget.nvim")
+
     if client.name == "ruff" then
       client.server_capabilities.hoverProvider = false
     end
 
-    -- Copilot inline completion
     if
         client.name == "copilot"
         and client:supports_method(
@@ -197,32 +300,6 @@ vim.api.nvim_create_autocmd("LspAttach", {
       })
     end
   end,
-})
-
--- Enable servers
-
-vim.lsp.enable({
-  "ty",
-  "ruff",
-
-  "ts_ls",
-  "angularls",
-  "vue_ls",
-  "eslint",
-
-  "html",
-  "cssls",
-  "jsonls",
-  "yamlls",
-
-  "gopls",
-  "rust_analyzer",
-  "lua_ls",
-  "csharp_ls",
-  "marksman",
-
-  "codebook",
-  "copilot",
 })
 
 -- LSP keymaps
@@ -255,18 +332,13 @@ map({ "n", "x" }, "<leader>lh", without_selection(vim.lsp.buf.hover), {
 
 -- Breadcrumbs
 
-require("treesitter-context").setup({
-  enable = true,
-  multiwindow = false,
-  max_lines = 0,
-  min_window_height = 0,
-  line_numbers = true,
-  multiline_threshold = 20,
-  trim_scope = "outer",
-  mode = "cursor",
-  separator = nil,
-  zindex = 20,
-  on_attach = nil,
+vim.api.nvim_create_autocmd("FileType", {
+  callback = function(args)
+    local ok, parser = pcall(vim.treesitter.get_parser, args.buf)
+    if ok and parser and vim.bo[args.buf].buftype == "" then
+      require("lz.n").trigger_load("nvim-treesitter-context")
+    end
+  end,
 })
 
 -- Document highlight
@@ -429,59 +501,27 @@ map("n", "<leader>eC", copy_all_diagnostics, {
 
 -- Linting
 
-local lint = require("lint")
-
-lint.linters_by_ft = {
-  go = { "golangcilint" },
-
-  css = { "stylelint" },
-  scss = { "stylelint" },
-  vue = { "stylelint" },
-
-  sh = { "shellcheck" },
-}
+local lint_group = vim.api.nvim_create_augroup("KaizenLint", { clear = true })
 
 vim.api.nvim_create_autocmd("FileType", {
-  callback = function()
+  pattern = { "go", "css", "scss", "vue", "sh" },
+  group = lint_group,
+  callback = function(args)
+    require("lz.n").trigger_load("nvim-lint")
     require("lint").try_lint()
-  end,
-})
-
-vim.api.nvim_create_autocmd({
-  "BufWritePost",
-  "InsertLeave",
-}, {
-  callback = function()
-    require("lint").try_lint()
-  end,
-})
-
--- Quickfix
-
-require("quicker").setup({
-  keys = {
-    {
-      ">",
-      function()
-        require("quicker").expand({
-          before = 2,
-          after = 2,
-          add_to_existing = true,
-        })
+    vim.api.nvim_clear_autocmds({ group = lint_group, buffer = args.buf })
+    vim.api.nvim_create_autocmd({ "BufWritePost", "InsertLeave" }, {
+      group = lint_group,
+      buffer = args.buf,
+      callback = function()
+        require("lint").try_lint()
       end,
-      desc = "Expand context",
-    },
-    {
-      "<",
-      function()
-        require("quicker").collapse()
-      end,
-      desc = "Collapse context",
-    },
-  },
+    })
+  end,
 })
 
 map("n", "<leader>qq", function()
+  require("lz.n").trigger_load("quicker.nvim")
   require("quicker").toggle()
 end, {
   desc = "Quickfix",
@@ -622,7 +662,3 @@ end
 map("x", "N", copy_selection_context, {
   desc = "Copy selection with context",
 })
-
-
--- Repl
-vim.pack.add({ "https://github.com/ii14/neorepl.nvim" })

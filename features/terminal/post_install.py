@@ -29,3 +29,11 @@ subprocess.run(
     [python, "-m", "pip", "install", *pip_options, "xontrib-sh==0.3.2"],
     check=True,
 )
+
+# Herdr installation
+
+HERDR_PLUGINS = ["crierr/herdr-tmux-layout"]
+
+
+for p in HERDR_PLUGINS:
+    subprocess.run(["herdr", "plugin", "install", p])

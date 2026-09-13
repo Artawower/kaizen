@@ -1,31 +1,61 @@
 local map = vim.keymap.set
 
--- Packages
 vim.pack.add({
-  { src = "https://github.com/folke/which-key.nvim" },
-  { src = "https://github.com/nvim-mini/mini.jump2d" },
+  {
+    src = "https://github.com/folke/which-key.nvim",
+    data = {
+      event = "DeferredUIEnter",
+      cmd = "WhichKey",
+      after = function()
+        require("which-key").setup({
+          delay = 400,
+        })
+      end,
+    },
+  },
+  {
+    src = "https://github.com/nvim-mini/mini.jump2d",
+    data = {
+      after = function()
+        require("mini.jump2d").setup({
+          labels = "arstneioqwfpghjluyzxcvbkm",
+        })
+      end,
+    },
+  },
   {
     src = "https://github.com/s1n7ax/nvim-window-picker",
     version = vim.version.range("2.*"),
+    data = {
+      after = function()
+        require("window-picker").setup({
+          hint = "floating-big-letter",
+          filter_rules = {
+            include_current_win = false,
+            autoselect_one = true,
+            include_unfocusable_windows = true,
+            bo = {
+              filetype = { "notify" },
+              buftype = { "terminal" },
+            },
+          },
+        })
+      end,
+    },
   },
-})
-
-require("which-key").setup({
-  delay = 400,
-})
+}, { load = require("lz.n").load })
 
 map("n", "<leader>?", function()
+  require("lz.n").trigger_load("which-key.nvim")
   require("which-key").show({ global = false })
 end, {
   desc = "Keymaps",
 })
 
--- Colemak
 map({ "n", "x" }, "n", "gj", { desc = "Down" })
 map({ "n", "x" }, "e", "gk", { desc = "Up" })
 map({ "n", "x" }, "i", "l", { desc = "Right" })
 
--- Insert
 map("n", "l", "i", { desc = "Insert" })
 map("n", "L", "I", { desc = "Insert at line start" })
 
@@ -38,20 +68,16 @@ map("x", "l", "<Esc>`>a", {
   nowait = true,
 })
 
--- Word movement
 map({ "n", "x" }, "j", "e", { desc = "Next word end" })
 map({ "n", "x" }, "J", "E", { desc = "Next WORD end" })
 
--- Search navigation
 map({ "n", "x" }, "k", "n", { desc = "Next search result" })
 map({ "n", "x" }, "K", "N", { desc = "Previous search result" })
 
--- LSP hover
 map("n", "E", vim.lsp.buf.hover, {
   desc = "Hover",
 })
 
--- Text objects
 vim.api.nvim_create_autocmd("VimEnter", {
   callback = function()
     map("n", "<D-a>", "ggVG", {
@@ -104,7 +130,6 @@ map("n", "mm", "<Plug>(MatchitNormalForward)", {
   desc = "Matching bracket",
 })
 
--- Search
 function visual_search()
   local lines = vim.fn.getregion(
     vim.fn.getpos("v"),
@@ -134,7 +159,6 @@ map("x", "/", visual_search, {
   desc = "Search selection",
 })
 
--- Editing
 map({ "n", "x" }, "c", '"_c')
 map("n", "C", '"_C')
 map("n", "cc", '"_cc')
@@ -161,7 +185,6 @@ map({ "n", "i", "x" }, "<D-s>", "<cmd>write<CR>", {
   desc = "Save",
 })
 
--- Buffer navigation
 map("n", "<M-[>", "<cmd>bprevious<CR>", {
   desc = "Previous buffer",
 })
@@ -191,7 +214,6 @@ map("n", "<leader>Q", "<cmd>qa<CR>", {
   desc = "Quit all",
 })
 
--- Window management
 map("n", "<leader>wv", "<cmd>vsplit<CR>", {
   desc = "Vertical split",
 })
@@ -237,13 +259,6 @@ map("n", "<leader>wf", toggle_maximize, {
   desc = "Toggle window maximize",
 })
 
-local jump2d = require("mini.jump2d")
-
-jump2d.setup({
-  labels = "arstneioqwfpghjluyzxcvbkm",
-})
-
-
 local function select_word()
   vim.cmd("normal! viw")
 end
@@ -255,6 +270,7 @@ local function jump_word()
     return
   end
 
+  require("lz.n").trigger_load("mini.jump2d")
   MiniJump2d.start({
     spotter = MiniJump2d.gen_spotter.vimpattern(
       "\\c\\<" .. vim.pesc(char)
@@ -270,6 +286,7 @@ local function jump_char()
     return
   end
 
+  require("lz.n").trigger_load("mini.jump2d")
   MiniJump2d.start({
     spotter = MiniJump2d.gen_spotter.vimpattern(
       "\\V" .. vim.fn.escape(char, "\\")
@@ -287,33 +304,19 @@ map({ "n", "x" }, "F", jump_char, {
   desc = "Jump to character",
 })
 
--- Window picker
-require("window-picker").setup({
-  hint = "floating-big-letter",
-
-  filter_rules = {
-    include_current_win = false,
-    autoselect_one = true,
-    include_unfocusable_windows = true,
-
-    bo = {
-      filetype = { "notify" },
-      buftype = { "terminal" },
-    },
-  },
-})
-
-map({ "n", "i" }, "<D-.>", function()
+local function pick_window()
+  require("lz.n").trigger_load("nvim-window-picker")
   local win = require("window-picker").pick_window()
 
   if win then
     vim.api.nvim_set_current_win(win)
   end
-end, {
+end
+
+map({ "n", "i" }, "<D-.>", pick_window, {
   desc = "Pick window",
 })
 
--- Diagnostic navigation
 map("n", "<C-n>", function()
   vim.diagnostic.jump({ count = 1 })
 end, {
@@ -326,8 +329,6 @@ end, {
   desc = "Previous diagnostic",
 })
 
-
--- Russian computer
 vim.opt.langmap = table.concat({
   "й;q",
   "ц;w",

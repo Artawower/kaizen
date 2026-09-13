@@ -50,6 +50,16 @@ resize_mode = "prefix+r"
 toggle_sidebar = ["prefix+b", "super+b"]
 open_worktree = ["alt+p", "prefix+shift+o"]
 
+[[keys.command]]
+key = "prefix+alt+5"
+type = "plugin_action"
+command = "herdr-tmux-layout.tiled"
+
+[[keys.command]]
+key = "prefix+shift+e"
+type = "plugin_action"
+command = "herdr-tmux-layout.balance"
+
 [keys.indexed]
 tabs = "super"
 workspaces = "ctrl"

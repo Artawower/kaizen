@@ -1,9 +1,25 @@
--- Packages
 vim.pack.add({
   { src = "https://github.com/folke/snacks.nvim" },
-})
+  {
+    src = "https://github.com/cbochs/grapple.nvim",
+    data = {
+      cmd = "Grapple",
+      after = function()
+        require("grapple").setup({
+          scope = "global",
+          command = function(path)
+            if vim.fn.isdirectory(path) == 1 then
+              vim.cmd.Oil(vim.fn.fnameescape(path))
+              return
+            end
 
--- Snacks setup
+            vim.cmd.edit(vim.fn.fnameescape(path))
+          end,
+        })
+      end,
+    },
+  },
+}, { load = require("lz.n").load })
 
 local Snacks = require("snacks")
 local map = vim.keymap.set
@@ -16,30 +32,24 @@ Snacks.setup({
     enabled = false,
     ft = "markdown",
     win = {
-      -- position = "current",
-
       width = 0.95,
       height = 0.95,
       border = "rounded",
-    }
-
+    },
   },
   winbar = {
     enabled = false,
   },
   picker = {
     enabled = true,
-
     layout = {
       preset = "ivy",
       hidden = { "preview" },
       preview = "main",
-
       layout = {
         height = 0.35,
       },
     },
-
     win = {
       input = {
         keys = {
@@ -49,7 +59,6 @@ Snacks.setup({
           ["<Tab>"] = { "toggle_preview", mode = { "i", "n" } },
         },
       },
-
       list = {
         keys = {
           ["<C-n>"] = "list_down",
@@ -384,25 +393,9 @@ map("n", "<leader>fi", file_info, {
 })
 
 
--- Bookmarks
-vim.pack.add({ "https://github.com/cbochs/grapple.nvim" })
-
-local grapple = require("grapple")
-
-grapple.setup({
-  scope = "global",
-
-  command = function(path)
-    if vim.fn.isdirectory(path) == 1 then
-      require("oil").open(path)
-      return
-    end
-
-    vim.cmd.edit(vim.fn.fnameescape(path))
-  end,
-})
-
 local function toggle_bookmark()
+  require("lz.n").trigger_load("grapple.nvim")
+  local grapple = require("grapple")
   local path
 
   if vim.bo.filetype == "oil" then
@@ -439,7 +432,8 @@ map({ "n", "x" }, "<leader>ma", toggle_bookmark, {
 })
 
 map({ "n", "x" }, "<leader>mm", function()
-  grapple.toggle_tags()
+  require("lz.n").trigger_load("grapple.nvim")
+  require("grapple").toggle_tags()
 end, {
   desc = "Bookmarks",
 }) -- File manager
