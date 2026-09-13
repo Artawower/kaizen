@@ -2,7 +2,7 @@
 name: scout
 description: Fast read-only repository reconnaissance. Strongly prefer for broad codebase research, inventory, locating files or symbols, understanding unfamiliar subsystems, and identifying patterns, overlap, redundancy, or missing capabilities across multiple files.
 model: antigravity/gemini-3.8-flash
-thinking: medium
+thinking: high
 tools: read, grep, find, ls
 session-mode: lineage-only
 spawning: false
