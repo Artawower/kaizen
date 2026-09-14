@@ -2,6 +2,7 @@
   "hideThinkingBlock": true,
   "quietStartup": true,
   "enableSkillCommands": true,
+  "tuiMode": "fullscreen",
   "packages": [
     "npm:@tian.zuo/pi-antigravity",
     "npm:@sherif-fanous/pi-catppuccin",
@@ -46,9 +47,13 @@
     "npm:pi-provider-fallback",
     "npm:pi-open-tui",
     "npm:@tmustier/pi-usage-extension",
-    "npm:@singh-gur/pi-usage",
+    {
+      "source": "npm:@singh-gur/pi-usage",
+      "extension": ["-intex.ts"]
+    },
     "npm:pi-context-view",
 
+    "npm:@specode/pi-subscription-usage",
     "npm:pi-trace-extension",
     "npm:pi-stats-ext",
     "npm:pi-open-agents"

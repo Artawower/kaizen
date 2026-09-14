@@ -1,6 +1,6 @@
 ---
 name: swarm
-description: Orchestrate substantial engineering work with persistent Herdr role agents. The current Pi session is the Lead and chooses the smallest useful workflow; pi-herdr manages role sessions and correction loops.
+description: Orchestrate substantial engineering work with persistent Herdr role agents. The current Pi session is the Lead and chooses the smallest useful workflow; pi-herdr manages role sessions while swarm_prompt handles normal delegation efficiently.
 ---
 
 # Swarm engineering workflow
@@ -8,6 +8,8 @@ description: Orchestrate substantial engineering work with persistent Herdr role
 The current Pi session is the Lead.
 
 Use pi-herdr for managed agent and layout operations.
+
+Use `swarm_prompt` for normal work delegation to existing managed agents.
 
 Agent models, thinking levels, tools, permissions, and role behavior are defined
 by pi-open-agents profiles in:
@@ -241,6 +243,53 @@ Each managed role gets its own pane inside `AI SWARM`.
 Role panes are persistent and should be reused while their context still belongs
 to the current workstream.
 
+## Swarm pane layout
+
+Managed panes should use a compact tiled layout rather than accumulating narrow
+vertical columns.
+
+Preferred visual layout:
+
+- 1 pane: full tab
+- 2 panes: two balanced columns
+- 3–4 panes: balanced tiled grid, preferably two columns
+- 5–6 panes: balanced tiled grid, preferably at most two rows
+
+Avoid repeatedly splitting the rightmost pane to the right.
+
+When a supported Herdr layout plugin is available, prefer its tiled layout for
+the `AI SWARM` tab.
+
+When `herdr-tmux-layout` is installed, apply its tiled layout after managed pane
+creation, removal, or other topology changes that leave panes badly unbalanced.
+
+Layout operations must:
+
+- stay inside `AI SWARM`
+- preserve existing live processes
+- preserve managed agent sessions
+- not restart Pi processes
+- not create another workspace
+- not create replacement panes solely for visual balancing
+
+Do not continuously rebalance while agents are working.
+
+Rebalance only after a meaningful topology change, such as creating or removing
+a managed pane.
+
+If no supported layout plugin is available, prefer alternating split directions
+to avoid narrow vertical columns.
+
+For example:
+
+- first split: right
+- next split: down within an existing column
+- next split: right or down to keep panes approximately balanced
+
+Do not spend substantial orchestration effort optimizing pane geometry.
+
+Layout quality is secondary to agent correctness and reuse.
+
 ## Managed role identity
 
 Derive:
@@ -298,6 +347,7 @@ For a missing role:
 8. wait until Herdr detects the Pi process as an agent
 9. rename it to the managed role name
 10. verify managed name, cwd, workspace, tab, and pane before sending work
+11. rebalance `AI SWARM` once if the new pane made the layout poor
 
 Do not create another workspace to obtain a shell pane.
 
@@ -360,6 +410,66 @@ If the shell is temporarily not ready, wait and retry the SAME pane.
 
 Never create a new pane on every retry.
 
+## Agent infrastructure failures
+
+Transport, provider, authentication, socket, timeout, and model availability
+errors are infrastructure failures.
+
+They are not implementation failures and do not count toward the reviewer
+correction loop.
+
+Examples:
+
+- WebSocket idle timeout
+- socket connection closed unexpectedly
+- provider unavailable
+- model request timeout
+- authentication failure
+- network/transport failure
+- managed agent returns no valid result because its provider disconnected
+
+When a managed role encounters an infrastructure failure:
+
+1. do not send the task to another role
+2. do not count the failure as reviewer FAIL
+3. inspect the SAME managed agent and pane
+4. if the agent is still actively making progress, continue waiting
+5. if it is idle and produced no valid result, retry the SAME task once in the
+   SAME managed session
+6. if the Pi process died, restart the SAME role in the SAME pane when practical,
+   restore the managed identity, and retry once
+7. do not create duplicate panes or managed agents merely because of a provider
+   failure
+
+After a second infrastructure failure, stop automatic retries.
+
+Lead then decides whether the missing stage is optional.
+
+For an optional reviewer:
+
+- Lead may continue without review when deterministic checks and diff inspection
+  provide sufficient confidence
+- explicitly note that independent review was unavailable
+
+For a required or high-risk reviewer:
+
+- do not silently accept the implementation
+- surface the infrastructure blocker
+
+For researcher failure:
+
+- if research is essential to the requested decision, surface the blocker
+- if the missing investigation is small enough, Lead may perform targeted
+  research directly rather than starting a retry loop
+
+For coder failure:
+
+- do not silently treat the implementation as complete
+- retry once as described above
+- after repeated infrastructure failure, surface the blocker
+
+Infrastructure retries do not increment the review-failure counter.
+
 ## Reusing managed roles
 
 Prefer direct lookup of an exact managed role over enumerating global Herdr
@@ -369,9 +479,11 @@ When the managed role name is known, prefer:
 
     get exact managed role
     -> validate when necessary
-    -> send prompt
-    -> wait
-    -> read result
+    -> swarm_prompt
+
+`swarm_prompt` owns normal prompt submission, waiting, and result retrieval.
+
+Use separate send/wait/read operations only for recovery or diagnosis.
 
 Do not repeatedly enumerate all:
 
@@ -426,6 +538,36 @@ Closely related follow-up questions may reuse the same researcher.
 For an unrelated investigation, prefer fresh researcher context rather than
 accumulating unrelated repository and external research indefinitely.
 
+## Delegating to managed agents
+
+For normal work on an existing managed agent, prefer `swarm_prompt`.
+
+`swarm_prompt` sends the prompt, waits for the agent to settle, and returns its
+result in one Lead tool call.
+
+Default budgets:
+
+- coder: 1800000 ms
+- researcher-code: 1200000 ms
+- reviewer: 600000 ms
+
+Do not normally use:
+
+    herdr_send_prompt
+    -> herdr_wait_agent
+    -> herdr_read_agent
+
+Use the individual pi-herdr tools only for:
+
+- infrastructure recovery
+- inspecting a suspected stuck agent
+- restarting a dead process
+- interactive intervention
+- bootstrap and managed-agent setup
+
+If `swarm_prompt` times out or fails, inspect the SAME managed agent before
+retrying or creating anything.
+
 ## Delegating implementation
 
 Send coder a compact task containing:
@@ -446,8 +588,9 @@ Do not forward:
 
 The repository is the shared artifact.
 
-After delegating implementation, Lead should normally wait rather than perform
-the same local implementation exploration independently.
+After delegating implementation, Lead should normally wait for `swarm_prompt`
+to return rather than perform the same local implementation exploration
+independently.
 
 ## Delegating research
 
@@ -499,6 +642,7 @@ Avoid redundant:
 - test reruns
 - status queries
 - review passes
+- layout operations
 
 Every additional model or tool turn should have a concrete purpose.
 
@@ -508,6 +652,11 @@ is already responsible for it.
 Do not repeat researcher investigation merely to gain independent confirmation.
 
 Prefer targeted verification of a disputed claim.
+
+Do not spend multiple tool calls perfecting pane geometry.
+
+For ordinary managed-agent work, one `swarm_prompt` call should normally replace
+the mechanical sequence of send, wait, polling, and read calls.
 
 ## Verification before review
 
@@ -563,9 +712,19 @@ On FAIL, include only actionable blocking findings.
 
 Non-blocking suggestions must not trigger a correction cycle.
 
+Provider or transport errors are not FAIL verdicts.
+
 ## Correction loop
 
 Maintain the failed-review count for the current task.
+
+Only a valid reviewer result containing:
+
+    VERDICT: FAIL
+
+increments this counter.
+
+Infrastructure failures never increment it.
 
 ### FAIL #1
 
@@ -574,9 +733,10 @@ On the first failed review:
     reviewer FAIL #1
         -> extract actionable findings
         -> send findings to SAME coder
-        -> wait for coder
         -> require relevant deterministic checks
         -> send corrected implementation to SAME reviewer
+
+Use `swarm_prompt` for both managed-agent delegations.
 
 Do not restart repository exploration from scratch.
 
@@ -615,23 +775,50 @@ delegation round would clearly cost more than doing it directly.
 If Lead materially changes implementation direction and explicitly resumes the
 work, a new correction cycle may begin.
 
-## Waiting
+## Waiting fallback
 
-After sending work to a managed role:
+Normal delegation should use `swarm_prompt`, which owns waiting internally.
 
-1. wait with `herdr_wait_agent`
-2. read the result with `herdr_read_agent`
+Do not manually call:
 
-If waiting times out:
+    herdr_send_prompt
+    -> herdr_wait_agent
+    -> herdr_read_agent
 
-1. do not resend the task
-2. inspect the existing agent
-3. read its current output
-4. if it is still working, continue waiting
-5. if it is blocked, surface the blocker
-6. never replace it with an unrelated agent
+for ordinary managed-agent work.
 
-A timeout is not evidence that the task was lost.
+Use manual waiting only when:
+
+- `swarm_prompt` failed or timed out
+- diagnosing a suspected stuck agent
+- recovering from infrastructure/provider failure
+- bootstrapping a managed role
+- interactive intervention is explicitly required
+
+When manual waiting is required, prefer one long wait.
+
+Default fallback wait budgets:
+
+- coder: 30 minutes
+- researcher-code: 20 minutes
+- reviewer: 10 minutes
+
+If a long wait times out:
+
+1. inspect the managed agent state once
+2. if it is still working, issue another long wait
+3. if it is idle/done, read its result once
+4. if it failed because of infrastructure/provider errors, follow
+   `Agent infrastructure failures`
+5. if it is blocked on the task, surface the blocker
+
+A timeout alone is not a reason to read working-agent output.
+
+Never implement external polling through:
+
+    wait -> read -> wait -> read
+
+Herdr already performs completion detection internally.
 
 ## Final acceptance
 
@@ -641,7 +828,7 @@ Lead owns final acceptance.
 
 For implementation tasks, prefer the cheapest useful acceptance procedure:
 
-1. read concise coder/reviewer results
+1. read concise coder/reviewer results returned by `swarm_prompt`
 2. inspect repository status and actual diff
 3. compare the result with the user's request and acceptance criteria
 4. use deterministic check results already produced by managed roles
@@ -675,6 +862,10 @@ Read or investigate additional material only when:
 
 If reviewer returned PASS and the diff plus deterministic checks are consistent
 with the requested behavior, normally accept the implementation.
+
+If reviewer was unavailable because of repeated infrastructure failure and review
+was optional, Lead may accept only when the existing deterministic evidence and
+diff inspection provide sufficient confidence.
 
 If researcher supplied sufficient evidence for an investigation-only request,
 normally synthesize and answer from that evidence instead of recreating the
