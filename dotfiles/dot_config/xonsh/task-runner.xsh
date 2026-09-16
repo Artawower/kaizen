@@ -19,7 +19,7 @@ def _trun():
     tasks = data.get("tasks", [])
 
     if not tasks:
-       print("No tasks found.")
+        print("No tasks found.")
         return
 
     lines = []
