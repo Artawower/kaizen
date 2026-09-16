@@ -8,6 +8,7 @@ test:
     bash tests/dependencies.sh
     bash tests/terminal-post-install.sh
     bash tests/helix-steel-post-install.sh
+    bash tests/aerospace-config.sh
 
 # Transfer dotfiles to a new machine
 apply:

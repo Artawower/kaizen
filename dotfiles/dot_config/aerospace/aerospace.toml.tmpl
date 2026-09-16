@@ -1,20 +1,16 @@
 # Place a copy of this config to ~/.aerospace.toml
 # After that, you can edit ~/.aerospace.toml to your liking
 
-# You can use it to add commands that run after login to macOS user session.
-# 'start-at-login' needs to be 'true' for 'after-login-command' to work
-# Available commands: https://nikitabobko.github.io/AeroSpace/commands
+config-version = 2
+
 after-login-command = []
-
-# You can use it to add commands that run after AeroSpace startup.
-# 'after-startup-command' is run after 'after-login-command'
-# Available commands : https://nikitabobko.github.io/AeroSpace/commands
-after-startup-command = [
-    'exec-and-forget borders active_color=0xff7b57ff inactive_color=0xff2e2a3a width=2.0 hidpi=on order=above style=round blacklist="qemu-system-aarch64,Simulator,iPhone Mirroring"'
-]
-
-# Start AeroSpace at login
+after-startup-command = []
 start-at-login = false
+
+persistent-workspaces = [
+    'SOC', 'TRM', 'WEB', 'DEB', 'DEV', 'ENT',
+    'THR', 'STU', 'AI', 'PRD', '11', '12',
+]
 
 # Normalizations. See: https://nikitabobko.github.io/AeroSpace/guide#normalization
 # Disabled for i3-like manual tree layout control
@@ -46,10 +42,10 @@ on-focused-monitor-changed = ['move-mouse monitor-lazy-center']
 # Also see: https://nikitabobko.github.io/AeroSpace/goodies#disable-hide-app
 automatically-unhide-macos-hidden-apps = false
 
-# Possible values: (qwerty|dvorak)
+# Possible values: (qwerty|dvorak|colemak)
 # See https://nikitabobko.github.io/AeroSpace/guide#key-mapping
 [key-mapping]
-preset = 'qwerty'
+preset = '{{ .layout }}'
 
 # Gaps between windows (inner-*) and between monitor edges (outer-*).
 # Possible values:
@@ -96,219 +92,170 @@ outer.right =      14
 # end tell'
 # '''
 
-# See: https://nikitabobko.github.io/AeroSpace/commands#layout
-alt-slash = 'layout tiles horizontal vertical'
-alt-comma = 'layout accordion horizontal vertical'
+alt-shift-slash = 'layout tiles horizontal vertical'
+alt-shift-comma = 'layout accordion horizontal vertical'
 
+{{ if eq .layout "colemak" }}
+alt-shift-h = 'focus --boundaries-action fail left || workspace --wrap-around prev'
+alt-shift-n = 'focus --wrap-around dfs-next'
+alt-shift-e = 'focus --wrap-around dfs-prev'
+alt-shift-i = 'focus --boundaries-action fail right || workspace --wrap-around next'
 
-# See: https://nikitabobko.github.io/AeroSpace/commands#focus
-alt-h = 'focus left'
-alt-j = 'focus down'
-alt-k = 'focus up'
-alt-l = 'focus right'
+cmd-alt-shift-h = 'move --boundaries-action fail left || move-node-to-workspace --focus-follows-window --wrap-around prev'
+cmd-alt-shift-n = 'move --boundaries all-monitors-outer-frame down'
+cmd-alt-shift-e = 'move --boundaries all-monitors-outer-frame up'
+cmd-alt-shift-i = 'move --boundaries-action fail right || move-node-to-workspace --focus-follows-window --wrap-around next'
 
-# See: https://nikitabobko.github.io/AeroSpace/commands#move
-alt-shift-h = 'move left'
-alt-shift-j = 'move down'
-alt-shift-k = 'move up'
-alt-shift-l = 'move right'
+ctrl-alt-shift-h = 'resize width -40'
+ctrl-alt-shift-n = 'resize height +40'
+ctrl-alt-shift-e = 'resize height -40'
+ctrl-alt-shift-i = 'resize width +40'
+{{ else }}
+alt-shift-h = 'focus --boundaries-action fail left || workspace --wrap-around prev'
+alt-shift-j = 'focus --wrap-around dfs-next'
+alt-shift-k = 'focus --wrap-around dfs-prev'
+alt-shift-l = 'focus --boundaries-action fail right || workspace --wrap-around next'
 
-# See: https://nikitabobko.github.io/AeroSpace/commands#resize
-ctrl-shift-minus = 'resize smart -50'
-ctrl-shift-equal = 'resize smart +50'
+cmd-alt-shift-h = 'move --boundaries-action fail left || move-node-to-workspace --focus-follows-window --wrap-around prev'
+cmd-alt-shift-j = 'move --boundaries all-monitors-outer-frame down'
+cmd-alt-shift-k = 'move --boundaries all-monitors-outer-frame up'
+cmd-alt-shift-l = 'move --boundaries-action fail right || move-node-to-workspace --focus-follows-window --wrap-around next'
 
-# See: https://nikitabobko.github.io/AeroSpace/commands#workspace
-alt-1 = 'workspace SOC'
-alt-2 = 'workspace TRM'
-alt-3 = 'workspace WEB'
-alt-4 = 'workspace DEB'
-alt-5 = 'workspace DEV'
-alt-6 = 'workspace ENT'
-alt-7 = 'workspace THR'
-alt-8 = 'workspace STU'
-alt-9 = 'workspace AI'
-alt-0 = 'workspace PRD'
-alt-minus = 'workspace 11'
-alt-equal = 'workspace 12'
+ctrl-alt-shift-h = 'resize width -40'
+ctrl-alt-shift-j = 'resize height +40'
+ctrl-alt-shift-k = 'resize height -40'
+ctrl-alt-shift-l = 'resize width +40'
+{{ end }}
 
-alt-s = 'workspace SOC'
-alt-t = 'workspace TRM'
-alt-w = 'workspace WEB'
-alt-o = 'workspace DEB'
-alt-d = 'workspace DEV'
-alt-e = 'workspace ENT'
-alt-i = 'workspace THR'
-alt-u = 'workspace STU'
-alt-a = 'workspace AI'
-alt-r = 'workspace PRD'
+alt-shift-1 = 'workspace SOC'
+alt-shift-2 = 'workspace TRM'
+alt-shift-3 = 'workspace WEB'
+alt-shift-4 = 'workspace DEB'
+alt-shift-5 = 'workspace DEV'
+alt-shift-6 = 'workspace ENT'
+alt-shift-7 = 'workspace THR'
+alt-shift-8 = 'workspace STU'
+alt-shift-9 = 'workspace AI'
+alt-shift-0 = 'workspace PRD'
+alt-shift-minus = 'workspace 11'
+alt-shift-equal = 'workspace 12'
 
-# See: https://nikitabobko.github.io/AeroSpace/commands#move-node-to-workspace
-alt-shift-1 = ['move-node-to-workspace SOC', 'workspace SOC']
-alt-shift-2 = ['move-node-to-workspace TRM', 'workspace TRM']
-alt-shift-3 = ['move-node-to-workspace WEB', 'workspace WEB']
-alt-shift-4 = ['move-node-to-workspace DEB', 'workspace DEB']
-alt-shift-5 = ['move-node-to-workspace DEV', 'workspace DEV']
-alt-shift-6 = ['move-node-to-workspace ENT', 'workspace ENT']
-alt-shift-7 = ['move-node-to-workspace THR', 'workspace THR']
-alt-shift-8 = ['move-node-to-workspace STU', 'workspace STU']
-alt-shift-9 = ['move-node-to-workspace AI', 'workspace AI']
-alt-shift-0 = ['move-node-to-workspace PRD', 'workspace PRD']
-alt-shift-minus = ['move-node-to-workspace 11', 'workspace 11']
-alt-shift-equal = ['move-node-to-workspace 12', 'workspace 12']
+cmd-alt-shift-1 = ['move-node-to-workspace SOC', 'workspace SOC']
+cmd-alt-shift-2 = ['move-node-to-workspace TRM', 'workspace TRM']
+cmd-alt-shift-3 = ['move-node-to-workspace WEB', 'workspace WEB']
+cmd-alt-shift-4 = ['move-node-to-workspace DEB', 'workspace DEB']
+cmd-alt-shift-5 = ['move-node-to-workspace DEV', 'workspace DEV']
+cmd-alt-shift-6 = ['move-node-to-workspace ENT', 'workspace ENT']
+cmd-alt-shift-7 = ['move-node-to-workspace THR', 'workspace THR']
+cmd-alt-shift-8 = ['move-node-to-workspace STU', 'workspace STU']
+cmd-alt-shift-9 = ['move-node-to-workspace AI', 'workspace AI']
+cmd-alt-shift-0 = ['move-node-to-workspace PRD', 'workspace PRD']
+cmd-alt-shift-minus = ['move-node-to-workspace 11', 'workspace 11']
+cmd-alt-shift-equal = ['move-node-to-workspace 12', 'workspace 12']
 
-alt-shift-s = ['move-node-to-workspace SOC', 'workspace SOC']
-alt-shift-t = ['move-node-to-workspace TRM', 'workspace TRM']
-alt-shift-w = ['move-node-to-workspace WEB', 'workspace WEB']
-alt-shift-o = ['move-node-to-workspace DEB', 'workspace DEB']
-alt-shift-d = ['move-node-to-workspace DEV', 'workspace DEV']
-alt-shift-e = ['move-node-to-workspace ENT', 'workspace ENT']
-alt-shift-i = ['move-node-to-workspace THR', 'workspace THR']
-alt-shift-u = ['move-node-to-workspace STU', 'workspace STU']
-alt-shift-a = ['move-node-to-workspace AI', 'workspace AI']
-alt-shift-r = ['move-node-to-workspace PRD', 'workspace PRD']
+alt-shift-s = 'workspace SOC'
+alt-shift-t = 'workspace TRM'
+alt-shift-w = 'workspace WEB'
+alt-shift-o = 'workspace DEB'
+alt-shift-d = 'workspace DEV'
+alt-shift-a = 'workspace AI'
 
-# See: https://nikitabobko.github.io/AeroSpace/commands#workspace-back-and-forth
-# alt-tab = 'workspace-back-and-forth'
-# See: https://nikitabobko.github.io/AeroSpace/commands#move-workspace-to-monitor
-# alt-shift-tab = 'move-workspace-to-monitor --wrap-around next'
+cmd-alt-shift-s = ['move-node-to-workspace SOC', 'workspace SOC']
+cmd-alt-shift-t = ['move-node-to-workspace TRM', 'workspace TRM']
+cmd-alt-shift-w = ['move-node-to-workspace WEB', 'workspace WEB']
+cmd-alt-shift-o = ['move-node-to-workspace DEB', 'workspace DEB']
+cmd-alt-shift-d = ['move-node-to-workspace DEV', 'workspace DEV']
+cmd-alt-shift-a = ['move-node-to-workspace AI', 'workspace AI']
 
-# Workspace navigation (prev/next)
-ctrl-alt-left = 'workspace --wrap-around prev'
-ctrl-alt-right = 'workspace --wrap-around next'
+{{ if eq .layout "colemak" }}
+alt-shift-r = 'workspace ENT'
+alt-shift-u = 'workspace THR'
+alt-shift-l = 'workspace STU'
+alt-shift-p = 'workspace PRD'
+cmd-alt-shift-r = ['move-node-to-workspace ENT', 'workspace ENT']
+cmd-alt-shift-u = ['move-node-to-workspace THR', 'workspace THR']
+cmd-alt-shift-l = ['move-node-to-workspace STU', 'workspace STU']
+cmd-alt-shift-p = ['move-node-to-workspace PRD', 'workspace PRD']
+{{ else }}
+alt-shift-e = 'workspace ENT'
+alt-shift-i = 'workspace THR'
+alt-shift-u = 'workspace STU'
+alt-shift-r = 'workspace PRD'
+cmd-alt-shift-e = ['move-node-to-workspace ENT', 'workspace ENT']
+cmd-alt-shift-i = ['move-node-to-workspace THR', 'workspace THR']
+cmd-alt-shift-u = ['move-node-to-workspace STU', 'workspace STU']
+cmd-alt-shift-r = ['move-node-to-workspace PRD', 'workspace PRD']
+{{ end }}
 
-# Move window to prev/next workspace
-shift-alt-p = ['move-node-to-workspace --wrap-around prev', 'workspace --wrap-around prev']
-shift-alt-n = ['move-node-to-workspace --wrap-around next', 'workspace --wrap-around next']
-shift-alt-m = ['move-node-to-workspace --wrap-around prev', 'workspace --wrap-around prev']
+ctrl-alt-shift-left = 'workspace --wrap-around prev'
+ctrl-alt-shift-right = 'workspace --wrap-around next'
+cmd-alt-shift-left = ['move-node-to-workspace --wrap-around prev', 'workspace --wrap-around prev']
+cmd-alt-shift-right = ['move-node-to-workspace --wrap-around next', 'workspace --wrap-around next']
 
-# See: https://nikitabobko.github.io/AeroSpace/commands#mode
 alt-shift-quote = 'mode service'
-# alt-shift-quote = 'mode service'
+cmd-alt-shift-c = 'layout floating tiling'
+cmd-alt-shift-v = 'layout tiles accordion'
+alt-shift-f = 'fullscreen'
+cmd-alt-shift-f = 'macos-native-fullscreen'
 
-# 'service' binding mode declaration.
-# See: https://nikitabobko.github.io/AeroSpace/guide#binding-modes
+alt-shift-enter = 'exec-and-forget open -na Ghostty.app'
+cmd-alt-shift-enter = 'exec-and-forget /opt/homebrew/bin/wezterm'
 
-alt-shift-c = ['layout floating tiling']
-# alt-f = 'layout tiles accordion'
-alt-f = 'layout tiling v_accordion'
-alt-shift-v = 'layout tiling h_accordion'
-alt-shift-f = 'macos-native-fullscreen'
-alt-c = 'fullscreen'
-alt-cmd-r = 'reload-config'
-
-
-# alt-enter = '''exec-and-forget osascript -e '
-# tell application "WezTerm"
-#     activate
-# end tell'
-#   '''
-
-# Additional terminal launchers
-ctrl-alt-enter = 'exec-and-forget open -n -a Ghostty'
-# ctrl-alt-enter = 'exec-and-forget zsh -c "export TMPDIR=$(getconf DARWIN_USER_TEMP_DIR); /Applications/Ghostty.app/Contents/MacOS/Ghostty"'
-alt-enter = 'exec-and-forget zsh -c "open -a wezterm.app"'
-alt-shift-enter = 'exec-and-forget /opt/homebrew/bin/wezterm'
-# alt-enter = 'exec-and-forget open -n /System/Applications/Utilities/Terminal.app'
-
-# Application launchers
 cmd-alt-f = 'exec-and-forget open -a Firefox.app'
 cmd-alt-w = 'exec-and-forget open -na Firefox.app'
 cmd-alt-t = 'exec-and-forget open -a Telegram.app'
 cmd-shift-w = 'exec-and-forget open -a Marta.app'
-
-# Open apps with specific commands
-cmd-alt-shift-r = 'exec-and-forget open -na kitty.app --args "ranger"'
+cmd-alt-r = 'exec-and-forget open -na kitty.app --args "ranger"'
 cmd-alt-v = 'exec-and-forget open -na kitty.app --args "nvim"'
 cmd-alt-m = 'exec-and-forget open -na kitty.app --args "spt"'
 
-# Window management
-alt-q = 'close'
-cmd-alt-x = 'close'
+alt-shift-q = 'close'
+cmd-alt-shift-x = 'close'
+ctrl-alt-shift-0 = 'balance-sizes'
 
-# Balance windows
-ctrl-alt-0 = 'balance-sizes'
-
-# Resize bindings (alternative to alt-cmd)
-alt-cmd-l = 'resize width -40'
-alt-cmd-h = 'resize width +40'
-alt-cmd-j = 'resize height +40'
-alt-cmd-k = 'resize height -40'
-
-# Join with (already existed, kept for reference)
 cmd-ctrl-left = 'join-with left'
 cmd-ctrl-down = 'join-with down'
 cmd-ctrl-up = 'join-with up'
 cmd-ctrl-right = 'join-with right'
-cmd-ctrl-k = 'join-with up'
-cmd-ctrl-j = 'join-with down'
 
-alt-shift-ctrl-i = 'exec-and-forget nohup /opt/homebrew/bin/wallboy next >> /tmp/wallboy.log 2>&1'
-alt-shift-ctrl-d = 'exec-and-forget /opt/homebrew/bin/wallboy save'
-alt-shift-ctrl-o = 'exec-and-forget /opt/homebrew/bin/wallboy open'
-
-
+ctrl-cmd-alt-shift-i = 'exec-and-forget nohup /opt/homebrew/bin/wallboy next >> /tmp/wallboy.log 2>&1'
+ctrl-cmd-alt-shift-d = 'exec-and-forget /opt/homebrew/bin/wallboy save'
+ctrl-cmd-alt-shift-o = 'exec-and-forget /opt/homebrew/bin/wallboy open'
 
 [mode.service.binding]
 esc = ['reload-config', 'mode main']
-e = ['flatten-workspace-tree', 'mode main'] # reset layout
-r = ['reload-config', 'mode main'] # reload config
-p = ['exec-and-forget walsh set', 'mode main'] # set random wallpaper
+shift-e = ['flatten-workspace-tree', 'mode main']
+r = ['reload-config', 'mode main']
+p = ['exec-and-forget walsh set', 'mode main']
 backspace = ['close-all-windows-but-current', 'mode main']
-b = ['balance-sizes', 'mode main'] # balance window sizes
-# Clean all ghost windows https://github.com/nikitabobko/AeroSpace/issues/1615
-# c = ['exec-and-forget xonsh -c "aerospace_clear()"', 'mode main']
+b = ['balance-sizes', 'mode main']
 c = [
 """exec-and-forget aerospace list-windows --all --json \
   | jq -r '.[] | select(."window-title"=="") | ."window-id"' \
   | xargs -n1 aerospace close --window-id && terminal-notifier "Aerospace Cleanup" -message "Closed empty windows"""",
   'mode main'
 ]
-shift-v = [
-  """exec-and-forget borders \
-    "active_color=gradient(top_left=0xffff7f50,bottom_right=0xff00bfff)" \
-    "inactive_color=gradient(top_left=0xfff2d5cf,bottom_right=0xff87ceeb)" \
-    "blacklist=,qemu-system-aarch64,Simulator,iPhone Mirroring" \
-    width=4.0 \
-    hidpi=on \
-    order=above \
-    style=round""",
-    # style=square"""
-    'mode main'
-]
-
-# """exec-and-forget borders \
-#   "active_color=gradient(top_left=0xffffa858,bottom_right=0xffff6a00)" \
-#   "inactive_color=gradient(top_left=0xfff2d5cf,bottom_right=0xffe8bba0)" \
-#   "blacklist=,qemu-system-aarch64,Simulator,iPhone Mirroring" \
-#   width=4.0 \
-#   hidpi=on \
-#   order=above \
-#   style=round""",
-  
-shift-e = ['exec-and-forget pkill borders', 'mode main']
-
 alt-shift-v = 'split vertical'
 alt-shift-b = 'split horizontal'
 
-
-
-
-
-# Quick focus apps
 d = ['exec-and-forget open -a "Emacs Client"', 'mode main']
-f = ['exec-and-forget open -a Finder.app', 'mode main'] # Toggle between floating and tiling layout
+f = ['exec-and-forget open -a Finder.app', 'mode main']
 t = ['exec-and-forget open -a wezterm.app', 'mode main']
 m = ['exec-and-forget open -a Telegram.app', 'mode main']
 w = ['exec-and-forget open -a Twilight.app', 'mode main']
 a = ['exec-and-forget open -a Antigravity.app', 'mode main']
 
-# sticky is not yet supported https://github.com/nikitabobko/AeroSpace/issues/2
-#s = ['layout sticky tiling', 'mode main']
-
+{{ if eq .layout "colemak" }}
+h = ['join-with left', 'mode main']
+n = ['join-with down', 'mode main']
+e = ['join-with up', 'mode main']
+i = ['join-with right', 'mode main']
+{{ else }}
 h = ['join-with left', 'mode main']
 j = ['join-with down', 'mode main']
 k = ['join-with up', 'mode main']
 l = ['join-with right', 'mode main']
+{{ end }}
 
 down = 'volume down'
 up = 'volume up'
