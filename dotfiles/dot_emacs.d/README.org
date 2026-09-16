@@ -4240,6 +4240,10 @@ deps
 
 (my/org-babel-enable-language 'js)
 (org-babel-make-language-alias "javascript" "js")
+
+(let ((directory (expand-file-name ".org-babel-tmp" my/org-roam-dir)))
+  (make-directory directory t)
+  (setq org-babel-temporary-directory directory))
 #+END_SRC
 *** HTTP requests
 Dependency
