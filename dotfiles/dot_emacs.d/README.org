@@ -4079,7 +4079,7 @@ Requires Emacs 30+
 #+BEGIN_SRC emacs-lisp :results silent
 (use-package reviewer
   :defer t
-  :ensure (:host github :repo "SreenivasVRao/reviewer.el"))
+  :ensure (:host github :repo "SreenivasVRao/reviewer.el" :branch "develop"))
 #+END_SRC
 ** ECA. Agnostic code assistant
 *** Functions
