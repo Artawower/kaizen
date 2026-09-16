@@ -95,11 +95,24 @@ def installed_package_revision(git: str, name: str, repository: str) -> str | No
     return output([git, "rev-parse", "HEAD"], package)
 
 
-def remote_revision(git: str, repository: str) -> str:
-    result = output([git, "ls-remote", repository, "HEAD"])
-    if not result:
-        raise RuntimeError(f"repository has no HEAD revision: {repository}")
-    return result.split()[0]
+def prepare_package_source(git: str, name: str, repository: str) -> tuple[Path, str]:
+    package_source = steel_home / "cog-sources" / name
+    package_source.parent.mkdir(parents=True, exist_ok=True)
+    if package_source.exists():
+        if not (package_source / ".git").exists():
+            raise RuntimeError(
+                f"Forge package source is not a Git checkout: {package_source}"
+            )
+        origin = output([git, "remote", "get-url", "origin"], package_source)
+        if origin != repository:
+            raise RuntimeError(f"unexpected Forge package origin: {origin}")
+        run([git, "fetch", "--depth=1", "origin", "HEAD"], package_source)
+        revision = output([git, "rev-parse", "FETCH_HEAD"], package_source)
+    else:
+        run([git, "clone", "--depth=1", repository, str(package_source)])
+        revision = output([git, "rev-parse", "HEAD"], package_source)
+    run([git, "checkout", "--force", "--detach", revision], package_source)
+    return package_source, revision
 
 
 def install_packages(forge: str, git: str, update: bool) -> None:
@@ -107,18 +120,14 @@ def install_packages(forge: str, git: str, update: bool) -> None:
         installed_revision = installed_package_revision(git, name, repository)
         if installed_revision and not update:
             continue
-        command = [forge, "pkg", "install", "--git", repository, "--force"]
-        expected_revision = None
-        if update:
-            expected_revision = remote_revision(git, repository)
-            if installed_revision == expected_revision:
-                continue
-            command.extend(["--rev", expected_revision])
-        run(command)
+        package_source, expected_revision = prepare_package_source(
+            git, name, repository
+        )
+        if installed_revision == expected_revision:
+            continue
+        run([forge, "install", str(package_source)])
         actual_revision = installed_package_revision(git, name, repository)
-        if not actual_revision or (
-            expected_revision and actual_revision != expected_revision
-        ):
+        if actual_revision != expected_revision:
             raise RuntimeError(f"Forge package installation failed: {name}")
 
 
