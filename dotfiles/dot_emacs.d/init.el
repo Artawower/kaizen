@@ -10,11 +10,8 @@
 
 (require 'org)
 (require 'ob-python)
-(require 'ob-js)
 (add-to-list 'org-babel-load-languages '(python . t))
-(add-to-list 'org-babel-load-languages '(js . t))
 (org-babel-do-load-languages 'org-babel-load-languages org-babel-load-languages)
-(org-babel-make-language-alias "javascript" "js")
 (condition-case err
     (org-babel-load-file "~/.emacs.d/README.org")
   (error (message "kaizen: README.org load error: %s" err)))

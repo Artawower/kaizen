@@ -4237,6 +4237,9 @@ deps
     (error
      (setq org-babel-load-languages (assq-delete-all language org-babel-load-languages))
      (message "org-babel: failed to load %s: %s" language err))))
+
+(my/org-babel-enable-language 'js)
+(org-babel-make-language-alias "javascript" "js")
 #+END_SRC
 *** HTTP requests
 Dependency
@@ -4501,9 +4504,8 @@ Automatically creates parent directories if needed."
 
   (setenv "NODE_PATH" "/opt/homebrew/lib/node_modules")
 
-  (dolist (language '(sql js python shell typescript rust restclient))
+  (dolist (language '(sql python shell typescript rust restclient))
     (my/org-babel-enable-language language))
-  (org-babel-make-language-alias "javascript" "js")
 
   (setq org-capture-templates
         `(("t" "Task → Inbox" entry

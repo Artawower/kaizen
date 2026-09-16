@@ -39,8 +39,16 @@ nav = {
 for key, direction in nav.items():
     assert f"alt-shift-{key}" in main
     assert f"cmd-alt-shift-{key}" in main
-    assert f"ctrl-alt-shift-{key}" in main
     assert service[key] == [f"join-with {direction}", "mode main"]
+
+resizes = {
+    "left": "resize width -40",
+    "down": "resize height +40",
+    "up": "resize height -40",
+    "right": "resize width +40",
+}
+for key, command in resizes.items():
+    assert main[f"ctrl-alt-shift-{key}"] == command
 
 workspaces = {
     "1": "SOC",
@@ -64,6 +72,9 @@ for key, workspace in workspaces.items():
 assert main["alt-shift-q"] == "close"
 assert main["alt-shift-f"] == "fullscreen"
 assert "Ghostty.app" in main["alt-shift-enter"]
+assert "wallboy next" in main["ctrl-alt-shift-i"]
+assert "wallboy save" in main["ctrl-alt-shift-d"]
+assert "wallboy open" in main["ctrl-alt-shift-o"]
 PY
 done
 
