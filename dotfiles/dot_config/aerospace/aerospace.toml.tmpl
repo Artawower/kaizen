@@ -105,6 +105,11 @@ cmd-alt-shift-h = 'move --boundaries-action fail left || move-node-to-workspace 
 cmd-alt-shift-n = 'move --boundaries all-monitors-outer-frame down'
 cmd-alt-shift-e = 'move --boundaries all-monitors-outer-frame up'
 cmd-alt-shift-i = 'move --boundaries-action fail right || move-node-to-workspace --focus-follows-window --wrap-around next'
+
+ctrl-cmd-alt-shift-h = 'resize width -40'
+ctrl-cmd-alt-shift-n = 'resize height +40'
+ctrl-cmd-alt-shift-e = 'resize height -40'
+ctrl-cmd-alt-shift-i = 'resize width +40'
 {{ else }}
 alt-shift-h = 'focus --boundaries-action fail left || workspace --wrap-around prev'
 alt-shift-j = 'focus --wrap-around dfs-next'
@@ -115,6 +120,11 @@ cmd-alt-shift-h = 'move --boundaries-action fail left || move-node-to-workspace 
 cmd-alt-shift-j = 'move --boundaries all-monitors-outer-frame down'
 cmd-alt-shift-k = 'move --boundaries all-monitors-outer-frame up'
 cmd-alt-shift-l = 'move --boundaries-action fail right || move-node-to-workspace --focus-follows-window --wrap-around next'
+
+ctrl-cmd-alt-shift-h = 'resize width -40'
+ctrl-cmd-alt-shift-j = 'resize height +40'
+ctrl-cmd-alt-shift-k = 'resize height -40'
+ctrl-cmd-alt-shift-l = 'resize width +40'
 {{ end }}
 
 alt-shift-1 = 'workspace SOC'
@@ -176,16 +186,6 @@ cmd-alt-shift-i = ['move-node-to-workspace THR', 'workspace THR']
 cmd-alt-shift-u = ['move-node-to-workspace STU', 'workspace STU']
 cmd-alt-shift-r = ['move-node-to-workspace PRD', 'workspace PRD']
 {{ end }}
-
-alt-shift-left = 'workspace --wrap-around prev'
-alt-shift-right = 'workspace --wrap-around next'
-cmd-alt-shift-left = ['move-node-to-workspace --wrap-around prev', 'workspace --wrap-around prev']
-cmd-alt-shift-right = ['move-node-to-workspace --wrap-around next', 'workspace --wrap-around next']
-
-ctrl-alt-shift-left = 'resize width -40'
-ctrl-alt-shift-down = 'resize height +40'
-ctrl-alt-shift-up = 'resize height -40'
-ctrl-alt-shift-right = 'resize width +40'
 
 alt-shift-quote = 'mode service'
 cmd-alt-shift-c = 'layout floating tiling'

@@ -20,11 +20,7 @@
     "npm:pi-alibaba-models",
     "npm:@benvargas/pi-claude-code-use",
     "npm:pi-opencode-bridge",
-    {
-      "source": "npm:pi-link",
-      "extensions": ["-index.ts"],
-      "skills": []
-    },
+    "npm:pi-link",
     {
       "source": "git:github.com/HazAT/pi-interactive-subagents",
       "extensions": ["-pi-extension/subagents/index.ts"]

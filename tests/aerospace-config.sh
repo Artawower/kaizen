@@ -36,19 +36,21 @@ nav = {
     "qwerty": {"h": "left", "j": "down", "k": "up", "l": "right"},
 }[layout]
 
-for key, direction in nav.items():
-    assert f"alt-shift-{key}" in main
-    assert f"cmd-alt-shift-{key}" in main
-    assert service[key] == [f"join-with {direction}", "mode main"]
-
 resizes = {
     "left": "resize width -40",
     "down": "resize height +40",
     "up": "resize height -40",
     "right": "resize width +40",
 }
-for key, command in resizes.items():
-    assert main[f"ctrl-alt-shift-{key}"] == command
+for key, direction in nav.items():
+    assert f"alt-shift-{key}" in main
+    assert f"cmd-alt-shift-{key}" in main
+    assert main[f"ctrl-cmd-alt-shift-{key}"] == resizes[direction]
+    assert service[key] == [f"join-with {direction}", "mode main"]
+
+for modifiers in ("alt-shift", "cmd-alt-shift", "ctrl-alt-shift"):
+    for arrow in ("left", "down", "up", "right"):
+        assert f"{modifiers}-{arrow}" not in main
 
 workspaces = {
     "1": "SOC",
