@@ -26,16 +26,25 @@ args = [
   "."
 ]
 
+[language-server.vtsls.config.vtsls.tsserver]
+globalPlugins = [
+  { name = "@vue/typescript-plugin", location = "/Users/darkawower/projects/pet/orgnote/orgnote-client/node_modules/@vue/typescript-plugin", languages = ["vue"], enableForWorkspaceTypeScriptVersions = true, configNamespace = "typescript" }
+]
+
 [language-server.vue-language-server]
 command = "vue-language-server"
 args = ["--stdio"]
 
-[language-server.vue-language-server.config.typescript]
-tsdk = "node_modules/typescript/lib"
-
-[language-server.vue-language-server.config.vue]
-hybridMode = false
-
+[[language]]
+name = "vue"
+roots = ["package.json"]
+language-id = "vue"
+file-types = ["vue"]
+language-servers = [
+  { name = "vue-language-server", except-features = ["goto-definition", "goto-implementation", "goto-type-definition", "goto-declaration", "goto-reference"] },
+  { name = "vtsls", support-workspace = ["package.json"] }
+]
+  
 [language-server.vscode-html-language-server]
 command = "vscode-html-language-server"
 args = ["--stdio"]
@@ -104,15 +113,6 @@ language-servers = [
   { name = "codebook", only-features = ["diagnostics", "code-action"] }
 ]
 
-[[language]]
-name = "vue"
-language-id = "vue"
-file-types = ["vue"]
-roots = ["package.json", "tsconfig.json"]
-language-servers = [
-  { name = "vue-language-server", support-workspace = ["package.json"] },
-  { name = "codebook", only-features = ["diagnostics", "code-action"] }
-]
 
 [[language]]
 name = "html"

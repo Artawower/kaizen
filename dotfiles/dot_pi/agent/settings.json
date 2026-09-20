@@ -20,16 +20,22 @@
     "npm:pi-alibaba-models",
     "npm:@benvargas/pi-claude-code-use",
     "npm:pi-opencode-bridge",
-    "npm:pi-link",
     {
       "source": "git:github.com/HazAT/pi-interactive-subagents",
-      "extensions": ["-pi-extension/subagents/index.ts"]
+      "extensions": [
+        "-pi-extension/subagents/index.ts"
+      ]
     },
     "npm:@andrewjacop/pi-herdr",
     {
       "source": "npm:pi-lens",
-      "extensions": ["+index.ts"],
-      "skills": ["+skills/ast-grep/SKILL.md", "+skills/lsp-navigation/SKILL.md"]
+      "extensions": [
+        "+index.ts"
+      ],
+      "skills": [
+        "+skills/ast-grep/SKILL.md",
+        "+skills/lsp-navigation/SKILL.md"
+      ]
     },
     "npm:pi-secret-guard",
     "npm:pi-notify",
@@ -45,14 +51,16 @@
     "npm:@tmustier/pi-usage-extension",
     {
       "source": "npm:@singh-gur/pi-usage",
-      "extension": ["-intex.ts"]
+      "extension": [
+        "-intex.ts"
+      ]
     },
     "npm:pi-context-view",
-
     "npm:@specode/pi-subscription-usage",
     "npm:pi-trace-extension",
     "npm:pi-stats-ext",
-    "npm:pi-open-agents"
+    "npm:pi-open-agents",
+    "../../Downloads/pi-worker-host"
   ],
   "defaultProvider": "openai-codex",
   "defaultModel": "gpt-5.6-sol",
