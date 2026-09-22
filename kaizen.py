@@ -741,6 +741,40 @@ class Kaizen:
         for feature in features:
             self._run_post_install(feature, "update")
 
+    def cleanup(self) -> None:
+        steps: list[tuple[str, list[str]]] = []
+        projects = Path.home() / "projects"
+
+        if self._os == "macos" and shutil.which("mo"):
+            steps.append(("mole", ["mo", "clean"]))
+        if shutil.which("kondo") and projects.is_dir():
+            steps.append(("kondo", ["kondo", str(projects)]))
+        if shutil.which("go"):
+            steps.append(("go", ["go", "clean", "-cache", "-modcache"]))
+        if self._cargo_cache_available():
+            steps.append(("cargo", ["cargo", "cache", "--autoclean"]))
+        if shutil.which("uv"):
+            steps.append(("uv", ["uv", "cache", "clean"]))
+        if shutil.which("npm"):
+            steps.append(("npm", ["npm", "cache", "clean", "--force"]))
+        if shutil.which("pnpm"):
+            steps.append(("pnpm", ["pnpm", "store", "prune"]))
+        if shutil.which("bun"):
+            steps.append(("bun", ["bun", "pm", "cache", "rm"]))
+
+        for label, cmd in steps:
+            print(f"[{label}]")
+            _ = subprocess.run(cmd, check=False)
+
+    @staticmethod
+    def _cargo_cache_available() -> bool:
+        if not shutil.which("cargo"):
+            return False
+        probe = subprocess.run(
+            ["cargo", "cache", "--version"], capture_output=True, check=False
+        )
+        return probe.returncode == 0
+
     def bump(self) -> None:
         _require_install_mode("bump", InstallMode.DEVELOPMENT)
         features = parse_features(self._config)
@@ -891,6 +925,7 @@ _COMMANDS = {
     "sync": "Install dependencies and apply dotfiles",
     "update": "Upgrade native packages, mise tools, and feature integrations",
     "self-update": "Update a managed Kaizen installation",
+    "cleanup": "Clean system and toolchain caches",
     "status": "Show the active platform, features, and tools",
     "bump": "Developer: upgrade and capture mise versions",
     "capture": "Developer: capture mutable dotfiles",

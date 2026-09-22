@@ -90,6 +90,7 @@ variant = "yabai"
 | `just bump` | developer-only: mise upgrade --interactive → capture versions to feature mise.toml files |
 | `just capture` | developer-only: chezmoi re-add for known mutable paths (pi settings, mcp config) |
 | `just update` | upgrade native packages, mise tools, and feature integrations |
+| `just cleanup` | clean system (mole), project artifacts (kondo), and toolchain caches (go, cargo, uv, npm, pnpm, bun) |
 | `just status` | show installation mode, source, OS, config, and tool locations |
 
 ## VCS — jj (not git)

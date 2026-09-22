@@ -30,6 +30,10 @@ bump:
 capture:
     python3 kaizen.py capture
 
+# Clean system and toolchain caches
+cleanup:
+    python3 kaizen.py cleanup
+
 # Show environment status
 status:
     python3 kaizen.py status
