@@ -6,3 +6,4 @@
 "cargo:kdlfmt" = "latest"
 "cargo:codebook-lsp" = "latest"
 "npm:lua-fmt" = "2.6.0"
+"cargo:runner" = "latest"

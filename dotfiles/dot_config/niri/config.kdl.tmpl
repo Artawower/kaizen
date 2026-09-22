@@ -141,10 +141,10 @@ spawn-at-startup "ydotoold"
 // spawn-at-startup "dms" "run"
 spawn-at-startup "vicinae" "server"
 spawn-sh-at-startup "pkill xremap; xremap --device 'Apple SPI Keyboard' --watch=config,device ~/.config/xremap/config.yml"
-spawn-at-startup "sh" "-c" "sleep 1 && /usr/bin/quickshell -c noctalia-shell"
+spawn-at-startup "noctalia" "--daemon"
 spawn-at-startup "sh" "-c" "sleep 1; exec hyprvoice serve"
 spawn-sh-at-startup "$HOME/.config/bin/wallpaper-rotate"
-spawn-sh-at-startup "swayidle -w timeout 300 'qs -c noctalia-shell ipc call lockScreen lock' timeout 900 'systemctl suspend' before-sleep 'qs -c noctalia-shell ipc call lockScreen lock'"
+spawn-sh-at-startup "swayidle -w timeout 300 'noctalia msg session lock' timeout 900 'systemctl suspend' before-sleep 'noctalia msg session lock'"
 spawn-at-startup "sway-audio-idle-inhibit"
 spawn-at-startup "wl-clip-persist" "--clipboard" "regular"
 spawn-at-startup "wl-paste --type text --watch cliphist store"
@@ -229,7 +229,7 @@ binds {
         spawn "vicinae" "open"
     }
     Super+Alt+L hotkey-overlay-title="Lock the Screen: noctalia" {
-        spawn "qs" "-c" "noctalia-shell" "ipc" "call" "lockScreen" "lock"
+        spawn "noctalia" "msg" "session" "lock"
     }
     XF86AudioRaiseVolume allow-when-locked=true {
         spawn-sh "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.1+ -l 1.0"

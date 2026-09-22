@@ -6,9 +6,9 @@
 # @vicinae.subtitle Toggle system light/dark appearance
 """Toggle the system appearance between light and dark.
 
-Vicinae follows the system appearance and automatically switches between the
-themes configured under `theme.light` and `theme.dark` in settings.json, so
-toggling the system appearance is all that's needed to toggle Vicinae's look.
+Vicinae follows the system appearance and automatically switches between its
+configured light and dark themes, so updating the system appearance is enough
+to toggle Vicinae's look.
 
 - macOS: uses System Events (Ventura+) with a `defaults` fallback.
 - Linux: uses `gsettings` (org.gnome.desktop.interface color-scheme) and, when
@@ -25,6 +25,7 @@ def run(cmd: list[str], *, check: bool = False) -> subprocess.CompletedProcess:
 
 
 # --- macOS -----------------------------------------------------------------
+
 
 def macos_current() -> str:
     res = run(["defaults", "read", "-g", "AppleInterfaceStyle"])
@@ -53,25 +54,39 @@ def macos_set(mode: str) -> None:
 
 # --- Linux -----------------------------------------------------------------
 
+
 def linux_current() -> str:
-    res = run([
-        "gsettings", "get", "org.gnome.desktop.interface", "color-scheme",
-    ])
+    res = run(
+        [
+            "gsettings",
+            "get",
+            "org.gnome.desktop.interface",
+            "color-scheme",
+        ]
+    )
     return "dark" if res.stdout.strip().strip("'") == "prefer-dark" else "light"
 
 
 def linux_set(mode: str) -> None:
-    value = "prefer-dark" if mode == "dark" else "prefer-light"
-    run([
-        "gsettings", "set", "org.gnome.desktop.interface", "color-scheme", value,
-    ])
-    # Keep the noctalia/niri desktop in sync when its hook is available.
+    result = run(["noctalia", "msg", "theme-mode-set", mode])
+    if result.returncode != 0:
+        value = "prefer-dark" if mode == "dark" else "prefer-light"
+        run(
+            [
+                "gsettings",
+                "set",
+                "org.gnome.desktop.interface",
+                "color-scheme",
+                value,
+            ]
+        )
     sync = Path.home() / ".config/noctalia/scripts/sync-system-appearance"
     if sync.exists():
         run([str(sync), mode])
 
 
 # --- dispatch --------------------------------------------------------------
+
 
 def toggle() -> str:
     system = platform.system()

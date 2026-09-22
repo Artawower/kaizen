@@ -139,10 +139,7 @@ emacs/**
 
 !noctalia
 noctalia/*
-!noctalia/settings.json
-!noctalia/plugins.json
-!noctalia/user-templates.toml
-!noctalia/colors.json
+!noctalia/config.toml
 !AGENTS.md
 
 

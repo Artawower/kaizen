@@ -5,5 +5,4 @@ category = "system"
 cask = ["karabiner-elements", "input-source-pro"]
 
 [linux]
-dnf = ["xremap"]
 apt = ["xremap"]

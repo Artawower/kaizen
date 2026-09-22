@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Terra repo (for noctalia-shell etc.)
+# Terra repo
 if [ ! -f /etc/yum.repos.d/terra.repo ]; then
     sudo rpm -e terra-release 2>/dev/null || true
     sudo env -u LD_LIBRARY_PATH dnf install -y --nogpgcheck \
@@ -16,7 +16,7 @@ sudo dnf copr enable scottames/ghostty
 sudo env -u LD_LIBRARY_PATH dnf clean all
 sudo env -u LD_LIBRARY_PATH dnf install -y --skip-unavailable \
     ghostty \
-    noctalia-shell \
+    noctalia \
     vicinae \
     fastfetch \
     freetype-devel libepoxy-devel fontconfig-devel cairo-devel \

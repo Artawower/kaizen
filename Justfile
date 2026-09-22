@@ -8,7 +8,9 @@ test:
     bash tests/dependencies.sh
     bash tests/terminal-post-install.sh
     bash tests/helix-steel-post-install.sh
+    bash tests/mangowm-post-install.sh
     bash tests/aerospace-config.sh
+    bash tests/mango-config.sh
 
 # Transfer dotfiles to a new machine
 apply:

@@ -4,6 +4,7 @@ kaizen/
 {{- end }}
 {{- if eq .chezmoi.os "darwin" }}
 .var/app/org.wezfurlong.wezterm/
+.config/mango/
 .config/niri/
 .config/xremap/
 .config/hypr/
@@ -34,4 +35,12 @@ kaizen/
 .config/sketchybar/
 .config/yabai/
 .config/launchagents/
+{{- $tiling := dig "features" "tiling" false . }}
+{{- $wm := dig "tiling" "variant" "niri" . }}
+{{- if or (not $tiling) (ne $wm "niri") }}
+.config/niri/
+{{- end }}
+{{- if or (not $tiling) (ne $wm "mangowm") }}
+.config/mango/
+{{- end }}
 {{- end }}

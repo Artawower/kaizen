@@ -5,5 +5,5 @@ category = "editor"
 brew = ["helix"]
 
 [linux]
-dnf = ["helix"]
+dnf = ["helix", "nvim"]
 apt = ["hx"]

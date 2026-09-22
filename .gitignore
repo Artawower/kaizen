@@ -33,6 +33,8 @@ plans/*
 
 .pi/
 .pi-lens/
+__pycache__/
+*.py[cod]
 /dotfiles/.chezmoidata/99-user.toml
 
 .DS_Store

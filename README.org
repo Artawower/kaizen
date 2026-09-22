@@ -192,10 +192,13 @@ tiling = true
 variant = "yabai"
 #+END_SRC
 
-Available tiling variants are =aerospace=, =glazewm=, =komorebi=, and =yabai=.
-Helix supports =standard= (official release) and =steel= (plugin-enabled fork).
-Changing a variant does not uninstall packages from the previously selected
-variant.
+Available tiling variants are =aerospace=, =glazewm=, =komorebi=, =yabai=,
+=niri=, and =mangowm=. Niri and MangoWM target Fedora Linux; MangoWM bootstraps
+the official Terra repository, starts with the scrolling layout, and switches
+between scrolling and dwindle with =Caps+Super+V=. Helix supports =standard=
+(official release) and =steel=
+(plugin-enabled fork). Changing a variant does not uninstall packages from the
+previously selected variant.
 
 * Links
 

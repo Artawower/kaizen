@@ -109,16 +109,17 @@ Function for getting config related paths
     (setq wl-copy-process
           (make-process :name "wl-copy"
                         :buffer nil
-                        :command '("wl-copy" "-t" "text/plain")
+                        :command '("wl-copy" "--type" "text/plain;charset=utf-8")
                         :connection-type 'pipe
                         :noquery t))
     (process-send-string wl-copy-process text)
     (process-send-eof wl-copy-process))
 
   (defun wl-paste ()
-    (if (and wl-copy-process (process-live-p wl-copy-process))
-        nil ; Don't paste what we just copied
-      (shell-command-to-string "wl-paste -n -t text/plain")))
+    (with-temp-buffer
+      (when (zerop (call-process "wl-paste" nil t nil
+                                 "--no-newline" "--type" "text"))
+        (buffer-string))))
 
   (setq interprogram-cut-function 'wl-copy)
   (setq interprogram-paste-function 'wl-paste))
@@ -358,6 +359,21 @@ Do not use xonsh/fish here. `shell-file-name' is used by
 `shell-command', `shell-command-to-string', `call-process-shell-command',
 etc., so it should be a POSIX-compatible shell.")
 
+(defconst my/session-envvar-names
+  '("DBUS_SESSION_BUS_ADDRESS"
+    "DISPLAY"
+    "HYPRLAND_INSTANCE_SIGNATURE"
+    "MANGO_INSTANCE_SIGNATURE"
+    "NIRI_SOCKET"
+    "SSH_AUTH_SOCK"
+    "SWAYSOCK"
+    "WAYLAND_DISPLAY"
+    "XAUTHORITY"
+    "XDG_CURRENT_DESKTOP"
+    "XDG_RUNTIME_DIR"
+    "XDG_SESSION_DESKTOP"
+    "XDG_SESSION_TYPE"))
+
 (defun my/env-line-name (line)
   "Return env var name from LINE like \"NAME=value\"."
   (when (string-match-p "\\`[^#=[:space:]]+=" line)
@@ -403,7 +419,10 @@ but it does not copy $SHELL into `shell-file-name'."
   (if (not (file-readable-p file))
       (unless noerror
         (signal 'file-error (list "Couldn't read envvar file" file)))
-    (let (envvars environment path-value)
+    (let ((session-environment
+           (mapcar (lambda (name) (cons name (getenv name)))
+                   my/session-envvar-names))
+          envvars environment path-value)
       (with-temp-buffer
         (insert-file-contents file)
         (dolist (line (split-string (buffer-string) "\n" t))
@@ -417,6 +436,8 @@ but it does not copy $SHELL into `shell-file-name'."
 
         ;; Import environment variables.
         (setq process-environment environment)
+        (dolist (entry session-environment)
+          (setenv (car entry) (cdr entry)))
         ;; (setq process-environment
         ;;       (append environment process-environment))
 

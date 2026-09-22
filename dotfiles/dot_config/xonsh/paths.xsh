@@ -6,8 +6,9 @@ IS_DARWIN = platform.system() == 'Darwin'
 IS_LINUX  = platform.system() == 'Linux'
 
 _paths = [
-    home / 'bin',
+    "/usr/local/bin",
     home / '.local/bin',
+    home / 'bin',
     home / '.config/bin',
     home / '.config/scripts',
     home / '.local/share/mise/shims',

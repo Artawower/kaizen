@@ -5,23 +5,9 @@
 
 import subprocess
 
-CMD = [
-    "qs",
-    "-c",
-    "noctalia-shell",
-    "ipc",
-    "call",
-    "lockScreen",
-    "lock",
-]
-
-try:
-    subprocess.run(CMD, check=True)
-except Exception:
-    subprocess.run([
-        "notify-send",
-        "-t", "800",
-        "-u", "low",
-        "Failed to lock screen"
-    ])
-
+result = subprocess.run(["noctalia", "msg", "session", "lock"], check=False)
+if result.returncode != 0:
+    subprocess.run(
+        ["notify-send", "-t", "800", "-u", "low", "Failed to lock screen"],
+        check=False,
+    )

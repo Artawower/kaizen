@@ -1,2 +1,18 @@
 description = "Tiling window manager"
 category = "desktop"
+
+[linux]
+dnf = [
+  "brightnessctl",
+  "cliphist",
+  "grim",
+  "playerctl",
+  "slurp",
+  "sway-audio-idle-inhibit",
+  "swayidle",
+  "wf-recorder",
+  "wireplumber",
+  "wl-clipboard",
+  "xdg-desktop-portal-wlr",
+  "ydotool",
+]
