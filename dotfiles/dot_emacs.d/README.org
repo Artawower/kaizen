@@ -4499,7 +4499,6 @@ Automatically creates parent directories if needed."
       (setf (alist-get (car entry) org-src-lang-modes nil nil #'string=)
             (cdr entry))))
 
-  (my/setup-org-mode-faces)
   (add-hook 'org-mode-hook
             (lambda () (imenu-add-to-menubar "Imenu")))
 
@@ -4510,6 +4509,11 @@ Automatically creates parent directories if needed."
 
   (dolist (language '(sql python shell typescript rust restclient))
     (my/org-babel-enable-language language))
+
+  (when (fboundp 'org-babel-shell-initialize)
+    (let ((orig-sh-init (symbol-function 'org-babel-sh-initiate-session)))
+      (org-babel-shell-initialize)
+      (defalias 'org-babel-sh-initiate-session orig-sh-init)))
 
   (setq org-capture-templates
         `(("t" "Task → Inbox" entry

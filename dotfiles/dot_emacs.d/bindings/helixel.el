@@ -325,6 +325,13 @@
   (helixel-define-key state (kbd "] g") #'git-gutter:next-hunk)
   (helixel-define-key state (kbd "[ g") #'git-gutter:previous-hunk))
 
+(defun my/recenter (&rest _)
+  (helixel-view-center))
+
+(with-eval-after-load 'git-gutter
+  (advice-add 'git-gutter:next-hunk :after 'my/recenter)
+  (advice-add 'git-gutter:previous-hunk :after 'my/recenter))
+
 (with-eval-after-load 'git-timemachine
   (helixel-define-key 'normal
                       (kbd (concat "SPC " (or (bound-and-true-p kaizen/vcs-history) "v h")))
