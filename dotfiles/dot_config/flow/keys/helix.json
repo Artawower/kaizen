@@ -1,0 +1,562 @@
+{
+    "settings": {
+        "init_command": ["enter_helix_mode"],
+        "deinit_command": ["exit_helix_mode"]
+    },
+    "normal": {
+        "on_match_failure": "ignore",
+        "name": "NOR",
+        "line_numbers": "relative",
+        "cursor": "block",
+        "selection": "inclusive",
+        "press": [
+            ["ctrl+b", "move_scroll_page_up"],
+            ["ctrl+f", "move_scroll_page_down"],
+            ["ctrl+u", "move_scroll_half_page_up"],
+            ["ctrl+d", "move_scroll_half_page_down"],
+            ["z t", "scroll_view_top"],
+            ["z c", "scroll_view_center"],
+            ["z z", "scroll_view_center"],
+            ["z b", "scroll_view_bottom"],
+            ["ctrl+c", "toggle_comment"],
+            ["ctrl+i", "jump_forward"],
+            ["ctrl+o", "jump_back"],
+            ["ctrl+s", "save_selection"],
+            ["ctrl+a", "increment"],
+            ["ctrl+x", "decrement"],
+
+            ["ctrl+^", "open_previous_file"],
+            ["ctrl+w v", "add_split"],
+            ["ctrl+w c", "toggle_centered_view"],
+            ["ctrl+w h", "goto_left_split"],
+            ["ctrl+w l", "goto_right_split"],
+            ["ctrl+w H", "swap_left_split"],
+            ["ctrl+w L", "swap_right_split"],
+            ["ctrl+w F", "goto_file_split"],
+            ["ctrl+w q", "close_split"],
+            ["ctrl+w o", "close_other_splits"],
+
+            ["alt+.", "repeat_last_motion"],
+            ["alt+d", "delete_backward"],
+            ["alt+c", "change_backward_helix"],
+
+            ["alt+s", "split_selection_on_newline"],
+            ["alt+-", "merge_selections"],
+            ["alt+_", "merge_consecutive_selections"],
+
+            ["alt+;", "flip_selections"],
+            ["alt+o", "expand_selection"],
+            ["alt+up", "expand_selection"],
+            ["alt+i", "shrink_selection"],
+            ["alt+down", "shrink_selection"],
+            ["alt+p", "select_prev_sibling"],
+            ["alt+left", "select_prev_sibling"],
+            ["alt+n", "select_next_sibling"],
+            ["alt+right", "select_next_sibling"],
+
+            ["alt+e", "move_parent_node_end"],
+            ["alt+b", "move_parent_node_start"],
+            ["alt+a", "select_all_siblings"],
+
+            ["alt+x", "shrink_to_line_bounds"],
+            ["alt+u", "undo"],
+            ["alt+,", "remove_primary_selection"],
+
+            ["alt+C", "copy_selection_on_next_line"],
+            ["alt+I", "select_all_children"],
+            ["alt+shift+down", "select_all_children"],
+            ["alt+U", "redo"],
+            ["alt+J", "join_selections_space"],
+            ["alt+(", "rotate_selection_contents_backward"], ["alt+)", "rotate_selection_contents_forward"],
+            ["alt+|", "shell_pipe_to"],
+            ["alt+!", "shell_append_output"],
+
+            ["F", "move_to_char", "select_to_char_left_helix"],
+            ["T", "move_to_char", "select_till_char_left_helix"],
+            ["B", "move_prev_long_word_start"],
+            ["b", "move_prev_word_start"],
+            ["e", "move_next_word_end"],
+            ["w", "move_next_word_start"],
+            ["E", "move_next_long_word_end"],
+            ["W", "move_next_long_word_start"],
+            ["t", "move_to_char", "select_till_char_right_helix"],
+            ["f", "move_to_char", "select_to_char_right_helix"],
+
+            ["I", ["enter_mode", "insert"], ["smart_move_begin"]],
+            ["A", ["enter_mode", "insert"], ["move_end"]],
+            ["O", ["enter_mode", "insert"], ["smart_insert_line_before"]],
+
+            ["C", "add_cursor_down"],
+
+            ["S", "split_selection"],
+            ["X", "extend_to_line_bounds"],
+            ["?", "rfind"],
+            ["N", "goto_prev_match"],
+            ["*", "search_selection"],
+
+            ["~", "switch_case"],
+            ["`", "to_lower"],
+            ["alt+`", "to_upper"],
+
+            ["r", "replace"],
+            ["P", "paste_clipboard_before"],
+            ["R", "replace_selections_with_clipboard"],
+            ["p", "paste_after"],
+
+            [">", "indent"],
+            ["<", "unindent"],
+
+            ["J", "join_selections"],
+
+            [":", "open_command_palette"],
+
+            ["&", "align_selections"],
+            ["_", "trim_selections"],
+
+            ["(", "rotate_selections_backward"],
+            [")", "rotate_selections_forward"],
+
+            ["\"", "select_register"],
+            ["|", "shell_pipe"],
+            ["!", "shell_insert_output"],
+            ["$", "shell_keep_pipe"],
+
+            ["h", "move_left"],
+            ["j", "move_down"],
+            ["k", "move_up"],
+            ["l", "move_right"],
+
+            ["home", "move_begin"],
+            ["end", "move_end"],
+
+            ["v", "enter_mode", "select"],
+
+            ["G", "goto_line"],
+            ["g g", "goto_line_vim"],
+            ["g e", "move_buffer_end"],
+            ["g f", "goto_file"],
+            ["g h", "move_begin"],
+            ["g l", "move_end"],
+            ["g s", "smart_move_begin"],
+            ["g d", "goto_definition"],
+            ["g y", "goto_type_definition"],
+            ["g r", "references"],
+            ["g i", "goto_implementation"],
+            ["g t", "goto_window_top"],
+            ["g c", "goto_window_center"],
+            ["g b", "goto_window_bottom"],
+            ["g a", "open_previous_file"],
+            ["g m", "open_most_recent_file"],
+            ["g n", "goto_next_buffer"],
+            ["g p", "goto_previous_buffer"],
+            ["g k", "goto_previous_buffer"],
+            ["g .", "goto_last_modification"],
+            ["g w", "goto_word"],
+            ["g D", "goto_declaration"],
+
+            ["i", "enter_mode", "insert"],
+            ["a", ["enter_mode", "insert"], ["move_right"]],
+            ["o", ["enter_mode", "insert"], ["smart_insert_line_after"]],
+
+            ["d", "cut_forward_internal_inclusive"],
+            ["c", ["enable_selection"], ["enter_mode", "insert"], ["cut_forward_internal_inclusive"]],
+
+            ["s", "select_regex"],
+            [";", "collapse_selections"],
+            ["x", "extend_line_below"],
+
+            ["m m", "match_brackets"],
+            ["m a", "match", "select_textobject_around"],
+            ["m i", "match", "select_textobject_inner"],
+            ["m d", "match", "surround_delete"],
+            ["m r", "match", "surround_replace"],
+            ["m s", "match", "surround_add"],
+
+            ["[ D", "goto_first_diag"],
+            ["[ G", "goto_first_change"],
+            ["[ T", "goto_prev_test"],
+            ["[ d", "goto_prev_diagnostic"],
+            ["[ g", "goto_prev_change"],
+            ["[ f", "goto_prev_function"],
+            ["[ t", "goto_prev_class"],
+            ["[ a", "goto_prev_parameter"],
+            ["[ c", "goto_prev_comment"],
+            ["[ e", "goto_prev_entry"],
+            ["[ p", "goto_prev_paragraph"],
+            ["[ space", "add_newline_above"],
+
+            ["] D", "goto_last_diag"],
+            ["] G", "goto_last_change"],
+            ["] T", "goto_next_test"],
+            ["] d", "goto_next_diagnostic"],
+            ["] g", "goto_next_change"],
+            ["] f", "goto_next_function"],
+            ["] t", "goto_next_class"],
+            ["] a", "goto_next_parameter"],
+            ["] c", "goto_next_comment"],
+            ["] e", "goto_next_entry"],
+            ["] p", "goto_next_paragraph"],
+            ["] space", "add_newline_below"],
+
+            ["/", "find"],
+            ["n", "goto_next_match"],
+
+            ["u", "undo"],
+            ["U", "redo"],
+
+            ["y", ["enable_selection"], ["copy_helix"], ["enter_mode", "normal"]],
+            ["%", "select_all"],
+
+            ["q", "record_macro"],
+            ["Q", "replay_macro"],
+
+            ["=", "format_selections"],
+
+            [",", "keep_primary_selection"],
+
+            ["escape", "cancel"],
+
+            ["page_up", "move_scroll_page_up"],
+            ["page_down", "move_scroll_page_down"],
+
+            ["space F", "find_file"],
+            ["space S", "workspace_symbol_picker"],
+            ["space D", "workspace_diagnostics_picker"],
+            ["space P", "system_paste"],
+            ["space R", "replace_selections_with_clipboard"],
+            ["space ?", "open_command_palette"],
+            ["space f", "find_file"],
+            ["space g", "show_vcs_status"],
+            ["space b", "switch_buffers"],
+            ["space j", "jumplist_picker"],
+            ["space s", "show_symbols"],
+            ["space d", "show_diagnostics"],
+            ["space a", "code_action"],
+            ["space '", "last_palette"],
+            ["space y", "copy"],
+            ["space p", "system_paste_after"],
+            ["space /", "find_in_files"],
+            ["space k", "hover"],
+            ["space r", "rename_symbol"],
+            ["space h", "select_references_to_symbol_under_cursor"],
+            ["space c", "toggle_comment"],
+
+            ["0", "add_integer_argument_digit", 0],
+            ["1", "add_integer_argument_digit", 1],
+            ["2", "add_integer_argument_digit", 2],
+            ["3", "add_integer_argument_digit", 3],
+            ["4", "add_integer_argument_digit", 4],
+            ["5", "add_integer_argument_digit", 5],
+            ["6", "add_integer_argument_digit", 6],
+            ["7", "add_integer_argument_digit", 7],
+            ["8", "add_integer_argument_digit", 8],
+            ["9", "add_integer_argument_digit", 9]
+        ]
+    },
+    "insert": {
+        "name": "INS",
+        "line_numbers": "absolute",
+        "cursor": "beam",
+        "init_command": ["pause_undo_history"],
+        "deinit_command": ["resume_undo_history"],
+        "press": [
+            ["ctrl+u", "move_scroll_page_up"],
+            ["ctrl+d", "move_scroll_page_down"],
+            ["ctrl+y", "redo"],
+            ["ctrl+c", "enter_mode", "normal"],
+            ["ctrl+o", "run_ls"],
+            ["ctrl+k", "delete_to_end"],
+            ["escape", "enter_mode", "normal"]
+        ]
+    },
+    "select": {
+        "name": "SEL",
+        "line_numbers": "relative",
+        "cursor": "block",
+        "selection": "inclusive",
+        "init_command": ["enable_selection"],
+        "press": [
+
+            ["ctrl+b", "select_page_up"],
+            ["ctrl+f", "select_page_down"],
+            ["ctrl+u", "select_half_page_up"],
+            ["ctrl+d", "select_half_page_down"],
+            ["z t", "scroll_view_top"],
+            ["z c", "scroll_view_center"],
+            ["z z", "scroll_view_center"],
+            ["z b", "scroll_view_bottom"],
+
+            ["ctrl+c", "toggle_comment"],
+
+            ["ctrl+i", "jump_forward"],
+            ["ctrl+o", "jump_back"],
+            ["ctrl+s", "save_selection"],
+
+            ["ctrl+a", "increment"],
+            ["ctrl+x", "decrement"],
+
+            ["ctrl+^", "open_previous_file"],
+
+            ["alt+.", "repeat_last_motion"],
+
+            ["alt+`", "switch_to_uppercase"],
+
+            ["alt+d", "delete_backward"],
+            ["alt+c", ["enter_mode", "insert"], ["delete_backward"]],
+
+            ["alt+s", "split_selection_on_newline"],
+            ["alt+-", "merge_selections"],
+            ["alt+_", "merge_consecutive_selections"],
+
+            ["alt+;", "flip_selections"],
+            ["alt+o", "expand_selection"],
+            ["alt+i", "shrink_selection"],
+            ["alt+p", "select_prev_sibling"],
+            ["alt+n", "select_next_sibling"],
+            ["alt+up", "expand_selection"],
+            ["alt+down", "shrink_selection"],
+            ["alt+left", "select_prev_sibling"],
+            ["alt+right", "select_next_sibling"],
+
+            ["alt+e", "extend_parent_node_end"],
+            ["alt+b", "extend_parent_node_start"],
+            ["alt+a", "select_all_siblings"],
+
+            ["alt+x", "shrink_to_line_bounds"],
+
+            ["alt+u", "undo"],
+
+            ["alt+,", "remove_primary_selection"],
+
+            ["alt+C", "copy_selection_on_next_line"],
+
+            ["alt+I", "select_all_children"],
+            ["alt+shift+down", "select_all_children"],
+
+            ["alt+U", "redo"],
+
+            ["alt+J", "join_selections_space"],
+
+            ["alt+(", "rotate_selection_contents_backward"],
+            ["alt+)", "rotate_selection_contents_forward"],
+
+            ["alt+|", "shell_pipe_to"],
+            ["alt+!", "shell_append_output"],
+
+            ["~", "switch_case"],
+
+            ["F", "move_to_char", "extend_to_char_left_helix"],
+            ["T", "move_to_char", "extend_till_char_left_helix"],
+            ["B", "extend_prev_long_word_start"],
+            ["b", "extend_prev_word_start"],
+            ["e", "extend_next_word_end"],
+            ["w", "extend_next_word_start"],
+            ["E", "extend_next_long_word_end"],
+            ["W", "extend_next_long_word_start"],
+            ["t", "move_to_char", "extend_till_char_right_helix"],
+            ["f", "move_to_char", "extend_to_char_right_helix"],
+
+            ["G", "select_to_line"],
+
+            ["I", ["enter_mode", "insert"], ["smart_move_begin"]],
+            ["A", ["enter_mode", "insert"], ["move_end"]],
+
+            ["O", ["enter_mode", "insert"], ["smart_insert_line_before"]],
+
+            ["C", "copy_selection_on_next_line"],
+
+            ["S", "split_selection"],
+
+            ["X", "extend_to_line_bounds"],
+
+            ["?", "rfind"],
+
+            ["N", "extend_search_next"],
+            ["*", "search_selection"],
+
+            ["r", "replace"],
+            ["P", "paste_clipboard_before"],
+            ["R", ["replace_selections_with_clipboard"], ["enter_mode", "normal"]],
+            ["p", "paste_after"],
+
+            [">", "indent"],
+            ["<", "unindent"],
+
+            ["J", "join_selections"],
+
+            [":", "open_command_palette"],
+
+            ["&", "align_selections"],
+            ["_", "trim_selections"],
+
+            ["(", "rotate_selections_backward"],
+            [")", "rotate_selections_forward"],
+
+            ["\"", "select_register"],
+            ["|", "shell_pipe"],
+            ["!", "shell_insert_output"],
+            ["$", "shell_keep_pipe"],
+
+            ["h", "select_left_helix"],
+            ["j", "select_down"],
+            ["k", "select_up"],
+            ["l", "select_right_helix"],
+            ["left", "select_left_helix"],
+            ["down", "select_down"],
+            ["up", "select_up"],
+            ["right", "select_right_helix"],
+            ["%", "select_all"],
+
+            ["`", "switch_to_lowercase"],
+
+            ["home", "extend_to_line_start"],
+            ["end", "extend_to_line_end"],
+            ["v", "enter_mode", "normal"],
+
+            ["g g", "select_to_line_vim"],
+            ["g e", "select_buffer_end"],
+            ["g f", "goto_file"],
+            ["g h", "move_begin"],
+            ["g l", "select_end"],
+            ["g s", "smart_move_begin"],
+            ["g d", "goto_definition"],
+            ["g y", "goto_type_definition"],
+            ["g r", "references"],
+            ["g i", "goto_implementation"],
+            ["g t", "goto_window_top"],
+            ["g c", "goto_window_center"],
+            ["g b", "goto_window_bottom"],
+            ["g a", "open_previous_file"],
+            ["g m", "open_most_recent_file"],
+            ["g n", "goto_next_buffer"],
+            ["g p", "goto_previous_buffer"],
+            ["g k", "goto_previous_buffer"],
+            ["g .", "goto_last_modification"],
+            ["g w", "goto_word"],
+            ["g D", "goto_declaration"],
+
+            ["i", "enter_mode", "insert"],
+            ["a", ["enter_mode", "insert"], ["move_right"]],
+            ["o", ["enter_mode", "insert"], ["smart_insert_line_after"]],
+
+            ["d", ["cut"], ["enter_mode", "normal"]],
+            ["c", ["enter_mode", "insert"], ["cut"]],
+
+            ["s", "select_regex"],
+            [";", "collapse_selections"],
+
+            ["x", "extend_line_below"],
+
+            ["m m", "match_brackets", "helix_sel_mode"],
+            ["m a", "match", "select_textobject_around"],
+            ["m i", "match", "select_textobject_inner"],
+            ["m d", "match", "surround_delete"],
+            ["m r", "match", "surround_replace"],
+            ["m s", "match", "surround_add"],
+
+            ["[ D", "goto_first_diag"],
+            ["[ G", "goto_first_change"],
+            ["[ T", "goto_prev_test"],
+
+            ["[ d", "goto_prev_diagnostic"],
+            ["[ g", "goto_prev_change"],
+            ["[ f", "goto_prev_function"],
+            ["[ t", "goto_prev_class"],
+            ["[ a", "goto_prev_parameter"],
+            ["[ c", "goto_prev_comment"],
+            ["[ e", "goto_prev_entry"],
+            ["[ p", "goto_prev_paragraph"],
+            ["[ space", "add_newline_above"],
+
+            ["] d", "goto_last_diag"],
+            ["] g", "goto_last_change"],
+            ["] t", "goto_next_test"],
+            ["] d", "goto_next_diagnostic"],
+            ["] g", "goto_next_change"],
+            ["] f", "goto_next_function"],
+            ["] t", "goto_next_class"],
+            ["] a", "goto_next_parameter"],
+            ["] c", "goto_next_comment"],
+            ["] e", "goto_next_entry"],
+            ["] p", "goto_next_paragraph"],
+            ["] space", "add_newline_below"],
+
+            ["/", "find"],
+            ["n", "add_next_match_helix"],
+
+            ["u", "undo"],
+            ["U", "redo"],
+
+            ["y", ["copy_helix"], ["enter_mode", "normal"]],
+
+            ["q", "record_macro"],
+            ["Q", "replay_macro"],
+
+            ["=", "format_selections"],
+
+            [",", "keep_primary_selection"],
+
+            ["escape", "enter_mode", "normal"],
+
+            ["space F", "file_picker_in_current_directory"],
+            ["space S", "workspace_symbol_picker"],
+            ["space D", "workspace_diagnostics_picker"],
+            ["space P", "system_paste"],
+            ["space R", "replace_selections_with_clipboard"],
+            ["space ?", "open_command_palette"],
+
+            ["space f", "find_file"],
+            ["space b", "switch_buffers"],
+            ["space j", "jumplist_picker"],
+            ["space s", "show_symbols"],
+            ["space d", "show_diagnostics"],
+            ["space a", "code_action"],
+            ["space '", "last_palette"],
+            ["space y", "copy"],
+            ["space p", "system_paste_after"],
+            ["space /", "find_in_files"],
+            ["space k", "hover"],
+            ["space r", "rename_symbol"],
+            ["space h", "select_references_to_symbol_under_cursor"],
+            ["space c", "toggle_comment"],
+
+            ["0", "add_integer_argument_digit", 0],
+            ["1", "add_integer_argument_digit", 1],
+            ["2", "add_integer_argument_digit", 2],
+            ["3", "add_integer_argument_digit", 3],
+            ["4", "add_integer_argument_digit", 4],
+            ["5", "add_integer_argument_digit", 5],
+            ["6", "add_integer_argument_digit", 6],
+            ["7", "add_integer_argument_digit", 7],
+            ["8", "add_integer_argument_digit", 8],
+            ["9", "add_integer_argument_digit", 9]
+        ]
+    },
+    "mini/replace": {
+        "press": [
+            ["ctrl+g", "mini_mode_cancel"],
+            ["ctrl+c", "mini_mode_cancel"],
+            ["ctrl+l", "scroll_view_center_cycle"],
+            ["tab", "mini_mode_insert_bytes", "\t"],
+            ["enter", "mini_mode_insert_bytes", "\n"],
+            ["escape", "mini_mode_cancel"],
+            ["backspace", "mini_mode_cancel"]
+        ]
+    }, 
+    "home": {
+        "on_match_failure": "ignore",
+        "press": [
+            ["f", "find_file"],
+            ["g", "find_in_files"],
+            [":", "open_command_palette"],
+            ["b", "open_keybind_config"],
+            ["j", "home_menu_down"],
+            ["k", "home_menu_up"],
+            ["F", "change_fontface"],
+            ["h", "open_help"],
+            ["v", "open_version_info"],
+            ["q", "quit"],
+            ["space", "home_menu_activate"]
+        ]
+    } 
+}

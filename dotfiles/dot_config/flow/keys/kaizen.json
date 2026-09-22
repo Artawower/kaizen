@@ -1,0 +1,64 @@
+{
+  "settings": {
+    "inherit": "helix",
+    "init_command": ["enter_helix_mode"],
+    "deinit_command": ["exit_helix_mode"]
+  },
+
+  "normal": {
+    "press": [
+      ["n", "move_down"],
+      ["e", "move_up"],
+      ["i", "move_right"],
+
+      ["j", "move_next_word_end"],
+      ["J", "move_next_long_word_end"],
+
+      ["k", "goto_next_match"],
+      ["K", "goto_prev_match"],
+
+      ["l", "enter_mode", "insert"],
+      ["L", ["enter_mode", "insert"], ["smart_move_begin"]],
+
+      ["E", "hover"],
+
+      ["ctrl+n", "goto_next_diagnostic"],
+      ["ctrl+e", "goto_prev_diagnostic"],
+
+      ["space [", "previous_tab"],
+      ["space ]", "next_tab"],
+
+      ["ctrl+alt+left", "goto_left_split"],
+      ["ctrl+alt+right", "goto_right_split"],
+      ["ctrl+alt+h", "goto_left_split"],
+      ["ctrl+alt+i", "goto_right_split"],
+
+      ["ctrl+alt+shift+left", "swap_left_split"],
+      ["ctrl+alt+shift+right", "swap_right_split"],
+      ["ctrl+alt+shift+h", "swap_left_split"],
+      ["ctrl+alt+shift+i", "swap_right_split"]
+    ]
+  },
+
+  "select": {
+    "press": [
+      ["n", "select_down"],
+      ["e", "select_up"],
+      ["i", "select_right_helix"],
+
+      ["j", "extend_next_word_end"],
+      ["J", "extend_next_long_word_end"],
+
+      ["k", "add_next_match_helix"],
+
+      ["l", "enter_mode", "insert"],
+      ["L", ["enter_mode", "insert"], ["smart_move_begin"]],
+
+      ["ctrl+n", "goto_next_diagnostic"],
+      ["ctrl+e", "goto_prev_diagnostic"],
+
+      ["space [", "previous_tab"],
+      ["space ]", "next_tab"]
+    ]
+  }
+}
