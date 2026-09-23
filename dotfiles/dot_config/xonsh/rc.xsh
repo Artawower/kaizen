@@ -48,16 +48,11 @@ except Exception as _e:
 
 source @(config_dir / 'env.xsh')
 source @(config_dir / 'paths.xsh')
-_mise_bin = shutil.which('mise')
-if _mise_bin:
-    _mise_activation = subprocess.run(
-        [_mise_bin, 'activate', 'xonsh'],
-        env=__xonsh__.env.detype(),
-        capture_output=True,
-        text=True,
-        check=True,
-    ).stdout
+source @(config_dir / 'cache.xsh')
+_mise_activation = cached_init('mise-activate', ['mise', 'activate', 'xonsh'])
+if _mise_activation is not None:
     execx(_mise_activation, 'exec', __xonsh__.ctx, filename='mise')
+    _mise_bin = shutil.which('mise')
     _mise_environment = subprocess.run(
         [_mise_bin, 'hook-env', '-s', 'xonsh'],
         env=__xonsh__.env.detype(),
@@ -66,8 +61,8 @@ if _mise_bin:
         check=True,
     ).stdout
     execx(_mise_environment, 'exec', __xonsh__.ctx, filename='mise-hook')
-    del _mise_activation, _mise_environment
-del _mise_bin
+    del _mise_bin, _mise_environment
+del _mise_activation
 source @(config_dir / 'project-marker.xsh')
 source @(config_dir / 'keybindings.xsh')
 source @(config_dir / 'hooks.xsh')

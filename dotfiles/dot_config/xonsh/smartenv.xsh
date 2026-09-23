@@ -1,4 +1,5 @@
 from pathlib import Path
+import os
 import platform
 
 STORAGE_PATH = Path.home() / ".global_env"
@@ -84,7 +85,10 @@ def del_env(key):
 def boot_env():
     storage = load_storage()
     for k, v in storage.items():
-        set_system_env(k, v)
+        if os.environ.get(k) == v:
+            __xonsh__.env[k] = v
+        else:
+            set_system_env(k, v)
 
     if __xonsh__.env.get("XONSH_INTERACTIVE"):
         print("✔ environment restored")
