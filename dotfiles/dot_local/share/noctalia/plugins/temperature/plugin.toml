@@ -1,0 +1,13 @@
+id = "darkawower/temperature"
+name = "Hardware Temperature"
+version = "1.0.0"
+plugin_api = 3
+author = "darkawower"
+license = "MIT"
+icon = "temperature"
+description = "Shows the Apple WiFi and Bluetooth module temperature."
+dependencies = ["sensors", "NeoHtop"]
+
+[[widget]]
+id = "temperature"
+entry = "temperature.luau"

@@ -1,3 +1,17 @@
+[plugins]
+enabled = ["darkawower/temperature"]
+
+[bar.default]
+start = ["launcher", "active_window", "media"]
+center = ["workspaces"]
+end = ["tray", "notifications", "battery", "volume", "brightness", "temperature", "sysmon", "clock", "control-center"]
+
+[widget.temperature]
+type = "darkawower/temperature:temperature"
+
+[widget.temperature.actions]
+left = "exec /usr/sbin/NeoHtop"
+
 [theme.templates]
 enable_builtin_templates = true
 builtin_ids = ["ghostty", "mango"]

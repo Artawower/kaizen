@@ -7,35 +7,19 @@
     "npm:@tian.zuo/pi-antigravity",
     "npm:@sherif-fanous/pi-catppuccin",
     "npm:@mjakl/pi-dark-or-light",
-    {
-      "source": "npm:pi-free",
-      "extensions": [
-        "-providers/fireworks.ts",
-        "-providers/go.ts",
-        "-providers/mistral.ts",
-        "-providers/nvidia.ts"
-      ]
-    },
     "npm:@thesethrose/pi-zai-provider",
     "npm:pi-alibaba-models",
     "npm:@benvargas/pi-claude-code-use",
     "npm:pi-opencode-bridge",
     {
       "source": "git:github.com/HazAT/pi-interactive-subagents",
-      "extensions": [
-        "-pi-extension/subagents/index.ts"
-      ]
+      "extensions": ["-pi-extension/subagents/index.ts"]
     },
     "npm:@andrewjacop/pi-herdr",
     {
       "source": "npm:pi-lens",
-      "extensions": [
-        "+index.ts"
-      ],
-      "skills": [
-        "+skills/ast-grep/SKILL.md",
-        "+skills/lsp-navigation/SKILL.md"
-      ]
+      "extensions": ["+index.ts"],
+      "skills": ["+skills/ast-grep/SKILL.md", "+skills/lsp-navigation/SKILL.md"]
     },
     "npm:pi-secret-guard",
     "npm:pi-notify",
@@ -51,9 +35,7 @@
     "npm:@tmustier/pi-usage-extension",
     {
       "source": "npm:@singh-gur/pi-usage",
-      "extension": [
-        "-intex.ts"
-      ]
+      "extension": ["-intex.ts"]
     },
     "npm:pi-context-view",
     "npm:@specode/pi-subscription-usage",
@@ -67,7 +49,7 @@
   "defaultThinkingLevel": "high",
   "collapseChangelog": true,
   "autocompleteMaxVisible": 3,
-  "theme": "catppuccin-mocha",
+  "theme": "catppuccin-macchiato",
   "dark-or-light": {
     "dark": "catppuccin-mocha",
     "light": "catppuccin-latte",
