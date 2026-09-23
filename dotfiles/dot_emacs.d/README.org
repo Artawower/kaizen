@@ -2448,6 +2448,7 @@ Setup blamer face
   (setq ediff-window-setup-function 'ediff-setup-windows-plain)
   (setq ediff-split-window-function #'split-window-horizontally)
   (setq ediff-highlight-all-diffs t)    ;
+  (setq ediff-show-ancestor nil)
 
   (add-hook 'ediff-load-hook #'my/ediff-faces-setup)
   (add-hook 'ediff-prepare-buffer-hook (lambda () (toggle-truncate-lines -1)))
@@ -4604,7 +4605,7 @@ Automatically creates parent directories if needed."
   
 
   (defun org-babel-execute:typescript (body params)
-    (let ((org-babel-js-cmd "npx ts-node < "))
+    (let ((org-babel-js-cmd "bun run -"))
       (org-babel-execute:js body params))))
 #+END_SRC
 

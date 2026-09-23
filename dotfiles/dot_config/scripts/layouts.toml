@@ -1,4 +1,34 @@
 [[layouts]]
+id = "Dev"
+name = "✌ Development development"
+description = "[AI | RUN | EDIT | VCS | DIFF]"
+
+[[layouts.tabs]]
+name = "{dir}@diff"
+pane = "left"
+command = "tuicr"
+
+[[layouts.tabs]]
+name = "{dir}@vcs"
+pane = "left"
+command = "vl"
+
+[[layouts.tabs]]
+name = "{dir}@edit"
+pane = "left"
+command = "nvim"
+
+[[layouts.tabs]]
+name = "{dir}@run"
+pane = "left"
+
+[[layouts.tabs]]
+name = "{dir}@ai"
+pane = "left"
+command = "pi --link"
+
+
+[[layouts]]
 id = "TEAM"
 name = "☠️ Full Multiagent coging development with orchestration"
 description = "[LEAD + CODER + REVIEWER + RESEARCHER | VCS | RUN | TERM]"
