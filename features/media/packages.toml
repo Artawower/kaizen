@@ -6,6 +6,6 @@ taps = ["krtirtho/apps"]
 cask = ["vlc", "krtirtho/apps/spotube"]
 
 [linux]
-dnf = ["vlc"]
+dnf = ["vlc", "audacity"]
 apt = ["vlc"]
 
