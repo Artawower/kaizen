@@ -5210,6 +5210,7 @@ Keybindings
 (global-set-key (kbd "M-∏") #'eval-expression)
 (global-set-key (kbd "M-'") #'eval-expression)
 (global-set-key (kbd "M-’") #'eval-expression)
+(global-set-key (kbd "M-ч") #'execute-extended-command)
 
 #+END_SRC
 
