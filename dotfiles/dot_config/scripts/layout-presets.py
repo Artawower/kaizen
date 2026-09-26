@@ -91,6 +91,9 @@ class Backend(ABC):
     def list_terminals(self, workspace: str) -> list[TerminalInfo]: ...
 
     @abstractmethod
+    def terminal_titles(self, workspace: str) -> set[str]: ...
+
+    @abstractmethod
     def close_launcher(self, workspace: str) -> bool: ...
 
     @abstractmethod
@@ -421,6 +424,14 @@ class CmuxBackend(Backend):
             )
         return infos
 
+    def terminal_titles(self, workspace: str) -> set[str]:
+        titles: set[str] = set()
+        for panel in cmux_list_panels(workspace):
+            title = panel.get("title")
+            if title:
+                titles.add(title)
+        return titles
+
     def close_launcher(self, workspace: str) -> bool:
         calling_surface = os.environ.get("CMUX_SURFACE_ID")
         if not calling_surface:
@@ -574,6 +585,13 @@ class HerdrBackend(Backend):
             )
         return infos
 
+    def terminal_titles(self, workspace: str) -> set[str]:
+        result = run_herdr(["tab", "list", "--workspace", workspace])
+        tabs = result.get("tabs") if isinstance(result, dict) else None
+        if tabs is None:
+            raise CommandError(f"herdr tab list returned unexpected data: {result!r}")
+        return {tab["label"] for tab in tabs if tab.get("label")}
+
     def close_launcher(self, workspace: str) -> bool:
         tab_id = os.environ.get("HERDR_TAB_ID")
         if not tab_id:
@@ -674,7 +692,7 @@ def parse_tab_entry(
             f"{source_path.name} layout {layout_id!r} tab #{tab_index} is missing a non-empty 'name'"
         )
 
-    pane_id = tab_entry.get("pane") or "root"
+    pane_id = tab_entry.get("pane") or "left"
     if not isinstance(pane_id, str) or not pane_id.strip():
         raise CommandError(
             f"{source_path.name} layout {layout_id!r} tab #{tab_index} has an invalid 'pane'"
@@ -945,12 +963,18 @@ def launch_preset(backend: Backend, preset: Preset) -> dict[str, Any]:
                 workspace, parent, tab.split_direction or "right"
             )
 
+    existing_titles = backend.terminal_titles(workspace)
+
     created_tabs: list[tuple[RenderedTab, Any]] = []
+    skipped_existing: list[RenderedTab] = []
     reused_selected_by_pane: set[str] = set()
     for tab in reversed(rendered_tabs):
+        if tab.title in existing_titles:
+            skipped_existing.append(tab)
+            continue
         group_target = group_targets[tab.pane_id]
         terminal = None
-        if tab.pane_id != "root" and tab.pane_id not in reused_selected_by_pane:
+        if group_target is not root_group and tab.pane_id not in reused_selected_by_pane:
             terminal = backend.reuse_terminal(group_target, tab.title)
             if terminal is not None:
                 reused_selected_by_pane.add(tab.pane_id)
@@ -1002,6 +1026,7 @@ def launch_preset(backend: Backend, preset: Preset) -> dict[str, Any]:
         "parallel": True,
         "panes": panes,
         "launched": launched,
+        "skipped_existing": [tab.title for tab in skipped_existing],
         "launcher_closed": launcher_closed,
     }
 
@@ -1052,9 +1077,18 @@ def add_single_tab(backend: Backend, tab: TabSpec) -> dict[str, Any]:
     cwd = os.getcwd()
     dir_name = os.path.basename(cwd)
 
+    title = render_template(tab.name, dir_name=dir_name, cwd=cwd)
+    if title in backend.terminal_titles(workspace):
+        return {
+            "status": "ok",
+            "backend": backend.name,
+            "action": "add",
+            "tab_title": title,
+            "skipped_existing": True,
+        }
+
     current_group = backend.root_group(workspace)
 
-    title = render_template(tab.name, dir_name=dir_name, cwd=cwd)
     terminal = backend.create_terminal(workspace, current_group, title, cwd)
 
     if tab.command is not None:
@@ -1117,11 +1151,12 @@ def pick_workspace_dir(backend: Backend) -> dict[str, Any]:
             )
             continue
 
+        label = info.title if info.title else info.ref
         try:
             backend.send_command(info.handle, cd_command)
             changed.append({"title": info.title, "ref": info.ref})
         except (CommandError, OSError, ValueError, KeyError, TypeError) as exc:
-            errors.append(f"{info.title or info.ref}: {exc}")
+            errors.append(f"{label}: {exc}")
 
     if errors:
         raise CommandError("; ".join(errors))

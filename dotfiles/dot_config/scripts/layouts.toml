@@ -5,26 +5,21 @@ description = "[AI | RUN | EDIT | VCS | DIFF]"
 
 [[layouts.tabs]]
 name = "{dir}@diff"
-pane = "left"
 command = "tuicr"
 
 [[layouts.tabs]]
 name = "{dir}@vcs"
-pane = "left"
 command = "vl"
 
 [[layouts.tabs]]
 name = "{dir}@edit"
-pane = "left"
 command = "nvim"
 
 [[layouts.tabs]]
 name = "{dir}@run"
-pane = "left"
 
 [[layouts.tabs]]
 name = "{dir}@ai"
-pane = "left"
 command = "pi --link"
 
 
@@ -35,23 +30,19 @@ description = "[LEAD + CODER + REVIEWER + RESEARCHER | VCS | RUN | TERM]"
 
 [[layouts.tabs]]
 name = "{dir}@ai"
-pane = "left"
 
 [layouts.tabs.pi]
 role = "team-lead"
 
 [[layouts.tabs]]
 name = "{dir}@vcs"
-pane = "left"
 command = "jjui"
 
 [[layouts.tabs]]
 name = "{dir}@run"
-pane = "left"
 
 [[layouts.tabs]]
 name = "{dir}@term"
-pane = "left"
 command = "hx"
 
 [[layouts.tabs]]
@@ -111,26 +102,22 @@ description = "[CODER + REVIEWER | VCS | TERM]"
 
 [[layouts.tabs]]
 name = "{dir}@coder"
-pane = "left"
 
 [layouts.tabs.pi]
 role = "coder"
 
 [[layouts.tabs]]
 name = "{dir}@reviewer"
-pane = "left"
 
 [layouts.tabs.pi]
 role = "reviewer"
 
 [[layouts.tabs]]
 name = "{dir}@vcs"
-pane = "left"
 command = "jjui"
 
 [[layouts.tabs]]
 name = "{dir}@term"
-pane = "left"
 
 
 [[layouts]]
@@ -140,13 +127,11 @@ description = "[AI + VCS]"
 
 [[layouts.tabs]]
 name = "{dir}@ai"
-pane = "left"
 
 [layouts.tabs.pi]
 role = "ai"
 
 [[layouts.tabs]]
 name = "{dir}@vcs"
-pane = "left"
 command = "jjui"
 
