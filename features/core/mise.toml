@@ -1,5 +1,5 @@
 [tools]
 node = "24.19.0"
-pnpm = "12.4.1"
+pnpm = "12.6.0"
 bun = "latest"
 "cargo:tree-sitter-cli" = "latest"
