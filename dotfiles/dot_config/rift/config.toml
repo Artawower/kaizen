@@ -27,13 +27,13 @@ default_orientation = "vertical"
 
 [settings.layout.gaps.outer]
 top = 14
-left = 14
-bottom = 14
-right = 14
+left = 24
+bottom = 24
+right = 24
 
 [settings.layout.gaps.inner]
-horizontal = 14
-vertical = 14
+horizontal = 20
+vertical = 20
 
 [settings.ui.menu_bar]
 enabled = true
@@ -81,6 +81,14 @@ app_rules = [
   { app_name = "системные настройки", floating = true },
   { app_name = "weather", floating = true },
   { app_id = "com.bitwarden.desktop", floating = true },
+    { app_id = "com.brave.Browser", title_substring = "Bitwarden", floating = true },
+    { app_id = "org.mozilla.firefox", title_substring = "Bitwarden", floating = true },
+    { app_id = "org.mozilla.com.zen.browser", title_substring = "Bitwarden", floating = true },
+    { app_id = "company.thebrowser.Browser", title_substring = "Bitwarden", floating = true },
+    { app_id = "com.google.Chrome", title_substring = "Bitwarden", floating = true },
+    { app_id = "org.chromium.Chromium", title_substring = "Bitwarden", floating = true },
+    { app_id = "com.apple.Safari", title_substring = "Bitwarden", floating = true },
+    { app_name = "helium", title_substring = "Bitwarden", floating = true },
   { app_id = "com.raycast.macos", floating = true },
   { app_id = "com.apple.iphonesimulator", floating = true },
   { app_name = "simulator", floating = true },
