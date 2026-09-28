@@ -18,7 +18,10 @@ brew = [
   "wget",
   "dtach",
   "dash",
-  "kondo"
+  # System cleaner
+  "kondo",
+  # Code analyzer
+  "scc" 
 ]
 
 [linux]
