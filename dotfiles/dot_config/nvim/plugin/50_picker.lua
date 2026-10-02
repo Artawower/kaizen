@@ -42,6 +42,23 @@ Snacks.setup({
   },
   picker = {
     enabled = true,
+    limit = 2000,
+    limit_live = 2000,
+    sources = {
+      grep = {
+        exclude = {
+          "node_modules",
+          "dist",
+          "build",
+          "coverage",
+          ".next",
+          ".nuxt",
+          ".cache",
+          ".turbo",
+          "target",
+        },
+      },
+    },
     layout = {
       preset = "ivy",
       hidden = { "preview" },

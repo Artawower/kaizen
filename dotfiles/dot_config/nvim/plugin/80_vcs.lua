@@ -279,3 +279,37 @@ map("n", "<leader>gr", function()
 end, {
   desc = "Reset git hunk",
 })
+
+
+-- Github review
+--
+vim.pack.add({
+  "https://github.com/nvim-lua/plenary.nvim",
+  "https://github.com/pwntester/octo.nvim",
+})
+
+require("octo").setup({
+  picker = "snacks",
+
+  file_panel = {
+    size = 14,
+    icons = true,
+  },
+
+  reviews = {
+    auto_show_threads = true,
+    focus = "right",
+    show_virtual_text = true,
+  },
+
+  mappings = {
+    file_panel = {
+      toggle_viewed = {
+        lhs = "<Tab>",
+        desc = "toggle viewed",
+      },
+    },
+  },
+})
+
+vim.pack.add{ 'https://forge.barrettruth.com/barrettruth/diffs.nvim' }

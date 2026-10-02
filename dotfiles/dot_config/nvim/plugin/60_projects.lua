@@ -25,6 +25,19 @@ vim.pack.add({
 
 require("auto-session").setup({
   cwd_change_handling = true,
+  pre_save_cmds = {
+    function()
+      for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+        if vim.api.nvim_buf_is_valid(buf) then
+          local name = vim.api.nvim_buf_get_name(buf)
+
+          if name:match("^guh://") then
+            pcall(vim.api.nvim_buf_delete, buf, { force = true })
+          end
+        end
+      end
+    end,
+  },
 })
 
 require("project").setup({
