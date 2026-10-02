@@ -259,10 +259,6 @@ map("n", "<leader>wf", toggle_maximize, {
   desc = "Toggle window maximize",
 })
 
-local function select_word()
-  vim.cmd("normal! viw")
-end
-
 local function jump_word()
   local char = vim.fn.getcharstr()
 
@@ -276,7 +272,6 @@ local function jump_word()
       "\\c\\<" .. vim.pesc(char)
     ),
   })
-  select_word()
 end
 
 local function jump_char()
@@ -292,8 +287,6 @@ local function jump_char()
       "\\V" .. vim.fn.escape(char, "\\")
     ),
   })
-
-  select_word()
 end
 
 map({ "n", "x" }, "f", jump_word, {
