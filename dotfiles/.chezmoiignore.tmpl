@@ -3,6 +3,7 @@ kaizen/
 .config/nvim/
 {{- end }}
 {{- if eq .chezmoi.os "darwin" }}
+.config/VSCodium/
 .var/app/org.wezfurlong.wezterm/
 .config/mango/
 .config/niri/
@@ -30,6 +31,7 @@ kaizen/
 .config/komorebi/
 {{- end }}
 {{- else if eq .chezmoi.os "linux" }}
+Library/
 .config/skhd/
 .config/aerospace/
 .config/karabiner/
