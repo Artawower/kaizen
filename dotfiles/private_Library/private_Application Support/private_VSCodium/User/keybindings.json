@@ -1,0 +1,64 @@
+[
+  {
+    "key": "] g",
+    "command": "workbench.action.compareEditor.nextChange",
+    "when": "isInDiffEditor && vim.active && vim.mode == 'Normal'"
+  },
+  {
+    "key": "[ g",
+    "command": "workbench.action.compareEditor.previousChange",
+    "when": "isInDiffEditor && vim.active && vim.mode == 'Normal'"
+  },
+  {
+    "key": "] c",
+    "command": "workbench.action.compareEditor.nextChange",
+    "when": "isInDiffEditor && vim.active && vim.mode == 'Normal'"
+  },
+  {
+    "key": "[ c",
+    "command": "workbench.action.compareEditor.previousChange",
+    "when": "isInDiffEditor && vim.active && vim.mode == 'Normal'"
+  },
+  {
+    "key": "ctrl+n",
+    "command": "selectNextSuggestion",
+    "when": "suggestWidgetVisible && vim.active"
+  },
+  {
+    "key": "ctrl+e",
+    "command": "selectPrevSuggestion",
+    "when": "suggestWidgetVisible && vim.active"
+  },
+  {
+    "key": "ctrl+n",
+    "command": "workbench.action.quickOpenSelectNext",
+    "when": "inQuickOpen && vim.active"
+  },
+  {
+    "key": "ctrl+e",
+    "command": "workbench.action.quickOpenSelectPrevious",
+    "when": "inQuickOpen && vim.active"
+  },
+  {
+    "key": "cmd+.",
+    "command": "-editor.changeDropType"
+  },
+  {
+    "key": "cmd+.",
+    "command": "-editor.changePasteType"
+  },
+  {
+    "key": "cmd+.",
+    "command": "-workbench.action.chat.openModePicker"
+  },
+  {
+    "key": "cmd+[Period]",
+    "command": "workbench.action.focusNextGroup",
+    "when": "isMac && vim.active"
+  },
+  {
+    "key": "shift+cmd+[Period]",
+    "command": "workbench.action.focusPreviousGroup",
+    "when": "isMac && vim.active"
+  }
+]
