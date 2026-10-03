@@ -63,7 +63,6 @@ if _mise_activation is not None:
     execx(_mise_environment, 'exec', __xonsh__.ctx, filename='mise-hook')
     del _mise_bin, _mise_environment
 del _mise_activation
-source @(config_dir / 'project-marker.xsh')
 source @(config_dir / 'keybindings.xsh')
 source @(config_dir / 'hooks.xsh')
 source @(config_dir / 'functions.xsh')
