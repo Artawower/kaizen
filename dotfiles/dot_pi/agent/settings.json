@@ -11,6 +11,7 @@
     "npm:pi-alibaba-models",
     "npm:@benvargas/pi-claude-code-use",
     "npm:pi-opencode-bridge",
+    "git:github.com/Artawower/pi-servitors",
     {
       "source": "git:github.com/HazAT/pi-interactive-subagents",
       "extensions": ["-pi-extension/subagents/index.ts"]
@@ -54,6 +55,9 @@
     "dark": "catppuccin-mocha",
     "light": "catppuccin-latte",
     "default": "light"
+  },
+  "servitors": {
+    "extensions": ["npm:@tian.zuo/pi-antigravity"]
   },
   "lastChangelogVersion": "0.87.1"
 }

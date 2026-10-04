@@ -3943,7 +3943,8 @@ Requires Emacs 30+
                           ;; Disable built-in rust-ts-flymake, eglot provides diagnostics
                           (remove-hook 'flymake-diagnostic-functions 'rust-ts-flymake t))))
 #+END_SRC
-** Docker compose
+** COMMENT Docker compose
+   currently the project is unmaintained
 #+BEGIN_SRC emacs-lisp
 (use-package docker-compose-mode
   :defer t)
