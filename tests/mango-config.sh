@@ -48,11 +48,11 @@ assert "monitorrule=name:^eDP-1$,width:3024,height:1964,refresh:60.004,x:0,y:108
 assert "monitorrule=name:^HDMI-A-1$,width:3840,height:2160,refresh:60,x:0,y:0,scale:2,rr:0" in lines
 assert "mouse_accel_profile=2" in lines
 assert "trackpad_natural_scrolling=0" in lines
-assert "trackpad_scroll_factor=1.0" in lines
+assert "trackpad_scroll_factor=0.9" in lines
 assert "tap_to_click=1" in lines
 assert "tap_and_drag=1" in lines
 assert "drag_lock=1" in lines
-assert "trackpad_disable_while_typing=0" in lines
+assert "trackpad_disable_while_typing=1" in lines
 assert "swipe_min_threshold=1" in lines
 assert "gesture_live=1" in lines
 for direction in ("left", "right", "up", "down"):

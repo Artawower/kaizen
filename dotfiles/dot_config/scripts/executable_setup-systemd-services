@@ -13,7 +13,7 @@ Description=Trackpad is too damn big - palm rejection for Apple trackpad
 After=multi-user.target
 
 [Service]
-ExecStart=/usr/local/bin/titdb -d /dev/input/by-path/platform-39b10c000.spi-cs-0-event-mouse -l 10 -r 15 -t 15 -b 10
+ExecStart=/usr/local/bin/titdb -d /dev/input/by-path/platform-39b10c000.spi-cs-0-event-mouse -l 20 -r 20 -t 20 -b 10
 Restart=on-failure
 RestartSec=3
 
