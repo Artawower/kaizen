@@ -12,9 +12,17 @@ type = "darkawower/temperature:temperature"
 [widget.temperature.actions]
 left = "exec /usr/sbin/NeoHtop"
 
+[location]
+auto_locate = true
+
+[theme]
+mode = "auto"
+
 [theme.templates]
 enable_builtin_templates = true
-builtin_ids = ["ghostty", "mango"]
+builtin_ids = ["ghostty", "mango", "gtk3", "gtk4", "qt", "helix", "starship", "cava", "btop"]
+enable_community_templates = true
+community_ids = ["vicinae", "herdr", "yazi", "zellij", "lazygit", "opencode", "bat", "fzf", "telegram", "vscode"]
 
 [hooks]
 theme_mode_changed = "{{ .chezmoi.homeDir }}/.config/noctalia/scripts/sync-system-appearance"

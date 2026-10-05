@@ -34,6 +34,8 @@ def main() -> int:
         "gtk-theme",
         "Adwaita-dark" if mode == "dark" else "Adwaita",
     ])
+    run(["noctalia", "msg", "templates-apply"])
+    run(["vicinae", "theme", "set", "noctalia"])
     return 0
 
 
