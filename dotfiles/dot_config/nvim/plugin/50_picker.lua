@@ -24,6 +24,54 @@ vim.pack.add({
 local Snacks = require("snacks")
 local map = vim.keymap.set
 
+local function split_grep_query(str)
+  local function find_unescaped(s, start)
+    local i = start or 1
+    while i <= #s do
+      local c = s:sub(i, i)
+      if c == "\\" then
+        i = i + 2
+      elseif c == "#" then
+        return i
+      else
+        i = i + 1
+      end
+    end
+    return nil
+  end
+
+  local s, f
+  if str:sub(1, 1) == "#" then
+    local second = find_unescaped(str, 2)
+    if second then
+      s = str:sub(2, second - 1)
+      f = str:sub(second + 1)
+    else
+      s = str
+    end
+  else
+    local pos = find_unescaped(str, 1)
+    if pos then
+      s = str:sub(1, pos - 1)
+      f = str:sub(pos + 1)
+    else
+      s = str
+    end
+  end
+
+  s = s:gsub("\\#", "#")
+
+  if f then
+    local filter_base, flags = f:match("^(.-)%s+%-%-%s*(.*)$")
+    if filter_base and flags then
+      f = filter_base
+      s = s .. " -- " .. flags
+    end
+  end
+
+  return s, f
+end
+
 Snacks.setup({
   statuscolumn = {
     enabled = false,
@@ -46,6 +94,15 @@ Snacks.setup({
     limit_live = 2000,
     sources = {
       grep = {
+        filter = {
+          transform = function(_, filter)
+            local s, f = split_grep_query(filter.search)
+            if s and f then
+              filter.search = vim.trim(s)
+              filter.pattern = vim.trim(f)
+            end
+          end,
+        },
         exclude = {
           "node_modules",
           "dist",
@@ -73,6 +130,8 @@ Snacks.setup({
           ["<C-n>"] = { "list_down", mode = { "i", "n" } },
           ["<C-e>"] = { "list_up", mode = { "i", "n" } },
           ["<C-g>"] = { "list_top", mode = { "i", "n" } },
+          ["<C-f>"] = { "toggle_live", mode = { "i", "n" } },
+          ["<M-l>"] = { "toggle_live", mode = { "i", "n" } },
           ["<Tab>"] = { "toggle_preview", mode = { "i", "n" } },
         },
       },
@@ -81,6 +140,8 @@ Snacks.setup({
           ["<C-n>"] = "list_down",
           ["<C-e>"] = "list_up",
           ["<C-g>"] = "list_top",
+          ["<C-f>"] = "toggle_live",
+          ["<M-l>"] = "toggle_live",
           ["<Tab>"] = "toggle_preview",
         },
       },
@@ -116,13 +177,9 @@ end, {
 map({ "n", "x" }, "<leader>/", function()
   Snacks.picker.grep({
     cwd = project_root(),
-
-    need_search = false,
-    live = false,
-
-    matcher = {
-      fuzzy = true,
-    }
+    search = function(picker)
+      return (picker.visual and picker.visual.text) or ""
+    end,
   })
 end, {
   desc = "Search project",
@@ -168,14 +225,10 @@ end, {
 })
 
 -- Global word grep
-map("n", "<leader>*", function()
-  vim.cmd("normal! viw")
-
-  vim.schedule(function()
-    Snacks.picker.grep_word({
-      cwd = project_root(),
-    })
-  end)
+map({ "n", "x" }, "<leader>*", function()
+  Snacks.picker.grep_word({
+    cwd = project_root(),
+  })
 end, {
   desc = "Grep word in project",
 })
