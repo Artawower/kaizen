@@ -1,0 +1,10 @@
+description = "Language learning tools: Anki flashcards and dependencies"
+category = "learning"
+
+[macos]
+cask = ["anki"]
+
+[linux]
+flatpak = ["net.ankiweb.Anki"]
+dnf = ["mpv", "espeak-ng"]
+apt = ["mpv", "espeak-ng"]
