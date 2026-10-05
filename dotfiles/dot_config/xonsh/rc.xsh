@@ -15,10 +15,15 @@ xonsh.tools.decode = fixed_decode
 import platform
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 from pprint import pprint
 
 config_dir = Path.home() / '.config/xonsh'
+xonsh_site = Path.home() / '.local/share/kaizen/xonsh-site'
+if xonsh_site.is_dir() and str(xonsh_site) not in sys.path:
+    sys.path.insert(0, str(xonsh_site))
+
 try:
     import xontrib.sh
     $XONTRIB_SH_SHELLS = ['bash', 'sh']
