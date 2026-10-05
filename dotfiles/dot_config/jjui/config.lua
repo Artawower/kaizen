@@ -6,7 +6,7 @@ function setup(config)
       flash("Select file first (press l for details)")
       return
     end
-    exec_shell("hx " .. file)
+    exec_shell("nvim " .. file)
   end, {
     key = "O",
     scope = "revisions.details",
