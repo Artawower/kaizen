@@ -40,6 +40,7 @@ social = false
 terminal = true
 tiling = true
 vcs = true
+vscodium = true
 
 [kaizen.base_shortcuts]
 "app.buffers.pick" = ["Opt", "b"]

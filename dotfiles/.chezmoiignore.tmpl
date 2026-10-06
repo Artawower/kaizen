@@ -2,6 +2,11 @@ kaizen/
 {{- if not (dig "features" "neovim" false .) }}
 .config/nvim/
 {{- end }}
+{{- if not (dig "features" "vscodium" false .) }}
+.config/VSCodium/
+.var/app/com.vscodium.codium/
+Library/Application Support/VSCodium/
+{{- end }}
 {{- if eq .chezmoi.os "darwin" }}
 .config/VSCodium/
 .var/

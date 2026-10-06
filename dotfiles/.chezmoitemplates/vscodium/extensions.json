@@ -1,0 +1,13 @@
+{
+  "recommendations": [
+    "vscodevim.vim",
+    "vspacecode.whichkey",
+    "alefragnani.project-manager",
+    "alefragnani.bookmarks",
+    "catppuccin.catppuccin-vsc",
+    "catppuccin.catppuccin-vsc-icons",
+    "usernamehw.errorlens",
+    "mhutchie.git-graph",
+    "github.vscode-pull-request-github"
+  ]
+}

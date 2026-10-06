@@ -1,0 +1,8 @@
+description = "VSCodium text editor"
+category = "editor"
+
+[macos]
+cask = ["vscodium"]
+
+[linux]
+flatpak = ["com.vscodium.codium"]
