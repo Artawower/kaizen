@@ -4,7 +4,7 @@
   "enableSkillCommands": true,
   "tuiMode": "fullscreen",
   "packages": [
-    "npm:@tian.zuo/pi-antigravity",
+    "npm:@estebanforge/pi-antigravity-bridge",
     "npm:@sherif-fanous/pi-catppuccin",
     "npm:@mjakl/pi-dark-or-light",
     "npm:@thesethrose/pi-zai-provider",
