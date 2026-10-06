@@ -11,10 +11,18 @@ keymap:
     exact_match: true
     remap:
       Ctrl-Super-h: Left
+      Ctrl-Super-Shift-h: Shift-Left
+{{- if eq .layout "colemak-regular" }}
+      Ctrl-Super-y: Down
+      Ctrl-Super-n: Up
+      Ctrl-Super-u: Right
+      Ctrl-Super-Shift-y: Shift-Down
+      Ctrl-Super-Shift-n: Shift-Up
+      Ctrl-Super-Shift-u: Shift-Right
+{{- else }}
       Ctrl-Super-j: Down
       Ctrl-Super-k: Up
       Ctrl-Super-l: Right
-      Ctrl-Super-Shift-h: Shift-Left
       Ctrl-Super-Shift-j: Shift-Down
       Ctrl-Super-Shift-k: Shift-Up
       Ctrl-Super-Shift-l: Shift-Right
@@ -25,6 +33,7 @@ keymap:
       Ctrl-Super-Shift-n: Shift-Down
       Ctrl-Super-Shift-e: Shift-Up
       Ctrl-Super-Shift-i: Shift-Right
+{{- end }}
 {{- end }}
 
   - name: Common Super shortcuts
@@ -63,14 +72,24 @@ keymap:
       Super-v: C-Shift-v
       Super-c: C-Shift-c
       Super-z: C-Shift-z
+
+  - name: Terminal word deletion
+    application:
+      only: [alacritty, kitty, wezterm, "org.wezfurlong.wezterm", app.kde.konsole, konsole]
+    remap:
       Alt-Backspace: C-w
       Alt-Delete: C-w
-      
+
+  - name: Alt-Backspace delete word
+    application:
+      not: [Emacs, neomacs, emacs, ghostty, "com.mitchellh.ghostty"]
+    remap:
+      Alt-Backspace: C-Backspace
+
   - name: Delete
     application:
       not: [Emacs, neomacs, emacs]
     remap:
-      Alt-Backspace: C-Backspace
       Super-Backspace: [Shift-Home, Backspace]
       Super-Left: Home
       Super-Right: End
