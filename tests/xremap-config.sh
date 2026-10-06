@@ -31,6 +31,15 @@ if sys.argv[4] == "colemak-regular":
     assert "Ctrl-Super-j: Down" not in arrows
 else:
     assert "Ctrl-Super-j: Down" in arrows
+gui_shortcuts = content.split("- name: GUI shortcuts", 1)[1].split("- name: Browser shortcuts", 1)[0]
+if sys.argv[4] == "colemak-regular":
+    assert "C-y: C-Tab" in gui_shortcuts
+    assert "C-n: C-Shift-Tab" in gui_shortcuts
+    assert "C-j: C-Tab" not in gui_shortcuts
+    assert "C-k: C-Shift-Tab" not in gui_shortcuts
+else:
+    assert "C-j: C-Tab" in gui_shortcuts
+    assert "C-k: C-Shift-Tab" in gui_shortcuts
 assert "alone_timeout_millis: 200" in content
 assert "free_hold: true" not in content
 assert "Super-BTN_LEFT: C-BTN_LEFT" in content

@@ -114,8 +114,13 @@ keymap:
     application:
       only: [brave-browser, org.mozilla.firefox, "app.zen_browser.zen", zen, helium, org.telegram.desktop]
     remap:
+{{- if eq .layout "colemak-regular" }}
+      C-y: C-Tab
+      C-n: C-Shift-Tab
+{{- else }}
       C-j: C-Tab
       C-k: C-Shift-Tab
+{{- end }}
       Alt-Left: Home
       Alt-Right: End
       Super-a: C-a
