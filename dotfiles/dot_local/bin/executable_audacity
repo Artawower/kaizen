@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+appimage="$HOME/.local/opt/audacity/audacity.AppImage"
+
+if [[ ! -x "$appimage" ]]; then
+    printf 'Audacity 4 AppImage is missing or not executable: %s\n' "$appimage" >&2
+    exit 1
+fi
+
+export AU_QT_QPA_PLATFORM=wayland
+export QT_QPA_PLATFORM=wayland
+exec "$appimage" "$@"

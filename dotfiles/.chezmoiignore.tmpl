@@ -3,6 +3,12 @@ kaizen/
 .config/herdr/session.json
 .config/herdr/*.log
 .emacs.d/elpaca/
+{{- if or (ne .chezmoi.os "linux") (not (dig "features" "media" false .)) }}
+.local/bin/audacity
+.local/bin/audacity4
+.local/share/applications/audacity.desktop
+.local/share/applications/audacity4.desktop
+{{- end }}
 {{- if not (dig "features" "neovim" false .) }}
 .config/nvim/
 {{- end }}
