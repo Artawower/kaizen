@@ -12,16 +12,20 @@
   kaizen-vcs-ui
   kaizen-vcs-history)
 
+{{- $shortcuts := .kaizen.shortcuts -}}
+{{- if or (eq .layout "colemak-regular") (eq .layout "qwerty") -}}
+{{-   $shortcuts = .kaizen.base_shortcuts -}}
+{{- end -}}
 (define kaizen-layout "{{ .layout }}")
-(define kaizen-nav-left "{{ last (index .kaizen.shortcuts "nav.left") }}")
-(define kaizen-nav-down "{{ last (index .kaizen.shortcuts "nav.down") }}")
-(define kaizen-nav-up "{{ last (index .kaizen.shortcuts "nav.up") }}")
-(define kaizen-nav-right "{{ last (index .kaizen.shortcuts "nav.right") }}")
-(define kaizen-nav-insert "{{ last (index .kaizen.shortcuts "nav.insert") }}")
-(define kaizen-line-start "{{ last (index .kaizen.shortcuts "editor.line.start") }}")
-(define kaizen-line-end "{{ last (index .kaizen.shortcuts "editor.line.end") }}")
-(define kaizen-split-right "{{ last (index .kaizen.shortcuts "pane.split.right") }}")
-(define kaizen-split-down "{{ last (index .kaizen.shortcuts "pane.split.down") }}")
-(define kaizen-window-rotate "{{ last (index .kaizen.shortcuts "window.rotate") }}")
-(define kaizen-vcs-ui "{{ last (index .kaizen.shortcuts "vcs.ui") }}")
-(define kaizen-vcs-history "{{ last (index .kaizen.shortcuts "vcs.history") }}")
+(define kaizen-nav-left "{{ last (index $shortcuts "nav.left") }}")
+(define kaizen-nav-down "{{ last (index $shortcuts "nav.down") }}")
+(define kaizen-nav-up "{{ last (index $shortcuts "nav.up") }}")
+(define kaizen-nav-right "{{ last (index $shortcuts "nav.right") }}")
+(define kaizen-nav-insert "{{ last (index $shortcuts "nav.insert") }}")
+(define kaizen-line-start "{{ last (index $shortcuts "editor.line.start") }}")
+(define kaizen-line-end "{{ last (index $shortcuts "editor.line.end") }}")
+(define kaizen-split-right "{{ last (index $shortcuts "pane.split.right") }}")
+(define kaizen-split-down "{{ last (index $shortcuts "pane.split.down") }}")
+(define kaizen-window-rotate "{{ last (index $shortcuts "window.rotate") }}")
+(define kaizen-vcs-ui "{{ last (index $shortcuts "vcs.ui") }}")
+(define kaizen-vcs-history "{{ last (index $shortcuts "vcs.history") }}")

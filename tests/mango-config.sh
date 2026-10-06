@@ -11,7 +11,7 @@ cp "$repo_root/dotfiles/.chezmoiignore.tmpl" "$source_dir/.chezmoiignore.tmpl"
 cp "$repo_root/dotfiles/dot_config/mango/config.conf.tmpl" "$source_dir/dot_config/mango/config.conf.tmpl"
 template="$source_dir/dot_config/mango/config.conf.tmpl"
 
-for layout in colemak qwerty; do
+for layout in colemak qwerty colemak-regular; do
 	rendered="$tmp_dir/mango-$layout.conf"
 	chezmoi execute-template \
 		--source "$source_dir" \
@@ -71,11 +71,12 @@ assert all(f"gapp{axis}=16" in lines for axis in ("ih", "iv", "oh", "ov"))
 assert text.count("tagrule=id:") == 9
 assert "windowrule=tags:1,appid:^(org\\.telegram\\.desktop|telegram-desktop|com\\.mattermost\\.Desktop|mattermost|discord|vesktop)$" in lines
 assert "bind=SUPER+SHIFT,e,spawn,emacsclient -c -a emacs" not in lines
-assert ("xkb_rules_variant=colemak," in lines) == (layout == "colemak")
+assert ("xkb_rules_variant=colemak," in lines) == (layout in {"colemak", "colemak-regular"})
 
 navigation = {
     "colemak": {"h": "left", "n": "down", "e": "up", "i": "right"},
     "qwerty": {"h": "left", "j": "down", "k": "up", "l": "right"},
+    "colemak-regular": {"h": "left", "j": "down", "k": "up", "l": "right"},
 }[layout]
 for key, direction in navigation.items():
     if direction in {"left", "right"}:
@@ -89,6 +90,7 @@ for key, direction in navigation.items():
 mnemonics = {
     "colemak": {"s": 1, "t": 2, "w": 3, "d": 4, "o": 5, "r": 6, "u": 7, "l": 8, "a": 9},
     "qwerty": {"s": 1, "t": 2, "w": 3, "d": 4, "i": 5, "e": 6, "x": 7, "u": 8, "a": 9},
+    "colemak-regular": {"s": 1, "t": 2, "w": 3, "d": 4, "i": 5, "e": 6, "x": 7, "u": 8, "a": 9},
 }[layout]
 for key, tag in mnemonics.items():
     assert f"bind=ALT+SHIFT,{key},view,{tag}" in lines

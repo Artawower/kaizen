@@ -1,12 +1,16 @@
-{{- $paneLeft  := last (index .kaizen.shortcuts "app.pane.focus.left") -}}
-{{- $paneDown  := last (index .kaizen.shortcuts "app.pane.focus.down") -}}
-{{- $paneUp    := last (index .kaizen.shortcuts "app.pane.focus.up") -}}
-{{- $paneRight := last (index .kaizen.shortcuts "app.pane.focus.right") -}}
-{{- $tabPrev   := last (index .kaizen.shortcuts "app.tab.previous") -}}
-{{- $tabNext   := last (index .kaizen.shortcuts "app.tab.next") -}}
-{{- $wsPrev    := last (index .kaizen.shortcuts "app.workspace.previous") -}}
-{{- $wsNext    := last (index .kaizen.shortcuts "app.workspace.next") -}}
-{{- $muxPrefixKeys := index .kaizen.shortcuts "prefix.multiplexer" -}}
+{{- $shortcuts := .kaizen.shortcuts -}}
+{{- if or (eq .layout "colemak-regular") (eq .layout "qwerty") -}}
+{{-   $shortcuts = .kaizen.base_shortcuts -}}
+{{- end -}}
+{{- $paneLeft  := last (index $shortcuts "app.pane.focus.left") -}}
+{{- $paneDown  := last (index $shortcuts "app.pane.focus.down") -}}
+{{- $paneUp    := last (index $shortcuts "app.pane.focus.up") -}}
+{{- $paneRight := last (index $shortcuts "app.pane.focus.right") -}}
+{{- $tabPrev   := last (index $shortcuts "app.tab.previous") -}}
+{{- $tabNext   := last (index $shortcuts "app.tab.next") -}}
+{{- $wsPrev    := last (index $shortcuts "app.workspace.previous") -}}
+{{- $wsNext    := last (index $shortcuts "app.workspace.next") -}}
+{{- $muxPrefixKeys := index $shortcuts "prefix.multiplexer" -}}
 {{- $muxPrefix := $muxPrefixKeys | join "+" | lower -}}
 onboarding = false
 

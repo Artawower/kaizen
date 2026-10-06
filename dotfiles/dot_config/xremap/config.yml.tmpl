@@ -123,10 +123,14 @@ keymap:
       Super-z: C-z
 
 
+{{- $shortcuts := .kaizen.shortcuts -}}
+{{- if or (eq .layout "colemak-regular") (eq .layout "qwerty") -}}
+{{-   $shortcuts = .kaizen.base_shortcuts -}}
+{{- end -}}
   - name: Fn tabs
     remap:
-      Fn-{{ join "" (index .kaizen.shortcuts "nav.down") }}: C-Tab
-      Fn-{{ join "" (index .kaizen.shortcuts "nav.up") }}: C-S-Tab
+      Fn-{{ join "" (index $shortcuts "nav.down") }}: C-Tab
+      Fn-{{ join "" (index $shortcuts "nav.up") }}: C-S-Tab
 
   - name: Emacs
     application:

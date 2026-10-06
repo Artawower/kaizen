@@ -1,4 +1,7 @@
 {{- $shortcuts := .kaizen.shortcuts -}}
+{{- if or (eq .layout "colemak-regular") (eq .layout "qwerty") -}}
+{{-   $shortcuts = .kaizen.base_shortcuts -}}
+{{- end -}}
 import shutil
 from xonsh.tools import unthreadable, uncapturable
 

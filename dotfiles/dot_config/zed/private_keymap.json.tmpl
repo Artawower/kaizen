@@ -1,19 +1,23 @@
-{{- $appLeft  := last (index .kaizen.shortcuts "app.pane.focus.left") -}}
-{{- $appDown  := last (index .kaizen.shortcuts "app.pane.focus.down") -}}
-{{- $appUp    := last (index .kaizen.shortcuts "app.pane.focus.up") -}}
-{{- $appRight := last (index .kaizen.shortcuts "app.pane.focus.right") -}}
-{{- $tabPrev  := last (index .kaizen.shortcuts "app.tab.previous") -}}
-{{- $tabNext  := last (index .kaizen.shortcuts "app.tab.next") -}}
-{{- $wsPrev   := last (index .kaizen.shortcuts "app.workspace.previous") -}}
-{{- $wsNext   := last (index .kaizen.shortcuts "app.workspace.next") -}}
-{{- $projPick  := last (index .kaizen.shortcuts "app.projects.pick") -}}
-{{- $tabsPick  := last (index .kaizen.shortcuts "app.tabs.pick") -}}
-{{- $bufsPick  := last (index .kaizen.shortcuts "app.buffers.pick") -}}
-{{- $vcsHistory := join " " (index .kaizen.shortcuts "vcs.history") -}}
-{{- $lspFormat  := join " " (index .kaizen.shortcuts "lsp.format") -}}
-{{- $lspDiag    := join " " (index .kaizen.shortcuts "lsp.diagnostics") -}}
-{{- $foldOpen   := join " " (index .kaizen.shortcuts "fold.open") -}}
-{{- $runTask    := join " " (index .kaizen.shortcuts "run.task") -}}
+{{- $shortcuts := .kaizen.shortcuts -}}
+{{- if or (eq .layout "colemak-regular") (eq .layout "qwerty") -}}
+{{-   $shortcuts = .kaizen.base_shortcuts -}}
+{{- end -}}
+{{- $appLeft  := last (index $shortcuts "app.pane.focus.left") -}}
+{{- $appDown  := last (index $shortcuts "app.pane.focus.down") -}}
+{{- $appUp    := last (index $shortcuts "app.pane.focus.up") -}}
+{{- $appRight := last (index $shortcuts "app.pane.focus.right") -}}
+{{- $tabPrev  := last (index $shortcuts "app.tab.previous") -}}
+{{- $tabNext  := last (index $shortcuts "app.tab.next") -}}
+{{- $wsPrev   := last (index $shortcuts "app.workspace.previous") -}}
+{{- $wsNext   := last (index $shortcuts "app.workspace.next") -}}
+{{- $projPick  := last (index $shortcuts "app.projects.pick") -}}
+{{- $tabsPick  := last (index $shortcuts "app.tabs.pick") -}}
+{{- $bufsPick  := last (index $shortcuts "app.buffers.pick") -}}
+{{- $vcsHistory := join " " (index $shortcuts "vcs.history") -}}
+{{- $lspFormat  := join " " (index $shortcuts "lsp.format") -}}
+{{- $lspDiag    := join " " (index $shortcuts "lsp.diagnostics") -}}
+{{- $foldOpen   := join " " (index $shortcuts "fold.open") -}}
+{{- $runTask    := join " " (index $shortcuts "run.task") -}}
 {{/* Cmd+key uses QWERTY on macOS regardless of Colemak layout — use base shortcuts */}}
 {{- $tabNextBase := last (index .kaizen.base_shortcuts "app.tab.next") -}}
 {{- $wsPrevBase  := last (index .kaizen.base_shortcuts "app.workspace.previous") -}}
@@ -96,7 +100,7 @@
           ]
         ]
         ],
-      "space {{ join " " (index .kaizen.shortcuts "file.find") }}": "file_finder::Toggle",
+      "space {{ join " " (index $shortcuts "file.find") }}": "file_finder::Toggle",
       "space space": "file_finder::Toggle",
       "space p o": "projects::OpenRecent",
       "ctrl-p": "command_palette::Toggle",
@@ -108,7 +112,7 @@
       "ctrl-j": "editor::GoToDiagnostic",
       "cmd-y": "agent::Keep",
       "cmd-n": "agent::Reject",
-      "space {{ join " " (index .kaizen.shortcuts "projects.pick") }}": "projects::OpenRecent",
+      "space {{ join " " (index $shortcuts "projects.pick") }}": "projects::OpenRecent",
       "cmd-j": "editor::ShowEditPrediction",
       "cmd-l": "editor::AcceptEditPrediction",
       "space g R": "editor::ExpandAllDiffHunks",
@@ -128,26 +132,26 @@
       "\\ p": "editor::Format",
       "\\m": "pane::JoinAll",
       // "\\h": "editor::Hover",
-      "space {{ join " " (index .kaizen.shortcuts "vcs.ui") }}": "git_panel::ToggleFocus",
+      "space {{ join " " (index $shortcuts "vcs.ui") }}": "git_panel::ToggleFocus",
       "space g G": ["task::Spawn", { "task_name": "lazygit" }],
       "space {{ $vcsHistory }}": "git::FileHistory",
       "{{ $runTask }}": "task::Spawn",
       "space b b": "tab_switcher::Toggle",
       "space b k": "pane::CloseActiveItem",
-      "space {{ join " " (index .kaizen.shortcuts "pane.split.right") }}": "pane::SplitRight",
-      "space {{ join " " (index .kaizen.shortcuts "pane.split.down") }}": "pane::SplitDown",
-      "space {{ join " " (index .kaizen.shortcuts "window.rotate") }}": "workspace::ActivateNextPane",
+      "space {{ join " " (index $shortcuts "pane.split.right") }}": "pane::SplitRight",
+      "space {{ join " " (index $shortcuts "pane.split.down") }}": "pane::SplitDown",
+      "space {{ join " " (index $shortcuts "window.rotate") }}": "workspace::ActivateNextPane",
       "space w d": "pane::CloseActiveItem",
-      "space {{ join " " (index .kaizen.shortcuts "window.close") }}": "pane::CloseActiveItem",
-      "space {{ join " " (index .kaizen.shortcuts "window.zoom") }}": "workspace::ToggleZoom",
-      "space {{ join " " (index .kaizen.shortcuts "bookmark.toggle") }}": "editor::ToggleBookmark",
-      "space {{ join " " (index .kaizen.shortcuts "bookmark.list") }}": "editor::ViewBookmarks",
-      "{{ join " " (index .kaizen.shortcuts "bookmark.next") }}": "editor::GoToNextBookmark",
-      "{{ join " " (index .kaizen.shortcuts "bookmark.previous") }}": "editor::GoToPreviousBookmark",
-      "{{ join " " (index .kaizen.shortcuts "fold.toggle") }}": "editor::Fold",
+      "space {{ join " " (index $shortcuts "window.close") }}": "pane::CloseActiveItem",
+      "space {{ join " " (index $shortcuts "window.zoom") }}": "workspace::ToggleZoom",
+      "space {{ join " " (index $shortcuts "bookmark.toggle") }}": "editor::ToggleBookmark",
+      "space {{ join " " (index $shortcuts "bookmark.list") }}": "editor::ViewBookmarks",
+      "{{ join " " (index $shortcuts "bookmark.next") }}": "editor::GoToNextBookmark",
+      "{{ join " " (index $shortcuts "bookmark.previous") }}": "editor::GoToPreviousBookmark",
+      "{{ join " " (index $shortcuts "fold.toggle") }}": "editor::Fold",
       "{{ $foldOpen }}": "editor::UnfoldRecursive",
-      "{{ join " " (index .kaizen.shortcuts "fold.open-all") }}": "editor::UnfoldAll",
-      "{{ join " " (index .kaizen.shortcuts "fold.close-all") }}": "editor::FoldAll",
+      "{{ join " " (index $shortcuts "fold.open-all") }}": "editor::UnfoldAll",
+      "{{ join " " (index $shortcuts "fold.close-all") }}": "editor::FoldAll",
       "space w h": "workspace::ActivatePaneLeft",
       "space w l": "workspace::ActivatePaneRight",
       "space w k": "workspace::ActivatePaneUp",
@@ -160,10 +164,10 @@
       "ctrl-alt-j": "workspace::ActivatePaneDown",
       "ctrl-alt-k": "workspace::ActivatePaneUp",
       "ctrl-alt-l": "workspace::ActivatePaneRight",
-      "space {{ join " " (index .kaizen.shortcuts "lsp.rename") }}": "editor::Rename",
-      "space {{ join " " (index .kaizen.shortcuts "lsp.action") }}": "editor::ToggleCodeActions",
-      "space {{ join " " (index .kaizen.shortcuts "lsp.hover") }}": "editor::Hover",
-      "space {{ join " " (index .kaizen.shortcuts "lsp.symbols") }}": "outline::Toggle",
+      "space {{ join " " (index $shortcuts "lsp.rename") }}": "editor::Rename",
+      "space {{ join " " (index $shortcuts "lsp.action") }}": "editor::ToggleCodeActions",
+      "space {{ join " " (index $shortcuts "lsp.hover") }}": "editor::Hover",
+      "space {{ join " " (index $shortcuts "lsp.symbols") }}": "outline::Toggle",
       "space {{ $lspFormat }}": "editor::Format",
       "space {{ $lspDiag }}": "diagnostics::Deploy",
       "g d": "editor::GoToDefinition",

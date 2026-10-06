@@ -14,7 +14,7 @@ test:
 
 # Transfer dotfiles to a new machine
 apply:
-    chezmoi apply
+    chezmoi apply --source "{{kaizen_dir}}/dotfiles"
 
 # Install packages and apply dotfiles
 sync:
@@ -47,4 +47,4 @@ install:
 
 # Dev: symlink repo as chezmoi source instead of copying
 dev-link:
-    ln -sf "{{kaizen_dir}}/dotfiles" ~/.local/share/chezmoi
+    ln -sfn "{{kaizen_dir}}/dotfiles" ~/.local/share/chezmoi

@@ -6,9 +6,13 @@
 // Find the full list of options on the wiki:
 // https://yalter.github.io/niri/Configuration:-Input
 
-{{- $down := join "" (index .kaizen.shortcuts "nav.down") -}}
-{{- $up := join "" (index .kaizen.shortcuts "nav.up") -}}
-{{- $right := join "" (index .kaizen.shortcuts "nav.right") -}}
+{{- $shortcuts := .kaizen.shortcuts -}}
+{{- if or (eq .layout "colemak-regular") (eq .layout "qwerty") -}}
+{{-   $shortcuts = .kaizen.base_shortcuts -}}
+{{- end -}}
+{{- $down := join "" (index $shortcuts "nav.down") -}}
+{{- $up := join "" (index $shortcuts "nav.up") -}}
+{{- $right := join "" (index $shortcuts "nav.right") -}}
 {{- $overview := "k" -}}
 {{- if eq .layout "colemak" }}{{- $overview = "l" -}}{{ end }}
 
@@ -27,7 +31,7 @@ input {
     keyboard {
         xkb {
             layout "us,ru"
-{{- if eq .layout "colemak" }}
+{{- if or (eq .layout "colemak") (eq .layout "colemak-regular") }}
             variant "colemak,"
 {{- end }}
             options "grp:caps_toggle"

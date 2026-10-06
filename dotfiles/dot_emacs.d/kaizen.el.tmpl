@@ -3,16 +3,20 @@
 
 (setq my/font-height {{ template "ui-font-size" . }})
 
+{{- $shortcuts := .kaizen.shortcuts -}}
+{{- if or (eq .layout "colemak-regular") (eq .layout "qwerty") -}}
+{{-   $shortcuts = .kaizen.base_shortcuts -}}
+{{- end -}}
 (defvar kaizen/preferred-vcs "{{ dig "preferred_vcs" "jj" . }}")
-(defvar kaizen/nav-left  "{{ last (index .kaizen.shortcuts "nav.left") }}")
-(defvar kaizen/nav-down  "{{ last (index .kaizen.shortcuts "nav.down") }}")
-(defvar kaizen/nav-up    "{{ last (index .kaizen.shortcuts "nav.up") }}")
-(defvar kaizen/nav-right "{{ last (index .kaizen.shortcuts "nav.right") }}")
-(defvar kaizen/nav-insert "{{ last (index .kaizen.shortcuts "nav.insert") }}")
-(defvar kaizen/line-start "{{ last (index .kaizen.shortcuts "editor.line.start") }}")
-(defvar kaizen/line-end "{{ last (index .kaizen.shortcuts "editor.line.end") }}")
-(defvar kaizen/vcs-ui "{{ join " " (index .kaizen.shortcuts "vcs.ui") }}")
-(defvar kaizen/vcs-history "{{ join " " (index .kaizen.shortcuts "vcs.history") }}")
+(defvar kaizen/nav-left  "{{ last (index $shortcuts "nav.left") }}")
+(defvar kaizen/nav-down  "{{ last (index $shortcuts "nav.down") }}")
+(defvar kaizen/nav-up    "{{ last (index $shortcuts "nav.up") }}")
+(defvar kaizen/nav-right "{{ last (index $shortcuts "nav.right") }}")
+(defvar kaizen/nav-insert "{{ last (index $shortcuts "nav.insert") }}")
+(defvar kaizen/line-start "{{ last (index $shortcuts "editor.line.start") }}")
+(defvar kaizen/line-end "{{ last (index $shortcuts "editor.line.end") }}")
+(defvar kaizen/vcs-ui "{{ join " " (index $shortcuts "vcs.ui") }}")
+(defvar kaizen/vcs-history "{{ join " " (index $shortcuts "vcs.history") }}")
 (defvar kaizen/binding-scheme "{{ dig "emacs" "binding-scheme" "meow" . }}")
 
 (provide 'kaizen)

@@ -45,7 +45,7 @@ automatically-unhide-macos-hidden-apps = false
 # Possible values: (qwerty|dvorak|colemak)
 # See https://nikitabobko.github.io/AeroSpace/guide#key-mapping
 [key-mapping]
-preset = '{{ .layout }}'
+preset = '{{ if eq .layout "colemak" }}colemak{{ else }}qwerty{{ end }}'
 
 # Gaps between windows (inner-*) and between monitor edges (outer-*).
 # Possible values:

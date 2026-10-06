@@ -111,8 +111,7 @@ fi
 
 mkdir -p "$HOME/.config/chezmoi"
 cat >"$HOME/.config/chezmoi/chezmoi.toml" <<EOF
-[chezmoi]
-  sourceDir = "$INSTALL_DIR/dotfiles"
+sourceDir = "$INSTALL_DIR/dotfiles"
 EOF
 say "configured chezmoi source → $INSTALL_DIR/dotfiles"
 

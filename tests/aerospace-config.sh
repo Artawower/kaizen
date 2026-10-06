@@ -2,14 +2,18 @@
 set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-template="$repo_root/dotfiles/dot_config/aerospace/aerospace.toml.tmpl"
 tmp_dir="$(mktemp -d)"
 trap 'rm -rf "$tmp_dir"' EXIT
+source_dir="$tmp_dir/source"
+mkdir -p "$source_dir/dot_config/aerospace"
+cp "$repo_root/dotfiles/.chezmoidata.toml" "$source_dir/.chezmoidata.toml"
+cp "$repo_root/dotfiles/dot_config/aerospace/aerospace.toml.tmpl" "$source_dir/dot_config/aerospace/aerospace.toml.tmpl"
+template="$source_dir/dot_config/aerospace/aerospace.toml.tmpl"
 
-for layout in colemak qwerty; do
+for layout in colemak qwerty colemak-regular; do
     rendered="$tmp_dir/aerospace-$layout.toml"
     chezmoi execute-template \
-        --source "$repo_root/dotfiles" \
+        --source "$source_dir" \
         --override-data "{\"layout\":\"$layout\"}" \
         --file "$template" >"$rendered"
 
@@ -27,13 +31,15 @@ with path.open("rb") as file:
 assert config["config-version"] == 2
 assert config["after-startup-command"] == []
 assert "borders" not in text
-assert config["key-mapping"]["preset"] == layout
+expected_preset = "colemak" if layout == "colemak" else "qwerty"
+assert config["key-mapping"]["preset"] == expected_preset
 
 main = config["mode"]["main"]["binding"]
 service = config["mode"]["service"]["binding"]
 nav = {
     "colemak": {"h": "left", "n": "down", "e": "up", "i": "right"},
     "qwerty": {"h": "left", "j": "down", "k": "up", "l": "right"},
+    "colemak-regular": {"h": "left", "j": "down", "k": "up", "l": "right"},
 }[layout]
 
 resizes = {

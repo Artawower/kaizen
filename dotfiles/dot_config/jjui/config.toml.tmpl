@@ -1,12 +1,16 @@
 # HNEI (colemak) / HJKL (qwerty) keybindings for jjui
 # Layout: {{ .layout }}
 
-{{- $down := join "" (index .kaizen.shortcuts "nav.down") }}
-{{- $up := join "" (index .kaizen.shortcuts "nav.up") }}
-{{- $right := join "" (index .kaizen.shortcuts "nav.right") }}
-{{- $new         := join "" (index .kaizen.shortcuts "jjui.new") }}
-{{- $edit        := join "" (index .kaizen.shortcuts "jjui.edit") }}
-{{- $interactive := join "" (index .kaizen.shortcuts "jjui.interactive") }}
+{{- $shortcuts := .kaizen.shortcuts -}}
+{{- if or (eq .layout "colemak-regular") (eq .layout "qwerty") -}}
+{{-   $shortcuts = .kaizen.base_shortcuts -}}
+{{- end -}}
+{{- $down := join "" (index $shortcuts "nav.down") }}
+{{- $up := join "" (index $shortcuts "nav.up") }}
+{{- $right := join "" (index $shortcuts "nav.right") }}
+{{- $new         := join "" (index $shortcuts "jjui.new") }}
+{{- $edit        := join "" (index $shortcuts "jjui.edit") }}
+{{- $interactive := join "" (index $shortcuts "jjui.interactive") }}
 
 # --- Navigation ---
 
