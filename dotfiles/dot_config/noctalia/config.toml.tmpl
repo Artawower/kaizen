@@ -1,10 +1,13 @@
 [plugins]
-enabled = ["darkawower/temperature"]
+enabled = ["darkawower/temperature", "darkawower/workspace"]
 
 [bar.default]
-start = ["launcher", "active_window", "media"]
-center = ["workspaces"]
+start = ["launcher", "workspace", "active_window", "media"]
+center = []
 end = ["tray", "notifications", "battery", "volume", "brightness", "temperature", "sysmon", "clock", "control-center"]
+
+[widget.workspace]
+type = "darkawower/workspace:workspace"
 
 [widget.temperature]
 type = "darkawower/temperature:temperature"

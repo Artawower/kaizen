@@ -1,0 +1,13 @@
+id = "darkawower/workspace"
+name = "Current Workspace"
+version = "1.0.0"
+plugin_api = 3
+author = "darkawower"
+license = "MIT"
+icon = "layout-grid"
+description = "Shows the active workspace name."
+dependencies = ["jq"]
+
+[[widget]]
+id = "workspace"
+entry = "workspace.luau"
