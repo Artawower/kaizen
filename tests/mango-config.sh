@@ -27,7 +27,7 @@ layout = sys.argv[2]
 text = path.read_text()
 lines = set(text.splitlines())
 
-assert "circle_layout=scroller,tile,dwindle" in lines
+assert "circle_layout=scroller,monocle" in lines
 assert "env=WLR_RENDER_DRM_DEVICE,/dev/dri/renderD128" in lines
 assert any(line.startswith("env=PATH,") and "/.local/bin:" in line for line in lines)
 assert "exec-once=sh ~/.config/mango/autostart.sh" in lines
@@ -38,6 +38,7 @@ assert "bind=ALT+SHIFT,comma,setlayout,tile" in lines
 assert "bind=ALT+SHIFT,period,setlayout,dwindle" in lines
 assert "bind=SUPER,space,spawn,vicinae vicinae://launch/clipboard/history?toggle=true" in lines
 assert "bind=SUPER+SHIFT,space,spawn,vicinae vicinae://launch/core/search-emojis?toggle=true" in lines
+assert "bind=SUPER+ALT,space,spawn,vicinae vicinae://launch/@vlades/store.raycast.herdr/dashboard?toggle=true" in lines
 assert "bind=CTRL,backslash,spawn_shell,hyprvoice toggle" in lines
 assert "bind=CTRL+SHIFT,backslash,spawn,handy --toggle-transcription" in lines
 assert "bind=SUPER+SHIFT,x,spawn_shell,grim -g \"$(slurp)\" - | satty --filename -" in lines
