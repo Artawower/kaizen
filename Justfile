@@ -12,6 +12,7 @@ test:
     bash tests/aerospace-config.sh
     bash tests/mango-config.sh
     bash tests/neovim-config.sh
+    bash tests/xremap-config.sh
 
 # Transfer dotfiles to a new machine
 apply:

@@ -63,6 +63,8 @@ keymap:
       Super-v: C-Shift-v
       Super-c: C-Shift-c
       Super-z: C-Shift-z
+      Alt-Backspace: C-w
+      Alt-Delete: C-w
       
   - name: Delete
     application:
@@ -123,10 +125,10 @@ keymap:
       Super-z: C-z
 
 
-{{- $shortcuts := .kaizen.shortcuts -}}
+{{ $shortcuts := .kaizen.shortcuts -}}
 {{- if or (eq .layout "colemak-regular") (eq .layout "qwerty") -}}
 {{-   $shortcuts = .kaizen.base_shortcuts -}}
-{{- end -}}
+{{- end }}
   - name: Fn tabs
     remap:
       Fn-{{ join "" (index $shortcuts "nav.down") }}: C-Tab

@@ -50,6 +50,7 @@ def shared_keybindings(bindings, **kw):
             buffer.delete_before_cursor(count=delete_count)
 
     @bindings.add(Keys.Escape, Keys.Delete)
+    @bindings.add(Keys.Escape, Keys.ControlH)
     def _(event):
         """Delete word back (standard Ctrl+W: delete to whitespace)"""
         buffer = event.current_buffer
