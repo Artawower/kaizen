@@ -18,7 +18,12 @@ try:
     if not os.path.isfile(xremap_bin) or not os.access(xremap_bin, os.X_OK):
         xremap_bin = os.path.expanduser("~/.local/bin/xremap-wlroots")
     subprocess.Popen(
-        [xremap_bin, "--device", "Apple SPI Keyboard", "--watch=config,device", config_path],
+        [
+            xremap_bin,
+            "--mouse",
+            "--watch=config,device",
+            config_path,
+        ],
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
         start_new_session=True

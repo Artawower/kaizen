@@ -31,6 +31,11 @@ if sys.argv[4] == "colemak-regular":
     assert "Ctrl-Super-j: Down" not in arrows
 else:
     assert "Ctrl-Super-j: Down" in arrows
+assert "alone_timeout_millis: 200" in content
+assert "free_hold: true" not in content
+assert "Super-BTN_LEFT: C-BTN_LEFT" in content
+assert "Super-BTN_MIDDLE: C-BTN_MIDDLE" in content
+assert "Super-BTN_RIGHT: C-BTN_RIGHT" in content
 assert "Alt-Backspace: C-w" in content
 assert "Alt-Delete: C-w" in content
 terminal_delete = content.split("- name: Terminal word deletion", 1)[1].split("- name: Alt-Backspace delete word", 1)[0]
@@ -46,7 +51,9 @@ ghostty_config = Path(sys.argv[2]).read_text()
 assert r"keybind = alt+delete=text:\x17" in ghostty_config
 assert r"keybind = ctrl+backspace=text:\x17" in ghostty_config
 reload_script = Path(sys.argv[3]).read_text()
-assert '"--device", "Apple SPI Keyboard", "--watch=config,device", config_path' in reload_script
+assert '"--mouse"' in reload_script
+assert '"--ignore"' not in reload_script
+assert '"--device", "Apple SPI Keyboard"' not in reload_script
 assert '["xremap", config_path]' not in reload_script
 assert "- name: Fn tabs" in content
 assert "Super-z: C-z- name: Fn tabs" not in content

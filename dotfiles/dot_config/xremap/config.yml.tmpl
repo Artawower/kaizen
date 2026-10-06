@@ -4,7 +4,7 @@ modmap:
       CapsLock:
         held: [Alt_R, Shift_R]
         alone: CapsLock
-        free_hold: true
+        alone_timeout_millis: 200
 
 keymap:
   - name: Ctrl+Super arrows
@@ -35,6 +35,12 @@ keymap:
       Ctrl-Super-Shift-i: Shift-Right
 {{- end }}
 {{- end }}
+
+  - name: Super clicks as Ctrl clicks
+    remap:
+      Super-BTN_LEFT: C-BTN_LEFT
+      Super-BTN_MIDDLE: C-BTN_MIDDLE
+      Super-BTN_RIGHT: C-BTN_RIGHT
 
   - name: Common Super shortcuts
     application:

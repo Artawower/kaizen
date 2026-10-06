@@ -47,6 +47,9 @@ assert "bind=ALT+SHIFT,b,spawn,noctalia msg bar-toggle" in lines
 assert "source-optional=~/.config/mango/noctalia.conf" in lines
 assert "monitorrule=name:^eDP-1$,width:3024,height:1964,refresh:60.004,x:0,y:1080,scale:2,rr:0" in lines
 assert "monitorrule=name:^HDMI-A-1$,width:3840,height:2160,refresh:60,x:0,y:0,scale:2,rr:0" in lines
+assert "mousebind=ALT+SHIFT,btn_left,moveresize,curmove" in lines
+assert "mousebind=ALT+SHIFT,btn_right,moveresize,curresize" in lines
+assert not any(line.startswith("mousebind=SUPER,") for line in lines)
 assert "mouse_accel_profile=2" in lines
 assert "trackpad_natural_scrolling=0" in lines
 assert "trackpad_scroll_factor=0.9" in lines
@@ -122,7 +125,9 @@ bash -n "$autostart"
 grep -qF 'export PATH="$HOME/.cargo/bin:$HOME/.local/bin:$HOME/.local/share/mise/shims:$PATH"' "$autostart"
 grep -qF 'xremap_bin=/usr/bin/xremap' "$autostart"
 grep -qF 'xremap_bin="$HOME/.local/bin/xremap-wlroots"' "$autostart"
-grep -qF '"$xremap_bin" --device '\''Apple SPI Keyboard'\'' --watch=config,device' "$autostart"
+grep -qF '"$xremap_bin" --mouse --watch=config,device' "$autostart"
+! grep -qF -- '--ignore' "$autostart"
+! grep -qF -- '--device '\''Apple SPI Keyboard'\''' "$autostart"
 grep -qF 'dbus-update-activation-environment --systemd' "$autostart"
 grep -qxF $'\tydotoold &' "$autostart"
 grep -qxF $'\thandy --start-hidden &' "$autostart"

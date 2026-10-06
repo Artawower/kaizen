@@ -21,7 +21,7 @@ fi
 if [[ -x "$xremap_bin" ]]; then
 	pkill -x xremap 2>/dev/null || true
 	pkill -x xremap-wlroots 2>/dev/null || true
-	"$xremap_bin" --device 'Apple SPI Keyboard' --watch=config,device "$HOME/.config/xremap/config.yml" &
+	"$xremap_bin" --mouse --watch=config,device "$HOME/.config/xremap/config.yml" &
 fi
 
 if command -v ydotoold >/dev/null; then

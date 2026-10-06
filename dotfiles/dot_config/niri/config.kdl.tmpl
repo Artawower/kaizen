@@ -145,7 +145,7 @@ spawn-at-startup "sh" "-c" "systemctl --user unset-environment QT_PLUGIN_PATH; s
 spawn-at-startup "ydotoold"
 // spawn-at-startup "dms" "run"
 spawn-at-startup "vicinae" "server"
-spawn-sh-at-startup "pkill xremap; xremap --device 'Apple SPI Keyboard' --watch=config,device ~/.config/xremap/config.yml"
+spawn-sh-at-startup "pkill xremap; xremap --mouse --watch=config,device ~/.config/xremap/config.yml"
 spawn-at-startup "noctalia" "--daemon"
 spawn-at-startup "sh" "-c" "sleep 1; exec hyprvoice serve"
 spawn-sh-at-startup "$HOME/.config/bin/wallpaper-rotate"
