@@ -730,7 +730,8 @@ class Kaizen:
         self._install_dependencies(features, user_dependencies)
         print("[dotfiles]")
         _ = subprocess.run(
-            ["chezmoi", "apply", "--source", str(DOTFILES_DIR)], check=True
+            ["chezmoi", "apply", "--force", "--source", str(DOTFILES_DIR)],
+            check=True,
         )
 
     def update(self) -> None:

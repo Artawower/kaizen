@@ -11,10 +11,11 @@ test:
     bash tests/mangowm-post-install.sh
     bash tests/aerospace-config.sh
     bash tests/mango-config.sh
+    bash tests/neovim-config.sh
 
 # Transfer dotfiles to a new machine
 apply:
-    chezmoi apply --source "{{kaizen_dir}}/dotfiles"
+    chezmoi apply --force --source "{{kaizen_dir}}/dotfiles"
 
 # Install packages and apply dotfiles
 sync:

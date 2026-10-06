@@ -1,4 +1,5 @@
 local map = vim.keymap.set
+local kaizen = require("helpers").kaizen
 
 vim.pack.add({
   {
@@ -18,7 +19,8 @@ vim.pack.add({
     data = {
       after = function()
         require("mini.jump2d").setup({
-          labels = "arstneioqwfpghjluyzxcvbkm",
+          labels = kaizen.layout == "qwerty" and "asdfghjklqwertyuiopzxcvbnm"
+            or "arstneioqwfpghjluyzxcvbkm",
         })
       end,
     },
@@ -52,31 +54,40 @@ end, {
   desc = "Keymaps",
 })
 
-map({ "n", "x" }, "n", "gj", { desc = "Down" })
-map({ "n", "x" }, "e", "gk", { desc = "Up" })
-map({ "n", "x" }, "i", "l", { desc = "Right" })
+if kaizen.has_colemak_rebinds() then
+  map({ "n", "x" }, "n", "gj", { desc = "Down" })
+  map({ "n", "x" }, "e", "gk", { desc = "Up" })
+  map({ "n", "x" }, "i", "l", { desc = "Right" })
 
-map("n", "l", "i", { desc = "Insert" })
-map("n", "L", "I", { desc = "Insert at line start" })
+  map("n", "l", "i", { desc = "Insert" })
+  map("n", "L", "I", { desc = "Insert at line start" })
 
-map("x", "L", "<Esc>`<i", {
-  desc = "Insert before selection",
-})
+  map("x", "L", "<Esc>`<i", {
+    desc = "Insert before selection",
+  })
 
-map("x", "l", "<Esc>`>a", {
-  desc = "Insert after selection",
-  nowait = true,
-})
+  map("x", "l", "<Esc>`>a", {
+    desc = "Insert after selection",
+    nowait = true,
+  })
 
-map({ "n", "x" }, "j", "e", { desc = "Next word end" })
-map({ "n", "x" }, "J", "E", { desc = "Next WORD end" })
+  map({ "n", "x" }, "j", "e", { desc = "Next word end" })
+  map({ "n", "x" }, "J", "E", { desc = "Next WORD end" })
 
-map({ "n", "x" }, "k", "n", { desc = "Next search result" })
-map({ "n", "x" }, "K", "N", { desc = "Previous search result" })
+  map({ "n", "x" }, "k", "n", { desc = "Next search result" })
+  map({ "n", "x" }, "K", "N", { desc = "Previous search result" })
 
-map("n", "E", vim.lsp.buf.hover, {
-  desc = "Hover",
-})
+  map("n", "E", vim.lsp.buf.hover, {
+    desc = "Hover",
+  })
+else
+  map({ "n", "x" }, "j", "gj", { desc = "Down" })
+  map({ "n", "x" }, "k", "gk", { desc = "Up" })
+
+  map("n", "K", vim.lsp.buf.hover, {
+    desc = "Hover",
+  })
+end
 
 vim.api.nvim_create_autocmd("VimEnter", {
   callback = function()
@@ -201,6 +212,11 @@ map("n", "<leader>]", "<cmd>bnext<CR>", {
   desc = "Next buffer",
 })
 
+local win_close = kaizen.key("window.close", "wq")
+map("n", "<leader>" .. win_close, "<cmd>bdelete<CR>", {
+  desc = "Close buffer",
+})
+
 map("n", "<leader>q", "<cmd>bdelete<CR>", {
   desc = "Close buffer",
 })
@@ -209,16 +225,17 @@ map("n", "<leader>x", "<cmd>bdelete<CR>", {
   desc = "Close buffer",
 })
 
-
 map("n", "<leader>Q", "<cmd>qa<CR>", {
   desc = "Quit all",
 })
 
-map("n", "<leader>wv", "<cmd>vsplit<CR>", {
+local split_right = kaizen.key("pane.split.right", "wv")
+map("n", "<leader>" .. split_right, "<cmd>vsplit<CR>", {
   desc = "Vertical split",
 })
 
-map("n", "<leader>wh", "<cmd>split<CR>", {
+local split_down = kaizen.key("pane.split.down", "wh")
+map("n", "<leader>" .. split_down, "<cmd>split<CR>", {
   desc = "Horizontal split",
 })
 
@@ -226,19 +243,34 @@ map("n", "<C-w>h", "<C-w>h", {
   desc = "Window left",
 })
 
-map("n", "<C-w>n", "<C-w>j", {
-  desc = "Window down",
-})
+if kaizen.has_colemak_rebinds() then
+  map("n", "<C-w>n", "<C-w>j", {
+    desc = "Window down",
+  })
 
-map("n", "<C-w>e", "<C-w>k", {
-  desc = "Window up",
-})
+  map("n", "<C-w>e", "<C-w>k", {
+    desc = "Window up",
+  })
 
-map("n", "<C-w>i", "<C-w>l", {
-  desc = "Window right",
-})
+  map("n", "<C-w>i", "<C-w>l", {
+    desc = "Window right",
+  })
+else
+  map("n", "<C-w>j", "<C-w>j", {
+    desc = "Window down",
+  })
 
-map("n", "<leader>wr", "<C-w>r", {
+  map("n", "<C-w>k", "<C-w>k", {
+    desc = "Window up",
+  })
+
+  map("n", "<C-w>l", "<C-w>l", {
+    desc = "Window right",
+  })
+end
+
+local win_rotate = kaizen.key("window.rotate", "wr")
+map("n", "<leader>" .. win_rotate, "<C-w>r", {
   desc = "Rotate windows",
 })
 
@@ -255,7 +287,8 @@ local function toggle_maximize()
   vim.cmd("wincmd |")
 end
 
-map("n", "<leader>wf", toggle_maximize, {
+local win_zoom = kaizen.key("window.zoom", "wf")
+map("n", "<leader>" .. win_zoom, toggle_maximize, {
   desc = "Toggle window maximize",
 })
 
@@ -310,46 +343,114 @@ map({ "n", "i" }, "<D-.>", pick_window, {
   desc = "Pick window",
 })
 
-map("n", "<C-n>", function()
+if kaizen.has_colemak_rebinds() then
+  map("n", "<C-n>", function()
+    vim.diagnostic.jump({ count = 1 })
+  end, {
+    desc = "Next diagnostic",
+  })
+
+  map("n", "<C-e>", function()
+    vim.diagnostic.jump({ count = -1 })
+  end, {
+    desc = "Previous diagnostic",
+  })
+
+  map("n", "zn", "zj", {
+    desc = "Next fold",
+  })
+
+  map("n", "ze", "zk", {
+    desc = "Previous fold",
+  })
+else
+  map("n", "<C-j>", function()
+    vim.diagnostic.jump({ count = 1 })
+  end, {
+    desc = "Next diagnostic",
+  })
+
+  map("n", "<C-k>", function()
+    vim.diagnostic.jump({ count = -1 })
+  end, {
+    desc = "Previous diagnostic",
+  })
+end
+
+map("n", "]d", function()
   vim.diagnostic.jump({ count = 1 })
 end, {
   desc = "Next diagnostic",
 })
 
-map("n", "<C-e>", function()
+map("n", "[d", function()
   vim.diagnostic.jump({ count = -1 })
 end, {
   desc = "Previous diagnostic",
 })
 
-vim.opt.langmap = table.concat({
-  "й;q",
-  "ц;w",
-  "у;f",
-  "к;p",
-  "е;g",
-  "н;j",
-  "г;l",
-  "ш;u",
-  "щ;y",
-  "з;\\;",
+if kaizen.layout == "qwerty" then
+  vim.opt.langmap = table.concat({
+    "й;q",
+    "ц;w",
+    "у;e",
+    "к;r",
+    "е;t",
+    "н;y",
+    "г;u",
+    "ш;i",
+    "щ;o",
+    "з;p",
 
-  "ф;a",
-  "ы;r",
-  "в;s",
-  "а;t",
-  "п;d",
-  "р;h",
-  "о;n",
-  "л;e",
-  "д;i",
-  "ж;o",
+    "ф;a",
+    "ы;s",
+    "в;d",
+    "а;f",
+    "п;g",
+    "р;h",
+    "о;j",
+    "л;k",
+    "д;l",
+    "ж;\\;",
 
-  "я;z",
-  "ч;x",
-  "с;c",
-  "м;v",
-  "и;b",
-  "т;k",
-  "ь;m",
-}, ",")
+    "я;z",
+    "ч;x",
+    "с;c",
+    "м;v",
+    "и;b",
+    "т;n",
+    "ь;m",
+  }, ",")
+else
+  vim.opt.langmap = table.concat({
+    "й;q",
+    "ц;w",
+    "у;f",
+    "к;p",
+    "е;g",
+    "н;j",
+    "г;l",
+    "ш;u",
+    "щ;y",
+    "з;\\;",
+
+    "ф;a",
+    "ы;r",
+    "в;s",
+    "а;t",
+    "п;d",
+    "р;h",
+    "о;n",
+    "л;e",
+    "д;i",
+    "ж;o",
+
+    "я;z",
+    "ч;x",
+    "с;c",
+    "м;v",
+    "и;b",
+    "т;k",
+    "ь;m",
+  }, ",")
+end

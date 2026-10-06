@@ -1,4 +1,5 @@
 local map = vim.keymap.set
+local kaizen = require("helpers").kaizen
 
 vim.g.blamer_enabled = true
 
@@ -170,9 +171,20 @@ local function jj()
   return require("jujutsu")
 end
 
-map("n", "<leader>vl", function()
+local vcs_ui_key = "<leader>" .. kaizen.key("vcs.ui", "vl")
+map("n", vcs_ui_key, function()
   jj().open()
 end, { desc = "Open version control log" })
+if vcs_ui_key ~= "<leader>vl" then
+  map("n", "<leader>vl", function()
+    jj().open()
+  end, { desc = "Open version control log" })
+end
+
+local vcs_hist_key = "<leader>" .. kaizen.key("vcs.history", "vh")
+map("n", vcs_hist_key, function()
+  jj().open()
+end, { desc = "Open version control history" })
 
 map("n", "<leader>vm", function()
   jj().action("change", "commit")()

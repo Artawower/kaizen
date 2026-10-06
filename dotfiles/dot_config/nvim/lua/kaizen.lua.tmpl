@@ -1,0 +1,56 @@
+{{- $shortcuts := mergeOverwrite (dict) .kaizen.base_shortcuts -}}
+{{- if eq .layout "colemak" -}}
+{{-   $shortcuts = mergeOverwrite (dict) .kaizen.shortcuts -}}
+{{- else -}}
+{{-   $colemakDefaults := dict "nav.down" (list "n") "nav.up" (list "e") "nav.right" (list "i") "nav.insert" (list "l") "app.pane.focus.down" (list "Ctrl" "Opt" "n") "app.pane.focus.up" (list "Ctrl" "Opt" "e") "app.pane.focus.right" (list "Ctrl" "Opt" "i") "app.pane.move.down" (list "Ctrl" "Opt" "Shift" "n") "app.pane.move.up" (list "Ctrl" "Opt" "Shift" "e") "app.pane.move.right" (list "Ctrl" "Opt" "Shift" "i") "app.tab.next" (list "Cmd" "Shift" "i") "app.workspace.next" (list "Cmd" "Shift" "n") "app.workspace.previous" (list "Cmd" "Shift" "e") "fold.next" (list "z" "n") "fold.previous" (list "z" "e") "jjui.new" (list "j") "jjui.edit" (list "k") "jjui.interactive" (list "l") -}}
+{{-   range $key, $val := .kaizen.shortcuts -}}
+{{-     $isColemakDefault := and (hasKey $colemakDefaults $key) (eq ($val | toJson) ((index $colemakDefaults $key) | toJson)) -}}
+{{-     if not $isColemakDefault -}}
+{{-       $_ := set $shortcuts $key $val -}}
+{{-     end -}}
+{{-   end -}}
+{{- end -}}
+local M = {
+  layout = "{{ .layout }}",
+  preferred_vcs = "{{ dig "preferred_vcs" "jj" . }}",
+  nav_left = "{{ last (index $shortcuts "nav.left") }}",
+  nav_down = "{{ last (index $shortcuts "nav.down") }}",
+  nav_up = "{{ last (index $shortcuts "nav.up") }}",
+  nav_right = "{{ last (index $shortcuts "nav.right") }}",
+  nav_insert = "{{ last (index $shortcuts "nav.insert") }}",
+  line_start = "{{ last (index $shortcuts "editor.line.start") }}",
+  line_end = "{{ last (index $shortcuts "editor.line.end") }}",
+  vcs_ui = "{{ join "" (index $shortcuts "vcs.ui") }}",
+  vcs_history = "{{ join "" (index $shortcuts "vcs.history") }}",
+  shortcuts = {
+    {{- range $key, $val := $shortcuts }}
+    ["{{ $key }}"] = {
+      {{- range $val }}
+      "{{ . }}",
+      {{- end }}
+    },
+    {{- end }}
+  },
+}
+
+function M.has_colemak_rebinds()
+  return M.layout == "colemak"
+end
+
+function M.get(key, fallback)
+  local keys = M.shortcuts[key]
+  if not keys or #keys == 0 then
+    return fallback
+  end
+  return keys
+end
+
+function M.key(key, fallback)
+  local keys = M.shortcuts[key]
+  if not keys or #keys == 0 then
+    return fallback
+  end
+  return table.concat(keys, "")
+end
+
+return M

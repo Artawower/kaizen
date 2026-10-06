@@ -3,9 +3,17 @@
 
 (setq my/font-height {{ template "ui-font-size" . }})
 
-{{- $shortcuts := .kaizen.shortcuts -}}
-{{- if or (eq .layout "colemak-regular") (eq .layout "qwerty") -}}
-{{-   $shortcuts = .kaizen.base_shortcuts -}}
+{{- $shortcuts := mergeOverwrite (dict) .kaizen.base_shortcuts -}}
+{{- if eq .layout "colemak" -}}
+{{-   $shortcuts = mergeOverwrite (dict) .kaizen.shortcuts -}}
+{{- else -}}
+{{-   $colemakDefaults := dict "nav.down" (list "n") "nav.up" (list "e") "nav.right" (list "i") "nav.insert" (list "l") "app.pane.focus.down" (list "Ctrl" "Opt" "n") "app.pane.focus.up" (list "Ctrl" "Opt" "e") "app.pane.focus.right" (list "Ctrl" "Opt" "i") "app.pane.move.down" (list "Ctrl" "Opt" "Shift" "n") "app.pane.move.up" (list "Ctrl" "Opt" "Shift" "e") "app.pane.move.right" (list "Ctrl" "Opt" "Shift" "i") "app.tab.next" (list "Cmd" "Shift" "i") "app.workspace.next" (list "Cmd" "Shift" "n") "app.workspace.previous" (list "Cmd" "Shift" "e") "fold.next" (list "z" "n") "fold.previous" (list "z" "e") "jjui.new" (list "j") "jjui.edit" (list "k") "jjui.interactive" (list "l") -}}
+{{-   range $key, $val := .kaizen.shortcuts -}}
+{{-     $isColemakDefault := and (hasKey $colemakDefaults $key) (eq ($val | toJson) ((index $colemakDefaults $key) | toJson)) -}}
+{{-     if not $isColemakDefault -}}
+{{-       $_ := set $shortcuts $key $val -}}
+{{-     end -}}
+{{-   end -}}
 {{- end -}}
 (defvar kaizen/preferred-vcs "{{ dig "preferred_vcs" "jj" . }}")
 (defvar kaizen/nav-left  "{{ last (index $shortcuts "nav.left") }}")
