@@ -43,12 +43,12 @@ subprocess.run(
 )
 
 
-# Herdr installation
-
 HERDR_PLUGINS = ["crierr/herdr-tmux-layout"]
 
-for plugin in HERDR_PLUGINS:
-    subprocess.run(
-        ["herdr", "plugin", "install", plugin],
-        check=True,
-    )
+herdr = shutil.which("herdr")
+if herdr:
+    for plugin in HERDR_PLUGINS:
+        subprocess.run(
+            [herdr, "plugin", "install", "-y", plugin],
+            check=True,
+        )

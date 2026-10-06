@@ -7,40 +7,35 @@ POST_INSTALL="$PROJECT_DIR/features/terminal/post_install.py"
 TMP_ROOT=$(mktemp -d)
 trap 'rm -rf "$TMP_ROOT"' EXIT
 
-run_case() {
-	local virtual_environment=$1
-	shift
-	local directory
-	directory=$(mktemp -d "$TMP_ROOT/case.XXXXXX")
-	mkdir -p "$directory/bin"
-	cat >"$directory/bin/xonsh" <<'EOF'
+directory=$(mktemp -d "$TMP_ROOT/case.XXXXXX")
+mkdir -p "$directory/bin"
+cat >"$directory/bin/xonsh" <<'EOF'
 #!/bin/sh
-printf '%s\n' "$FAKE_PYTHON" "$FAKE_VIRTUAL_ENVIRONMENT"
+printf '%s\n' "$FAKE_PYTHON"
 EOF
-	cat >"$directory/bin/python" <<'EOF'
+cat >"$directory/bin/python" <<'EOF'
 #!/bin/sh
 printf '%s\n' "$@" >"$PIP_LOG"
 EOF
-	chmod +x "$directory/bin/xonsh" "$directory/bin/python"
-	printf '%s\n' "$@" >"$directory/expected"
+chmod +x "$directory/bin/xonsh" "$directory/bin/python"
+
+cat >"$directory/expected" <<EOF
+-m
+pip
+install
+--disable-pip-version-check
+--upgrade
+--target
+$directory/.local/share/kaizen/xonsh-site
+xontrib-sh==0.3.2
+EOF
+
+HOME="$directory" \
 	PATH="$directory/bin:/usr/bin:/bin" \
-		FAKE_PYTHON="$directory/bin/python" \
-		FAKE_VIRTUAL_ENVIRONMENT="$virtual_environment" \
-		PIP_LOG="$directory/actual" \
-		"$PYTHON" "$POST_INSTALL" macos sync
-	diff -u "$directory/expected" "$directory/actual"
-}
+	FAKE_PYTHON="$directory/bin/python" \
+	PIP_LOG="$directory/actual" \
+	"$PYTHON" "$POST_INSTALL" macos sync
 
-run_case True \
-	-m pip install \
-	--disable-pip-version-check \
-	xontrib-sh==0.3.2
-
-run_case False \
-	-m pip install \
-	--user \
-	--break-system-packages \
-	--disable-pip-version-check \
-	xontrib-sh==0.3.2
+diff -u "$directory/expected" "$directory/actual"
 
 printf 'terminal post-install tests passed\n'
