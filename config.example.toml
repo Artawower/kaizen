@@ -5,6 +5,17 @@ preferred_vcs = "jj"
 
 [ui]
 font_size = 14
+workspaces = [
+  "SOC",
+  "TRM",
+  "WEB",
+  "DEV",
+  "ENT",
+  "THR",
+  "STU",
+  "AI",
+  "PRD",
+]
 
 [features]
 ai = true

@@ -1,15 +1,9 @@
 local command = 'if [ -n "$MANGO_INSTANCE_SIGNATURE" ] && command -v mmsg >/dev/null 2>&1; then mmsg get all-monitors 2>/dev/null | jq -r \'.monitors[] | select(.active) | .active_tags[0] // empty\'; elif [ -n "$NIRI_SOCKET" ] && command -v niri >/dev/null 2>&1; then niri msg -j workspaces 2>/dev/null | jq -r \'.[] | select(.is_active) | (.name // .idx) // empty\'; elif [ -n "$HYPRLAND_INSTANCE_SIGNATURE" ] && command -v hyprctl >/dev/null 2>&1; then hyprctl activeworkspace -j 2>/dev/null | jq -r \'.name // .id // empty\'; elif [ -n "$SWAYSOCK" ] && command -v swaymsg >/dev/null 2>&1; then swaymsg -t get_workspaces 2>/dev/null | jq -r \'.[] | select(.focused) | .name // empty\'; elif command -v mmsg >/dev/null 2>&1; then mmsg get all-monitors 2>/dev/null | jq -r \'.monitors[] | select(.active) | .active_tags[0] // empty\'; elif command -v niri >/dev/null 2>&1; then niri msg -j workspaces 2>/dev/null | jq -r \'.[] | select(.is_active) | (.name // .idx) // empty\'; elif command -v hyprctl >/dev/null 2>&1; then hyprctl activeworkspace -j 2>/dev/null | jq -r \'.name // .id // empty\'; elif command -v swaymsg >/dev/null 2>&1; then swaymsg -t get_workspaces 2>/dev/null | jq -r \'.[] | select(.focused) | .name // empty\'; fi'
 
 local TAG_NAMES = {
-  [1] = "SOC",
-  [2] = "TRM",
-  [3] = "WEB",
-  [4] = "DEV",
-  [5] = "ENT",
-  [6] = "THR",
-  [7] = "STU",
-  [8] = "AI",
-  [9] = "PRD",
+{{- range $i, $name := (dig "ui" "workspaces" (list "SOC" "TRM" "WEB" "DEV" "ENT" "THR" "STU" "AI" "PRD") .) }}
+  [{{ add $i 1 }}] = {{ $name | quote }},
+{{- end }}
 }
 
 local workspace = "--"

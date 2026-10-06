@@ -183,3 +183,14 @@ variant = "yabai"
 
 [ui]
 font_size = 14
+workspaces = [
+  "SOC",
+  "TRM",
+  "WEB",
+  "DEV",
+  "ENT",
+  "THR",
+  "STU",
+  "AI",
+  "PRD",
+]
