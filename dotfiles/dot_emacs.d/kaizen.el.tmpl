@@ -3,7 +3,7 @@
 
 (setq my/font-height {{ template "ui-font-size" . }})
 
-{{- $shortcuts := mergeOverwrite (dict) .kaizen.base_shortcuts -}}
+{{ $shortcuts := mergeOverwrite (dict) .kaizen.base_shortcuts -}}
 {{- if eq .layout "colemak" -}}
 {{-   $shortcuts = mergeOverwrite (dict) .kaizen.shortcuts -}}
 {{- else -}}
@@ -14,7 +14,7 @@
 {{-       $_ := set $shortcuts $key $val -}}
 {{-     end -}}
 {{-   end -}}
-{{- end -}}
+{{- end }}
 (defvar kaizen/preferred-vcs "{{ dig "preferred_vcs" "jj" . }}")
 (defvar kaizen/nav-left  "{{ last (index $shortcuts "nav.left") }}")
 (defvar kaizen/nav-down  "{{ last (index $shortcuts "nav.down") }}")
@@ -25,7 +25,7 @@
 (defvar kaizen/line-end "{{ last (index $shortcuts "editor.line.end") }}")
 (defvar kaizen/vcs-ui "{{ join " " (index $shortcuts "vcs.ui") }}")
 (defvar kaizen/vcs-history "{{ join " " (index $shortcuts "vcs.history") }}")
-(defvar kaizen/binding-scheme "{{ dig "emacs" "binding-scheme" "meow" . }}")
+(defvar kaizen/binding-scheme "{{ dig "emacs" "binding-scheme" "helixel" . }}")
 
 (provide 'kaizen)
 ;;; kaizen.el ends here

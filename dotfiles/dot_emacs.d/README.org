@@ -1173,23 +1173,7 @@ Disable scrolls
 #+BEGIN_SRC emacs-lisp
 (use-package imenu :defer t :ensure nil)
 #+END_SRC
-** Meow
-*** Custom functions
-**** Edit after/before eol
-#+BEGIN_SRC emacs-lisp
-(defun my/edit-after-eol ()
-  "Edit the current line to the end of the line like A in the VIM."
-  (interactive)
-  (meow-line 1)
-  (meow-append))
-
-(defun my/edit-before-bol ()
-  "Edit the current line to the beginning of the line like I in the VIM."
-  (interactive)
-  (meow-join 0)
-  (meow-append))
-#+END_SRC
-
+** Modal editing helpers
 **** KILL Navigation
 Move to husky
 #+BEGIN_SRC emacs-lisp
@@ -1373,7 +1357,7 @@ Move to husky
      ((bound-and-true-p hel-local-mode) (hel-mark-inner-WORD 1))
      ((bound-and-true-p helixel-global-mode) (helixel-mark-inner-WORD 1))
      ((bound-and-true-p meow--global-mode) (meow-mark-symbol 1))
-     (t (meow-mark-symbol 1)))))
+     (t (mark-word 1)))))
 #+END_SRC
 
 ** Ace window. Fast jump between opened windows and frames
@@ -4087,11 +4071,6 @@ Requires Emacs 30+
   )
 #+END_SRC
 
-*** Ob golang
-#+BEGIN_SRC emacs-lisp :results silent
-(use-package ob-go
-  :ensure (:type git :host github :repo "pope/ob-go"))
-#+END_SRC
 ** Justfile
 #+BEGIN_SRC emacs-lisp :results silent
 (use-package just-ts-mode
@@ -5051,7 +5030,11 @@ Display buffer of quick note always at bottom
     (with-current-buffer buffer
       (pop-to-buffer buffer)
       (org-mode)
-      (meow-insert))))
+      (cond
+       ((fboundp 'helixel-enter-insert-state)
+        (helixel-enter-insert-state))
+       ((fboundp 'meow-insert)
+        (meow-insert))))))
 #+END_SRC
 
 *** Persistent scratch

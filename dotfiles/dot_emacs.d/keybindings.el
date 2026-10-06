@@ -9,7 +9,7 @@
     ("git" (call-interactively #'magit-status))
     (vcs (user-error "Unsupported preferred VCS: %s" vcs))))
 
-(let* ((scheme (or (bound-and-true-p kaizen/binding-scheme) "meow"))
+(let* ((scheme (or (bound-and-true-p kaizen/binding-scheme) "helixel"))
        (file (expand-file-name (format "bindings/%s.el" scheme)
                                user-emacs-directory)))
   (if (file-exists-p file)

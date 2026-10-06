@@ -38,6 +38,54 @@
     (both (format "C-M-%s" (meow--keypad-format-upcase (cdr key))))
     (literal (cdr key))))
 
+(defun my/edit-after-eol ()
+  (interactive)
+  (meow-line 1)
+  (meow-append))
+
+(defun my/edit-before-bol ()
+  (interactive)
+  (meow-join 0)
+  (meow-append))
+
+(defun my/meow-setup-qwerty ()
+  (setq meow-cheatsheet-layout meow-cheatsheet-layout-qwerty)
+  (meow-motion-overwrite-define-key
+   '("j" . meow-next)
+   '("k" . meow-prev)
+   '("<escape>" . ignore))
+  (meow-leader-define-key
+   '("j" . "H-j")
+   '("k" . "H-k")
+   '("1" . meow-digit-argument)
+   '("2" . meow-digit-argument)
+   '("3" . meow-digit-argument)
+   '("4" . meow-digit-argument)
+   '("5" . meow-digit-argument)
+   '("6" . meow-digit-argument)
+   '("7" . meow-digit-argument)
+   '("8" . meow-digit-argument)
+   '("9" . meow-digit-argument)
+   '("0" . meow-digit-argument)
+   '("?" . meow-keypad-describe-key))
+  (meow-normal-define-key
+   '("[" . meow-beginning-of-thing)
+   '("]" . meow-end-of-thing)
+   '("i" . meow-append)
+   '("j" . meow-next)
+   '("J" . meow-next-expand)
+   '("k" . meow-prev)
+   '("K" . meow-prev-expand)
+   '("l" . meow-right)
+   '("L" . meow-right-expand)
+   '("n" . meow-search)
+   '("e" . meow-next-word)
+   '("E" . meow-next-symbol)
+   '("I" . my/edit-before-bol)
+   '("gk" . beginning-of-line)
+   '("gj" . my/meow-select-till-eol)
+   '("U" . meow-undo-in-selection)))
+
 ;;; Core keybinding setup
 
 (defun kaizen/meow-setup ()
@@ -169,7 +217,9 @@
     '("z z" . recenter)
     '("C-<tab>" . indent-rigidly-right)
     '("<backtab>" . indent-rigidly-left)
-    '("g c" . comment-or-uncomment-region)))
+    '("g c" . comment-or-uncomment-region))
+  (unless (string= (or (bound-and-true-p kaizen/nav-down) "n") "n")
+    (my/meow-setup-qwerty)))
 
 ;;; Thing registration
 
