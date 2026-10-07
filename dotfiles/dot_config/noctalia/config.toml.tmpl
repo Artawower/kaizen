@@ -27,5 +27,10 @@ builtin_ids = ["ghostty", "mango", "gtk3", "gtk4", "qt", "helix", "starship", "c
 enable_community_templates = true
 community_ids = ["vicinae", "herdr", "yazi", "zellij", "lazygit", "opencode", "bat", "fzf", "telegram", "vscode"]
 
+[wallpaper]
+directory = "{{ .ui.wallpaper.directory }}"
+directory_light = "{{ .ui.wallpaper.directory_light }}"
+directory_dark = "{{ .ui.wallpaper.directory_dark }}"
+
 [hooks]
 theme_mode_changed = "{{ .chezmoi.homeDir }}/.config/noctalia/scripts/sync-system-appearance"

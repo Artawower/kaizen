@@ -35,6 +35,7 @@ def main() -> int:
         "Adwaita-dark" if mode == "dark" else "Adwaita",
     ])
     run(["noctalia", "msg", "templates-apply"])
+    run(["noctalia", "msg", "wallpaper-random"])
     run(["vicinae", "theme", "set", "noctalia"])
     return 0
 

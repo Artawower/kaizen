@@ -17,6 +17,11 @@ workspaces = [
   "PRD",
 ]
 
+[ui.wallpaper]
+directory = "~/Pictures/Wallpapers"
+directory_light = "~/Pictures/Wallpapers/Light"
+directory_dark = "~/Pictures/Wallpapers/Dark"
+
 [features]
 ai = true
 android = false

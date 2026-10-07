@@ -194,3 +194,8 @@ workspaces = [
   "AI",
   "PRD",
 ]
+
+[ui.wallpaper]
+directory = "~/Pictures/Wallpapers"
+directory_light = "~/Pictures/Wallpapers/Light"
+directory_dark = "~/Pictures/Wallpapers/Dark"

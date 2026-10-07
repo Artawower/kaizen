@@ -13,6 +13,7 @@ test:
     bash tests/mango-config.sh
     bash tests/neovim-config.sh
     bash tests/vscodium-config.sh
+    bash tests/noctalia-config.sh
     bash tests/xonsh-config.sh
     bash tests/xremap-config.sh
     bash tests/audacity-config.sh
