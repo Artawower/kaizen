@@ -259,7 +259,9 @@ bind=SUPER+ALT+SHIFT,a,tag,9
 bind=SUPER+ALT+SHIFT,{{ $tag }},tag,{{ $tag }}
 {{ end }}
 
-source-optional=~/.config/mango/noctalia.confenv=QT_QPA_PLATFORM,wayland
+source-optional=~/.config/mango/noctalia.conf
+bind=CTRL+SHIFT+ALT,w,spawn,noctalia msg panel-toggle wallpaper
+env=QT_QPA_PLATFORM,wayland
 env=GSK_RENDERER,ngl
 env=GDK_DISABLE,dma-buf
 env=WEBKIT_DISABLE_DMABUF_RENDERER,1
