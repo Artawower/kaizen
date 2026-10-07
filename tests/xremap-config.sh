@@ -45,6 +45,9 @@ assert "free_hold: true" not in content
 assert "Super-BTN_LEFT: C-BTN_LEFT" in content
 assert "Super-BTN_MIDDLE: C-BTN_MIDDLE" in content
 assert "Super-BTN_RIGHT: C-BTN_RIGHT" in content
+common_super = content.split("- name: Common Super shortcuts", 1)[1].split("- name: Terminals commands", 1)[0]
+assert "com.vscodium.codium" in common_super
+assert "codium-url-handler" in common_super
 assert "Alt-Backspace: C-w" in content
 assert "Alt-Delete: C-w" in content
 terminal_delete = content.split("- name: Terminal word deletion", 1)[1].split("- name: Alt-Backspace delete word", 1)[0]

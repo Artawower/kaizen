@@ -1,6 +1,14 @@
-{{- $mod := "ctrl" }}
+{{- $mod := "meta" }}
+{{- $groupMod := "ctrl" }}
 {{- if eq .chezmoi.os "darwin" }}
 {{-   $mod = "cmd" }}
+{{-   $groupMod = "cmd" }}
+{{- end }}
+{{- $navDown := "ctrl+j" }}
+{{- $navUp := "ctrl+k" }}
+{{- if eq .layout "colemak" }}
+{{-   $navDown = "ctrl+n" }}
+{{-   $navUp = "ctrl+e" }}
 {{- end }}
 [
   {
@@ -24,44 +32,142 @@
     "when": "isInDiffEditor && vim.active && vim.mode == 'Normal'"
   },
   {
-    "key": "ctrl+n",
+    "key": "{{ $navDown }}",
     "command": "selectNextSuggestion",
     "when": "suggestWidgetVisible && vim.active"
   },
   {
-    "key": "ctrl+e",
+    "key": "{{ $navUp }}",
     "command": "selectPrevSuggestion",
     "when": "suggestWidgetVisible && vim.active"
   },
   {
-    "key": "ctrl+n",
+    "key": "{{ $navDown }}",
     "command": "workbench.action.quickOpenSelectNext",
     "when": "inQuickOpen && vim.active"
   },
   {
-    "key": "ctrl+e",
+    "key": "{{ $navUp }}",
     "command": "workbench.action.quickOpenSelectPrevious",
     "when": "inQuickOpen && vim.active"
   },
   {
-    "key": "{{ $mod }}+.",
+    "key": "{{ $mod }}+[KeyA]",
+    "command": "editor.action.selectAll",
+    "when": "textInputFocus && !terminalFocus"
+  },
+  {
+    "key": "{{ $mod }}+[KeyC]",
+    "command": "editor.action.clipboardCopyAction",
+    "when": "textInputFocus && !terminalFocus"
+  },
+  {
+    "key": "{{ $mod }}+[KeyX]",
+    "command": "editor.action.clipboardCutAction",
+    "when": "textInputFocus && !terminalFocus"
+  },
+  {
+    "key": "{{ $mod }}+[KeyV]",
+    "command": "editor.action.clipboardPasteAction",
+    "when": "textInputFocus && !terminalFocus"
+  },
+  {
+    "key": "{{ $mod }}+[KeyZ]",
+    "command": "undo",
+    "when": "textInputFocus && !terminalFocus"
+  },
+  {
+    "key": "shift+{{ $mod }}+[KeyZ]",
+    "command": "redo",
+    "when": "textInputFocus && !terminalFocus"
+  },
+  {
+    "key": "{{ $mod }}+[KeyS]",
+    "command": "workbench.action.files.save"
+  },
+  {
+    "key": "shift+{{ $mod }}+[KeyS]",
+    "command": "workbench.action.files.saveAs"
+  },
+  {
+    "key": "{{ $mod }}+[KeyF]",
+    "command": "actions.find",
+    "when": "editorFocus"
+  },
+  {
+    "key": "shift+{{ $mod }}+[KeyF]",
+    "command": "workbench.action.findInFiles"
+  },
+  {
+    "key": "{{ $mod }}+[KeyP]",
+    "command": "workbench.action.quickOpen"
+  },
+  {
+    "key": "shift+{{ $mod }}+[KeyP]",
+    "command": "workbench.action.showCommands"
+  },
+  {
+    "key": "{{ $mod }}+[KeyN]",
+    "command": "workbench.action.files.newUntitledFile"
+  },
+  {
+    "key": "shift+{{ $mod }}+[KeyN]",
+    "command": "workbench.action.newWindow"
+  },
+  {
+    "key": "{{ $mod }}+[KeyW]",
+    "command": "workbench.action.closeActiveEditor"
+  },
+  {
+    "key": "shift+{{ $mod }}+[KeyW]",
+    "command": "workbench.action.closeWindow"
+  },
+  {
+    "key": "{{ $mod }}+[Comma]",
+    "command": "workbench.action.openSettings"
+  },
+  {
+    "key": "{{ $mod }}+[Slash]",
+    "command": "editor.action.commentLine",
+    "when": "editorTextFocus && !editorReadonly"
+  },
+  {
+    "key": "{{ $mod }}+[KeyB]",
+    "command": "workbench.action.toggleSidebarVisibility"
+  },
+  {
+    "key": "{{ $mod }}+[KeyJ]",
+    "command": "workbench.action.togglePanel"
+  },
+  {
+    "key": "{{ $mod }}+[KeyC]",
+    "command": "workbench.action.terminal.copySelection",
+    "when": "terminalFocus && terminalHasBeenCreated && terminalTextSelected"
+  },
+  {
+    "key": "{{ $mod }}+[KeyV]",
+    "command": "workbench.action.terminal.paste",
+    "when": "terminalFocus"
+  },
+  {
+    "key": "{{ $groupMod }}+.",
     "command": "-editor.changeDropType"
   },
   {
-    "key": "{{ $mod }}+.",
+    "key": "{{ $groupMod }}+.",
     "command": "-editor.changePasteType"
   },
   {
-    "key": "{{ $mod }}+.",
+    "key": "{{ $groupMod }}+.",
     "command": "-workbench.action.chat.openModePicker"
   },
   {
-    "key": "{{ $mod }}+[Period]",
+    "key": "{{ $groupMod }}+.",
     "command": "workbench.action.focusNextGroup",
     "when": "vim.active"
   },
   {
-    "key": "shift+{{ $mod }}+[Period]",
+    "key": "shift+{{ $groupMod }}+.",
     "command": "workbench.action.focusPreviousGroup",
     "when": "vim.active"
   }

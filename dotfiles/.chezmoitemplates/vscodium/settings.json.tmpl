@@ -1,3 +1,16 @@
+{{- $colemakRebinds := eq .layout "colemak" -}}
+{{- $navDown := "<C-j>" -}}
+{{- $navUp := "<C-k>" -}}
+{{- $windowDown := "j" -}}
+{{- $windowUp := "k" -}}
+{{- $windowRight := "l" -}}
+{{- if $colemakRebinds -}}
+{{-   $navDown = "<C-n>" -}}
+{{-   $navUp = "<C-e>" -}}
+{{-   $windowDown = "n" -}}
+{{-   $windowUp = "e" -}}
+{{-   $windowRight = "i" -}}
+{{- end -}}
 {
   "vim.disableExtension": false,
   "vim.leader": "<space>",
@@ -12,8 +25,13 @@
   "vim.showcmd": true,
   "vim.showmodename": true,
   "vim.statusBarColorControl": false,
+{{- if eq .layout "qwerty" }}
+  "vim.langmap": "й;q,ц;w,у;e,к;r,е;t,н;y,г;u,ш;i,щ;o,з;p,ф;a,ы;s,в;d,а;f,п;g,р;h,о;j,л;k,д;l,я;z,ч;x,с;c,м;v,и;b,т;n,ь;m",
+{{- else }}
   "vim.langmap": "й;q,ц;w,у;f,к;p,е;g,н;j,г;l,ш;u,щ;y,з;\\;,ф;a,ы;r,в;s,а;t,п;d,р;h,о;n,л;e,д;i,ж;o,я;z,ч;x,с;c,м;v,и;b,т;k,ь;m",
+{{- end }}
   "vim.normalModeKeyBindingsNonRecursive": [
+{{- if $colemakRebinds }}
     {
       "before": ["n"],
       "after": ["g", "j"],
@@ -64,6 +82,7 @@
       "commands": ["editor.action.showHover"],
       "silent": true,
     },
+{{- end }}
     {
       "before": ["m", "i"],
       "after": ["v", "i"],
@@ -130,12 +149,12 @@
       "silent": true,
     },
     {
-      "before": ["<C-n>"],
+      "before": ["{{ $navDown }}"],
       "commands": ["editor.action.marker.next"],
       "silent": true,
     },
     {
-      "before": ["<C-e>"],
+      "before": ["{{ $navUp }}"],
       "commands": ["editor.action.marker.prev"],
       "silent": true,
     },
@@ -230,17 +249,17 @@
       "silent": true,
     },
     {
-      "before": ["<C-w>", "n"],
+      "before": ["<C-w>", "{{ $windowDown }}"],
       "commands": ["workbench.action.focusBelowGroup"],
       "silent": true,
     },
     {
-      "before": ["<C-w>", "e"],
+      "before": ["<C-w>", "{{ $windowUp }}"],
       "commands": ["workbench.action.focusAboveGroup"],
       "silent": true,
     },
     {
-      "before": ["<C-w>", "i"],
+      "before": ["<C-w>", "{{ $windowRight }}"],
       "commands": ["workbench.action.focusRightGroup"],
       "silent": true,
     },
@@ -506,6 +525,7 @@
     },
   ],
   "vim.visualModeKeyBindingsNonRecursive": [
+{{- if $colemakRebinds }}
     {
       "before": ["n"],
       "after": ["g", "j"],
@@ -541,6 +561,7 @@
       "after": ["N"],
       "silent": true,
     },
+{{- end }}
     {
       "before": ["m", "i"],
       "after": ["i"],
@@ -604,20 +625,29 @@
   ],
   "vim.insertModeKeyBindingsNonRecursive": [
     {
-      "before": ["<C-n>"],
+      "before": ["{{ $navDown }}"],
       "commands": ["selectNextSuggestion"],
       "silent": true,
     },
     {
-      "before": ["<C-e>"],
+      "before": ["{{ $navUp }}"],
       "commands": ["selectPrevSuggestion"],
       "silent": true,
     },
   ],
   "vim.handleKeys": {
-    "<D-s>": false,
     "<D-a>": false,
+    "<D-b>": false,
+    "<D-c>": false,
     "<D-f>": false,
+    "<D-j>": false,
+    "<D-n>": false,
+    "<D-p>": false,
+    "<D-s>": false,
+    "<D-v>": false,
+    "<D-w>": false,
+    "<D-x>": false,
+    "<D-z>": false,
   },
   "extensions.experimental.affinity": {
     "vscodevim.vim": 1,
@@ -911,7 +941,7 @@
   "bookmarks.sideBar.hideWelcome": true,
   "bookmarks.sideBar.countBadge": "off",
   "window.autoDetectColorScheme": true,
-  "workbench.preferredDarkColorTheme": "GitHub Dark Dimmed",
+  "workbench.preferredDarkColorTheme": "Catppuccin Mocha",
   "workbench.preferredLightColorTheme": "Catppuccin Latte",
   "workbench.colorTheme": "Catppuccin Mocha",
   "workbench.iconTheme": "catppuccin-mocha",
