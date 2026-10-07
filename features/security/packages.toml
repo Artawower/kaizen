@@ -5,5 +5,5 @@ category = "security"
 cask = ["lulu", "bitwarden", "openvpn-connect", "amneziavpn", "rustdesk"]
 
 [linux]
-dnf = ["bitwarden-cli"]
-apt = ["bitwarden-cli"]
+dnf = ["bitwarden-cli", "lynis"]
+apt = ["bitwarden-cli", "lynis"]
