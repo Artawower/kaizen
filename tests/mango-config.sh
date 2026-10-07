@@ -30,7 +30,7 @@ lines = set(text.splitlines())
 assert "circle_layout=scroller,monocle" in lines
 assert "env=WLR_RENDER_DRM_DEVICE,/dev/dri/renderD128" in lines
 assert any(line.startswith("env=PATH,") and "/.local/bin:" in line for line in lines)
-assert "exec-once=sh ~/.config/mango/autostart.sh" in lines
+assert text.count("exec-once=sh ~/.config/mango/autostart.sh") == 1
 assert "xkb_rules_options=grp:caps_toggle,lv3:ralt_alt" in lines
 assert "bind=ALT+SHIFT,v,switch_layout" in lines
 assert "bind=ALT+SHIFT,slash,setlayout,scroller" in lines
@@ -133,8 +133,12 @@ grep -qF 'dbus-update-activation-environment --systemd' "$autostart"
 grep -qxF $'\tydotoold &' "$autostart"
 grep -qxF $'\thandy --start-hidden &' "$autostart"
 grep -qxF $'\t\temacs --daemon &' "$autostart"
+grep -qF 'pkill -x swayidle 2>/dev/null || true' "$autostart"
 grep -qF 'timeout 300 "noctalia msg session lock"' "$autostart"
 grep -qF 'timeout 900 "systemctl suspend"' "$autostart"
+if grep -qF 'sway-audio-idle-inhibit' "$autostart"; then
+	exit 1
+fi
 grep -qF 'wl-paste --type image --watch cliphist store &' "$autostart"
 ! grep -Eq -- '--tablet|--gesture|--socket-path' "$autostart"
 
