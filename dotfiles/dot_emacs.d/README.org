@@ -1450,7 +1450,9 @@ Bookmark for navigation inside file
   (golden-ratio-scroll-highlight-delay '(0.1 . 0.2))
   :config
   (set-face-attribute 'golden-ratio-scroll-highlight-line-face nil :inherit 'highlight :background 'unspecified)
-  (define-key global-map (kbd "C-v") #'golden-ratio-scroll-screen-up)
+  (define-key global-map (kbd "C-v") #'yank)
+  (define-key global-map (kbd "C-S-v") #'yank)
+  (define-key global-map (kbd "M-S-v") #'golden-ratio-scroll-screen-up)
   (define-key global-map (kbd "M-v") #'golden-ratio-scroll-screen-down)
 
   (global-set-key [remap scroll-down-command] 'golden-ratio-scroll-screen-down)
