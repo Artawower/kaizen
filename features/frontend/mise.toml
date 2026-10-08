@@ -1,7 +1,7 @@
 [tools]
 "npm:typescript" = "6.0.3"
 "npm:prettier" = "3.9.9"
-"npm:@angular/cli" = "22.2.1"
+"npm:@angular/cli" = "22.2.2"
 "npm:@angular/language-server" = "22.2.1"
 "npm:@vue/language-server" = "3.3.12"
 "npm:eslint" = "10.12.0"

@@ -14,13 +14,20 @@
     "git:github.com/Artawower/pi-servitors",
     {
       "source": "git:github.com/HazAT/pi-interactive-subagents",
-      "extensions": ["-pi-extension/subagents/index.ts"]
+      "extensions": [
+        "-pi-extension/subagents/index.ts"
+      ]
     },
     "npm:@andrewjacop/pi-herdr",
     {
       "source": "npm:pi-lens",
-      "extensions": ["+index.ts"],
-      "skills": ["+skills/ast-grep/SKILL.md", "+skills/lsp-navigation/SKILL.md"]
+      "extensions": [
+        "+index.ts"
+      ],
+      "skills": [
+        "+skills/ast-grep/SKILL.md",
+        "+skills/lsp-navigation/SKILL.md"
+      ]
     },
     "npm:pi-secret-guard",
     "npm:pi-notify",
@@ -36,7 +43,9 @@
     "npm:@tmustier/pi-usage-extension",
     {
       "source": "npm:@singh-gur/pi-usage",
-      "extension": ["-intex.ts"]
+      "extension": [
+        "-intex.ts"
+      ]
     },
     "npm:pi-context-view",
     "npm:@specode/pi-subscription-usage",
@@ -58,7 +67,9 @@
     "default": "light"
   },
   "servitors": {
-    "extensions": ["npm:@tian.zuo/pi-antigravity"]
+    "extensions": [
+      "npm:@tian.zuo/pi-antigravity"
+    ]
   },
-  "lastChangelogVersion": "0.87.1"
+  "lastChangelogVersion": "1.0.2"
 }
