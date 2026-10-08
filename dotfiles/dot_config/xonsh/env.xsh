@@ -1,4 +1,5 @@
 import os.path as op
+import os as _os
 import platform
 import socket as _socket
 import subprocess as _subprocess
@@ -6,7 +7,11 @@ import subprocess as _subprocess
 _secrets = op.expanduser('~/.config/xonsh/.secrets.xsh')
 if op.exists(_secrets):
     source @(_secrets)
-del _secrets, op
+_config_home = _os.environ.get('XDG_CONFIG_HOME', op.expanduser('~/.config'))
+_devcache_env = op.join(_config_home, 'devcache', 'xonsh.xsh')
+if op.exists(_devcache_env):
+    source @(_devcache_env)
+del _secrets, _config_home, _devcache_env, op, _os
 
 $HOSTNAME = _socket.gethostname()
 

@@ -1,6 +1,6 @@
 local map = vim.keymap.set
 
-local plugins = {
+vim.pack.add({
   {
     src = "https://github.com/eltonsst/postilla.nvim",
     data = {
@@ -23,10 +23,7 @@ local plugins = {
       end,
     },
   },
-}
-
-if vim.fn.executable("ollama") == 1 then
-  table.insert(plugins, {
+  {
     src = "https://github.com/milanglacier/minuet-ai.nvim",
     data = {
       event = { "DeferredUIEnter", "InsertEnter" },
@@ -62,11 +59,7 @@ if vim.fn.executable("ollama") == 1 then
 
         for _, buf in ipairs(vim.api.nvim_list_bufs()) do
           local ft = vim.bo[buf].filetype
-
-          if vim.api.nvim_buf_is_loaded(buf)
-            and ft ~= ""
-            and not vim.tbl_contains(ignore, ft)
-          then
+          if vim.api.nvim_buf_is_loaded(buf) and ft ~= "" and not vim.tbl_contains(ignore, ft) then
             vim.b[buf].minuet_virtual_text_auto_trigger = true
           end
         end
@@ -80,10 +73,8 @@ if vim.fn.executable("ollama") == 1 then
         end
       end,
     },
-  })
-end
-
-vim.pack.add(plugins, { load = require("lz.n").load })
+  },
+}, { load = require("lz.n").load })
 
 map({ "x", "n" }, "<leader>as", function()
   require("lz.n").trigger_load("postilla.nvim")

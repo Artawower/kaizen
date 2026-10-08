@@ -1,0 +1,418 @@
+#!/usr/bin/env bash
+set -euo pipefail
+if [[ $(id -u) != 0 ]]; then
+    printf 'DevCache mount helper must be invoked through its root-owned system unit\n' >&2
+    exit 77
+fi
+PATH=/usr/sbin:/usr/bin:/sbin:/bin
+export PATH
+
+config_dir=/etc/kaizen-devcache
+if [[ ${DEVCACHE_TEST_MODE:-0} == 1 && -n ${DEVCACHE_TEST_CONFIG_DIR:-} ]]; then
+    config_dir=$DEVCACHE_TEST_CONFIG_DIR
+fi
+path_has_symlink() {
+    local path=$1 current=/ component
+    local -a components
+    IFS=/ read -r -a components <<<"$path"
+    for component in "${components[@]}"; do
+        :[[ -n $component ]] || continue
+        current=${current%/}/$component
+        [[ ! -L $current ]] || return 0
+    done
+    return 1
+}
+if [[ $config_dir != /* || ! -d $config_dir ]] || path_has_symlink "$config_dir" || [[ $(stat -c '%u' -- "$config_dir") != 0 || $((8#$(stat -c '%a' -- "$config_dir") & 022)) -ne 0 ]]; then
+    printf 'DevCache system configuration directory is unsafe\n' >&2
+    exit 78
+fi
+uid_arg=${2:-}
+if [[ ! $uid_arg =~ ^[0-9]+$ ]]; then
+    printf 'Invalid DevCache uid\n' >&2
+    exit 64
+fi
+config_file=$config_dir/$uid_arg.conf
+if [[ ! -f $config_file || -L $config_file ]]; then
+    printf 'DevCache system configuration is missing or unsafe\n' >&2
+    exit 78
+fi
+path_has_symlink "$config_file" && { printf 'Symlink in privileged configuration path\n' >&2; exit 78; }
+read -r config_owner config_mode config_links < <(stat -c '%u %a %h' -- "$config_file")
+if [[ $config_owner != 0 || $config_mode != 600 || $config_links != 1 ]]; then
+    printf 'DevCache system configuration must be root-owned mode 0600\n' >&2
+    exit 78
+fi
+source "$config_file"
+PATH=/usr/sbin:/usr/bin:/sbin:/bin
+export PATH
+
+if [[ ! ${CACHE_UID:-} =~ ^[0-9]+$ || $CACHE_UID != "$uid_arg" || ! ${CACHE_GID:-} =~ ^[0-9]+$ ]]; then
+    printf 'Invalid DevCache system configuration\n' >&2
+    exit 78
+fi
+if [[ ! ${DEVICE_UUID:-} =~ ^[A-Fa-f0-9]{8}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{12}$ || ! ${CACHE_ROOT:-} = /* || ! ${LOCAL_ROOT:-} = /* || ${SSD_SUBDIR:-} != Kaizen/DevCache || ${DEVICE_FS:-} != btrfs && ${DEVICE_FS:-} != ext4 && ${DEVICE_FS:-} != xfs ]]; then
+    printf 'Invalid DevCache system configuration\n' >&2
+    exit 78
+fi
+if [[ $CACHE_ROOT == *$'\n'* || $LOCAL_ROOT == *$'\n'* || $DEVICE_UUID == *$'\n'* || $DEVICE_FS == *$'\n'* ]]; then
+    printf 'Invalid DevCache system configuration\n' >&2
+    exit 78
+fi
+user_record=$(getent passwd "$CACHE_UID") || { printf 'Unknown DevCache user\n' >&2; exit 78; }
+IFS=: read -r _ _ _ _ _ user_home _ <<<"$user_record"
+if [[ ${DEVCACHE_TEST_MODE:-0} == 1 && -n ${DEVCACHE_TEST_HOME_ROOT:-} ]]; then
+    user_home=$DEVCACHE_TEST_HOME_ROOT
+fi
+user_home=$(realpath -e -- "$user_home") || { printf 'Invalid DevCache home path\n' >&2; exit 78; }
+user_primary_gid=$(id -g "$CACHE_UID") || { printf 'Cannot inspect DevCache user group\n' >&2; exit 78; }
+if [[ $user_primary_gid != "$CACHE_GID" ]]; then
+    printf 'Configured DevCache group does not match the user\n' >&2
+    exit 78
+fi
+if [[ $CACHE_ROOT == "$LOCAL_ROOT" || $(dirname -- "$CACHE_ROOT") != "$(dirname -- "$LOCAL_ROOT")" || $(basename -- "$CACHE_ROOT") != devcache || $(basename -- "$LOCAL_ROOT") != devcache-local ]]; then
+    printf 'DevCache roots must be separate sibling directories\n' >&2
+    exit 78
+fi
+for cache_path in "$CACHE_ROOT" "$LOCAL_ROOT"; do
+    if [[ ! -d $cache_path || -L $cache_path || $cache_path != "$user_home"/* || $(realpath -e -- "$cache_path") != "$cache_path" ]]; then
+        printf 'DevCache path is missing, symlinked, or outside the user home: %s\n' "$cache_path" >&2
+        exit 78
+    fi
+    read -r path_owner path_mode < <(stat -c '%u %a' -- "$cache_path")
+    if [[ $path_owner != "$CACHE_UID" || $((8#$path_mode & 077)) -ne 0 ]]; then
+        printf 'DevCache path has unsafe owner or permissions: %s\n' "$cache_path" >&2
+        exit 78
+    fi
+done
+if [[ $CACHE_UID == 0 ]]; then
+    [[ -w $LOCAL_ROOT && -w $CACHE_ROOT ]] || { printf 'DevCache roots are not writable\n' >&2; exit 78; }
+elif ! runuser -u "$(getent passwd "$CACHE_UID" | cut -d: -f1)" -- test -w "$LOCAL_ROOT"; then
+    printf 'Local fallback is not writable by the configured user\n' >&2
+    exit 78
+fi
+
+lock_file=/run/lock/kaizen-devcache-$CACHE_UID.lock
+
+initialize() {
+    if [[ -L $lock_file ]]; then
+        printf 'Refusing symlinked DevCache lock file\n' >&2
+        return 75
+    fi
+    if [[ ! -e $lock_file ]]; then
+        install -o root -g "$CACHE_GID" -m 0660 /dev/null "$lock_file"
+    fi
+    local lock_owner lock_group lock_mode
+    read -r lock_owner lock_group lock_mode < <(stat -c '%u %g %a' -- "$lock_file")
+    if [[ $lock_owner != 0 || $lock_group != "$CACHE_GID" || $lock_mode != 660 ]]; then
+        printf 'DevCache lock file ownership or mode is unsafe\n' >&2
+        return 75
+    fi
+}
+
+path_is_cache() {
+    local value=${1% (deleted)}
+    [[ $value == "$CACHE_ROOT" || $value == "$CACHE_ROOT"/* || $value == "$LOCAL_ROOT" || $value == "$LOCAL_ROOT"/* ]]
+}
+
+cache_operation() {
+    local name=$1 args=$2 operation_regex
+    case "$name" in
+        cargo) operation_regex='(^|[[:space:]])(build|check|test|bench|run|install|update|fetch)([[:space:]]|$)' ;;
+        go) operation_regex='(^|[[:space:]])(build|install|test|run|mod[[:space:]]+(download|tidy|vendor)|clean)([[:space:]]|$)' ;;
+        bun) operation_regex='(^|[[:space:]])(install|add|remove|update|link|pm)([[:space:]]|$)' ;;
+        pnpm) operation_regex='(^|[[:space:]])(install|add|remove|update|fetch|store)([[:space:]]|$)' ;;
+        npm) operation_regex='(^|[[:space:]])(install|ci|add|remove|update|cache)([[:space:]]|$)' ;;
+        uv) operation_regex='(^|[[:space:]])(sync|install|add|remove|lock|cache)([[:space:]]|$)' ;;
+        pip) operation_regex='(^|[[:space:]])(install|uninstall|download|cache)([[:space:]]|$)' ;;
+        mise) operation_regex='(^|[[:space:]])(install|upgrade|uninstall|prune)([[:space:]]|$)' ;;
+        python*)
+            [[ $args == *'-m pip'* ]] || return 1
+            operation_regex='(^|[[:space:]])(install|uninstall|download|cache)([[:space:]]|$)' ;;
+        node|nodejs)
+            if [[ $args == *npm-cli.js* ]]; then
+                operation_regex='(^|[[:space:]])(install|ci|add|remove|update|cache)([[:space:]]|$)'
+            elif [[ $args == *pnpm.cjs* ]]; then
+                operation_regex='(^|[[:space:]])(install|add|remove|update|fetch|store)([[:space:]]|$)'
+            else
+                return 1
+            fi ;;
+        *) return 1 ;;
+    esac
+    [[ $args =~ $operation_regex ]]
+}
+
+active_processes() {
+    local proc pid proc_uid name args item target found
+    for proc in /proc/[0-9]*; do
+        [[ -d $proc ]] || continue
+        pid=${proc##*/}
+        [[ $pid != "$$" ]] || continue
+        proc_uid=$(stat -c '%u' -- "$proc" 2>/dev/null) || continue
+        [[ $proc_uid == "$CACHE_UID" ]] || continue
+        name=$(<"$proc/comm") 2>/dev/null || continue
+        args=$(tr '\0' ' ' <"$proc/cmdline" 2>/dev/null || true)
+        if cache_operation "${name,,}" "$args"; then
+            printf '%s:%s\n' "$pid" "$name"
+            continue
+        fi
+        found=0
+        for item in "$proc/cwd" "$proc"/fd/*; do
+            target=$(readlink -- "$item" 2>/dev/null || true)
+            if path_is_cache "$target"; then
+                found=1
+                break
+            fi
+        done
+        if (( found )); then
+            printf '%s:%s\n' "$pid" "$name"
+        fi
+    done
+}
+
+mounted_source_root() {
+    local block target actual_target actual_uuid actual_fs actual_root actual_options
+    block=/dev/disk/by-uuid/$DEVICE_UUID
+    if [[ ${DEVCACHE_TEST_MODE:-0} == 1 && -n ${DEVCACHE_TEST_SOURCE_ROOT:-} ]]; then
+        target=$DEVCACHE_TEST_SOURCE_ROOT
+        actual_target=$(findmnt --noheadings --raw --output TARGET --target "$target" 2>/dev/null | tail -n 1 || true)
+        printf -v actual_target '%b' "$actual_target"
+        [[ $actual_target == "$target" ]] || return 1
+        actual_uuid=$(findmnt --noheadings --raw --output UUID --target "$target" 2>/dev/null | tail -n 1 || true)
+        actual_fs=$(findmnt --noheadings --raw --output FSTYPE --target "$target" 2>/dev/null | tail -n 1 || true)
+        if [[ ($actual_uuid == "$DEVICE_UUID" || ${DEVCACHE_TEST_UUID_OVERRIDE:-} == "$DEVICE_UUID") && ($actual_fs == "$DEVICE_FS" || ${DEVCACHE_TEST_UUID_OVERRIDE:-} == "$DEVICE_UUID") ]]; then
+            printf '%s\n' "$target"
+            return 0
+        fi
+        return 1
+    fi
+    [[ -e $block ]] || return 1
+    while IFS= read -r target; do
+        printf -v target '%b' "$target"
+        [[ -n $target && $target != "$CACHE_ROOT" && $target != "$LOCAL_ROOT" && -d $target ]] || continue
+        actual_target=$(findmnt --noheadings --raw --output TARGET --target "$target" 2>/dev/null | tail -n 1 || true)
+        printf -v actual_target '%b' "$actual_target"
+        [[ $actual_target == "$target" ]] || continue
+        actual_uuid=$(findmnt --noheadings --raw --output UUID --target "$target" 2>/dev/null | tail -n 1 || true)
+        actual_fs=$(findmnt --noheadings --raw --output FSTYPE --target "$target" 2>/dev/null | tail -n 1 || true)
+        actual_options=$(findmnt --noheadings --raw --output OPTIONS --target "$target" 2>/dev/null | tail -n 1 || true)
+        [[ $actual_uuid == "$DEVICE_UUID" && $actual_fs == "$DEVICE_FS" && ,$actual_options, == *,rw,* ]] || continue
+        actual_root=$(findmnt --noheadings --raw --output FSROOT --target "$target" 2>/dev/null | tail -n 1 || true)
+        [[ $actual_root == "/$SSD_SUBDIR" || $actual_root == */"$SSD_SUBDIR" ]] && continue
+        printf '%s\n' "$target"
+        return 0
+    done < <(findmnt --noheadings --raw --source "$block" --output TARGET 2>/dev/null)
+    return 1
+}
+
+external_root() {
+    local mount_root=$1 path resolved_mount resolved_path parent_owner parent_mode user_name
+    path=$mount_root/$SSD_SUBDIR
+    [[ -d $mount_root && ! -L $mount_root ]] || return 1
+    resolved_mount=$(realpath -e -- "$mount_root") || return 1
+    [[ $resolved_mount == "$mount_root" ]] || return 1
+    [[ ! -L $mount_root/Kaizen ]] || return 1
+    if [[ ! -e $mount_root/Kaizen ]]; then
+        install -d -o root -g root -m 0755 -- "$mount_root/Kaizen"
+    fi
+    [[ -d $mount_root/Kaizen && ! -L $mount_root/Kaizen ]] || return 1
+    read -r parent_owner parent_mode < <(stat -c '%u %a' -- "$mount_root/Kaizen")
+    if [[ $parent_owner != 0 || $((8#$parent_mode & 022)) -ne 0 ]]; then
+        printf 'SSD parent directory must be root-owned and not group/world writable: %s\n' "$mount_root/Kaizen" >&2
+        return 1
+    fi
+    user_name=$(getent passwd "$CACHE_UID" | cut -d: -f1)
+    [[ -n $user_name ]] || return 1
+    [[ ! -L $path ]] || return 1
+    if [[ ! -e $path ]]; then
+        install -d -o "$CACHE_UID" -g "$CACHE_GID" -m 0700 -- "$path"
+    fi
+    [[ -d $path && ! -L $path ]] || return 1
+    resolved_path=$(realpath -e -- "$path") || return 1
+    [[ $resolved_path == "$resolved_mount/Kaizen/DevCache" ]] || return 1
+    read -r parent_owner parent_mode < <(stat -c '%u %a' -- "$path")
+    if [[ $parent_owner != "$CACHE_UID" || $((8#$parent_mode & 077)) -ne 0 ]]; then
+        printf 'SSD cache directory is not safely writable by the configured user: %s\n' "$path" >&2
+        return 1
+    fi
+    local write_probe
+    if [[ $CACHE_UID == 0 ]]; then
+        write_probe=$(mktemp "$path/.devcache-write-probe.XXXXXX") || return 1
+        rm -f -- "$write_probe" || return 1
+    else
+        write_probe=$(runuser -u "$user_name" -- mktemp "$path/.devcache-write-probe.XXXXXX") || return 1
+        runuser -u "$user_name" -- rm -f -- "$write_probe" || return 1
+    fi
+    local selinux_enforcing=0 context context_type
+    if [[ ${DEVCACHE_TEST_MODE:-0} == 1 ]]; then
+        [[ ${DEVCACHE_TEST_SELINUX_ENFORCING:-0} == 1 ]] && selinux_enforcing=1
+        context=${DEVCACHE_TEST_SELINUX_CONTEXT:-}
+    elif command -v getenforce >/dev/null 2>&1 && [[ $(getenforce) == Enforcing ]]; then
+        selinux_enforcing=1
+        context=$(stat -c '%C' -- "$path" 2>/dev/null || true)
+    fi
+    if (( selinux_enforcing )); then
+        context_type=${context#*:object_r:}
+        context_type=${context_type%%:*}
+        if [[ $context_type != user_home_t && $context_type != cache_home_t ]]; then
+            printf 'SELinux denies safe activation: label only %s as user_home_t or cache_home_t before retrying (current: %s)\n' "$path" "$context" >&2
+            return 1
+        fi
+    fi
+    local path_uuid path_fs
+    path_uuid=$(findmnt --noheadings --raw --output UUID --target "$path" 2>/dev/null | tail -n 1 || true)
+    path_fs=$(findmnt --noheadings --raw --output FSTYPE --target "$path" 2>/dev/null | tail -n 1 || true)
+    if [[ ($path_uuid != "$DEVICE_UUID" || $path_fs != "$DEVICE_FS") && ! (${DEVCACHE_TEST_MODE:-0} == 1 && ${DEVCACHE_TEST_UUID_OVERRIDE:-} == "$DEVICE_UUID" && ${DEVCACHE_TEST_FS_OVERRIDE:-} == "$DEVICE_FS") ]]; then
+        return 1
+    fi
+    printf '%s\n' "$resolved_path"
+}
+
+expected_external_fsroot() {
+    local mount_root=$1 base
+    base=$(findmnt --noheadings --raw --output FSROOT --target "$mount_root" 2>/dev/null | tail -n 1 || true)
+    printf -v base '%b' "$base"
+    base=${base%/}
+    printf '%s/%s\n' "$base" "$SSD_SUBDIR"
+}
+
+is_external_mounted() {
+    local current_uuid current_root current_fs
+    mountpoint -q -- "$CACHE_ROOT" || return 1
+    current_uuid=$(findmnt --noheadings --raw --output UUID --target "$CACHE_ROOT" 2>/dev/null | tail -n 1 || true)
+    current_root=$(findmnt --noheadings --raw --output FSROOT --target "$CACHE_ROOT" 2>/dev/null | tail -n 1 || true)
+    current_fs=$(findmnt --noheadings --raw --output FSTYPE --target "$CACHE_ROOT" 2>/dev/null | tail -n 1 || true)
+    [[ ($current_uuid == "$DEVICE_UUID" || ${DEVCACHE_TEST_MODE:-0} == 1 && ${DEVCACHE_TEST_UUID_OVERRIDE:-} == "$DEVICE_UUID") && ($current_fs == "$DEVICE_FS" || ${DEVCACHE_TEST_MODE:-0} == 1 && ${DEVCACHE_TEST_FS_OVERRIDE:-} == "$DEVICE_FS") && ($current_root == "/$SSD_SUBDIR" || $current_root == */"$SSD_SUBDIR") ]]
+}
+
+is_local_mounted() {
+    local cache_target cache_root local_root local_mount local_uuid local_fs cache_uuid cache_fs local_options relative expected
+    mountpoint -q -- "$CACHE_ROOT" || return 1
+    cache_target=$(findmnt --noheadings --raw --output TARGET --target "$CACHE_ROOT" 2>/dev/null | tail -n 1 || true)
+    printf -v cache_target '%b' "$cache_target"
+    [[ $cache_target == "$CACHE_ROOT" ]] || return 1
+    cache_root=$(findmnt --noheadings --raw --output FSROOT --target "$CACHE_ROOT" 2>/dev/null | tail -n 1 || true)
+    local_root=$(findmnt --noheadings --raw --output FSROOT --target "$LOCAL_ROOT" 2>/dev/null | tail -n 1 || true)
+    local_mount=$(findmnt --noheadings --raw --output TARGET --target "$LOCAL_ROOT" 2>/dev/null | tail -n 1 || true)
+    printf -v cache_root '%b' "$cache_root"
+    printf -v local_root '%b' "$local_root"
+    printf -v local_mount '%b' "$local_mount"
+    [[ $LOCAL_ROOT == "$local_mount"/* ]] || return 1
+    relative=${LOCAL_ROOT#"$local_mount"/}
+    expected=${local_root%/}/$relative
+    [[ $cache_root == "$expected" ]] || return 1
+    local_options=$(findmnt --noheadings --raw --output OPTIONS --target "$LOCAL_ROOT" 2>/dev/null | tail -n 1 || true)
+    [[ ,$local_options, == *,rw,* ]] || return 1
+    local_uuid=$(findmnt --noheadings --raw --output UUID --target "$LOCAL_ROOT" 2>/dev/null | tail -n 1 || true)
+    cache_uuid=$(findmnt --noheadings --raw --output UUID --target "$CACHE_ROOT" 2>/dev/null | tail -n 1 || true)
+    local_fs=$(findmnt --noheadings --raw --output FSTYPE --target "$LOCAL_ROOT" 2>/dev/null | tail -n 1 || true)
+    cache_fs=$(findmnt --noheadings --raw --output FSTYPE --target "$CACHE_ROOT" 2>/dev/null | tail -n 1 || true)
+    [[ $local_uuid == "$cache_uuid" && $local_fs == "$cache_fs" ]]
+}
+
+activate() {
+    local mount_root source operations expected_root active_root
+    if is_external_mounted; then
+        mount_root=$(mounted_source_root) || return 75
+        source=$(external_root "$mount_root") || return 74
+        expected_root=$(expected_external_fsroot "$mount_root")
+        active_root=$(findmnt --noheadings --raw --output FSROOT --target "$CACHE_ROOT" 2>/dev/null | tail -n 1 || true)
+        printf -v expected_root '%b' "$expected_root"
+        printf -v active_root '%b' "$active_root"
+        if [[ $expected_root != "$active_root" ]]; then
+            printf 'Existing SSD cache bind does not match the validated source directory (%s != %s); refusing to replace it\n' "$active_root" "$expected_root" >&2
+            return 74
+        fi
+        return 0
+    fi
+    if ! is_local_mounted; then
+        printf 'Local fallback mount is not verified; refusing SSD switch\n' >&2
+        return 74
+    fi
+    mount_root=$(mounted_source_root) || {
+        printf 'Configured SSD is not mounted by UDisks; mount it in the file manager to enable external caches. Local fallback remains active.\n' >&2
+        return 0
+    }
+    source=$(external_root "$mount_root") || {
+        printf 'Configured SSD directory failed validation or permissions/SELinux checks; local fallback remains active.\n' >&2
+        return 0
+    }
+    operations=$(active_processes)
+    if [[ -n $operations ]]; then
+        printf 'DevCache activation deferred; active cache operations: %s\n' "${operations//$'\n'/, }" >&2
+        return 75
+    fi
+    mount --bind -- "$source" "$CACHE_ROOT"
+    if ! is_external_mounted; then
+        if umount -- "$CACHE_ROOT" 2>/dev/null && is_local_mounted; then
+            printf 'SSD bind mount verification failed; local fallback remains active\n' >&2
+        else
+            printf 'SSD bind mount verification failed and local fallback could not be confirmed; manual recovery is required\n' >&2
+        fi
+        return 74
+    fi
+    operations=$(active_processes)
+    if [[ -n $operations ]]; then
+        if umount -- "$CACHE_ROOT" 2>/dev/null && is_local_mounted; then
+            printf 'DevCache activation rolled back because an operation started during mount; local fallback remains active\n' >&2
+            return 75
+        fi
+        printf 'An operation started during activation and the SSD mount is busy; preserving the verified current mount\n' >&2
+        return 75
+    fi
+}
+
+deactivate() {
+    local operations
+    is_external_mounted || return 0
+    operations=$(active_processes)
+    if [[ -n $operations ]]; then
+        printf 'DevCache deactivation deferred; active cache operations: %s\n' "${operations//$'\n'/, }" >&2
+        return 75
+    fi
+    if ! umount -- "$CACHE_ROOT"; then
+        printf 'DevCache bind mount is busy; refusing forced unmount\n' >&2
+        return 74
+    fi
+    if is_external_mounted; then
+        printf 'SSD bind mount remains active after unmount request\n' >&2
+        return 74
+    fi
+    if ! is_local_mounted; then
+        printf 'SSD unmounted, but local fallback mount could not be confirmed\n' >&2
+        return 74
+    fi
+}
+
+case ${1:-reconcile} in
+    is-cache-operation)
+        proc=${3:-}
+        [[ -d $proc ]] || exit 64
+        name=$(<"$proc/comm")
+        args=$(tr '\0' ' ' <"$proc/cmdline" 2>/dev/null || true)
+        cache_operation "${name,,}" "$args"
+        ;;
+    initialize)
+        initialize
+        ;;
+    activate)
+        activate
+        ;;
+    deactivate)
+        deactivate
+        ;;
+    reconcile)
+        if mounted_source_root >/dev/null; then
+            activate
+        else
+            if is_external_mounted; then
+                deactivate
+            else
+                printf 'Configured SSD is not mounted by UDisks; local fallback remains active.\n' >&2
+            fi
+        fi
+        ;;
+    *)
+        printf 'Unknown DevCache helper action\n' >&2
+        exit 64
+        ;;
+esac

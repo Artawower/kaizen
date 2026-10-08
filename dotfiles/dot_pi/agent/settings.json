@@ -43,7 +43,8 @@
     "npm:pi-trace-extension",
     "npm:pi-stats-ext",
     "npm:pi-open-agents",
-    "../../Downloads/pi-worker-host"
+    "../../Downloads/pi-worker-host",
+    "npm:@soleone/pi-tasks"
   ],
   "defaultProvider": "openai-codex",
   "defaultModel": "gpt-5.6-sol",

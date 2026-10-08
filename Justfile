@@ -17,6 +17,8 @@ test:
     bash tests/xonsh-config.sh
     bash tests/xremap-config.sh
     bash tests/audacity-config.sh
+    bash tests/devcache.sh
+    bash tests/devcache-mount.sh
 
 # Transfer dotfiles to a new machine
 apply:
