@@ -1,1 +1,1079 @@
 #!/usr/bin/env python3
+"""DevCache — rootless, conservative developer cache router for Linux.
+
+No system mount operations, no elevated subprocesses, no arbitrary cache deletion.
+Install is intentionally opt-in (setup); neither import nor status changes anything.
+"""
+
+from __future__ import annotations
+
+import argparse
+import fcntl
+import hashlib
+import json
+import os
+import re
+import shutil
+import stat
+import subprocess
+import sys
+import tempfile
+import time
+from contextlib import contextmanager
+from pathlib import Path
+from typing import Any
+
+VERSION = "0.1.0"
+SIGNATURE = "devcache-rootless-v1"
+DEVICE_FS = frozenset({"ext4", "btrfs", "xfs"})
+DEFAULT_ADAPTERS = ("bun", "npm", "pnpm", "go", "pip", "uv", "mise")
+# cargo is intentionally opt-in because it needs to modify ~/.cargo directories.
+ALL_ADAPTERS = DEFAULT_ADAPTERS + ("cargo", "python")
+VARIABLES = {
+    "bun": {"BUN_INSTALL_CACHE_DIR": "bun"},
+    "npm": {"npm_config_cache": "npm"},
+    "pnpm": {"pnpm_config_store_dir": "pnpm", "npm_config_store_dir": "pnpm"},
+    "go": {"GOCACHE": "go/build", "GOMODCACHE": "go/modules"},
+    "pip": {"PIP_CACHE_DIR": "pip"},
+    "uv": {"UV_CACHE_DIR": "uv"},
+    "mise": {"MISE_CACHE_DIR": "mise"},
+    "cargo": {},
+    "python": {"PYTHONPYCACHEPREFIX": "python/bytecode"},
+}
+GC_COMMANDS = {
+    "npm": ["npm", "cache", "clean", "--force"],
+    "pnpm": ["pnpm", "store", "prune"],
+    "go": ["go", "clean", "-cache"],
+    "pip": [sys.executable, "-m", "pip", "cache", "purge"],
+    "uv": ["uv", "cache", "clean"],
+    "mise": ["mise", "cache", "prune", "--yes"],
+}
+BUSY_TOOLS = frozenset(
+    {"bun", "npm", "pnpm", "cargo", "go", "uv", "mise", "pip", "pip3"}
+)
+
+
+def home() -> Path:
+    return Path.home()
+
+
+def layout() -> dict[str, Path]:
+    h = home()
+    cfg = Path(os.environ.get("XDG_CONFIG_HOME", h / ".config"))
+    cache = Path(os.environ.get("XDG_CACHE_HOME", h / ".cache"))
+    state = Path(os.environ.get("XDG_STATE_HOME", h / ".local/state"))
+    for p in (cfg, cache, state):
+        if not p.is_absolute():
+            raise ValueError(f"XDG path must be absolute: {p}")
+    return {
+        "config": cfg / "devcache/config.json",
+        "root": cache / "devcache",
+        "local": cache / "devcache-local",
+        "state": state / "devcache",
+        "env": cfg / "environment.d/90-devcache.conf",
+        "unit_dir": cfg / "systemd/user",
+        "bin": h / ".local/bin/devcache",
+    }
+
+
+def runner(
+    cmd: list[str], *, timeout: int = 15, env: dict[str, str] | None = None
+) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        cmd, text=True, capture_output=True, timeout=timeout, env=env, check=False
+    )
+
+
+def atomic_bytes(path: Path, content: bytes, mode: int = 0o600) -> None:
+    if path.is_symlink():
+        raise RuntimeError(f"Refusing to overwrite symlink: {path}")
+    path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+    fd, temp = tempfile.mkstemp(prefix=f".{path.name}.", dir=path.parent)
+    try:
+        os.fchmod(fd, mode)
+        with os.fdopen(fd, "wb") as f:
+            f.write(content)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(temp, path)
+        dirfd = os.open(path.parent, os.O_RDONLY | os.O_DIRECTORY)
+        try:
+            os.fsync(dirfd)
+        finally:
+            os.close(dirfd)
+    finally:
+        if os.path.lexists(temp):
+            os.unlink(temp)
+
+
+def save_json(path: Path, data: dict[str, Any]) -> None:
+    atomic_bytes(
+        path,
+        (
+            json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
+        ).encode(),
+    )
+
+
+def load() -> dict[str, Any] | None:
+    p = layout()["config"]
+    if p.is_symlink():
+        raise RuntimeError("Refusing symlinked configuration")
+    if not p.exists():
+        return None
+    data = json.loads(p.read_text())
+    if data.get("signature") != SIGNATURE or data.get("schema") != 1:
+        raise RuntimeError(
+            "Unexpected DevCache configuration; refusing to change storage"
+        )
+    if not isinstance(data.get("adapters"), list) or set(data["adapters"]) - set(
+        ALL_ADAPTERS
+    ):
+        raise RuntimeError("Invalid adapters in configuration")
+    if data.get("uuid") and not re.fullmatch(r"[a-fA-F0-9-]{36}", data["uuid"]):
+        raise RuntimeError("Invalid filesystem UUID")
+    if data.get("filesystem") not in DEVICE_FS and data.get("uuid"):
+        raise RuntimeError("Invalid filesystem type")
+    if data.get("subdir") != "Kaizen/DevCache":
+        raise RuntimeError("Unexpected SSD directory")
+    if not isinstance(data.get("last_external_path", ""), str):
+        raise RuntimeError("Invalid last external path")
+    if data.get("stable_path") != str(layout()["root"]):
+        raise RuntimeError("Stable path changed; refusing to operate")
+    return data
+
+
+@contextmanager
+def lock(exclusive: bool = True):
+    p = layout()["state"] / "devcache.lock"
+    p.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+    if p.is_symlink():
+        raise RuntimeError("Unsafe lock file")
+    fd = os.open(p, os.O_RDWR | os.O_CREAT | getattr(os, "O_NOFOLLOW", 0), 0o600)
+    try:
+        if os.fstat(fd).st_uid != os.getuid():
+            raise RuntimeError("Lock owned by another user")
+        try:
+            fcntl.flock(
+                fd, (fcntl.LOCK_EX if exclusive else fcntl.LOCK_SH) | fcntl.LOCK_NB
+            )
+        except BlockingIOError as e:
+            raise RuntimeError(
+                "DevCache is busy (another operation or devcache run)"
+            ) from e
+        yield
+    finally:
+        os.close(fd)
+
+
+def safe_dir(p: Path) -> None:
+    if p.is_symlink():
+        raise RuntimeError(f"Refusing symlinked directory: {p}")
+    p.mkdir(parents=True, exist_ok=True, mode=0o700)
+    if not p.is_dir() or p.stat().st_uid != os.getuid():
+        raise RuntimeError(f"Directory not owned by you: {p}")
+    if stat.S_IMODE(p.stat().st_mode) & 0o077:
+        p.chmod(0o700)
+
+
+def parse_disks(raw: str) -> list[dict[str, Any]]:
+    parsed = json.loads(raw)
+    out = []
+
+    def walk(node: dict[str, Any], tran: str = "", model: str = "") -> None:
+        tran = node.get("tran") or tran
+        model = node.get("model") or model
+        if (
+            node.get("type") == "part"
+            and tran == "usb"
+            and node.get("uuid")
+            and node.get("fstype") in DEVICE_FS
+            and not int(node.get("ro") or 0)
+        ):
+            out.append(
+                {
+                    "uuid": node["uuid"],
+                    "filesystem": node["fstype"],
+                    "path": node.get("path"),
+                    "model": model,
+                    "size": int(node.get("size") or 0),
+                    "mountpoints": [m for m in node.get("mountpoints", []) if m],
+                }
+            )
+        for child in node.get("children") or []:
+            walk(child, tran, model)
+
+    for node in parsed.get("blockdevices", []):
+        walk(node)
+    return out
+
+
+def disks() -> list[dict[str, Any]]:
+    result = runner(
+        [
+            "lsblk",
+            "--json",
+            "--bytes",
+            "-o",
+            "NAME,PATH,TYPE,TRAN,MODEL,SIZE,RO,FSTYPE,UUID,MOUNTPOINTS",
+        ]
+    )
+    if result.returncode != 0:
+        raise RuntimeError(f"lsblk failed: {result.stderr.strip()}")
+    result = parse_disks(result.stdout)
+    # Never propose a partition that hosts /, /home, or /boot.
+    blocked = set()
+    for target in ("/", "/home", "/boot", str(home())):
+        r = runner(["findmnt", "-n", "-o", "UUID", "-T", target])
+        if r.returncode == 0:
+            blocked.add(r.stdout.strip())
+    return [d for d in result if d["uuid"] not in blocked]
+
+
+def verify_mount(path: Path, uuid: str, filesystem: str) -> bool:
+    """A directory existing is not evidence that the removable device is mounted."""
+    try:
+        result = runner(
+            ["findmnt", "-J", "-T", str(path), "-o", "TARGET,UUID,FSTYPE,OPTIONS"]
+        )
+        if result.returncode != 0:
+            return False
+        mounts = json.loads(result.stdout).get("filesystems") or []
+        if len(mounts) != 1:
+            return False
+        item = mounts[0]
+        return (
+            Path(item["target"]) == path
+            and item.get("uuid") == uuid
+            and item.get("fstype") == filesystem
+            and "rw" in item.get("options", "").split(",")
+        )
+    except (OSError, ValueError, KeyError, subprocess.TimeoutExpired):
+        return False
+
+
+def external_path(config: dict[str, Any], *, auto_mount: bool = False) -> Path | None:
+    if not config["uuid"]:
+        return None
+    ds = [
+        d
+        for d in disks()
+        if d["uuid"] == config["uuid"] and d["filesystem"] == config["filesystem"]
+    ]
+    if not ds:
+        return None
+    device = ds[0]
+    mounts = list(device["mountpoints"])
+    if (
+        not mounts
+        and auto_mount
+        and config.get("auto_mount")
+        and shutil.which("udisksctl")
+    ):
+        # Never block unattended activation on interactive polkit prompts.
+        try:
+            runner(
+                [
+                    "udisksctl",
+                    "mount",
+                    "--block-device",
+                    str(device["path"]),
+                    "--no-user-interaction",
+                ],
+                timeout=12,
+            )
+            mounts = next(
+                (d["mountpoints"] for d in disks() if d["uuid"] == config["uuid"]), []
+            )
+        except (OSError, subprocess.TimeoutExpired):
+            pass
+    for m in mounts:
+        mp = Path(m)
+        if not verify_mount(mp, config["uuid"], config["filesystem"]):
+            continue
+        base = mp / "Kaizen"
+        folder = base / "DevCache"
+        # A valid mount can be used to initialize only a user-writable directory.
+        if base.is_symlink() or folder.is_symlink():
+            continue
+        if not base.exists():
+            try:
+                base.mkdir(mode=0o755)
+            except OSError:
+                continue
+        if not base.is_dir() or not os.access(base, os.W_OK | os.X_OK):
+            continue
+        if not folder.exists():
+            try:
+                folder.mkdir(mode=0o700)
+            except OSError:
+                continue
+        if (
+            folder.is_dir()
+            and folder.stat().st_uid == os.getuid()
+            and os.access(folder, os.W_OK | os.X_OK)
+        ):
+            return folder
+    return None
+
+
+def link_target(root: Path) -> Path | None:
+    if not root.is_symlink():
+        return None
+    return Path(os.readlink(root))
+
+
+def set_link(root: Path, target: Path) -> bool:
+    """Atomic replacement of an existing symlink; never overwrite real directories."""
+    if root.exists() and not root.is_symlink():
+        raise RuntimeError(f"Stable path is not a managed symlink: {root}")
+    if root.is_symlink() and link_target(root) == target:
+        return False
+    root.parent.mkdir(parents=True, exist_ok=True)
+    tmp = root.parent / f".{root.name}.{os.getpid()}.tmp"
+    if os.path.lexists(tmp):
+        raise RuntimeError(f"Temporary symlink already exists: {tmp}")
+    try:
+        os.symlink(str(target), tmp, target_is_directory=True)
+        os.replace(tmp, root)
+    finally:
+        if tmp.is_symlink():
+            tmp.unlink()
+    return True
+
+
+def active_processes(config: dict[str, Any]) -> list[str]:
+    """Conservative heuristic, NOT a synchronization guarantee for arbitrary programs."""
+    uid = os.getuid()
+    found = []
+    roots = (layout()["root"], layout()["local"])
+    for proc in Path("/proc").glob("[0-9]*"):
+        try:
+            if int(proc.name) == os.getpid() or proc.stat().st_uid != uid:
+                continue
+            argv = (proc / "cmdline").read_bytes().split(b"\0")
+            program = (
+                Path(argv[0].decode(errors="replace")).name if argv and argv[0] else ""
+            )
+            args = [a.decode(errors="replace") for a in argv[1:] if a]
+            if program in BUSY_TOOLS or (
+                program.startswith("python") and "-m" in args and "pip" in args
+            ):
+                found.append(f"{proc.name}:{program}")
+                continue
+            for fd in (proc / "fd").iterdir():
+                try:
+                    f = os.readlink(fd)
+                    if any(f == str(p) or f.startswith(str(p) + "/") for p in roots):
+                        found.append(f"{proc.name}:{program or 'process'}")
+                        break
+                except OSError:
+                    continue
+        except (OSError, ValueError):
+            continue
+    return sorted(set(found))
+
+
+def reconcile(
+    config: dict[str, Any], *, interactive_mount: bool = False, quiet: bool = False
+) -> str:
+    p = layout()
+    if not config["enabled"]:
+        return "disabled"
+    ext = external_path(config, auto_mount=interactive_mount)
+    dest = ext or p["local"]
+    safe_dir(p["local"])
+    current = link_target(p["root"])
+    allowed = {None, p["local"]}
+    if config.get("last_external_path"):
+        allowed.add(Path(config["last_external_path"]))
+    if current not in allowed:
+        raise RuntimeError(
+            "Stable symlink was changed outside DevCache; refusing replacement"
+        )
+    if current == dest:
+        return "ssd" if ext else "local"
+    if p["root"].exists() and not p["root"].is_symlink():
+        raise RuntimeError(
+            "Stable path is a real directory; refusing automatic replacement"
+        )
+    busy = active_processes(config)
+    if busy:
+        if not quiet:
+            print(
+                "Deferred switch due to active processes: " + ", ".join(busy[:8]),
+                file=sys.stderr,
+            )
+        return "deferred"
+    set_link(p["root"], dest)
+    if ext:
+        config["last_external_path"] = str(ext)
+        save_json(p["config"], config)
+    if not quiet:
+        print(f"Cache route -> {dest}")
+    return "ssd" if ext else "local"
+
+
+def env_values(config: dict[str, Any]) -> dict[str, str]:
+    result: dict[str, str] = {}
+    for a in config["adapters"]:
+        for var, subdir in VARIABLES[a].items():
+            result[var] = str(layout()["root"] / subdir)
+    return result
+
+
+def env_content(config: dict[str, Any]) -> bytes:
+    # environment.d does not parse JSON or Bash quotes. Absolute paths with spaces work.
+    lines = [f"{key}={value}" for key, value in sorted(env_values(config).items())]
+    return ("\n".join(lines) + "\n").encode()
+
+
+def managed_file(path: Path, body: bytes, old_hash: str | None) -> str:
+    if path.is_symlink():
+        raise RuntimeError(f"Refusing symlinked managed file: {path}")
+    if path.exists() and (
+        not old_hash or hashlib.sha256(path.read_bytes()).hexdigest() != old_hash
+    ):
+        raise RuntimeError(f"Existing or edited file will not be overwritten: {path}")
+    atomic_bytes(path, body)
+    return hashlib.sha256(body).hexdigest()
+
+
+def unit_contents() -> dict[str, bytes]:
+    script = layout()["bin"]
+    # ExecStart accepts quoted argv; reject unusual paths to avoid unit parsing ambiguity.
+    if any(c in str(script) for c in ('"', "\n", "%", "\\")):
+        raise RuntimeError(
+            "Executable path cannot be represented safely in systemd unit"
+        )
+    service = (
+        "[Unit]\nDescription=Reconcile rootless DevCache cache routing\n"
+        "[Service]\nType=oneshot\nTimeoutStartSec=35s\n"
+        f'ExecStart="{script}" reconcile --quiet\n'
+    ).encode()
+    timer = (
+        "[Unit]\nDescription=Check external SSD cache availability\n"
+        "[Timer]\nOnBootSec=10s\nOnUnitInactiveSec=15s\nAccuracySec=1s\n"
+        "Unit=devcache-reconcile.service\n[Install]\nWantedBy=timers.target\n"
+    ).encode()
+    gc_service = (
+        "[Unit]\nDescription=Safe local cache pruning (DevCache)\n"
+        "[Service]\nType=oneshot\nTimeoutStartSec=5min\n"
+        f'ExecStart="{script}" gc --auto\n'
+    ).encode()
+    gc_timer = (
+        "[Unit]\nDescription=Periodic local cache pruning\n"
+        "[Timer]\nOnBootSec=20min\nOnUnitActiveSec=12h\n"
+        "Persistent=true\nUnit=devcache-gc.service\n"
+        "[Install]\nWantedBy=timers.target\n"
+    ).encode()
+    return {
+        "devcache-reconcile.service": service,
+        "devcache-reconcile.timer": timer,
+        "devcache-gc.service": gc_service,
+        "devcache-gc.timer": gc_timer,
+    }
+
+
+def update_environment(config: dict[str, Any], *, write: bool) -> None:
+    p = layout()
+    if write:
+        config.setdefault("managed", {})["env"] = managed_file(
+            p["env"], env_content(config), config.get("managed", {}).get("env")
+        )
+    else:
+        md = config.get("managed", {})
+        if (
+            p["env"].is_file()
+            and not p["env"].is_symlink()
+            and hashlib.sha256(p["env"].read_bytes()).hexdigest() == md.get("env")
+        ):
+            p["env"].unlink()
+
+
+def systemctl_user(*args: str) -> None:
+    if os.environ.get("DEVCACHE_TEST_MODE") == "1":
+        return
+    r = runner(["systemctl", "--user", *args], timeout=20)
+    if r.returncode:
+        raise RuntimeError(f"systemctl --user {' '.join(args)}: {r.stderr.strip()}")
+
+
+def setup_systemd(config: dict[str, Any]) -> None:
+    p = layout()
+    for name, data in unit_contents().items():
+        old = config.setdefault("managed", {}).get("unit:" + name)
+        config["managed"]["unit:" + name] = managed_file(
+            p["unit_dir"] / name, data, old
+        )
+    systemctl_user("daemon-reload")
+    systemctl_user("enable", "--now", "devcache-reconcile.timer", "devcache-gc.timer")
+
+
+def stop_systemd() -> None:
+    if os.environ.get("DEVCACHE_TEST_MODE") == "1":
+        return
+    # A timer that was never installed is safe to ignore.
+    runner(
+        [
+            "systemctl",
+            "--user",
+            "disable",
+            "--now",
+            "devcache-reconcile.timer",
+            "devcache-gc.timer",
+        ],
+        timeout=20,
+    )
+
+
+def remove_generated(config: dict[str, Any]) -> list[str]:
+    p = layout()
+    skipped: list[str] = []
+    for name, path in (
+        ("env", p["env"]),
+        *(("unit:" + n, p["unit_dir"] / n) for n in unit_contents()),
+    ):
+        digest = config.get("managed", {}).get(name)
+        if path.exists() or path.is_symlink():
+            if (
+                path.is_symlink()
+                or not digest
+                or hashlib.sha256(path.read_bytes()).hexdigest() != digest
+            ):
+                skipped.append(str(path))
+            else:
+                path.unlink()
+    return skipped
+
+
+def install_self(config: dict[str, Any]) -> None:
+    target = layout()["bin"]
+    source = Path(__file__).resolve()
+    contents = source.read_bytes()
+    digest = hashlib.sha256(contents).hexdigest()
+    old = config.setdefault("managed", {}).get("executable")
+    if target.is_symlink():
+        raise RuntimeError(f"Refusing symlinked executable: {target}")
+    if (
+        source != target
+        and target.exists()
+        and (not old or hashlib.sha256(target.read_bytes()).hexdigest() != old)
+    ):
+        raise RuntimeError(f"Refusing to overwrite existing executable: {target}")
+    if source != target:
+        atomic_bytes(target, contents, 0o700)
+    config["managed"]["executable"] = digest
+
+
+def configure_cargo(config: dict[str, Any]) -> None:
+    """Opt-in migration of Cargo registry/git with backups and per-step rollback."""
+    p = layout()
+    backups = p["state"] / "cargo-backups"
+    cargo = home() / ".cargo"
+    if cargo.is_symlink():
+        raise RuntimeError("Refusing symlinked ~/.cargo")
+    cargo.mkdir(exist_ok=True)
+    safe_dir(backups)
+    plan = []
+    for name in ("registry", "git"):
+        original = cargo / name
+        destination = p["root"] / "cargo" / name
+        local_dest = p["local"] / "cargo" / name
+        backup = backups / name
+        if original.is_symlink():
+            if link_target(original) != destination:
+                raise RuntimeError(f"Unmanaged Cargo symlink: {original}")
+            continue
+        if (
+            backup.exists()
+            or local_dest.exists()
+            or original.exists()
+            and not original.is_dir()
+        ):
+            raise RuntimeError(
+                f"Cargo backup, cache, or unexpected file already exists: {name}"
+            )
+        plan.append((original, destination, local_dest, backup))
+
+    applied = []
+    try:
+        for original, destination, local_dest, backup in plan:
+            moved_original = False
+            applied.append(
+                (original, destination, local_dest, backup, original.exists())
+            )
+            if original.exists():
+                original.rename(backup)
+                moved_original = True
+                shutil.copytree(backup, local_dest, symlinks=True)
+            else:
+                local_dest.mkdir(parents=True, mode=0o700)
+            os.symlink(str(destination), original, target_is_directory=True)
+    except Exception:
+        for original, destination, local_dest, backup, originally_existed in reversed(
+            applied
+        ):
+            if original.is_symlink() and link_target(original) == destination:
+                original.unlink()
+            # Never remove the backup unless it has been restored successfully.
+            if originally_existed and backup.exists() and not original.exists():
+                backup.rename(original)
+            if not originally_existed and not original.exists() and local_dest.is_dir():
+                # Managed copies are kept if setup did not complete; no rm -rf.
+                pass
+        raise
+
+
+def restore_cargo(config: dict[str, Any]) -> None:
+    p = layout()
+    backups = p["state"] / "cargo-backups"
+    for name in ("registry", "git"):
+        original = home() / ".cargo" / name
+        managed = p["root"] / "cargo" / name
+        backup = backups / name
+        if original.is_symlink() and link_target(original) == managed:
+            original.unlink()
+            if backup.exists():
+                backup.rename(original)
+            else:
+                original.mkdir(mode=0o700)
+        # Keep all newly populated managed caches; never merge or delete them.
+
+
+def execute_setup(args: argparse.Namespace) -> None:
+    p = layout()
+    old = load()
+    if old:
+        raise RuntimeError(
+            "Existing configuration found; use enable/disable or uninstall before new setup"
+        )
+    options = disks()
+    device = None
+    if args.local_only:
+        pass
+    elif args.uuid:
+        device = next((d for d in options if d["uuid"] == args.uuid), None)
+        if device is None:
+            raise RuntimeError(
+                "UUID not found among eligible USB Linux filesystem partitions"
+            )
+    elif sys.stdin.isatty():
+        print("Выберите SSD (или локальный режим):")
+        for i, d in enumerate(options, 1):
+            print(
+                f" {i}) {d['model']} {d['size'] / 2**30:.0f} GiB · {d['filesystem']} · {d['uuid']}"
+            )
+        print(f" {len(options) + 1}) Только внутренний диск")
+        selected = input("Номер: ").strip()
+        if not selected.isdigit() or not 1 <= int(selected) <= len(options) + 1:
+            raise RuntimeError("Invalid disk selection")
+        if int(selected) <= len(options):
+            device = options[int(selected) - 1]
+    else:
+        raise RuntimeError("Specify --uuid or --local-only without a TTY")
+    adapters = [
+        a
+        for a in (args.adapters.split(",") if args.adapters else DEFAULT_ADAPTERS)
+        if a
+    ]
+    if len(adapters) != len(set(adapters)) or set(adapters) - set(ALL_ADAPTERS):
+        raise RuntimeError("Invalid or duplicate adapter name")
+    if "cargo" in adapters and not args.cargo_links:
+        raise RuntimeError(
+            "Cargo requires explicit --cargo-links; registry/git use managed symlinks"
+        )
+    if args.cargo_links and "cargo" not in adapters:
+        raise RuntimeError("--cargo-links requires cargo in --adapters")
+    config: dict[str, Any] = {
+        "signature": SIGNATURE,
+        "schema": 1,
+        "enabled": True,
+        "uuid": device["uuid"] if device else "",
+        "filesystem": device["filesystem"] if device else "",
+        "subdir": "Kaizen/DevCache",
+        "stable_path": str(p["root"]),
+        "adapters": adapters,
+        "auto_mount": bool(args.auto_mount),
+        "cargo_links": bool(args.cargo_links),
+        "last_external_path": "",
+        "gc_max_bytes": max(args.gc_max_gb, 1) * 1024**3,
+        "managed": (old or {}).get("managed", {}),
+    }
+    print("Plan:")
+    print(f"  SSD: {config['uuid'] or 'none (local only)'}")
+    print(f"  Cache root: {p['root']} -> {p['local']} or /<SSD>/Kaizen/DevCache")
+    print(f"  Adapters: {', '.join(adapters)}")
+    print(
+        f"  Root required: NO; auto-mount attempts via UDisks: {config['auto_mount']}"
+    )
+    print("  Existing application caches will NOT be deleted or merged.")
+    if args.dry_run:
+        return
+    if not args.yes and input("Continue? [y/N] ").strip().lower() not in ("y", "yes"):
+        print("Cancelled")
+        return
+    busy = active_processes(config)
+    if busy:
+        raise RuntimeError(
+            "Close package managers/builds before setup: " + ", ".join(busy[:8])
+        )
+    safe_dir(p["state"])
+    safe_dir(p["local"])
+    if p["root"].exists() and not p["root"].is_symlink():
+        raise RuntimeError(
+            f"Existing directory at {p['root']}; move it manually to {p['local']} before setup"
+        )
+    if p["root"].is_symlink() and link_target(p["root"]) != p["local"]:
+        raise RuntimeError(
+            "Existing symlink does not point to the managed local directory"
+        )
+    try:
+        install_self(config)
+        update_environment(config, write=True)
+        if args.cargo_links:
+            configure_cargo(config)
+        save_json(p["config"], config)
+        set_link(p["root"], p["local"])
+        setup_systemd(config)
+        save_json(p["config"], config)
+        print(
+            "Installed in local fallback mode; next reconciliation may switch to the SSD."
+        )
+        reconcile(config, interactive_mount=True)
+        print("Run: devcache doctor; devcache status")
+        print(
+            "For xonsh started outside systemd's environment, see README shell integration."
+        )
+    except Exception:
+        print(
+            "Setup incomplete. Use `devcache doctor` and preserve backups; no automated destructive rollback.",
+            file=sys.stderr,
+        )
+        raise
+
+
+def print_status(config: dict[str, Any] | None) -> None:
+    if not config:
+        print("Not configured")
+        return
+    p = layout()
+    link = link_target(p["root"])
+    # Do not create external directory for status.
+    ext = None
+    if config.get("uuid"):
+        for device in disks():
+            if device["uuid"] == config["uuid"]:
+                for mp in device["mountpoints"]:
+                    if verify_mount(Path(mp), config["uuid"], config["filesystem"]):
+                        ext = Path(mp) / config["subdir"]
+                        break
+    real_ssd = bool(ext and link == ext and ext.is_dir())
+    state = "ssd" if real_ssd else "local" if link == p["local"] else "stale/unknown"
+    print(
+        json.dumps(
+            {
+                "enabled": config["enabled"],
+                "route": state,
+                "stable": str(p["root"]),
+                "target": str(link) if link else None,
+                "device_uuid": config["uuid"],
+                "ssd_mounted": bool(ext),
+                "adapters": config["adapters"],
+            },
+            indent=2,
+        )
+    )
+
+
+def doctor(config: dict[str, Any] | None) -> int:
+    if not config:
+        print("ERROR: not configured")
+        return 1
+    errors: list[str] = []
+    warnings: list[str] = []
+    p = layout()
+    if config["enabled"] and not p["root"].is_symlink():
+        errors.append("Stable cache path is not a symlink")
+    link = link_target(p["root"])
+    if link and not link.is_dir():
+        errors.append("Active cache symlink target does not exist")
+    allowed = {p["local"]}
+    if config.get("last_external_path"):
+        allowed.add(Path(config["last_external_path"]))
+    if link not in allowed:
+        errors.append("Unrecognized cache target")
+    if config["enabled"]:
+        for filename, content in unit_contents().items():
+            u = p["unit_dir"] / filename
+            if (
+                not u.is_file()
+                or u.is_symlink()
+                or hashlib.sha256(u.read_bytes()).hexdigest()
+                != config.get("managed", {}).get("unit:" + filename)
+            ):
+                errors.append(f"Managed user unit differs from installed version: {u}")
+        if not p["env"].is_file():
+            errors.append("Environment config missing")
+        else:
+            if hashlib.sha256(p["env"].read_bytes()).hexdigest() != config.get(
+                "managed", {}
+            ).get("env"):
+                errors.append("Environment config differs from managed version")
+    print_status(config)
+    for warn in warnings:
+        print("WARN:", warn)
+    for error in errors:
+        print("ERROR:", error)
+    if not errors:
+        print("Static checks passed. Live hot-unplug safety is NOT guaranteed.")
+    return 1 if errors else 0
+
+
+def enable(config: dict[str, Any]) -> None:
+    if config["enabled"]:
+        print("Already enabled")
+        return
+    p = layout()
+    if active_processes(config):
+        raise RuntimeError("Close package managers before enabling")
+    safe_dir(p["local"])
+    if p["root"].exists() and not p["root"].is_symlink():
+        raise RuntimeError("Unmanaged cache root")
+    if config.get("cargo_links"):
+        # Existing managed cache is retained. Backup any fresh Cargo cache created while disabled.
+        for name in ("registry", "git"):
+            original = home() / ".cargo" / name
+            destination = p["root"] / "cargo" / name
+            backup = p["state"] / "cargo-backups" / name
+            if original.is_symlink():
+                if link_target(original) != destination:
+                    raise RuntimeError(f"Unmanaged Cargo link: {original}")
+            else:
+                if backup.exists():
+                    raise RuntimeError(f"Cargo backup already exists: {backup}")
+                backup.parent.mkdir(parents=True, exist_ok=True)
+                if original.exists():
+                    original.rename(backup)
+                else:
+                    backup.mkdir()
+                os.symlink(str(destination), original, target_is_directory=True)
+    install_self(config)
+    update_environment(config, write=True)
+    set_link(p["root"], p["local"])
+    config["enabled"] = True
+    save_json(p["config"], config)
+    setup_systemd(config)
+    save_json(p["config"], config)
+    reconcile(config, interactive_mount=True)
+    print("Enabled")
+
+
+def disable(config: dict[str, Any], *, uninstall: bool) -> None:
+    p = layout()
+    busy = active_processes(config)
+    if busy:
+        raise RuntimeError(
+            "Close active package managers before disabling: " + ", ".join(busy[:8])
+        )
+    if config.get("enabled"):
+        # Refuse user-replaced paths; only undo DevCache's own symlink.
+        current = link_target(p["root"])
+        allowed = {p["local"]}
+        if config.get("last_external_path"):
+            allowed.add(Path(config["last_external_path"]))
+        if current not in allowed:
+            raise RuntimeError("Stable symlink was modified outside DevCache")
+        set_link(p["root"], p["local"])
+    stop_systemd()
+    config["enabled"] = False
+    if config.get("cargo_links"):
+        restore_cargo(config)
+    skipped = remove_generated(config)
+    if uninstall:
+        if p["root"].is_symlink() and link_target(p["root"]) == p["local"]:
+            p["root"].unlink()
+        # Leave local and external caches untouched. Never remove executable automatically.
+        p["config"].unlink()
+        print(
+            "Uninstalled configs and links; cache directories and DevCache executable preserved."
+        )
+    else:
+        save_json(p["config"], config)
+        print("Disabled, fallback local cache remains intact.")
+    if skipped:
+        print("User-modified files left untouched: " + ", ".join(skipped))
+    if os.environ.get("DEVCACHE_TEST_MODE") != "1":
+        runner(["systemctl", "--user", "daemon-reload"])
+
+
+def gc_local(config: dict[str, Any], *, execute: bool) -> None:
+    p = layout()
+    if not config.get("enabled") or not config.get("uuid"):
+        print("Local cleanup requires enabled SSD mode")
+        return
+    if link_target(p["root"]) == p["local"]:
+        print("Local fallback in use: preserving all local caches")
+        return
+    # Fail closed if SSD has disappeared but symlink is stale.
+    if external_path(config) != link_target(p["root"]):
+        print("SSD not verified; refusing local cleanup")
+        return
+    if active_processes(config):
+        print("Active cache operations detected; cleanup deferred")
+        return
+    size = directory_size(p["local"])
+    limit = config["gc_max_bytes"]
+    print(f"Local cache: {size} bytes; threshold: {limit} bytes")
+    if size <= limit:
+        return
+    cleanup = [
+        (name, GC_COMMANDS[name])
+        for name in config["adapters"]
+        if name in GC_COMMANDS and shutil.which(GC_COMMANDS[name][0])
+    ]
+    for name, args in cleanup:
+        print("Would run for local cache:", " ".join(args), f"[{name}]")
+    print(
+        "Bun, Cargo registry, Go module cache, Python bytecode and project directories are preserved."
+    )
+    if not execute:
+        return
+    if not cleanup:
+        print("No safe cleanup commands available")
+        return
+    for name, cmd in cleanup:
+        env = os.environ.copy()
+        env.update({v: str(p["local"] / rel) for v, rel in VARIABLES[name].items()})
+        # Python subprocesses should not generate bytecode through unrelated root.
+        env.pop("PYTHONPYCACHEPREFIX", None)
+        try:
+            cp = runner(cmd, timeout=180, env=env)
+        except (OSError, subprocess.TimeoutExpired) as exc:
+            print(f"SKIP {name}: {exc}", file=sys.stderr)
+            continue
+        if cp.returncode:
+            print(f"ERROR {name}: {cp.stderr.strip()}", file=sys.stderr)
+    print(
+        "Cleanup completed; any remaining cache is retained rather than deleted unsafely."
+    )
+
+
+def directory_size(path: Path) -> int:
+    total = 0
+    if not path.exists():
+        return 0
+    for root, dirs, files in os.walk(path, followlinks=False):
+        dirs[:] = [n for n in dirs if not (Path(root) / n).is_symlink()]
+        for name in files:
+            p = Path(root) / name
+            try:
+                if not p.is_symlink():
+                    total += p.stat().st_size
+            except OSError:
+                pass
+    return total
+
+
+def cli(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(
+        description="Rootless external SSD-first developer cache router"
+    )
+    parser.add_argument("--version", action="version", version=VERSION)
+    sub = parser.add_subparsers(dest="action", required=True)
+    init = sub.add_parser("setup", help="Interactive install and SSD selection")
+    init.add_argument("--uuid")
+    init.add_argument("--local-only", action="store_true")
+    init.add_argument("--adapters", help="Comma-separated: " + ",".join(ALL_ADAPTERS))
+    init.add_argument("--cargo-links", action="store_true")
+    init.add_argument(
+        "--auto-mount", action="store_true", help="Best effort udisksctl mount"
+    )
+    init.add_argument("--gc-max-gb", type=int, default=10)
+    init.add_argument("--dry-run", action="store_true")
+    init.add_argument("--yes", action="store_true")
+    r = sub.add_parser("reconcile")
+    r.add_argument("--quiet", action="store_true")
+    sub.add_parser("status")
+    sub.add_parser("doctor")
+    sub.add_parser("enable")
+    sub.add_parser("disable")
+    sub.add_parser("uninstall")
+    env = sub.add_parser("env", help="Print environment assignments for a shell")
+    env.add_argument("--shell", choices=("xonsh", "bash"), required=True)
+    gc = sub.add_parser("gc")
+    gc.add_argument("--local", action="store_true", default=True)
+    gc.add_argument("--auto", action="store_true")
+    gc.add_argument("--yes", action="store_true")
+    run = sub.add_parser(
+        "run", help="Run a command while holding the DevCache shared lock"
+    )
+    run.add_argument("command", nargs=argparse.REMAINDER)
+    args = parser.parse_args(argv)
+    try:
+        if sys.platform != "linux":
+            raise RuntimeError("DevCache supports Linux only")
+        if args.action == "env":
+            c = load()
+            if not c or not c["enabled"]:
+                return 0
+            for k, v in sorted(env_values(c).items()):
+                if args.shell == "xonsh":
+                    print(f"${k} = {v!r}")
+                else:
+                    import shlex
+
+                    print(f"export {k}={shlex.quote(v)}")
+            return 0
+        if args.action in ("status", "doctor"):
+            cfg = load()
+            if args.action == "status":
+                print_status(cfg)
+                return 0
+            return doctor(cfg)
+        if args.action == "run":
+            cmd = (
+                args.command[1:]
+                if args.command and args.command[0] == "--"
+                else args.command
+            )
+            if not cmd:
+                raise RuntimeError("Specify a command after --")
+            with lock(exclusive=False):
+                # Forward the exit status; shared lock remains held for the command.
+                return subprocess.run(cmd, check=False).returncode
+        with lock():
+            if args.action == "setup":
+                execute_setup(args)
+                return 0
+            config = load()
+            if config is None:
+                raise RuntimeError("Not configured: run devcache setup")
+            if args.action == "reconcile":
+                state = reconcile(config, interactive_mount=True, quiet=args.quiet)
+                if state == "deferred":
+                    return 75
+                return 0
+            if args.action == "enable":
+                enable(config)
+                return 0
+            if args.action in ("disable", "uninstall"):
+                disable(config, uninstall=args.action == "uninstall")
+                return 0
+            if args.action == "gc":
+                gc_local(config, execute=args.auto or args.yes)
+                return 0
+    except (
+        RuntimeError,
+        ValueError,
+        OSError,
+        subprocess.TimeoutExpired,
+        json.JSONDecodeError,
+    ) as exc:
+        print(f"devcache: {exc}", file=sys.stderr)
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(cli())
