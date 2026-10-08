@@ -4,6 +4,7 @@ local uv = vim.uv or vim.loop
 function M.setup()
   local config = require("minuet").config
   local ignored_filetypes = config.virtualtext.auto_trigger_ignore_ft or {}
+  local model_name = config.provider_options.openai_fim_compatible.model
   local available = false
   local checking = false
 
@@ -31,12 +32,30 @@ function M.setup()
     end
 
     checking = true
-    local client = uv.new_tcp()
-    client:connect("127.0.0.1", 11434, function(err)
-      client:close()
-      checking = false
+    vim.system({
+      "curl",
+      "--silent",
+      "--fail",
+      "--max-time",
+      "1",
+      "http://127.0.0.1:11434/api/tags",
+    }, { text = true }, function(response)
+      local model_available = false
+      if response.code == 0 then
+        local ok, result = pcall(vim.json.decode, response.stdout)
+        if ok and type(result) == "table" and type(result.models) == "table" then
+          for _, model in ipairs(result.models) do
+            if model.name == model_name or model.model == model_name then
+              model_available = true
+              break
+            end
+          end
+        end
+      end
+
       vim.schedule(function()
-        available = not err
+        checking = false
+        available = model_available
         update()
       end)
     end)
