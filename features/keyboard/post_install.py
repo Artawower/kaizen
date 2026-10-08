@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-from pathlib import Path
 import subprocess
 import sys
+from pathlib import Path
 
 MODPROBE_PATH = Path("/etc/modprobe.d/hid_apple.conf")
 PARAM_PATH = Path("/sys/module/hid_apple/parameters/fnmode")
@@ -9,9 +9,6 @@ EXPECTED_LINE = "options hid_apple fnmode=2\n"
 
 
 def configure_hid_apple() -> None:
-    if not Path("/sys/module/hid_apple").exists():
-        return
-
     needs_modprobe = not MODPROBE_PATH.exists() or MODPROBE_PATH.read_text() != EXPECTED_LINE
     if needs_modprobe:
         subprocess.run(
@@ -21,7 +18,11 @@ def configure_hid_apple() -> None:
             check=True,
         )
 
-    if PARAM_PATH.exists() and PARAM_PATH.read_text().strip() != "2":
+    if (
+        Path("/sys/module/hid_apple").exists()
+        and PARAM_PATH.exists()
+        and PARAM_PATH.read_text().strip() != "2"
+    ):
         subprocess.run(
             ["sudo", "tee", str(PARAM_PATH)],
             input=b"2\n",
