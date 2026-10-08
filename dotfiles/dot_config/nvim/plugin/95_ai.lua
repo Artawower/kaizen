@@ -31,8 +31,9 @@ vim.pack.add({
       after = function()
         require("minuet").setup({
           provider = "openai_fim_compatible",
+          notify = false,
           virtualtext = {
-            auto_trigger_ft = { "*" },
+            auto_trigger_ft = {},
             keymap = {
               accept = "<D-i>",
               accept_line = "<D-/>",
@@ -54,23 +55,6 @@ vim.pack.add({
           },
         })
 
-        local config = require("minuet").config
-        local ignore = config.virtualtext.auto_trigger_ignore_ft or {}
-
-        for _, buf in ipairs(vim.api.nvim_list_bufs()) do
-          local ft = vim.bo[buf].filetype
-          if vim.api.nvim_buf_is_loaded(buf) and ft ~= "" and not vim.tbl_contains(ignore, ft) then
-            vim.b[buf].minuet_virtual_text_auto_trigger = true
-          end
-        end
-
-        if vim.fn.mode():match("^[iR]") then
-          pcall(vim.api.nvim_exec_autocmds, "InsertEnter", {
-            group = "MinuetVirtualText",
-            buffer = vim.api.nvim_get_current_buf(),
-            modeline = false,
-          })
-        end
       end,
     },
   },
