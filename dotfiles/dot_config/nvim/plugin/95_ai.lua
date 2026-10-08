@@ -33,7 +33,7 @@ vim.pack.add({
           provider = "openai_fim_compatible",
           notify = false,
           virtualtext = {
-            auto_trigger_ft = {},
+            auto_trigger_ft = { "*" },
             keymap = {
               accept = "<D-i>",
               accept_line = "<D-/>",
@@ -54,7 +54,7 @@ vim.pack.add({
             },
           },
         })
-
+        require("kaizen.minuet_ollama_guard").setup()
       end,
     },
   },
