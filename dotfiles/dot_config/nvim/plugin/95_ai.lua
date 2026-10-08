@@ -55,6 +55,11 @@ vim.pack.add({
           },
         })
         require("kaizen.minuet_ollama_guard").setup()
+        local minuet_action = require("minuet.virtualtext").action
+        vim.keymap.set("i", "<A-y>", minuet_action.accept, { desc = "Accept Minuet suggestion" })
+        vim.keymap.set("i", "<C-i>", minuet_action.accept, { desc = "Accept Minuet suggestion" })
+        vim.keymap.set("i", "<C-]>", minuet_action.next, { desc = "Next Minuet suggestion" })
+        vim.keymap.set("i", "<C-/>", minuet_action.accept_line, { desc = "Accept Minuet line" })
       end,
     },
   },
@@ -74,3 +79,4 @@ map({ "x", "n" }, "<leader>af", function()
   require("lz.n").trigger_load("postilla.nvim")
   vim.cmd.PostillaDone()
 end, { desc = "Finish AI review" })
+
