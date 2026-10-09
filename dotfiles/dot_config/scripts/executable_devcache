@@ -8,6 +8,7 @@ Install is intentionally opt-in (setup); neither import nor status changes anyth
 from __future__ import annotations
 
 import argparse
+import errno
 import fcntl
 import hashlib
 import json
@@ -23,7 +24,7 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Any
 
-VERSION = "0.1.0"
+VERSION = "0.3.1"
 SIGNATURE = "devcache-rootless-v1"
 DEVICE_FS = frozenset({"ext4", "btrfs", "xfs"})
 DEFAULT_ADAPTERS = ("bun", "npm", "pnpm", "go", "pip", "uv", "mise")
@@ -49,7 +50,23 @@ GC_COMMANDS = {
     "mise": ["mise", "cache", "prune", "--yes"],
 }
 BUSY_TOOLS = frozenset(
-    {"bun", "npm", "pnpm", "cargo", "go", "uv", "mise", "pip", "pip3"}
+    {
+        "bun",
+        "npm",
+        "pnpm",
+        "cargo",
+        "go",
+        "uv",
+        "mise",
+        "pip",
+        "pip3",
+        "yarn",
+        "corepack",
+        "npx",
+        "poetry",
+        "make",
+        "just",
+    }
 )
 
 
@@ -98,7 +115,16 @@ def atomic_bytes(path: Path, content: bytes, mode: int = 0o600) -> None:
         os.replace(temp, path)
         dirfd = os.open(path.parent, os.O_RDONLY | os.O_DIRECTORY)
         try:
-            os.fsync(dirfd)
+            try:
+                os.fsync(dirfd)
+            except OSError as exc:
+                if exc.errno not in {errno.EINVAL, errno.ENOTSUP, errno.EOPNOTSUPP}:
+                    raise
+                print(
+                    f"Warning: directory fsync unsupported for {path.parent}; "
+                    "rename completed, crash durability is not guaranteed.",
+                    file=sys.stderr,
+                )
         finally:
             os.close(dirfd)
     finally:
@@ -106,41 +132,117 @@ def atomic_bytes(path: Path, content: bytes, mode: int = 0o600) -> None:
             os.unlink(temp)
 
 
+def json_bytes(data: dict[str, Any]) -> bytes:
+    return (
+        json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
+    ).encode()
+
+
+def validate_config(data: Any) -> dict[str, Any]:
+    if not isinstance(data, dict):
+        raise ValueError("Configuration must be a JSON object")
+    if (
+        data.get("signature") != SIGNATURE
+        or type(data.get("schema")) is not int
+        or data["schema"] != 1
+    ):
+        raise ValueError("Unexpected DevCache signature or schema")
+    for key in ("enabled", "auto_mount", "cargo_links"):
+        if type(data.get(key)) is not bool:
+            raise ValueError(f"Configuration field {key} must be boolean")
+    adapters = data.get("adapters")
+    if (
+        not isinstance(adapters, list)
+        or any(not isinstance(a, str) or a not in ALL_ADAPTERS for a in adapters)
+        or len(set(adapters)) != len(adapters)
+    ):
+        raise ValueError("Invalid or duplicate adapters")
+    if data["cargo_links"] != ("cargo" in adapters):
+        raise ValueError("Cargo adapter and cargo_links must agree")
+    for key in ("uuid", "filesystem", "subdir", "stable_path", "last_external_path"):
+        if not isinstance(data.get(key), str):
+            raise ValueError(f"Configuration field {key} must be a string")
+    uuid = data["uuid"]
+    if uuid and not re.fullmatch(
+        r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}",
+        uuid,
+    ):
+        raise ValueError("Invalid filesystem UUID")
+    if (uuid and data["filesystem"] not in DEVICE_FS) or (
+        not uuid and data["filesystem"]
+    ):
+        raise ValueError("Invalid filesystem type")
+    if data["subdir"] != "Kaizen/DevCache":
+        raise ValueError("Unexpected external storage directory")
+    if data["stable_path"] != str(layout()["root"]):
+        raise ValueError("Stable path changed; refusing to operate")
+    external = data["last_external_path"]
+    if external and (
+        not Path(external).is_absolute()
+        or ".." in Path(external).parts
+        or not external.endswith("/Kaizen/DevCache")
+    ):
+        raise ValueError("Invalid last external path")
+    if type(data.get("gc_max_bytes")) is not int or data["gc_max_bytes"] <= 0:
+        raise ValueError("gc_max_bytes must be a positive integer")
+    if data.get("routing", "legacy") not in {"legacy", "per-command"}:
+        raise ValueError("Invalid routing mode")
+    managed = data.get("managed")
+    if not isinstance(managed, dict) or any(
+        not isinstance(k, str)
+        or not isinstance(v, str)
+        or not re.fullmatch(r"[0-9a-f]{64}", v)
+        for k, v in managed.items()
+    ):
+        raise ValueError("Invalid managed-file checksums")
+    return data
+
+
+def config_backup() -> Path:
+    return layout()["config"].with_suffix(".json.bak")
+
+
+def read_config(path: Path) -> dict[str, Any]:
+    if path.is_symlink():
+        raise RuntimeError(f"Refusing symlinked configuration: {path}")
+    try:
+        return validate_config(json.loads(path.read_text()))
+    except (ValueError, UnicodeError) as exc:
+        raise RuntimeError(
+            f"Invalid configuration at {path}: {exc}. "
+            "Use devcache recover-config to restore a validated backup."
+        ) from exc
+
+
 def save_json(path: Path, data: dict[str, Any]) -> None:
-    atomic_bytes(
-        path,
-        (
-            json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
-        ).encode(),
-    )
+    if path == layout()["config"]:
+        validate_config(data)
+        previous = read_config(path) if path.exists() or path.is_symlink() else data
+        atomic_bytes(config_backup(), json_bytes(previous))
+    atomic_bytes(path, json_bytes(data))
 
 
 def load() -> dict[str, Any] | None:
-    p = layout()["config"]
-    if p.is_symlink():
-        raise RuntimeError("Refusing symlinked configuration")
-    if not p.exists():
+    path = layout()["config"]
+    if not path.exists() and not path.is_symlink():
         return None
-    data = json.loads(p.read_text())
-    if data.get("signature") != SIGNATURE or data.get("schema") != 1:
-        raise RuntimeError(
-            "Unexpected DevCache configuration; refusing to change storage"
-        )
-    if not isinstance(data.get("adapters"), list) or set(data["adapters"]) - set(
-        ALL_ADAPTERS
-    ):
-        raise RuntimeError("Invalid adapters in configuration")
-    if data.get("uuid") and not re.fullmatch(r"[a-fA-F0-9-]{36}", data["uuid"]):
-        raise RuntimeError("Invalid filesystem UUID")
-    if data.get("filesystem") not in DEVICE_FS and data.get("uuid"):
-        raise RuntimeError("Invalid filesystem type")
-    if data.get("subdir") != "Kaizen/DevCache":
-        raise RuntimeError("Unexpected SSD directory")
-    if not isinstance(data.get("last_external_path", ""), str):
-        raise RuntimeError("Invalid last external path")
-    if data.get("stable_path") != str(layout()["root"]):
-        raise RuntimeError("Stable path changed; refusing to operate")
-    return data
+    return read_config(path)
+
+
+def recover_config() -> None:
+    path = layout()["config"]
+    restored = read_config(config_backup())
+    if path.is_symlink():
+        raise RuntimeError("Refusing to replace symlinked configuration")
+    if path.exists():
+        fd, saved = tempfile.mkstemp(prefix="config.before-recovery.", dir=path.parent)
+        with os.fdopen(fd, "wb") as stream:
+            stream.write(path.read_bytes())
+            stream.flush()
+            os.fsync(stream.fileno())
+        print(f"Current configuration preserved at {saved}")
+    atomic_bytes(path, json_bytes(restored))
+    print("Configuration restored. Review devcache status before further changes.")
 
 
 @contextmanager
@@ -176,36 +278,76 @@ def safe_dir(p: Path) -> None:
         p.chmod(0o700)
 
 
+def flag(value: Any) -> bool:
+    """Accept both numeric and boolean values returned by lsblk."""
+    return str(value).lower() in {"1", "true", "yes"}
+
+
 def parse_disks(raw: str) -> list[dict[str, Any]]:
-    parsed = json.loads(raw)
-    out = []
+    """Discover filesystem targets, including SD cards and whole-disk filesystems.
 
-    def walk(node: dict[str, Any], tran: str = "", model: str = "") -> None:
-        tran = node.get("tran") or tran
-        model = node.get("model") or model
-        if (
-            node.get("type") == "part"
-            and tran == "usb"
-            and node.get("uuid")
-            and node.get("fstype") in DEVICE_FS
-            and not int(node.get("ro") or 0)
-        ):
-            out.append(
-                {
-                    "uuid": node["uuid"],
-                    "filesystem": node["fstype"],
-                    "path": node.get("path"),
-                    "model": model,
-                    "size": int(node.get("size") or 0),
-                    "mountpoints": [m for m in node.get("mountpoints", []) if m],
-                }
+    Keep unavailable targets in the inventory so the UI can explain exclusions.
+    External/removable properties propagate through partitions and unlocked
+    encrypted devices. Detection is a hint; users can inspect all data devices.
+    """
+    out: dict[tuple[str, str], dict[str, Any]] = {}
+
+    def walk(node: dict[str, Any], parent: dict[str, Any]) -> None:
+        transport = node.get("tran") or parent.get("transport", "")
+        model = (node.get("model") or parent.get("model", "")).strip()
+        path = node.get("path") or "/dev/" + str(node.get("name", ""))
+        external = (
+            parent.get("external", False)
+            or flag(node.get("rm"))
+            or flag(node.get("hotplug"))
+            or transport in {"usb", "mmc", "sd", "firewire", "thunderbolt"}
+            or Path(path).name.startswith("mmcblk")
+        )
+        readonly = parent.get("readonly", False) or flag(node.get("ro"))
+        inherited = dict(
+            transport=transport, model=model, external=external, readonly=readonly
+        )
+        kind = node.get("type", "")
+        is_target = (
+            node.get("fstype")
+            or kind == "part"
+            or (kind == "disk" and not node.get("children"))
+        )
+        if kind not in {"loop", "rom"} and is_target:
+            fs = node.get("fstype") or ""
+            uuid = node.get("uuid") or ""
+            reasons = []
+            if readonly:
+                reasons.append("read-only device")
+            if fs not in DEVICE_FS:
+                if fs == "crypto_LUKS":
+                    reasons.append("unlock the encrypted device first")
+                elif not fs:
+                    reasons.append("no filesystem")
+                else:
+                    reasons.append(
+                        f"unsupported filesystem: {fs} (requires ext4, btrfs or xfs)"
+                    )
+            if not uuid:
+                reasons.append("missing filesystem UUID")
+            item = dict(
+                inherited,
+                uuid=uuid,
+                filesystem=fs,
+                path=path,
+                label=node.get("label") or "",
+                size=int(node.get("size") or 0),
+                mountpoints=[m for m in node.get("mountpoints") or [] if m],
+                reasons=reasons,
             )
-        for child in node.get("children") or []:
-            walk(child, tran, model)
+            out[(path, uuid)] = item
+        if kind not in {"loop", "rom"}:
+            for child in node.get("children") or []:
+                walk(child, inherited)
 
-    for node in parsed.get("blockdevices", []):
-        walk(node)
-    return out
+    for node in json.loads(raw).get("blockdevices", []):
+        walk(node, {})
+    return sorted(out.values(), key=lambda d: (not d["external"], d["path"]))
 
 
 def disks() -> list[dict[str, Any]]:
@@ -214,20 +356,133 @@ def disks() -> list[dict[str, Any]]:
             "lsblk",
             "--json",
             "--bytes",
+            "--tree",
             "-o",
-            "NAME,PATH,TYPE,TRAN,MODEL,SIZE,RO,FSTYPE,UUID,MOUNTPOINTS",
+            "NAME,PATH,TYPE,TRAN,MODEL,LABEL,SIZE,RO,RM,HOTPLUG,FSTYPE,UUID,MOUNTPOINTS",
         ]
     )
     if result.returncode != 0:
         raise RuntimeError(f"lsblk failed: {result.stderr.strip()}")
-    result = parse_disks(result.stdout)
-    # Never propose a partition that hosts /, /home, or /boot.
+    inventory = parse_disks(result.stdout)
     blocked = set()
-    for target in ("/", "/home", "/boot", str(home())):
-        r = runner(["findmnt", "-n", "-o", "UUID", "-T", target])
-        if r.returncode == 0:
-            blocked.add(r.stdout.strip())
-    return [d for d in result if d["uuid"] not in blocked]
+    # Protect the operating system and DevCache's own configuration/storage.
+    targets = {"/", "/home", "/boot", "/usr", "/var", str(home())}
+    paths = layout()
+    targets.update(
+        str(paths[key].parent) for key in ("config", "local", "state", "bin")
+    )
+    for target in sorted(targets):
+        existing = Path(target)
+        while not existing.exists() and existing != existing.parent:
+            existing = existing.parent
+        r = runner(["findmnt", "-n", "-o", "UUID", "-T", str(existing)])
+        if r.returncode:
+            raise RuntimeError(f"Cannot identify protected filesystem: {existing}")
+        blocked.update(r.stdout.split())
+    for device in inventory:
+        if device["uuid"] and device["uuid"] in blocked:
+            device["reasons"].append("system or home filesystem")
+    return inventory
+
+
+def matching_devices(
+    inventory: list[dict[str, Any]], query: str = "", *, show_all: bool = False
+) -> list[dict[str, Any]]:
+    terms = query.casefold().split()
+    matches = []
+    for device in inventory:
+        if not show_all and not device["external"]:
+            continue
+        searchable = " ".join(
+            [
+                device["path"],
+                device["model"],
+                device["label"],
+                device["uuid"],
+                device["filesystem"],
+                device["transport"],
+                *device["mountpoints"],
+            ]
+        ).casefold()
+        if all(term in searchable for term in terms):
+            matches.append(device)
+    return matches
+
+
+def print_devices(devices: list[dict[str, Any]]) -> None:
+    if not devices:
+        print("No matching storage devices.")
+    for number, device in enumerate(devices, 1):
+        name = device["label"] or device["model"] or "Unnamed storage"
+        connection = device["transport"] or (
+            "removable" if device["external"] else "other"
+        )
+        print(
+            f"  {number}) {name} | {device['path']} | {device['size'] / 2**30:.1f} GiB"
+        )
+        print(
+            f"     {device['filesystem'] or 'unknown'} | {connection}"
+            f" | UUID: {device['uuid'] or '-'}"
+        )
+        print("     Mounted: " + (", ".join(device["mountpoints"]) or "not mounted"))
+        if device["reasons"]:
+            print("     Unavailable: " + "; ".join(device["reasons"]))
+
+
+def select_device(args: argparse.Namespace) -> dict[str, Any] | None:
+    if args.local_only:
+        return None
+    inventory = disks()
+    if args.uuid:
+        candidates = [d for d in inventory if d["uuid"] == args.uuid]
+        if not candidates:
+            raise RuntimeError("Filesystem UUID not found; run devcache devices --all")
+        if len(candidates) != 1:
+            raise RuntimeError(
+                "Duplicate filesystem UUID detected; disconnect the duplicate device"
+            )
+        device = candidates[0]
+        if device["reasons"]:
+            raise RuntimeError("Storage unavailable: " + "; ".join(device["reasons"]))
+        return device
+    if not sys.stdin.isatty():
+        raise RuntimeError(
+            "Specify --uuid or --local-only without an interactive terminal"
+        )
+    query, show_all = args.search, args.all_devices
+    while True:
+        print("\nSelect cache storage (existing data will not be formatted).")
+        view = "all data devices" if show_all else "external / removable"
+        print(f"View: {view} | Search: {query or '(none)'}")
+        visible = matching_devices(inventory, query, show_all=show_all)
+        print_devices(visible)
+        print("  0) Local storage only")
+        print("Commands: number = select, /text = search, / = clear search,")
+        print("          a = toggle all devices, r = rescan, q = cancel")
+        choice = input("Storage> ").strip()
+        if choice.casefold() == "q":
+            raise InterruptedError("Cancelled")
+        if choice.casefold() == "r":
+            inventory = disks()
+        elif choice.casefold() == "a":
+            show_all = not show_all
+        elif choice.startswith("/"):
+            query = choice[1:]
+        elif choice == "0":
+            return None
+        elif choice.isdigit() and 1 <= int(choice) <= len(visible):
+            device = visible[int(choice) - 1]
+            if device["reasons"]:
+                print("Cannot select: " + "; ".join(device["reasons"]))
+            elif sum(d["uuid"] == device["uuid"] for d in inventory) != 1:
+                print(
+                    "Cannot select: duplicate filesystem UUID; "
+                    "disconnect the duplicate device"
+                )
+            else:
+                return device
+        else:
+            print("Invalid selection. Enter a listed number or command.")
 
 
 def verify_mount(path: Path, uuid: str, filesystem: str) -> bool:
@@ -252,27 +507,38 @@ def verify_mount(path: Path, uuid: str, filesystem: str) -> bool:
         return False
 
 
-def external_path(config: dict[str, Any], *, auto_mount: bool = False) -> Path | None:
-    if not config["uuid"]:
-        return None
-    ds = [
-        d
-        for d in disks()
-        if d["uuid"] == config["uuid"] and d["filesystem"] == config["filesystem"]
-    ]
-    if not ds:
-        return None
-    device = ds[0]
-    mounts = list(device["mountpoints"])
-    if (
-        not mounts
-        and auto_mount
-        and config.get("auto_mount")
-        and shutil.which("udisksctl")
-    ):
-        # Never block unattended activation on interactive polkit prompts.
+def attempt_mount(device: dict[str, Any]) -> None:
+    """Bound repeated failures; no background polling or interactive auth."""
+    state = layout()["state"]
+    safe_dir(state)
+    lock_path = state / "mount.lock"
+    fd = os.open(lock_path, os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW, 0o600)
+    try:
         try:
-            runner(
+            fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            return
+        retry = state / "mount-retry.json"
+        if retry.is_symlink():
+            raise RuntimeError("Unsafe mount retry state")
+        try:
+            data = json.loads(retry.read_text()) if retry.exists() else {}
+            if not isinstance(data, dict):
+                data = {}
+        except (ValueError, UnicodeError):
+            data = {}
+        now = time.time()
+        deadline = data.get("next_attempt", 0)
+        if (
+            data.get("uuid") == device["uuid"]
+            and type(deadline) in (int, float)
+            and now < deadline <= now + 300
+        ):
+            return
+        # Persist cooldown before the subprocess, including timeout/crash cases.
+        save_json(retry, {"uuid": device["uuid"], "next_attempt": now + 60})
+        try:
+            result = runner(
                 [
                     "udisksctl",
                     "mount",
@@ -282,11 +548,47 @@ def external_path(config: dict[str, Any], *, auto_mount: bool = False) -> Path |
                 ],
                 timeout=12,
             )
-            mounts = next(
-                (d["mountpoints"] for d in disks() if d["uuid"] == config["uuid"]), []
-            )
-        except (OSError, subprocess.TimeoutExpired):
-            pass
+            if result.returncode:
+                print(
+                    "Mount failed; using local fallback. Retry after 60 seconds. "
+                    + result.stderr.strip()[:500],
+                    file=sys.stderr,
+                )
+        except (OSError, subprocess.TimeoutExpired) as exc:
+            print(f"Mount unavailable; using local fallback: {exc}", file=sys.stderr)
+    finally:
+        os.close(fd)
+
+
+def external_path(config: dict[str, Any], *, auto_mount: bool = False) -> Path | None:
+    if not config["uuid"]:
+        return None
+    ds = [
+        d
+        for d in disks()
+        if d["uuid"] == config["uuid"]
+        and d["filesystem"] == config["filesystem"]
+        and not d["reasons"]
+    ]
+    if len(ds) != 1:
+        return None
+    device = ds[0]
+    mounts = list(device["mountpoints"])
+    if (
+        not mounts
+        and auto_mount
+        and config.get("auto_mount")
+        and shutil.which("udisksctl")
+    ):
+        attempt_mount(device)
+        mounts = next(
+            (
+                d["mountpoints"]
+                for d in disks()
+                if d["uuid"] == config["uuid"] and not d["reasons"]
+            ),
+            [],
+        )
     for m in mounts:
         mp = Path(m)
         if not verify_mount(mp, config["uuid"], config["filesystem"]):
@@ -313,7 +615,8 @@ def external_path(config: dict[str, Any], *, auto_mount: bool = False) -> Path |
             and folder.stat().st_uid == os.getuid()
             and os.access(folder, os.W_OK | os.X_OK)
         ):
-            return folder
+            if verify_mount(mp, config["uuid"], config["filesystem"]):
+                return folder
     return None
 
 
@@ -346,7 +649,14 @@ def active_processes(config: dict[str, Any]) -> list[str]:
     """Conservative heuristic, NOT a synchronization guarantee for arbitrary programs."""
     uid = os.getuid()
     found = []
-    roots = (layout()["root"], layout()["local"])
+    roots = {layout()["root"], layout()["local"]}
+    if config.get("last_external_path"):
+        roots.add(Path(config["last_external_path"]))
+    for path in list(roots):
+        try:
+            roots.add(path.resolve())
+        except OSError:
+            pass
     for proc in Path("/proc").glob("[0-9]*"):
         try:
             if int(proc.name) == os.getpid() or proc.stat().st_uid != uid:
@@ -356,8 +666,26 @@ def active_processes(config: dict[str, Any]) -> list[str]:
                 Path(argv[0].decode(errors="replace")).name if argv and argv[0] else ""
             )
             args = [a.decode(errors="replace") for a in argv[1:] if a]
-            if program in BUSY_TOOLS or (
-                program.startswith("python") and "-m" in args and "pip" in args
+            node_tool = program in {"node", "nodejs"} and any(
+                Path(arg).name
+                in {
+                    "npm",
+                    "npm-cli.js",
+                    "npx-cli.js",
+                    "yarn.js",
+                    "pnpm.cjs",
+                    "corepack.js",
+                }
+                for arg in args
+            )
+            if (
+                program in BUSY_TOOLS
+                or node_tool
+                or (
+                    program.startswith("python")
+                    and "-m" in args
+                    and any(tool in args for tool in ("pip", "poetry"))
+                )
             ):
                 found.append(f"{proc.name}:{program}")
                 continue
@@ -374,57 +702,65 @@ def active_processes(config: dict[str, Any]) -> list[str]:
     return sorted(set(found))
 
 
+def require_command_routing(config: dict[str, Any]) -> None:
+    if config.get("routing") != "per-command":
+        raise RuntimeError(
+            "Legacy routing configuration. Close builds, disable and uninstall "
+            "the old configuration, then run setup. Cache data is preserved."
+        )
+
+
 def reconcile(
     config: dict[str, Any], *, interactive_mount: bool = False, quiet: bool = False
 ) -> str:
-    p = layout()
+    """Compatibility command: never change routing for a running process."""
     if not config["enabled"]:
         return "disabled"
-    ext = external_path(config, auto_mount=interactive_mount)
-    dest = ext or p["local"]
-    safe_dir(p["local"])
-    current = link_target(p["root"])
-    allowed = {None, p["local"]}
-    if config.get("last_external_path"):
-        allowed.add(Path(config["last_external_path"]))
-    if current not in allowed:
-        raise RuntimeError(
-            "Stable symlink was changed outside DevCache; refusing replacement"
-        )
-    if current == dest:
-        return "ssd" if ext else "local"
-    if p["root"].exists() and not p["root"].is_symlink():
-        raise RuntimeError(
-            "Stable path is a real directory; refusing automatic replacement"
-        )
-    busy = active_processes(config)
-    if busy:
-        if not quiet:
-            print(
-                "Deferred switch due to active processes: " + ", ".join(busy[:8]),
-                file=sys.stderr,
-            )
-        return "deferred"
-    set_link(p["root"], dest)
-    if ext:
-        config["last_external_path"] = str(ext)
-        save_json(p["config"], config)
+    require_command_routing(config)
     if not quiet:
-        print(f"Cache route -> {dest}")
-    return "ssd" if ext else "local"
+        print("Routing is selected by devcache run; no live symlink switching.")
+    return "per-command"
 
 
-def env_values(config: dict[str, Any]) -> dict[str, str]:
+def env_values(config: dict[str, Any], root: Path | None = None) -> dict[str, str]:
     result: dict[str, str] = {}
-    for a in config["adapters"]:
-        for var, subdir in VARIABLES[a].items():
-            result[var] = str(layout()["root"] / subdir)
+    destination = root if root is not None else layout()["local"]
+    for adapter in config["adapters"]:
+        for var, subdir in VARIABLES[adapter].items():
+            result[var] = str(destination / subdir)
     return result
+
+
+def command_environment(config: dict[str, Any]) -> dict[str, str]:
+    require_command_routing(config)
+    env = os.environ.copy()
+    if not config["enabled"]:
+        return env
+    local = layout()["local"]
+    safe_dir(local)
+    try:
+        external = external_path(config, auto_mount=True)
+    except (OSError, ValueError, RuntimeError, subprocess.TimeoutExpired) as exc:
+        print(
+            f"External storage unavailable; using local fallback: {exc}",
+            file=sys.stderr,
+        )
+        external = None
+    target = external or local
+    # These absolute paths do not traverse the switchable compatibility symlink.
+    env.update(env_values(config, target))
+    print(f"Cache storage for this command: {target}", file=sys.stderr)
+    return env
 
 
 def env_content(config: dict[str, Any]) -> bytes:
     # environment.d does not parse JSON or Bash quotes. Absolute paths with spaces work.
-    lines = [f"{key}={value}" for key, value in sorted(env_values(config).items())]
+    values = env_values(config)
+    if any(any(c in value for c in ("$", "\n", "\r")) for value in values.values()):
+        raise RuntimeError(
+            "Cache paths containing $, CR or LF are not supported by environment.d integration"
+        )
+    lines = [f"{key}={value}" for key, value in sorted(values.items())]
     return ("\n".join(lines) + "\n").encode()
 
 
@@ -452,7 +788,7 @@ def unit_contents() -> dict[str, bytes]:
         f'ExecStart="{script}" reconcile --quiet\n'
     ).encode()
     timer = (
-        "[Unit]\nDescription=Check external SSD cache availability\n"
+        "[Unit]\nDescription=Check external cache storage availability\n"
         "[Timer]\nOnBootSec=10s\nOnUnitInactiveSec=15s\nAccuracySec=1s\n"
         "Unit=devcache-reconcile.service\n[Install]\nWantedBy=timers.target\n"
     ).encode()
@@ -500,14 +836,8 @@ def systemctl_user(*args: str) -> None:
 
 
 def setup_systemd(config: dict[str, Any]) -> None:
-    p = layout()
-    for name, data in unit_contents().items():
-        old = config.setdefault("managed", {}).get("unit:" + name)
-        config["managed"]["unit:" + name] = managed_file(
-            p["unit_dir"] / name, data, old
-        )
+    # Reload environment generators; install no polling or automatic GC timers.
     systemctl_user("daemon-reload")
-    systemctl_user("enable", "--now", "devcache-reconcile.timer", "devcache-gc.timer")
 
 
 def stop_systemd() -> None:
@@ -596,16 +926,20 @@ def configure_cargo(config: dict[str, Any]) -> None:
             )
         plan.append((original, destination, local_dest, backup))
 
+    required = sum(directory_size(original) for original, _, _, _ in plan)
+    safe_dir(p["local"])
+    if shutil.disk_usage(p["local"]).free < required + 256 * 1024**2:
+        raise RuntimeError("Insufficient local space for Cargo copy and safety reserve")
+    if cargo.stat().st_dev != backups.stat().st_dev:
+        raise RuntimeError("Cargo backup must be on the same filesystem as ~/.cargo")
     applied = []
     try:
         for original, destination, local_dest, backup in plan:
-            moved_original = False
             applied.append(
                 (original, destination, local_dest, backup, original.exists())
             )
             if original.exists():
                 original.rename(backup)
-                moved_original = True
                 shutil.copytree(backup, local_dest, symlinks=True)
             else:
                 local_dest.mkdir(parents=True, mode=0o700)
@@ -641,6 +975,126 @@ def restore_cargo(config: dict[str, Any]) -> None:
         # Keep all newly populated managed caches; never merge or delete them.
 
 
+@contextmanager
+def installation_transaction(config: dict[str, Any]):
+    """Roll back caught setup failures, preserving pre-existing files and caches.
+
+    Hard termination is handled by the independently saved recovery record.
+    Recovery only removes files whose bytes still match this setup's writes.
+    """
+    p = layout()
+    journal = p["state"] / "setup-recovery.json"
+    if journal.exists() or journal.is_symlink():
+        raise RuntimeError("Incomplete setup found; run devcache recover-setup first")
+    source = Path(__file__).resolve()
+    digest = hashlib.sha256(source.read_bytes()).hexdigest()
+    config["managed"]["executable"] = digest
+    config["managed"]["env"] = hashlib.sha256(env_content(config)).hexdigest()
+    # First install must not replace unrelated state, even with identical contents.
+    for path in (p["config"], config_backup(), p["env"]):
+        if path.exists() or path.is_symlink():
+            raise RuntimeError(f"Existing file will not be overwritten: {path}")
+    if source != p["bin"] and (p["bin"].exists() or p["bin"].is_symlink()):
+        raise RuntimeError(
+            f"Run setup from {p['bin']} or remove the old executable manually"
+        )
+    if any(os.path.lexists(p["unit_dir"] / name) for name in unit_contents()):
+        raise RuntimeError(
+            "Old DevCache units exist; uninstall the old configuration first"
+        )
+    if config["cargo_links"]:
+        for name in ("registry", "git"):
+            original = home() / ".cargo" / name
+            backup = p["state"] / "cargo-backups" / name
+            if original.is_symlink() or os.path.lexists(backup):
+                raise RuntimeError(
+                    f"Existing Cargo link or backup requires manual review: {original}"
+                )
+    record = {
+        "config": config,
+        "created_bin": source != p["bin"],
+        "created_link": not p["root"].is_symlink(),
+        "cargo_existed": {
+            name: (home() / ".cargo" / name).exists() for name in ("registry", "git")
+        },
+    }
+    save_json(journal, record)
+    try:
+        yield
+        journal.unlink()
+    except BaseException:
+        try:
+            recover_setup()
+        except Exception as exc:
+            print(
+                f"Rollback incomplete: {exc}. Run devcache recover-setup.",
+                file=sys.stderr,
+            )
+        raise
+
+
+def recover_setup() -> None:
+    p = layout()
+    journal = p["state"] / "setup-recovery.json"
+    if journal.is_symlink():
+        raise RuntimeError("Unsafe setup recovery record")
+    record = json.loads(journal.read_text())
+    if not isinstance(record, dict):
+        raise RuntimeError("Invalid setup recovery record")
+    config = validate_config(record.get("config"))
+    if not {"env", "executable"} <= config["managed"].keys():
+        raise RuntimeError("Missing setup recovery checksums")
+    if any(type(record.get(k)) is not bool for k in ("created_bin", "created_link")):
+        raise RuntimeError("Invalid setup recovery flags")
+    existed = record.get("cargo_existed")
+    if not isinstance(existed, dict) or any(
+        type(existed.get(n)) is not bool for n in ("registry", "git")
+    ):
+        raise RuntimeError("Invalid Cargo recovery flags")
+    pending = []
+    if config["cargo_links"]:
+        for name in ("registry", "git"):
+            original = home() / ".cargo" / name
+            backup = p["state"] / "cargo-backups" / name
+            expected = p["root"] / "cargo" / name
+            if original.is_symlink() and link_target(original) == expected:
+                original.unlink()
+            if existed[name] and backup.exists() and not os.path.lexists(original):
+                backup.rename(original)
+            elif existed[name] and backup.exists():
+                pending.append(str(original))
+    candidates = [
+        (p["env"], config["managed"]["env"]),
+        (p["config"], hashlib.sha256(json_bytes(config)).hexdigest()),
+        (config_backup(), hashlib.sha256(json_bytes(config)).hexdigest()),
+    ]
+    if record["created_bin"]:
+        candidates.append((p["bin"], config["managed"]["executable"]))
+    for path, expected in candidates:
+        if not os.path.lexists(path):
+            continue
+        if (
+            path.is_symlink()
+            or not path.is_file()
+            or hashlib.sha256(path.read_bytes()).hexdigest() != expected
+        ):
+            pending.append(str(path))
+        else:
+            path.unlink()
+    if record["created_link"] and p["root"].is_symlink():
+        if link_target(p["root"]) == p["local"]:
+            p["root"].unlink()
+        else:
+            pending.append(str(p["root"]))
+    if pending:
+        raise RuntimeError(
+            "Modified files preserved; review manually: " + ", ".join(pending)
+        )
+    systemctl_user("daemon-reload")
+    journal.unlink()
+    print("Incomplete setup rolled back; cache data and Cargo copies preserved.")
+
+
 def execute_setup(args: argparse.Namespace) -> None:
     p = layout()
     old = load()
@@ -648,30 +1102,7 @@ def execute_setup(args: argparse.Namespace) -> None:
         raise RuntimeError(
             "Existing configuration found; use enable/disable or uninstall before new setup"
         )
-    options = disks()
-    device = None
-    if args.local_only:
-        pass
-    elif args.uuid:
-        device = next((d for d in options if d["uuid"] == args.uuid), None)
-        if device is None:
-            raise RuntimeError(
-                "UUID not found among eligible USB Linux filesystem partitions"
-            )
-    elif sys.stdin.isatty():
-        print("Выберите SSD (или локальный режим):")
-        for i, d in enumerate(options, 1):
-            print(
-                f" {i}) {d['model']} {d['size'] / 2**30:.0f} GiB · {d['filesystem']} · {d['uuid']}"
-            )
-        print(f" {len(options) + 1}) Только внутренний диск")
-        selected = input("Номер: ").strip()
-        if not selected.isdigit() or not 1 <= int(selected) <= len(options) + 1:
-            raise RuntimeError("Invalid disk selection")
-        if int(selected) <= len(options):
-            device = options[int(selected) - 1]
-    else:
-        raise RuntimeError("Specify --uuid or --local-only without a TTY")
+    device = select_device(args)
     adapters = [
         a
         for a in (args.adapters.split(",") if args.adapters else DEFAULT_ADAPTERS)
@@ -689,6 +1120,7 @@ def execute_setup(args: argparse.Namespace) -> None:
         "signature": SIGNATURE,
         "schema": 1,
         "enabled": True,
+        "routing": "per-command",
         "uuid": device["uuid"] if device else "",
         "filesystem": device["filesystem"] if device else "",
         "subdir": "Kaizen/DevCache",
@@ -701,22 +1133,40 @@ def execute_setup(args: argparse.Namespace) -> None:
         "managed": (old or {}).get("managed", {}),
     }
     print("Plan:")
-    print(f"  SSD: {config['uuid'] or 'none (local only)'}")
-    print(f"  Cache root: {p['root']} -> {p['local']} or /<SSD>/Kaizen/DevCache")
+    print(f"  Storage: {device['path'] if device else 'local only'}")
+    print(f"  Filesystem UUID: {config['uuid'] or '-'}")
+    target = (
+        str(Path(device["mountpoints"][0]) / config["subdir"])
+        if device and device["mountpoints"]
+        else "/<STORAGE>/Kaizen/DevCache"
+        if device
+        else str(p["local"])
+    )
+    print(f"  Cache root: {p['root']}")
+    print(f"  Preferred target: {target}")
+    print(f"  Local fallback: {p['local']}")
     print(f"  Adapters: {', '.join(adapters)}")
     print(
         f"  Root required: NO; auto-mount attempts via UDisks: {config['auto_mount']}"
     )
+    print("  Routing: external-first per command via devcache run -- <command>")
+    print("  Ordinary commands: local cache; existing processes are unchanged")
+    print("  Background routing and automatic cleanup: OFF")
+    if args.cargo_links:
+        print("  Cargo registry/git: LOCAL ONLY; backed up and copied during setup")
     print("  Existing application caches will NOT be deleted or merged.")
     if args.dry_run:
         return
     if not args.yes and input("Continue? [y/N] ").strip().lower() not in ("y", "yes"):
         print("Cancelled")
         return
-    busy = active_processes(config)
+    # Default setup only creates new routing metadata. Existing commands keep
+    # their paths; only the opt-in Cargo migration changes existing cache paths.
+    busy = active_processes(config) if config["cargo_links"] else []
     if busy:
         raise RuntimeError(
-            "Close package managers/builds before setup: " + ", ".join(busy[:8])
+            "Close package managers/builds before Cargo migration: "
+            + ", ".join(busy[:8])
         )
     safe_dir(p["state"])
     safe_dir(p["local"])
@@ -728,29 +1178,21 @@ def execute_setup(args: argparse.Namespace) -> None:
         raise RuntimeError(
             "Existing symlink does not point to the managed local directory"
         )
-    try:
+    with installation_transaction(config):
         install_self(config)
         update_environment(config, write=True)
         if args.cargo_links:
             configure_cargo(config)
-        save_json(p["config"], config)
         set_link(p["root"], p["local"])
-        setup_systemd(config)
         save_json(p["config"], config)
-        print(
-            "Installed in local fallback mode; next reconciliation may switch to the SSD."
-        )
-        reconcile(config, interactive_mount=True)
-        print("Run: devcache doctor; devcache status")
-        print(
-            "For xonsh started outside systemd's environment, see README shell integration."
-        )
-    except Exception:
-        print(
-            "Setup incomplete. Use `devcache doctor` and preserve backups; no automated destructive rollback.",
-            file=sys.stderr,
-        )
-        raise
+        setup_systemd(config)
+    print("Installed. Run commands with: devcache run -- <command>")
+    print("No shell restart is required for devcache run.")
+    print(
+        "Existing terminals/IDEs keep their environment. Optional local cache exports:"
+    )
+    print("  devcache env --shell xonsh   (or --shell bash)")
+    print("Run: devcache doctor; devcache status")
 
 
 def print_status(config: dict[str, Any] | None) -> None:
@@ -774,11 +1216,17 @@ def print_status(config: dict[str, Any] | None) -> None:
         json.dumps(
             {
                 "enabled": config["enabled"],
-                "route": state,
+                "route": "per-command"
+                if config.get("routing") == "per-command"
+                else state,
+                "ordinary_commands": "local"
+                if config.get("routing") == "per-command"
+                else "legacy",
+                "external_mounted": bool(ext),
+                "automatic_cleanup": False,
                 "stable": str(p["root"]),
                 "target": str(link) if link else None,
                 "device_uuid": config["uuid"],
-                "ssd_mounted": bool(ext),
                 "adapters": config["adapters"],
             },
             indent=2,
@@ -791,7 +1239,6 @@ def doctor(config: dict[str, Any] | None) -> int:
         print("ERROR: not configured")
         return 1
     errors: list[str] = []
-    warnings: list[str] = []
     p = layout()
     if config["enabled"] and not p["root"].is_symlink():
         errors.append("Stable cache path is not a symlink")
@@ -804,7 +1251,9 @@ def doctor(config: dict[str, Any] | None) -> int:
     if link not in allowed:
         errors.append("Unrecognized cache target")
     if config["enabled"]:
-        for filename, content in unit_contents().items():
+        for filename in (
+            () if config.get("routing") == "per-command" else unit_contents()
+        ):
             u = p["unit_dir"] / filename
             if (
                 not u.is_file()
@@ -820,23 +1269,28 @@ def doctor(config: dict[str, Any] | None) -> int:
                 "managed", {}
             ).get("env"):
                 errors.append("Environment config differs from managed version")
+    if (p["state"] / "setup-recovery.json").exists():
+        errors.append("Incomplete setup record found; run devcache recover-setup")
     print_status(config)
-    for warn in warnings:
-        print("WARN:", warn)
     for error in errors:
         print("ERROR:", error)
     if not errors:
-        print("Static checks passed. Live hot-unplug safety is NOT guaranteed.")
+        print(
+            "Static checks passed. Removing storage during a command can still fail that command."
+        )
     return 1 if errors else 0
 
 
 def enable(config: dict[str, Any]) -> None:
+    require_command_routing(config)
     if config["enabled"]:
         print("Already enabled")
         return
     p = layout()
-    if active_processes(config):
-        raise RuntimeError("Close package managers before enabling")
+    if config["cargo_links"] and active_processes(config):
+        raise RuntimeError("Close package managers before enabling Cargo links")
+    if p["root"].is_symlink() and link_target(p["root"]) != p["local"]:
+        raise RuntimeError("Unexpected cache symlink; refusing to change a live route")
     safe_dir(p["local"])
     if p["root"].exists() and not p["root"].is_symlink():
         raise RuntimeError("Unmanaged cache root")
@@ -871,7 +1325,10 @@ def enable(config: dict[str, Any]) -> None:
 
 def disable(config: dict[str, Any], *, uninstall: bool) -> None:
     p = layout()
-    busy = active_processes(config)
+    needs_process_check = (
+        config["cargo_links"] or config.get("routing") != "per-command"
+    )
+    busy = active_processes(config) if needs_process_check else []
     if busy:
         raise RuntimeError(
             "Close active package managers before disabling: " + ", ".join(busy[:8])
@@ -880,12 +1337,13 @@ def disable(config: dict[str, Any], *, uninstall: bool) -> None:
         # Refuse user-replaced paths; only undo DevCache's own symlink.
         current = link_target(p["root"])
         allowed = {p["local"]}
-        if config.get("last_external_path"):
+        if config.get("routing") != "per-command" and config.get("last_external_path"):
             allowed.add(Path(config["last_external_path"]))
         if current not in allowed:
             raise RuntimeError("Stable symlink was modified outside DevCache")
         set_link(p["root"], p["local"])
-    stop_systemd()
+    if config.get("routing") != "per-command":
+        stop_systemd()
     config["enabled"] = False
     if config.get("cargo_links"):
         restore_cargo(config)
@@ -895,6 +1353,8 @@ def disable(config: dict[str, Any], *, uninstall: bool) -> None:
             p["root"].unlink()
         # Leave local and external caches untouched. Never remove executable automatically.
         p["config"].unlink()
+        if config_backup().is_file() and not config_backup().is_symlink():
+            config_backup().unlink()
         print(
             "Uninstalled configs and links; cache directories and DevCache executable preserved."
         )
@@ -910,16 +1370,14 @@ def disable(config: dict[str, Any], *, uninstall: bool) -> None:
 def gc_local(config: dict[str, Any], *, execute: bool) -> None:
     p = layout()
     if not config.get("enabled") or not config.get("uuid"):
-        print("Local cleanup requires enabled SSD mode")
+        print("Local cleanup requires enabled external storage mode")
         return
-    if link_target(p["root"]) == p["local"]:
-        print("Local fallback in use: preserving all local caches")
+    external = external_path(config)
+    if external is None:
+        print("External storage not verified; refusing local cleanup")
         return
-    # Fail closed if SSD has disappeared but symlink is stale.
-    if external_path(config) != link_target(p["root"]):
-        print("SSD not verified; refusing local cleanup")
-        return
-    if active_processes(config):
+    print("Close commands launched without devcache run before manual cleanup.")
+    if active_processes(dict(config, last_external_path=str(external))):
         print("Active cache operations detected; cleanup deferred")
         return
     size = directory_size(p["local"])
@@ -948,12 +1406,12 @@ def gc_local(config: dict[str, Any], *, execute: bool) -> None:
         # Python subprocesses should not generate bytecode through unrelated root.
         env.pop("PYTHONPYCACHEPREFIX", None)
         try:
-            cp = runner(cmd, timeout=180, env=env)
+            cp = subprocess.run(cmd, timeout=180, env=env, check=False)
         except (OSError, subprocess.TimeoutExpired) as exc:
             print(f"SKIP {name}: {exc}", file=sys.stderr)
             continue
         if cp.returncode:
-            print(f"ERROR {name}: {cp.stderr.strip()}", file=sys.stderr)
+            print(f"ERROR {name}: exit status {cp.returncode}", file=sys.stderr)
     print(
         "Cleanup completed; any remaining cache is retained rather than deleted unsafely."
     )
@@ -977,13 +1435,35 @@ def directory_size(path: Path) -> int:
 
 def cli(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        description="Rootless external SSD-first developer cache router"
+        description="Rootless external storage-first developer cache router"
     )
     parser.add_argument("--version", action="version", version=VERSION)
     sub = parser.add_subparsers(dest="action", required=True)
-    init = sub.add_parser("setup", help="Interactive install and SSD selection")
-    init.add_argument("--uuid")
-    init.add_argument("--local-only", action="store_true")
+    init = sub.add_parser("setup", help="Interactive install and storage selection")
+    destination = init.add_mutually_exclusive_group()
+    destination.add_argument("--uuid", help="Choose a filesystem by UUID")
+    destination.add_argument("--local-only", action="store_true")
+    init.add_argument("--search", default="", help="Initial device search text")
+    init.add_argument(
+        "--all-devices",
+        action="store_true",
+        help="Also show non-removable data devices",
+    )
+    devices = sub.add_parser(
+        "devices", help="List storage devices without changing configuration"
+    )
+    devices.add_argument(
+        "--search", default="", help="Filter by label, model, path, UUID or mountpoint"
+    )
+    devices.add_argument(
+        "--all",
+        dest="all_devices",
+        action="store_true",
+        help="Include non-removable data devices",
+    )
+    devices.add_argument(
+        "--json", action="store_true", help="Print machine-readable device inventory"
+    )
     init.add_argument("--adapters", help="Comma-separated: " + ",".join(ALL_ADAPTERS))
     init.add_argument("--cargo-links", action="store_true")
     init.add_argument(
@@ -999,6 +1479,8 @@ def cli(argv: list[str] | None = None) -> int:
     sub.add_parser("enable")
     sub.add_parser("disable")
     sub.add_parser("uninstall")
+    sub.add_parser("recover-config", help="Restore the validated config backup")
+    sub.add_parser("recover-setup", help="Undo an incomplete initial setup")
     env = sub.add_parser("env", help="Print environment assignments for a shell")
     env.add_argument("--shell", choices=("xonsh", "bash"), required=True)
     gc = sub.add_parser("gc")
@@ -1006,13 +1488,25 @@ def cli(argv: list[str] | None = None) -> int:
     gc.add_argument("--auto", action="store_true")
     gc.add_argument("--yes", action="store_true")
     run = sub.add_parser(
-        "run", help="Run a command while holding the DevCache shared lock"
+        "run", help="Choose storage once and run a command with fixed cache paths"
     )
     run.add_argument("command", nargs=argparse.REMAINDER)
     args = parser.parse_args(argv)
     try:
         if sys.platform != "linux":
             raise RuntimeError("DevCache supports Linux only")
+        if args.action == "devices":
+            inventory = matching_devices(
+                disks(), args.search, show_all=args.all_devices
+            )
+            if args.json:
+                print(json.dumps(inventory, indent=2))
+            else:
+                print_devices(inventory)
+            return 0
+        if args.action == "setup" and args.dry_run:
+            execute_setup(args)
+            return 0
         if args.action == "env":
             c = load()
             if not c or not c["enabled"]:
@@ -1040,9 +1534,20 @@ def cli(argv: list[str] | None = None) -> int:
             if not cmd:
                 raise RuntimeError("Specify a command after --")
             with lock(exclusive=False):
-                # Forward the exit status; shared lock remains held for the command.
-                return subprocess.run(cmd, check=False).returncode
+                config = load()
+                if config is None:
+                    raise RuntimeError("Not configured: run devcache setup")
+                env = command_environment(config)
+                # Do not retry failed commands: they may have changed project files.
+                result = subprocess.run(cmd, env=env, check=False).returncode
+                return 128 - result if result < 0 else result
         with lock():
+            if args.action == "recover-config":
+                recover_config()
+                return 0
+            if args.action == "recover-setup":
+                recover_setup()
+                return 0
             if args.action == "setup":
                 execute_setup(args)
                 return 0
@@ -1061,8 +1566,14 @@ def cli(argv: list[str] | None = None) -> int:
                 disable(config, uninstall=args.action == "uninstall")
                 return 0
             if args.action == "gc":
-                gc_local(config, execute=args.auto or args.yes)
+                if args.auto:
+                    print("Automatic cleanup is disabled. Use gc --yes explicitly.")
+                    return 0
+                gc_local(config, execute=args.yes)
                 return 0
+    except (KeyboardInterrupt, EOFError, InterruptedError):
+        print("Cancelled", file=sys.stderr)
+        return 130
     except (
         RuntimeError,
         ValueError,
