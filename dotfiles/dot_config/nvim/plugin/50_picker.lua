@@ -156,7 +156,9 @@ Snacks.setup({
 -- Find
 
 local function project_root()
-  return require("project").get_project_root() or vim.fn.getcwd()
+  local root = vim.fs.root(vim.fn.getcwd(), { ".git", ".jj" })
+
+  return root or require("project").get_project_root() or vim.fn.getcwd()
 end
 
 -- Files
