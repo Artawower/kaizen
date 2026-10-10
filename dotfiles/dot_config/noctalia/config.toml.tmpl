@@ -34,3 +34,16 @@ directory_dark = "{{ .ui.wallpaper.directory_dark }}"
 
 [hooks]
 theme_mode_changed = "{{ .chezmoi.homeDir }}/.config/noctalia/scripts/sync-system-appearance"
+
+[idle.behavior.lock]
+enabled = true
+timeout = 300
+action = "lock"
+
+[idle.behavior.suspend]
+timeout = 900
+locked_timeout = 600
+action = "lock_and_suspend"
+
+[lockscreen]
+lock_before_suspend = true

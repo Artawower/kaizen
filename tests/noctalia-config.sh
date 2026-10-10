@@ -2,6 +2,12 @@
 set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+assert_absent() {
+    if grep -qF "$1" "$2"; then
+        printf 'Unexpected %s in %s\n' "$1" "$2" >&2
+        return 1
+    fi
+}
 tmp_dir="$(mktemp -d)"
 trap 'rm -rf "$tmp_dir"' EXIT
 source_dir="$tmp_dir/source"
@@ -13,6 +19,7 @@ chezmoi execute-template \
     --source "$source_dir" \
     --override-data '{"ui":{"wallpaper":{"directory":"~/Pictures/wallpappers","directory_light":"~/Pictures/wallpappers/light","directory_dark":"~/Pictures/wallpappers/dark"}}}' \
     --file "$source_dir/dot_config/noctalia/config.toml.tmpl" >"$rendered"
+noctalia config validate "$rendered"
 python3 - "$rendered" <<'PY'
 import sys
 import tomllib
@@ -27,6 +34,17 @@ assert config["wallpaper"] == {
     "directory_dark": "~/Pictures/wallpappers/dark",
 }
 assert config["theme"]["mode"] == "auto"
+assert config["idle"]["behavior"]["lock"] == {
+    "enabled": True,
+    "timeout": 300,
+    "action": "lock",
+}
+assert config["idle"]["behavior"]["suspend"] == {
+    "timeout": 900,
+    "locked_timeout": 600,
+    "action": "lock_and_suspend",
+}
+assert config["lockscreen"]["lock_before_suspend"] is True
 PY
 
 hook="$repo_root/dotfiles/dot_config/noctalia/scripts/executable_sync-system-appearance"
@@ -55,4 +73,10 @@ from pathlib import Path
 
 compile(Path(sys.argv[1]).read_text(), sys.argv[1], "exec")
 PY
+assert_absent swayidle "$repo_root/features/tiling/packages.toml"
+assert_absent swayidle "$repo_root/dotfiles/dot_config/scripts/executable_setup-fedora-deps"
+assert_absent swayidle "$repo_root/dotfiles/dot_config/mango/executable_autostart.sh"
+assert_absent swayidle "$repo_root/dotfiles/dot_config/niri/config.kdl.tmpl"
+assert_absent swayidle "$repo_root/dotfiles/dot_config/hypr/hyprland.conf"
+[[ ! -e "$repo_root/dotfiles/dot_config/private_net.imput.helium/video-idle-inhibit" ]]
 printf 'Noctalia config tests passed\n'

@@ -135,9 +135,9 @@ grep -qF 'dbus-update-activation-environment --systemd' "$autostart"
 grep -qxF $'\tydotoold &' "$autostart"
 grep -qxF $'\thandy --start-hidden &' "$autostart"
 grep -qxF $'\t\temacs --daemon &' "$autostart"
-grep -qF 'pkill -x swayidle 2>/dev/null || true' "$autostart"
-grep -qF 'timeout 300 "noctalia msg session lock"' "$autostart"
-grep -qF 'timeout 900 "systemctl suspend"' "$autostart"
+if grep -qF 'swayidle' "$autostart"; then
+	exit 1
+fi
 if grep -qF 'sway-audio-idle-inhibit' "$autostart"; then
 	exit 1
 fi

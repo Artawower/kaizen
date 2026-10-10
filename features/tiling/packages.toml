@@ -8,7 +8,6 @@ dnf = [
   "grim",
   "playerctl",
   "slurp",
-  "swayidle",
   "wf-recorder",
   "wireplumber",
   "wl-clipboard",

@@ -50,14 +50,6 @@ if command -v emacs >/dev/null && command -v emacsclient >/dev/null; then
 	fi
 fi
 
-if command -v swayidle >/dev/null; then
-	pkill -x swayidle 2>/dev/null || true
-	swayidle -w \
-		timeout 300 "noctalia msg session lock" \
-		timeout 900 "systemctl suspend" \
-		before-sleep "noctalia msg session lock" &
-fi
-
 if command -v wl-clip-persist >/dev/null; then
 	wl-clip-persist --clipboard regular --reconnect-tries 0 &
 fi
