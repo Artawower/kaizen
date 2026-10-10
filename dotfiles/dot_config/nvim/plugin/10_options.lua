@@ -19,6 +19,12 @@ vim.opt.signcolumn = "yes"
 vim.opt.updatetime = 300
 
 vim.opt.undofile = true
+vim.opt.autoread = true
+
+vim.api.nvim_create_autocmd({ "FocusGained", "BufEnter", "CursorHold" }, {
+  group = vim.api.nvim_create_augroup("AutoReloadExternalFiles", { clear = true }),
+  command = "checktime",
+})
 
 local function autosave()
   local buf = vim.api.nvim_get_current_buf()
