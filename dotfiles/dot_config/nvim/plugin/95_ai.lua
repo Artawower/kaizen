@@ -31,7 +31,6 @@ vim.pack.add({
       after = function()
         require("minuet").setup({
           provider = "openai_fim_compatible",
-          notify = false,
           virtualtext = {
             auto_trigger_ft = { "*" },
             keymap = {
@@ -54,15 +53,28 @@ vim.pack.add({
             },
           },
         })
-        require("kaizen.minuet_ollama_guard").setup()
+        local virtualtext_config = require("minuet").config.virtualtext
+        local auto_trigger_ft = virtualtext_config.auto_trigger_ft or {}
+        local ignored_filetypes = virtualtext_config.auto_trigger_ignore_ft or {}
+        for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+          if vim.api.nvim_buf_is_loaded(buf) then
+            local filetype = vim.bo[buf].filetype
+            if filetype ~= "" then
+              vim.b[buf].minuet_virtual_text_auto_trigger = (
+                vim.tbl_contains(auto_trigger_ft, "*") or vim.tbl_contains(auto_trigger_ft, filetype)
+              ) and not vim.tbl_contains(ignored_filetypes, filetype)
+            end
+          end
+        end
         local minuet_action = require("minuet.virtualtext").action
-        vim.keymap.set("i", "<C-i>", minuet_action.accept, { desc = "Accept Minuet suggestion" })
+        vim.keymap.set("i", "<C-y>", minuet_action.accept, { desc = "Accept Minuet suggestion" })
         vim.keymap.set("i", "<C-]>", minuet_action.next, { desc = "Next Minuet suggestion" })
         vim.keymap.set("i", "<C-/>", minuet_action.accept_line, { desc = "Accept Minuet line" })
       end,
     },
   },
 }, { load = require("lz.n").load })
+
 
 map({ "x", "n" }, "<leader>as", function()
   require("lz.n").trigger_load("postilla.nvim")
@@ -78,4 +90,5 @@ map({ "x", "n" }, "<leader>af", function()
   require("lz.n").trigger_load("postilla.nvim")
   vim.cmd.PostillaDone()
 end, { desc = "Finish AI review" })
+
 
