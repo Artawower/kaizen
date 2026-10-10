@@ -300,6 +300,9 @@
 
 ;;; Package integrations
 
+(with-eval-after-load 'reviewer
+  (helixel-define-key 'normal (kbd "SPC r r") #'reviewer-transient))
+
 (with-eval-after-load 'avy
   (helixel-define-key 'normal "f" #'kaizen/helixel-avy-select-word)
   (helixel-define-key 'normal (kbd "\\ f") #'avy-goto-char-timer))

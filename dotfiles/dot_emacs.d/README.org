@@ -4587,7 +4587,7 @@ Automatically creates parent directories if needed."
   
 
   (defun org-babel-execute:typescript (body params)
-    (let ((org-babel-js-cmd "bun run -"))
+    (let ((org-babel-js-cmd "bun"))
       (org-babel-execute:js body params))))
 #+END_SRC
 
