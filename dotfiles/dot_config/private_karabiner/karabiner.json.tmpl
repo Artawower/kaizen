@@ -1,3 +1,11 @@
+{{- $navDown := "j" -}}
+{{- $navUp := "k" -}}
+{{- $navRight := "l" -}}
+{{- if eq .layout "colemak-regular" -}}
+{{- $navDown = "y" -}}
+{{- $navUp = "n" -}}
+{{- $navRight = "u" -}}
+{{- end -}}
 {
   "profiles": [
     {
@@ -118,7 +126,7 @@
             ]
           },
           {
-            "description": "Kagi Search: Tab Navigation with Ctrl+J/K",
+            "description": "Kagi Search: Tab Navigation with Ctrl+{{ $navDown }}/{{ $navUp }}",
             "manipulators": [
               {
                 "conditions": [
@@ -131,7 +139,7 @@
                   }
                 ],
                 "from": {
-                  "key_code": "j",
+                  "key_code": "{{ $navDown }}",
                   "modifiers": {
                     "mandatory": ["control"],
                     "optional": ["caps_lock"]
@@ -156,7 +164,7 @@
                   }
                 ],
                 "from": {
-                  "key_code": "k",
+                  "key_code": "{{ $navUp }}",
                   "modifiers": {
                     "mandatory": ["control"],
                     "optional": ["caps_lock"]
@@ -171,14 +179,14 @@
                 "type": "basic"
               }
             ],
-            "title": "Kagi: Remap Ctrl+J/K to Tab Navigation"
+            "title": "Kagi: Remap Ctrl+{{ $navDown }}/{{ $navUp }} to Tab Navigation"
           },
           {
-            "description": "Map ctrl+cmd+j/k/h/l to arrow keys",
+            "description": "Map ctrl+cmd navigation keys to arrow keys", 
             "manipulators": [
               {
                 "from": {
-                  "key_code": "k",
+                  "key_code": "{{ $navUp }}",
                   "modifiers": {
                     "mandatory": ["control", "command"],
                     "optional": ["any"]
@@ -193,7 +201,7 @@
               },
               {
                 "from": {
-                  "key_code": "j",
+                  "key_code": "{{ $navDown }}",
                   "modifiers": {
                     "mandatory": ["control", "command"],
                     "optional": ["any"]
@@ -223,7 +231,7 @@
               },
               {
                 "from": {
-                  "key_code": "l",
+                  "key_code": "{{ $navRight }}",
                   "modifiers": {
                     "mandatory": ["control", "command"],
                     "optional": ["any"]
@@ -235,11 +243,75 @@
                   }
                 ],
                 "type": "basic"
+              },
+              {
+                "from": {
+                  "key_code": "{{ $navUp }}",
+                  "modifiers": {
+                    "mandatory": ["control", "command", "shift"],
+                    "optional": ["any"]
+                  }
+                },
+                "to": [
+                  {
+                    "key_code": "up_arrow",
+                    "modifiers": ["shift"]
+                  }
+                ],
+                "type": "basic"
+              },
+              {
+                "from": {
+                  "key_code": "{{ $navDown }}",
+                  "modifiers": {
+                    "mandatory": ["control", "command", "shift"],
+                    "optional": ["any"]
+                  }
+                },
+                "to": [
+                  {
+                    "key_code": "down_arrow",
+                    "modifiers": ["shift"]
+                  }
+                ],
+                "type": "basic"
+              },
+              {
+                "from": {
+                  "key_code": "h",
+                  "modifiers": {
+                    "mandatory": ["control", "command", "shift"],
+                    "optional": ["any"]
+                  }
+                },
+                "to": [
+                  {
+                    "key_code": "left_arrow",
+                    "modifiers": ["shift"]
+                  }
+                ],
+                "type": "basic"
+              },
+              {
+                "from": {
+                  "key_code": "{{ $navRight }}",
+                  "modifiers": {
+                    "mandatory": ["control", "command", "shift"],
+                    "optional": ["any"]
+                  }
+                },
+                "to": [
+                  {
+                    "key_code": "right_arrow",
+                    "modifiers": ["shift"]
+                  }
+                ],
+                "type": "basic"
               }
             ]
           },
           {
-            "description": "Remap Shift + Tab to Ctrl + J in Telegram",
+            "description": "Remap Shift + Tab to Ctrl + {{ $navDown }} in Telegram",
             "manipulators": [
               {
                 "conditions": [
@@ -253,7 +325,7 @@
                   }
                 ],
                 "from": {
-                  "key_code": "j",
+                  "key_code": "{{ $navDown }}",
                   "modifiers": {
                     "mandatory": ["fn"],
                     "optional": ["any"]
@@ -279,7 +351,7 @@
                   }
                 ],
                 "from": {
-                  "key_code": "k",
+                  "key_code": "{{ $navUp }}",
                   "modifiers": {
                     "mandatory": ["fn"],
                     "optional": ["any"]
@@ -294,14 +366,14 @@
                 "type": "basic"
               }
             ],
-            "title": "Remap Shift + Tab to Ctrl + J for telegram"
+            "title": "Remap Shift + Tab to Ctrl + {{ $navDown }} for telegram"
           },
           {
-            "description": "Map fn+j/k/h/l to arrow keys",
+            "description": "Map fn+{{ $navDown }}/{{ $navUp }}/h/{{ $navRight }} to arrow keys",
             "manipulators": [
               {
                 "from": {
-                  "key_code": "k",
+                  "key_code": "{{ $navUp }}",
                   "modifiers": {
                     "mandatory": ["fn"],
                     "optional": ["any"]
@@ -316,7 +388,7 @@
               },
               {
                 "from": {
-                  "key_code": "j",
+                  "key_code": "{{ $navDown }}",
                   "modifiers": {
                     "mandatory": ["fn"],
                     "optional": ["any"]
@@ -346,7 +418,7 @@
               },
               {
                 "from": {
-                  "key_code": "l",
+                  "key_code": "{{ $navRight }}",
                   "modifiers": {
                     "mandatory": ["fn"],
                     "optional": ["any"]
@@ -362,7 +434,7 @@
             ]
           },
           {
-            "description": "Browsers: tab navigation with QWERTY Ctrl+J/K and Colemak Ctrl+N/E",
+            "description": "Browsers: tab navigation with Ctrl+{{ $navDown }}/{{ $navUp }}",
             "manipulators": [
               {
                 "conditions": [
@@ -379,7 +451,7 @@
                   }
                 ],
                 "from": {
-                  "key_code": "j",
+                  "key_code": "{{ $navDown }}",
                   "modifiers": {
                     "mandatory": ["left_control"],
                     "optional": ["caps_lock"]
@@ -408,7 +480,7 @@
                   }
                 ],
                 "from": {
-                  "key_code": "k",
+                  "key_code": "{{ $navUp }}",
                   "modifiers": {
                     "mandatory": ["left_control"],
                     "optional": ["caps_lock"]
@@ -447,7 +519,7 @@
                 "type": "basic"
               }
             ],
-            "title": "Browsers: Ctrl+J/K physical tab navigation"
+            "title": "Browsers: Ctrl+{{ $navDown }}/{{ $navUp }} physical tab navigation"
           }
         ]
       },
