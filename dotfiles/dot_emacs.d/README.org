@@ -240,7 +240,13 @@ https://github.com/D4lj337/Emacs-performance
 * Dependencies
 Transient
 #+BEGIN_SRC emacs-lisp :results silent
-(use-package transient :ensure t :defer t)
+(use-package transient
+  :ensure t
+  :defer t
+  :config
+  (define-key transient-map (kbd "<escape>") 'transient-quit-one)
+  (define-key transient-edit-map (kbd "<escape>") 'transient-quit-one)
+  (define-key transient-sticky-map (kbd "<escape>") 'transient-quit-seq))
 #+END_SRC
 
 
@@ -1221,6 +1227,7 @@ Move to husky
 *** Standard editing
 #+BEGIN_SRC emacs-lisp
 (global-set-key (kbd "TAB") 'indent-for-tab-command)
+(global-set-key (kbd "<escape>") #'keyboard-quit)
 (global-set-key (kbd "s-v") 'yank)
 (global-set-key (kbd "s-s") 'save-buffer)
 (global-set-key (kbd "s-u") 'revert-buffer)
@@ -4083,7 +4090,7 @@ Requires Emacs 30+
 #+BEGIN_SRC emacs-lisp :results silent
 (use-package reviewer
   :defer t
-  :ensure (:host github :repo "artawower/reviewer.el" :branch "develop"))
+  :ensure (:host github :repo "SreenivasVRao/reviewer.el" :branch "develop"))
 #+END_SRC
 ** ECA. Agnostic code assistant
 *** Functions
