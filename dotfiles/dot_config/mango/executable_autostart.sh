@@ -6,6 +6,10 @@ if command -v systemctl >/dev/null; then
 	systemctl --user unset-environment QT_PLUGIN_PATH
 fi
 
+if command -v playerctld >/dev/null; then
+	playerctld daemon
+fi
+
 if command -v dbus-update-activation-environment >/dev/null; then
 	dbus-update-activation-environment --systemd \
 		WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_SESSION_TYPE MANGO_INSTANCE_SIGNATURE \
