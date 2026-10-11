@@ -17,14 +17,8 @@ config.hostInfo = "Emacs"
 config.tsserver.fallbackPath = "tsserver"
 
 [language-server.angular]
-command = "ngserver"
-args = [
-  "--stdio",
-  "--tsProbeLocations",
-  ".",
-  "--ngProbeLocations",
-  "."
-]
+command = "angular-language-server"
+args = ["--stdio"]
 
 [language-server.vtsls.config.vtsls.tsserver]
 globalPlugins = [
@@ -120,8 +114,8 @@ language-id = "html"
 file-types = ["html", "htm"]
 roots = ["angular.json", "package.json"]
 language-servers = [
-  { name = "vscode-html-language-server", support-workspace = ["angular.json", "package.json"] },
   { name = "angular", support-workspace = ["angular.json"], config-files = ["angular.json"] },
+  { name = "vscode-html-language-server", support-workspace = ["angular.json", "package.json"] },
   { name = "codebook", only-features = ["diagnostics", "code-action"] }
 ]
 

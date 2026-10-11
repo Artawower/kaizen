@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ngserver_path=$(command -v ngserver)
+ngserver_path=$(readlink -f "$ngserver_path")
+server_root=$(dirname "$(dirname "$ngserver_path")")
+workspace_node_modules="$PWD/node_modules"
+server_node_modules="$server_root/node_modules"
+probe_locations="$workspace_node_modules,$server_node_modules"
+
+exec "$ngserver_path" "$@" \
+  --tsProbeLocations "$probe_locations" \
+  --ngProbeLocations "$probe_locations"
