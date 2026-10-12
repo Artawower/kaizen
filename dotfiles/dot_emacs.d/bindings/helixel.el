@@ -245,7 +245,6 @@
         (helixel-define-key 'normal "K" #'helixel-search-repeat-reverse)
         (helixel-define-key 'normal "j" #'helixel-forward-word-start)
         (helixel-define-key 'normal "J" #'helixel-forward-WORD-start)
-        (helixel-define-key 'normal "N" #'my/copy-with-ai-context)
         (define-key helixel-normal-map (kbd "C-n") #'flymake-goto-next-error)
         (define-key helixel-normal-map (kbd "C-e") #'flymake-goto-prev-error))
     (helixel-define-key 'normal "n" #'kaizen/helixel-search-or-next)
@@ -264,6 +263,7 @@
   (keymap-set mode-specific-map "h" kaizen/helixel-help-map)
   (keymap-set mode-specific-map "v" kaizen/helixel-vcs-map)
   (keymap-set mode-specific-map "w" kaizen/helixel-window-map)
+  (keymap-set mode-specific-map "a c" #'my/copy-with-ai-context)
 
   (global-set-key (kbd "s-c") #'helixel-kill-ring-save))
 
