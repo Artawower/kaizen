@@ -4187,9 +4187,9 @@ deps
 ** Minuet
 #+BEGIN_SRC emacs-lisp :results silent
 (use-package minuet
-  :hook
-  (prog-mode . minuet-auto-suggestion-mode)
-  (text-mode . minuet-auto-suggestion-mode)
+  ;; :hook
+  ;; (prog-mode . minuet-auto-suggestion-mode)
+  ;; (text-mode . minuet-auto-suggestion-mode)
   :bind
   (("s-]" . minuet-next-suggestion)
    ("s-[" . minuet-previous-suggestion)
