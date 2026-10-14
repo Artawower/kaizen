@@ -48,6 +48,11 @@ assert "Super-BTN_RIGHT: C-BTN_RIGHT" in content
 common_super = content.split("- name: Common Super shortcuts", 1)[1].split("- name: Terminals commands", 1)[0]
 assert "com.vscodium.codium" in common_super
 assert "codium-url-handler" in common_super
+assert "Super-v: Shift-Insert" in common_super
+terminals = content.split("- name: Terminals commands", 1)[1].split("- name: Terminal word deletion", 1)[0]
+assert "Super-v: Shift-Insert" in terminals
+gui_shortcuts = content.split("- name: GUI shortcuts", 1)[1].split("- name: Browser shortcuts", 1)[0]
+assert "Super-v: Shift-Insert" in gui_shortcuts
 assert "Alt-Backspace: C-w" in content
 assert "Alt-Delete: C-w" in content
 terminal_delete = content.split("- name: Terminal word deletion", 1)[1].split("- name: Alt-Backspace delete word", 1)[0]
@@ -62,6 +67,7 @@ assert "Alt-Backspace" not in delete
 ghostty_config = Path(sys.argv[2]).read_text()
 assert r"keybind = alt+delete=text:\x17" in ghostty_config
 assert r"keybind = ctrl+backspace=text:\x17" in ghostty_config
+assert "keybind = shift+insert=paste_from_clipboard" in ghostty_config
 reload_script = Path(sys.argv[3]).read_text()
 assert '"--mouse"' in reload_script
 assert '"--ignore"' not in reload_script

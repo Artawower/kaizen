@@ -48,7 +48,7 @@ keymap:
     exact_match: true
     remap:
       Super-c: C-c
-      Super-v: C-v
+      Super-v: Shift-Insert
       Super-x: C-x
       Super-z: C-z
       Super-a: C-a
@@ -75,7 +75,7 @@ keymap:
     application:
       only: [alacritty, kitty, wezterm, "org.wezfurlong.wezterm", app.kde.konsole, konsole, ghostty, "com.mitchellh.ghostty"]
     remap:
-      Super-v: C-Shift-v
+      Super-v: Shift-Insert
       Super-c: C-Shift-c
       Super-z: C-Shift-z
 
@@ -125,7 +125,7 @@ keymap:
       Alt-Right: End
       Super-a: C-a
       Super-c: C-c
-      Super-v: C-v
+      Super-v: Shift-Insert
       Super-z: C-z
 {{- if eq .layout "colemak" }}
       Super-Shift-f: C-Shift-t
@@ -143,6 +143,13 @@ keymap:
 {{- else }}
       Super-f: C-f
 {{- end }}
+      Super-t: C-t
+      Super-f: C-f
+      Super-g: C-g
+      Super-r: C-r
+      Super-p: C-p
+      Super-e: C-e
+
       Super-1: C-1
       Super-2: C-2
       Super-3: C-3
