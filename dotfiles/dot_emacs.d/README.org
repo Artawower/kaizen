@@ -721,7 +721,7 @@ Modeline inactive color
   "Use the terminal background in FRAME without changing graphical frames."
   (let ((frame (or frame (selected-frame))))
     (unless (display-graphic-p frame)
-      (dolist (face '(default fringe line-number))
+      (dolist (face '(default fringe margin line-number))
         (when (facep face)
           (set-face-background face "unspecified-bg" frame))))))
 
