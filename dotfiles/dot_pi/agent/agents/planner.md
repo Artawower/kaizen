@@ -2,7 +2,7 @@
 name: planner
 description: Read-only implementation planner for non-trivial engineering changes
 mode: all
-model: antigravity/gemini-3.8-flash
+model: openai-codex/gpt-6.1-sol
 thinking: high
 systemPrompt: replace
 permission:

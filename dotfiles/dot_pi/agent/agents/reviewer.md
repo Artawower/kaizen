@@ -2,7 +2,7 @@
 name: reviewer
 description: Independent read-only reviewer of implementation diffs
 mode: primary
-model: openai-codex/gpt-5.6-sol
+model: openai-codex/gpt-6.1-sol
 thinking: high
 systemPrompt: replace
 

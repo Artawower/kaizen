@@ -54,7 +54,9 @@
     (helixel-define-key state (kbd "C-o") #'better-jumper-jump-backward)
     (helixel-define-key state (kbd "C-S-o") #'better-jumper-jump-forward))
 
-  (helixel-define-key 'insert (kbd "TAB") #'indent-for-tab-command))
+  (helixel-define-key 'insert (kbd "TAB") #'indent-for-tab-command)
+  (dolist (key '("C-w" "M-DEL" "M-<backspace>"))
+    (helixel-define-key 'insert (kbd key) #'my/delete-backward-word)))
 
 (dolist (map (list minibuffer-local-map
                    minibuffer-local-ns-map

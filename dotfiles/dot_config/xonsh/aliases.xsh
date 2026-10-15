@@ -13,6 +13,7 @@ aliases["h"] = "/usr/bin/hx"
 aliases["p"] = "pi"
 aliases["o"] = "opencode"
 aliases["e"] = ["emacsclient", "-a", "", "-c", "-n"]
+aliases['em'] = 'emacsclient -nw'
 
 # VCS
 aliases["g"] = "gitu"

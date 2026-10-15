@@ -1248,6 +1248,14 @@ Move to husky
   (global-kkp-mode 1))
 #+END_SRC
 
+*** Terminal cursor
+#+BEGIN_SRC emacs-lisp
+(with-eval-after-load 'term/xterm
+  (when (boundp 'xterm-update-cursor)
+    (setq xterm-update-cursor 'type)
+    (add-hook 'post-command-hook #'xterm--post-command-hook)))
+#+END_SRC
+
 *** Standard editing
 #+BEGIN_SRC emacs-lisp
 (global-set-key (kbd "TAB") 'indent-for-tab-command)
@@ -1258,6 +1266,14 @@ Move to husky
 (global-set-key (kbd "s-a") 'mark-whole-buffer)
 (global-set-key (kbd "s-z") 'undo)
 (global-set-key "\C-u" 'my/backward-kill-line)
+#+END_SRC
+
+*** Minibuffer word deletion
+#+BEGIN_SRC emacs-lisp
+(define-key minibuffer-local-map (kbd "C-w")
+  '(menu-item "" my/delete-backward-word
+     :filter (lambda (command)
+               (if (display-graphic-p) #'kill-region command))))
 #+END_SRC
 
 *** Window management
@@ -1537,6 +1553,16 @@ Bookmark for navigation inside file
     (setq kill-ring-yank-pointer kill-ring)))
 #+END_SRC
 
+
+*** Delete backward word
+#+BEGIN_SRC emacs-lisp
+(defun my/delete-backward-word (arg)
+  "Delete ARG preceding words without changing the kill ring or clipboard."
+  (interactive "*p")
+  (let ((end (point)))
+    (backward-word arg)
+    (delete-region (point) end)))
+#+END_SRC
 
 *** Copy with AI context
 #+BEGIN_SRC emacs-lisp
@@ -2992,7 +3018,7 @@ Function for search in buffer depends or visual or normal line
 (use-package corfu-popupinfo
   :ensure (corfu-popupinfo :host github :repo "minad/corfu" :files ("extensions/corfu-popupinfo.el"))
   :bind (:map corfu-map
-              ("C-m" . corfu-popupinfo-documentation))
+              ("M-h" . corfu-popupinfo-documentation))
   :custom
   (corfu-echo-delay nil)
   (corfu-popupinfo-delay '(0.5 . 0.5))

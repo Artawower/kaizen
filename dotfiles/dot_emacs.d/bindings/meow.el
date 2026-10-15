@@ -347,8 +347,13 @@
 (use-package meow
   :custom
   (meow-use-clipboard t)
+  (meow-cursor-type-insert 'bar)
   :config
   (kaizen/meow-setup)
+  (meow-insert-define-key
+   '("C-w" . my/delete-backward-word)
+   '("M-DEL" . my/delete-backward-word)
+   '("M-<backspace>" . my/delete-backward-word))
   (define-key mode-specific-map (kbd "j") nil)
   (define-key mode-specific-map (kbd "e") nil)
   (my/meow-thing-register)

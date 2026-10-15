@@ -22,7 +22,7 @@ faulthandler.dump_traceback_later(90, exit=True)
 project = Path(sys.argv[1])
 source = (project / 'dotfiles/dot_emacs.d/README.org').read_text()
 blocks = '\n'.join(source.split(f'*** {heading}\n#+BEGIN_SRC emacs-lisp\n', 1)[1].split('#+END_SRC', 1)[0]
-                   for heading in ['Terminal background', 'Terminal client colors'])
+                   for heading in ['Terminal background', 'Terminal client colors', 'Terminal cursor'])
 emacs = shutil.which('emacs')
 client = shutil.which('emacsclient')
 assert emacs and client and shutil.which('tic'), 'emacs, emacsclient and tic are required'
@@ -98,16 +98,23 @@ with tempfile.TemporaryDirectory(prefix='kaizen-emacs-terminal-') as folder:
 '''
         report = '''
 (defun kaizen-report ()
-  (let ((initial-margin (face-background 'margin nil t)))
+  (let ((initial-margin (face-background 'margin nil t))
+        (cursor-type 'bar))
     (spacious-padding-set-faces)
-    (with-temp-file RESULT
+    (xterm--post-command-hook)
+    (let ((insert-cursor (terminal-parameter nil 'xterm--cursor-type)))
+      (setq cursor-type 'box)
+      (xterm--post-command-hook)
+      (with-temp-file RESULT
       (insert (json-encode
                (list :colors (display-color-cells)
                      :tty (tty-type)
                      :default (face-background 'default nil t)
                      :margin initial-margin
                      :margin-after-spacing (face-background 'margin nil t)
-                     :region (color-values "#343955")))))))
+                     :insert-cursor insert-cursor
+                     :normal-cursor (terminal-parameter nil 'xterm--cursor-type)
+                     :region (color-values "#343955"))))))))
 '''.replace('RESULT', json.dumps(str(result)))
         hooks = '''
 (add-hook 'after-make-frame-functions (lambda (_) (spacious-padding-set-faces)))
@@ -162,6 +169,7 @@ with tempfile.TemporaryDirectory(prefix='kaizen-emacs-terminal-') as folder:
             expected_colors = 16777216 if colorterm else 256
             assert state['colors'] == expected_colors, (daemon, colorterm, state)
             assert state['default'] == state['margin'] == state['margin-after-spacing'] == 'unspecified-bg', state
+            assert state['insert-cursor'] == 5 and state['normal-cursor'] == 1, state
             if colorterm:
                 assert state['region'] == [52 * 257, 57 * 257, 85 * 257], state
             if daemon:
