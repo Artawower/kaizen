@@ -65,6 +65,18 @@ for layout in ("colemak", "qwerty", "colemak-regular"):
     assert keys["Alt + Shift + Slash"] == {"set_workspace_layout": {"mode": "scrolling"}}
     assert keys["Ctrl + Alt + Shift + R"] == "reload_config"
     assert config["virtual_workspaces"]["default_workspace_count"] == 12
+    anki_dialog_rule = next(
+        rule for rule in config["virtual_workspaces"]["app_rules"]
+        if rule.get("app_name") == "anki" and "title_regex" in rule
+    )
+    assert anki_dialog_rule["manage"] is True
+    assert anki_dialog_rule["floating"] is True
+    bitwarden_rules = [
+        rule for rule in config["virtual_workspaces"]["app_rules"]
+        if rule.get("title_substring") == "Bitwarden"
+    ]
+    assert len(bitwarden_rules) == 1
+    assert bitwarden_rules[0]["floating"] is True
 
     if layout != "colemak":
         mango = set((root / f"mango-{layout}").read_text().splitlines())
