@@ -700,15 +700,34 @@ Modeline inactive color
         (when (facep face)
           (set-face-background face "unspecified-bg" frame))))))
 
-(defun my/setup-terminal-backgrounds (&optional _theme)
-  "Restore terminal backgrounds after a theme change."
+(defun my/setup-terminal-backgrounds (&rest _)
+  "Restore terminal backgrounds after theme or spacing changes."
   (dolist (frame (frame-list))
     (my/setup-terminal-background frame)))
 
 (add-hook 'after-make-frame-functions #'my/setup-terminal-background)
 (add-hook 'window-setup-hook #'my/setup-terminal-backgrounds)
 (add-hook 'enable-theme-functions #'my/setup-terminal-backgrounds)
+(with-eval-after-load 'spacious-padding
+  (advice-add 'spacious-padding-set-faces :after #'my/setup-terminal-backgrounds))
 (my/setup-terminal-backgrounds)
+#+END_SRC
+*** Terminal client colors
+#+BEGIN_SRC emacs-lisp
+(defun my/server-truecolor-tty (arguments)
+  "Use direct colors for clients that advertise truecolor support."
+  (let* ((environment (process-get (nth 2 arguments) 'env))
+         (colorterm (and environment (getenv-internal "COLORTERM" environment))))
+    (if (and (equal (nth 1 arguments) "xterm-256color")
+             (stringp colorterm)
+             (member (downcase colorterm) '("truecolor" "24bit"))
+             (or (file-readable-p "~/.terminfo/x/xterm-kaizen-direct")
+                 (file-readable-p "~/.terminfo/78/xterm-kaizen-direct")))
+        (cons (car arguments) (cons "xterm-kaizen-direct" (cddr arguments)))
+      arguments)))
+
+(with-eval-after-load 'server
+  (advice-add 'server-create-tty-frame :filter-args #'my/server-truecolor-tty))
 #+END_SRC
 *** Modern themes
 #+BEGIN_SRC emacs-lisp :results silent

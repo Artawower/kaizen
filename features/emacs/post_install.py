@@ -4,9 +4,8 @@ import shutil
 import subprocess
 import sys
 import tempfile
-from pathlib import Path
-
 import tomllib
+from pathlib import Path
 
 EMACS_APPLICATION = "Emacs.app"
 CLIENT_APPLICATION = "Emacs Client.app"
@@ -94,8 +93,29 @@ def build_emacs_client(source: Path, destination: Path, emacsclient: Path) -> No
     print("  Emacs Client launcher rebuilt for the Homebrew daemon")
 
 
+def install_terminal_colors() -> None:
+    tic = shutil.which("tic")
+    if not tic:
+        print("  tic unavailable; skipping terminal truecolor support")
+        return
+    subprocess.run(
+        [
+            tic,
+            "-x",
+            "-o",
+            str(Path.home() / ".terminfo"),
+            str(Path(__file__).with_name("xterm-kaizen-direct.terminfo")),
+        ],
+        check=True,
+    )
+    print("  Emacs terminal truecolor support installed")
+
+
 def main() -> None:
     os_name = sys.argv[1] if len(sys.argv) > 1 else ""
+    if not os_name:
+        return
+    install_terminal_colors()
     if os_name != "macos":
         return
     formula = emacs_formula()
