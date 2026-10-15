@@ -426,8 +426,22 @@ vim.diagnostic.config({
   severity_sort = true,
 })
 
+local function has_open_float()
+  for _, win in ipairs(vim.api.nvim_list_wins()) do
+    if vim.api.nvim_win_get_config(win).relative ~= "" then
+      return true
+    end
+  end
+
+  return false
+end
+
 vim.api.nvim_create_autocmd("CursorHold", {
   callback = function()
+    if has_open_float() then
+      return
+    end
+
     vim.diagnostic.open_float(nil, {
       scope = "cursor",
       focus = false,
