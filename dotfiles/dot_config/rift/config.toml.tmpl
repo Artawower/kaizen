@@ -1,9 +1,14 @@
+{{- $navigation := dict "left" "H" "down" "J" "up" "K" "right" "L" -}}
+{{- $workspaces := list "S" "T" "W" "D" "I" "E" "X" "U" "A" "P" -}}
+{{- if eq .layout "colemak" -}}
+{{- $navigation = dict "left" "H" "down" "N" "up" "E" "right" "I" -}}
+{{- $workspaces = list "S" "T" "W" "O" "D" "R" "U" "L" "A" "P" -}}
+{{- end -}}
 # Migrated from AeroSpace config for Rift
 # Target path: ~/.config/rift/config.toml
 #
 # Notes:
 # - Workspace indices are 0-based in Rift.
-# - Colemak-specific H/N/E/I bindings are preserved as literal keys.
 # - AeroSpace "service mode" has no direct Rift equivalent; see README.
 # - Edge focus fallback is implemented via helper scripts.
 
@@ -273,33 +278,31 @@ resize = "Ctrl + Meta + Alt + Shift"
 "Meta + Alt + Shift + F" = "toggle_fullscreen_within_gaps"
 
 # -----------------------------------------------------------------------------
-# Focus - Colemak H/N/E/I
-# H/I keep your AeroSpace behavior:
 #   focus left/right; if no neighbor -> previous/next workspace.
 # -----------------------------------------------------------------------------
-"Alt + Shift + H" = { exec = ["sh", "-c", "~/.config/rift/scripts/focus-edge.sh left"] }
-"Alt + Shift + I" = { exec = ["sh", "-c", "~/.config/rift/scripts/focus-edge.sh right"] }
+"Alt + Shift + {{ index $navigation "left" }}" = { exec = ["sh", "-c", "~/.config/rift/scripts/focus-edge.sh left"] }
+"Alt + Shift + {{ index $navigation "right" }}" = { exec = ["sh", "-c", "~/.config/rift/scripts/focus-edge.sh right"] }
 
-"Alt + Shift + N" = { move_focus = "down" }
-"Alt + Shift + E" = { move_focus = "up" }
+"Alt + Shift + {{ index $navigation "down" }}" = { move_focus = "down" }
+"Alt + Shift + {{ index $navigation "up" }}" = { move_focus = "up" }
 
 # -----------------------------------------------------------------------------
 # Move windows
 # -----------------------------------------------------------------------------
-"Meta + Alt + Shift + H" = { move_node = "left" }
-"Meta + Alt + Shift + N" = { move_node = "down" }
-"Meta + Alt + Shift + E" = { move_node = "up" }
-"Meta + Alt + Shift + I" = { move_node = "right" }
+"Meta + Alt + Shift + {{ index $navigation "left" }}" = { move_node = "left" }
+"Meta + Alt + Shift + {{ index $navigation "down" }}" = { move_node = "down" }
+"Meta + Alt + Shift + {{ index $navigation "up" }}" = { move_node = "up" }
+"Meta + Alt + Shift + {{ index $navigation "right" }}" = { move_node = "right" }
 
 # -----------------------------------------------------------------------------
 # Resize
 # Rift's native resizing is smart/generic rather than width-vs-height ±40 px.
 # These preserve the ergonomic chord, not exact pixel semantics.
 # -----------------------------------------------------------------------------
-"Ctrl + Meta + Alt + Shift + H" = "resize_window_shrink"
-"Ctrl + Meta + Alt + Shift + N" = "resize_window_grow"
-"Ctrl + Meta + Alt + Shift + E" = "resize_window_shrink"
-"Ctrl + Meta + Alt + Shift + I" = "resize_window_grow"
+"Ctrl + Meta + Alt + Shift + {{ index $navigation "left" }}" = "resize_window_shrink"
+"Ctrl + Meta + Alt + Shift + {{ index $navigation "down" }}" = "resize_window_grow"
+"Ctrl + Meta + Alt + Shift + {{ index $navigation "up" }}" = "resize_window_shrink"
+"Ctrl + Meta + Alt + Shift + {{ index $navigation "right" }}" = "resize_window_grow"
 
 # -----------------------------------------------------------------------------
 # Workspace switching: 0-based Rift indices
@@ -318,16 +321,9 @@ resize = "Ctrl + Meta + Alt + Shift"
 "Alt + Shift + Equal" = { switch_to_workspace = 11 }
 
 # Named aliases from the AeroSpace config.
-"Alt + Shift + S" = { switch_to_workspace = 0 }  # SOC
-"Alt + Shift + T" = { switch_to_workspace = 1 }  # TRM
-"Alt + Shift + W" = { switch_to_workspace = 2 }  # WEB
-"Alt + Shift + O" = { switch_to_workspace = 3 }  # DEB
-"Alt + Shift + D" = { switch_to_workspace = 4 }  # DEV
-"Alt + Shift + R" = { switch_to_workspace = 5 }  # ENT
-"Alt + Shift + U" = { switch_to_workspace = 6 }  # THR
-"Alt + Shift + L" = { switch_to_workspace = 7 }  # STU
-"Alt + Shift + A" = { switch_to_workspace = 8 }  # AI
-"Alt + Shift + P" = { switch_to_workspace = 9 }  # PRD
+{{ range $workspace, $key := $workspaces -}}
+"Alt + Shift + {{ $key }}" = { switch_to_workspace = {{ $workspace }} }
+{{ end }}
 
 # -----------------------------------------------------------------------------
 # Move window to workspace + follow
@@ -345,16 +341,9 @@ resize = "Ctrl + Meta + Alt + Shift"
 "Meta + Alt + Shift + Minus" = { move_window_to_workspace = { workspace = 10, follow = true } }
 "Meta + Alt + Shift + Equal" = { move_window_to_workspace = { workspace = 11, follow = true } }
 
-"Meta + Alt + Shift + S" = { move_window_to_workspace = { workspace = 0, follow = true } }
-"Meta + Alt + Shift + T" = { move_window_to_workspace = { workspace = 1, follow = true } }
-"Meta + Alt + Shift + W" = { move_window_to_workspace = { workspace = 2, follow = true } }
-"Meta + Alt + Shift + O" = { move_window_to_workspace = { workspace = 3, follow = true } }
-"Meta + Alt + Shift + D" = { move_window_to_workspace = { workspace = 4, follow = true } }
-"Meta + Alt + Shift + R" = { move_window_to_workspace = { workspace = 5, follow = true } }
-"Meta + Alt + Shift + U" = { move_window_to_workspace = { workspace = 6, follow = true } }
-"Meta + Alt + Shift + L" = { move_window_to_workspace = { workspace = 7, follow = true } }
-"Meta + Alt + Shift + A" = { move_window_to_workspace = { workspace = 8, follow = true } }
-"Meta + Alt + Shift + P" = { move_window_to_workspace = { workspace = 9, follow = true } }
+{{ range $workspace, $key := $workspaces -}}
+"Meta + Alt + Shift + {{ $key }}" = { move_window_to_workspace = { workspace = {{ $workspace }}, follow = true } }
+{{ end }}
 
 # -----------------------------------------------------------------------------
 # Launchers
@@ -374,7 +363,7 @@ resize = "Ctrl + Meta + Alt + Shift"
 # Close / join
 # -----------------------------------------------------------------------------
 "Alt + Shift + Q" = "close_window"
-"Meta + Alt + Shift + X" = "close_window"
+"Meta + Alt + Shift + {{ if eq .layout "colemak" }}X{{ else }}Q{{ end }}" = "close_window"
 
 "Meta + Ctrl + Left" = { join_window = "left" }
 "Meta + Ctrl + Down" = { join_window = "down" }
