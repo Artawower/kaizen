@@ -1224,6 +1224,16 @@ Move to husky
   (setq ns-function-modifier 'hyper))
 #+END_SRC
 
+*** Terminal keyboard protocol
+#+BEGIN_SRC emacs-lisp
+(use-package kkp
+  :demand t
+  :custom
+  (kkp-restore-legacy-keys-around-subprocesses t)
+  :config
+  (global-kkp-mode 1))
+#+END_SRC
+
 *** Standard editing
 #+BEGIN_SRC emacs-lisp
 (global-set-key (kbd "TAB") 'indent-for-tab-command)
