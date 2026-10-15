@@ -18,6 +18,7 @@ dnf = [
   "ca-certificates",
   "imagemagick",
   "libtree-sitter-devel",
+  "wl-clipboard",
 ]
 apt = [
   "emacs",
@@ -27,4 +28,5 @@ apt = [
   "msmtp",
   "ca-certificates",
   "imagemagick",
+  "wl-clipboard",
 ]

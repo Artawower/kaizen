@@ -99,31 +99,6 @@ Function for getting config related paths
   :group 'my-faces)
 #+END_SRC
 
-** Linux specific configs
-*** Copy
-#+BEGIN_SRC emacs-lisp :results silent
-(when (string= (getenv "XDG_SESSION_TYPE") "wayland")
-  (setq wl-copy-process nil)
-
-  (defun wl-copy (text)
-    (setq wl-copy-process
-          (make-process :name "wl-copy"
-                        :buffer nil
-                        :command '("wl-copy" "--type" "text/plain;charset=utf-8")
-                        :connection-type 'pipe
-                        :noquery t))
-    (process-send-string wl-copy-process text)
-    (process-send-eof wl-copy-process))
-
-  (defun wl-paste ()
-    (with-temp-buffer
-      (when (zerop (call-process "wl-paste" nil t nil
-                                 "--no-newline" "--type" "text"))
-        (buffer-string))))
-
-  (setq interprogram-cut-function 'wl-copy)
-  (setq interprogram-paste-function 'wl-paste))
-#+END_SRC
 * Bootstrap
 ** Garbage collector
 #+BEGIN_SRC emacs-lisp
@@ -1513,6 +1488,22 @@ Bookmark for navigation inside file
 #+BEGIN_SRC emacs-lisp
 (setq-default indent-tabs-mode nil)
 (setq-default tab-width 2)
+#+END_SRC
+** System clipboard
+#+BEGIN_SRC emacs-lisp
+(use-package xclip
+  :if (or (and (eq system-type 'darwin)
+               (executable-find "pbcopy")
+               (executable-find "pbpaste"))
+          (and (eq system-type 'gnu/linux)
+               (getenv "WAYLAND_DISPLAY")
+               (executable-find "wl-copy")
+               (executable-find "wl-paste")))
+  :demand t
+  :config
+  (setq xclip-method (if (eq system-type 'darwin) 'pbpaste 'wl-copy)
+        xclip-program (symbol-name xclip-method))
+  (xclip-mode 1))
 #+END_SRC
 ** Functions
 *** Delete backward
