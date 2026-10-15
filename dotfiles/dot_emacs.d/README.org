@@ -715,6 +715,26 @@ Modeline inactive color
             (lambda (&rest _)
               (run-hooks 'after-load-theme-hook)))
 #+END_SRC
+*** Terminal background
+#+BEGIN_SRC emacs-lisp
+(defun my/setup-terminal-background (&optional frame)
+  "Use the terminal background in FRAME without changing graphical frames."
+  (let ((frame (or frame (selected-frame))))
+    (unless (display-graphic-p frame)
+      (dolist (face '(default fringe line-number))
+        (when (facep face)
+          (set-face-background face "unspecified-bg" frame))))))
+
+(defun my/setup-terminal-backgrounds (&optional _theme)
+  "Restore terminal backgrounds after a theme change."
+  (dolist (frame (frame-list))
+    (my/setup-terminal-background frame)))
+
+(add-hook 'after-make-frame-functions #'my/setup-terminal-background)
+(add-hook 'window-setup-hook #'my/setup-terminal-backgrounds)
+(add-hook 'enable-theme-functions #'my/setup-terminal-backgrounds)
+(my/setup-terminal-backgrounds)
+#+END_SRC
 *** Modern themes
 #+BEGIN_SRC emacs-lisp :results silent
 (use-package modern-themes
