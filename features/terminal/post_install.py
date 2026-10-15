@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
-from pathlib import Path
 import shutil
 import subprocess
 import sys
+from pathlib import Path
 
 xonsh = shutil.which("xonsh")
 if not xonsh:
@@ -49,6 +49,6 @@ herdr = shutil.which("herdr")
 if herdr:
     for plugin in HERDR_PLUGINS:
         subprocess.run(
-            [herdr, "plugin", "install", "-y", plugin],
+            [herdr, "plugin", "install", plugin, "-y"],
             check=True,
         )
