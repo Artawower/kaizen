@@ -303,6 +303,9 @@
 (with-eval-after-load 'reviewer
   (helixel-define-key 'normal (kbd "SPC r r") #'reviewer-transient))
 
+(dolist (state '(normal visual))
+  (helixel-define-key state "+" #'er/expand-region))
+
 (with-eval-after-load 'avy
   (helixel-define-key 'normal "f" #'kaizen/helixel-avy-select-word)
   (helixel-define-key 'normal (kbd "\\ f") #'avy-goto-char-timer))

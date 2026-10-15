@@ -134,6 +134,7 @@
    '("2" . meow-expand-2)
    '("1" . meow-expand-1)
    '("-" . negative-argument)
+   '("+" . er/expand-region)
    '("$" . my/meow-select-till-eol)
    '(";" . meow-reverse)
    '("," . meow-inner-of-thing)

@@ -144,6 +144,7 @@
     "J"   #'hel-forward-WORD-start
     "c"   #'kaizen/hel-change
     "q"   #'deactivate-mark
+    "+"   #'er/expand-region
     line-start #'beginning-of-line
     line-end   #'end-of-line
     "G"   #'kaizen/hel-G
@@ -376,7 +377,7 @@
     "z a" #'husky-fold-toggle
     fold-next #'husky-fold-next
     "z M"     #'husky-fold-close-all
-    fold-prev #'husky-fold-previous)
+    fold-prev #'husky-fold-previous))
 
 ;; Activate after all state/keymap configuration is complete
 (hel-mode)
