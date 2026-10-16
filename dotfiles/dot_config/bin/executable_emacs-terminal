@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ -t 0 ]]; then
+    exec emacsclient -nw "$@"
+fi
+
+input_file="$(mktemp "${TMPDIR:-/tmp}/emacs-stdin.XXXXXX")"
+trap 'rm -f "$input_file"' EXIT
+cat > "$input_file"
+emacsclient -nw "$@" "$input_file" </dev/tty
