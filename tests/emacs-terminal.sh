@@ -22,7 +22,7 @@ faulthandler.dump_traceback_later(90, exit=True)
 project = Path(sys.argv[1])
 source = (project / 'dotfiles/dot_emacs.d/README.org').read_text()
 blocks = '\n'.join(source.split(f'*** {heading}\n#+BEGIN_SRC emacs-lisp\n', 1)[1].split('#+END_SRC', 1)[0]
-                   for heading in ['Terminal background', 'Terminal client colors', 'Terminal cursor'])
+                   for heading in ['Terminal background', 'Terminal client colors', 'Terminal cursor', 'Terminal mouse'])
 emacs = shutil.which('emacs')
 client = shutil.which('emacsclient')
 assert emacs and client and shutil.which('tic'), 'emacs, emacsclient and tic are required'
@@ -114,6 +114,9 @@ with tempfile.TemporaryDirectory(prefix='kaizen-emacs-terminal-') as folder:
                      :margin-after-spacing (face-background 'margin nil t)
                      :insert-cursor insert-cursor
                      :normal-cursor (terminal-parameter nil 'xterm--cursor-type)
+                     :mouse (terminal-parameter nil 'xterm-mouse-mode)
+                     :mouse-click (symbol-name (key-binding [mouse-1]))
+                     :mouse-drag (symbol-name (key-binding [down-mouse-1]))
                      :region (color-values "#343955"))))))))
 '''.replace('RESULT', json.dumps(str(result)))
         hooks = '''
@@ -170,6 +173,8 @@ with tempfile.TemporaryDirectory(prefix='kaizen-emacs-terminal-') as folder:
             assert state['colors'] == expected_colors, (daemon, colorterm, state)
             assert state['default'] == state['margin'] == state['margin-after-spacing'] == 'unspecified-bg', state
             assert state['insert-cursor'] == 5 and state['normal-cursor'] == 1, state
+            assert state['mouse'] and state['mouse-click'] == 'mouse-set-point', state
+            assert state['mouse-drag'] == 'mouse-drag-region', state
             if colorterm:
                 assert state['region'] == [52 * 257, 57 * 257, 85 * 257], state
             if daemon:

@@ -1248,6 +1248,11 @@ Move to husky
   (global-kkp-mode 1))
 #+END_SRC
 
+*** Terminal mouse
+#+BEGIN_SRC emacs-lisp
+(xterm-mouse-mode 1)
+#+END_SRC
+
 *** Terminal cursor
 #+BEGIN_SRC emacs-lisp
 (with-eval-after-load 'term/xterm

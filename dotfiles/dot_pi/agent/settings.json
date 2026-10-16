@@ -58,7 +58,7 @@
     "default": "light"
   },
   "servitors": {
-    "extensions": ["npm:@estebanforge/pi-antigravity-bridge"]
+    "extensions": ["npm:@tian.zuo/pi-antigravity"]
   },
   "lastChangelogVersion": "1.0.2"
 }
