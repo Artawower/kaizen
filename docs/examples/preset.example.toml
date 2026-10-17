@@ -15,6 +15,7 @@ schema-version = 1
 name = "neovim"
 path = "https://github.com/Artawower/neovim"
 type = "git"
+enabled = true
 
 [package.arguments]
 lsp = "default"
@@ -24,6 +25,7 @@ theme = "catppuccin-latte"
 name = "helix"
 path = "https://github.com/Artawower/helix"
 type = "git"
+enabled = true
 
 [package.arguments]
 transparent = true
@@ -32,8 +34,10 @@ transparent = true
 name = "jj"
 path = "https://github.com/Artawower/kaizen-jj"
 type = "git"
+enabled = true
 
 [[package]]
 name = "yabai"
 path = "https://github.com/Artawower/kaizen-yabai"
 type = "git"
+enabled = false
