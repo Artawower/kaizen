@@ -1,0 +1,9 @@
+[package]
+name = "kaizen-core"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+
+[lib]
+name = "kaizen_core"
+path = "src/lib.rs"

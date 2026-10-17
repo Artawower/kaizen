@@ -1,0 +1,12 @@
+[package]
+name = "kaizen-cli"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+
+[[bin]]
+name = "kaizen"
+path = "src/main.rs"
+
+[dependencies]
+kaizen-app = { path = "../../crates/kaizen-app" }

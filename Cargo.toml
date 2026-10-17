@@ -1,0 +1,17 @@
+[workspace]
+resolver = "3"
+members = [
+  "crates/kaizen-core",
+  "crates/kaizen-app",
+  "apps/kaizen-cli",
+]
+default-members = [
+  "crates/kaizen-core",
+  "crates/kaizen-app",
+  "apps/kaizen-cli",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"

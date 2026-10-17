@@ -4,16 +4,19 @@
 
 ```
 kaizen/
-├── .chezmoiroot               ← tells chezmoi to use dotfiles/ as source root
-├── crates/                    ← Rust source (kaizen CLI + core library)
-├── docs/                      ← architecture and feature-format docs
-└── dotfiles/                  ← chezmoi source root (applied to ~/)
-    ├── .chezmoiignore         ← excludes kaizen/ from being applied to $HOME
-    ├── kaizen/
-    │   ├── manifest.toml      ← schema version
-    │   └── features/          ← curated workflow features (single source of truth)
-    └── dot_config/            ← ~/.config/* dotfiles
+├── Cargo.toml                 ← Rust workspace manifest
+├── apps/
+│   └── kaizen-cli/            ← `kaizen` binary and terminal presentation
+├── crates/
+│   ├── kaizen-core/           ← domain models and deterministic logic
+│   └── kaizen-app/            ← shared application use cases
+├── docs/                      ← protocol, commands, and examples
+├── plans/                     ← development plans (local, git-ignored)
+└── kaizen.py                  ← existing Python prototype
 ```
+
+System-specific adapters are intentionally not a separate crate yet; extract them
+when concrete I/O implementations and stable boundaries emerge.
 
 ## Dev setup (one-time)
 
