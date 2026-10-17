@@ -15,9 +15,9 @@ del _secrets, _config_home, _devcache_env, op, _os
 
 $HOSTNAME = _socket.gethostname()
 
-$EDITOR   = 'nvim'
-$VISUAL   = 'nvim'
-$JJ_EDITOR = 'nvim'
+$EDITOR    = 'emacsclient -nw'
+$VISUAL    = 'emacsclient -c'
+$JJ_EDITOR = 'emacsclient -nw'
 
 $VI_MODE = 'INSIDE_EMACS' not in ${...}
 $AUTO_CD  = True
