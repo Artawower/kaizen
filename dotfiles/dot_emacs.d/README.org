@@ -2319,10 +2319,13 @@ Compile mode
   :custom
   (git-gutter:update-interval 2)
   :config
-  (setq git-gutter:added-sign " "
-        git-gutter:modified-sign " "
-        git-gutter:deleted-sign " ")
-  (setq git-gutter:window-width 1)
+  (setq git-gutter:added-sign "▎"
+        git-gutter:modified-sign "▎"
+        git-gutter:deleted-sign "▎")
+  (custom-set-faces
+   '(git-gutter:added ((t :foreground "#00f300" :background unspecified)))
+   '(git-gutter:deleted ((t :foreground "#f30000" :background unspecified)))
+   '(git-gutter:modified ((t :foreground "#f3f300" :background unspecified))))
   (global-git-gutter-mode))
 #+END_SRC
 
@@ -2330,8 +2333,21 @@ Compile mode
 #+BEGIN_SRC emacs-lisp
 (use-package git-gutter-fringe
   :config
-  (git-gutter-mode 1)
   (require 'cl-lib)
+
+  (setq git-gutter:init-function 'git-gutter-fr:init
+        git-gutter:view-diff-function
+        (lambda (diffinfos)
+          (if (display-graphic-p)
+              (progn
+                (setq git-gutter:window-width -1)
+                (git-gutter-fr:view-diff-infos diffinfos))
+            (setq git-gutter:window-width 1)
+            (git-gutter:view-set-overlays diffinfos)))
+        git-gutter:clear-function
+        (lambda ()
+          (git-gutter-fr:clear)
+          (git-gutter:clear-diff-infos)))
 
   (custom-set-faces
    ;; custom-set-faces was added by Custom.
@@ -2352,7 +2368,8 @@ Compile mode
              nil
              ,@(cl-loop repeat count collect pattern)))))
 
-  (git-gutter-fr-define-glyph 30 "XX...."))
+  (git-gutter-fr-define-glyph 30 "XX....")
+  (global-git-gutter-mode))
 #+END_SRC
 
 ** Blamer
