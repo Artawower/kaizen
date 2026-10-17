@@ -1,0 +1,37 @@
+# A preset bundles multiple packages and passes default arguments to them.
+# Precedence: user config.toml > preset [package.arguments] > package schema.json defaults.
+#
+# Feature Propagation:
+# Kaizen collects all active packages and their declared tags across the workspace
+# and injects them into `context.json` as `context.packages` (list of active package names)
+# and `context.tags` (aggregated list of unique active tags).
+# Packages can inspect these context variables during build/templating to dynamically
+# adapt configurations, enable integration hooks, or configure toolchains.
+
+[[package]]
+name = "neovim"
+path = "https://github.com/Artawower/neovim"
+type = "git"
+
+[package.arguments]
+lsp = "default"
+theme = "catppuccin-latte"
+
+[[package]]
+name = "helix"
+path = "https://github.com/Artawower/helix"
+type = "git"
+
+[package.arguments]
+transparent = true
+
+[[package]]
+name = "jj"
+path = "https://github.com/Artawower/kaizen-jj"
+type = "git"
+
+[[package]]
+name = "yabai"
+path = "https://github.com/Artawower/kaizen-yabai"
+type = "git"
+

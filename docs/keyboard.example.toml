@@ -1,26 +1,52 @@
 [keyboard]
-modes = "helix" # "helix" | "vim" | "default"
+mode = "helix" # "helix" | "vim" | "default"
 modalLeader = "SPC"
 
+# Key = canonical action ID (intent), Value = key sequence / mnemonic.
+# Packages read resolved bindings by action ID from ~/.config/kaizen/context.json.
 [navigation]
-# Navigation
-prefix = "" # 
-l = "moveLeft"
-h = "moveRight"
-
+prefix = ""
+"nav.left" = "h"
+"nav.down" = "j"
+"nav.up" = "k"
+"nav.right" = "l"
 
 [vcs]
-vl = "vcsLog"
-vc = "vcsCommit"
-vp = "vcsPush"
-vo = "vcsOpLog"
-vi = "vcsInit"
-
+"vcs.log" = "v l"
+"vcs.commit" = "v c"
+"vcs.push" = "v p"
+"vcs.oplog" = "v o"
+"vcs.init" = "v i"
 
 [runner]
-rn = "runScript"
+"runner.script" = "r n"
 
 [project]
-pp = "selectProject"
-pf = "forgetProject"
+"project.select" = "p p"
+"project.forget" = "p f"
 
+# Physical layout overlay (applied automatically when layout = "colemak" in config.toml)
+[layout.colemak.navigation]
+"nav.left" = "h"
+"nav.down" = "n"
+"nav.up" = "e"
+"nav.right" = "i"
+
+# Cross-layout character mapping (e.g. Latin <-> Cyrillic) so modal keys and shortcuts
+# keep working when the OS input source is switched to another language.
+# Can be inherited from an external preset via `extends` (e.g. qwerty-jcuken or colemak-jcuken)
+# and customized per key by the user.
+[langmap]
+extends = { path = "https://github.com/Artawower/kaizen-langmap-qwerty-ru", type = "git" }
+w = "ц"
+d = "в"
+
+# Layout-specific character mapping override (e.g. Latin Colemak + Russian JCUKEN,
+# where physical key `s` on Colemak corresponds to `в` on JCUKEN):
+[layout.colemak.langmap]
+extends = { path = "https://github.com/Artawower/kaizen-langmap-colemak-ru", type = "git" }
+w = "ц"
+s = "в"
+n = "т"
+e = "у"
+i = "ш"

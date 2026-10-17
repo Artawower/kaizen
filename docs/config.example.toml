@@ -2,21 +2,28 @@
 email = "you@example.com"
 full_name = "Your Name"
 
-
 [privacy]
 check-hash = true
 allow-dependencies = true
 ai-validation = true
-# w - week
-# d - day
-# m - month
-# y - year
-carantine = "1w" 
-foss = true # Include ONLY FOSS
+# w - week, d - day, m - month, y - year
+quarantine = "1w"
+foss = true # Allow only packages with open-source (FOSS) licenses
 allow-post-install = true
 
-[ui]
-[ui.typogrhapy]
+# Automatically back up existing files in $HOME / ~/.config before overwriting them
+[backup]
+enabled = true
+directory = "~/.local/share/kaizen/backups"
+max-generations = 10
+
+[ui.theme]
+name = "catppuccin-mocha"
+light = "catppuccin-latte"
+dark = "catppuccin-mocha"
+
+[ui.typography]
+font_family = "JetBrainsMono Nerd Font"
 font_size = 14
 
 [ui.workspaces]
@@ -38,31 +45,25 @@ directory = "~/Pictures/Wallpapers"
 directory_light = "~/Pictures/Wallpapers/Light"
 directory_dark = "~/Pictures/Wallpapers/Dark"
 
-
-[vcs]
-tool = "jj" # jj | git
-
-[tiling]
-variant = "yabai"
-
+# Any section can inherit from an external config via `extends` and override specific keys locally
 [keyboard]
+extends = { path = "./keyboard.example.toml", type = "local" } # "git" | "url" | "local"
 use-fn-keys = false
-layout = "qwerty" # qwerty | dvorak | colemak | colemak-super | dvorak-super 
+layout = "colemak" # "qwerty" | "dvorak" | "colemak" | "colemak-dh"
 
-
-[terminal]
-shell = "xonsh"
+# Optional user-level langmap override (e.g. Latin Colemak <-> Russian JCUKEN)
+[keyboard.langmap]
+extends = { path = "https://github.com/Artawower/kaizen-langmap-colemak-ru", type = "git" }
+w = "ц"
+s = "в"
 
 [env]
 EDITOR = "hx"
 VISUAL = "emacsclient"
 JJ_EDITOR = "emacsclient -nw"
 
-[[env.resource]]
-path = "./terminal-preset.example.toml"
-type = "local" # git | url | local
-
-
+# External package presets
 [[resources]]
-path = "./terminal-preset.example.toml"
-type = "local" # git | url | local
+path = "./preset.example.toml"
+type = "local" # "git" | "url" | "local"
+

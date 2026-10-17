@@ -1,0 +1,25 @@
+# Package system dependencies.
+# Kaizen tracks reference counts (required_by set) per dependency atom
+# and removes orphaned packages when no active module requires them anymore.
+
+# Cross-platform runtimes and CLI tools via mise
+[mise]
+"node" = "22"
+"npm:neovim" = "latest"
+"cargo:tree-sitter-cli" = "latest"
+
+# macOS (Homebrew)
+[macos.brew]
+formulae = ["neovim", "ripgrep", "fd", "lazygit"]
+casks = ["font-jetbrains-mono-nerd-font"]
+
+# Fedora Linux (DNF + Flatpak)
+[fedora.dnf]
+packages = ["neovim", "ripgrep", "fd-find"]
+
+[fedora.flatpak]
+packages = []
+
+# Ubuntu / Debian (APT + Flatpak)
+[ubuntu.apt]
+packages = ["neovim", "ripgrep", "fd-find"]

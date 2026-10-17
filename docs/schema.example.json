@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Neovim Kaizen Package Arguments",
+  "type": "object",
+  "properties": {
+    "lsp": {
+      "type": "string",
+      "enum": ["default", "minimal", "none"],
+      "default": "default",
+      "description": "Built-in LSP client configuration preset"
+    },
+    "theme": {
+      "type": "string",
+      "default": "catppuccin-mocha",
+      "description": "Editor colorscheme (overrides global ui.theme)"
+    }
+  },
+  "additionalProperties": false
+}

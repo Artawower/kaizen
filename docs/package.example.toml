@@ -1,24 +1,50 @@
 [package]
-name = "Package name"
-description = "Some description"
-issues = "https://github.com/example/issues"
-path = "https://github.com/example/Package Name"
+name = "yabai"
+description = "Declarative Yabai tiling window manager configuration for Kaizen"
+issues = "https://github.com/Artawower/kaizen-yabai/issues"
+path = "https://github.com/Artawower/kaizen-yabai"
 type = "git"
-license = "GPL 3.0"
+license = "GPL-3.0"
 
-install-script = "make install"
-uninstall-script = "make uninstall"
-compatibility-script = "make doctor"
+# Tags for cross-cutting search, filtering, and dependency inspection in CLI/TUI/GUI
+tags = ["tiling", "wm", "macos", "desktop"]
+
+# Optional mutex name (e.g. "tiling", "statusbar", "keymapper").
+# Packages without `mutex` (like editors or CLI tools) can coexist freely.
+# If two active packages declare the same `mutex` (e.g. both "yabai" and "aerospace" set `mutex = "tiling"`),
+# Kaizen raises an AmbiguityError.
+mutex = "tiling"
+
+# JSON Schema used to validate [package.arguments] and populate default values
+schema = "./schema.example.json"
+
+# System dependencies manifest (tracked via reference counting)
+dependencies = "./dependencies.example.toml"
+
+# Optional lifecycle scripts (require allow-post-install = true in config.toml)
+build-script = "./scripts/build.py"  # Optional: generates files in out/ from context.json
+compatibility-script = "make doctor" # Health check executed by `kaizen doctor`
 
 [package.compatibility]
-macos = "15.*>=27"
-fedora = "44"
-ubuntu = "22.x>=22.10"
+macos = ">=15.0"
+fedora = ">=40"
+ubuntu = ">=22.10"
 
+# Declarative file mappings into $HOME (Rule: 1 target path = 1 package owner).
+# `target` can be a single string (same on all OSes) or a per-OS table.
+[[package.files]]
+source = "./config/yabai"
+target = "~/.config/yabai"
+mode = "copy" # "copy" | "symlink" | "template"
 
-[package.provide]
+[[package.files]]
+source = "./config/gui-settings.json"
+target = { macos = "~/Library/Application Support/Yabai/settings.json", linux = "~/.config/yabai/settings.json" }
+mode = "copy"
 
+# Shared entry points (shell, git, env) use drop-in conf.d/ directories to avoid multi-package file conflicts
+[[package.files]]
+source = "./xonsh/yabai.xsh"
+target = "~/.config/xonsh/rc.d/50-yabai.xsh"
+mode = "copy"
 
-
-[package.dependencies]
-# 🤷‍♂
