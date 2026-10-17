@@ -14,7 +14,7 @@ key = "{{ .gpg_key_darwin }}"
 {{- end }}
 
 [ui]
-editor = "hx"
+editor = ["emacsclient", "-nw"]
 
 [revsets]
 push-default = "@"

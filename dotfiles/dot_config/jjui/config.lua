@@ -1,4 +1,3 @@
--- Open file in nvim with O key
 function setup(config)
   config.action("open in editor", function()
     local file = context.file()
@@ -6,7 +5,7 @@ function setup(config)
       flash("Select file first (press l for details)")
       return
     end
-    exec_shell("nvim " .. file)
+    exec_shell("emacsclient -nw '" .. file:gsub("'", "'\\''") .. "'")
   end, {
     key = "O",
     scope = "revisions.details",
