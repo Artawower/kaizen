@@ -12,6 +12,7 @@ brew = [
   "eza",
   "fastfetch",
   "direnv",
+  "nushell",
   "xonsh",
 ]
 cask = ["ghostty"]
@@ -25,6 +26,7 @@ dnf = [
   "eza",
   "fastfetch",
   "direnv",
+  "nushell",
   "python3-pip",
   "xonsh",
 ]
@@ -36,6 +38,7 @@ apt = [
   "eza",
   "fastfetch",
   "direnv",
+  "nushell",
   "python3-pip",
   "xonsh",
 ]

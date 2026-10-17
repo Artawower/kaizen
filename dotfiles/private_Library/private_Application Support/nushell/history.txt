@@ -1,0 +1,195 @@
+ls
+clear
+for l in ls
+c
+clear
+ls
+ls | sort-by type
+clear
+ps aux
+ps
+ps | sort-by mem
+ps | sort-by mem | first 
+ps | sort-by mem | limit
+ps | sort-by mem | headers 
+ps | sort-by mem | first 5
+ps | sort-by cpu | first 5
+ps | sort-by cpu -v | first 5
+sort-by -h
+man sort-by
+clear
+ps | sort-by cpu |reverse  | first 5
+ps | sort-by mem |reverse  | first 5
+clear
+ls
+find . -name ".config"
+cd .config/
+clear
+find . -name ".config"
+find . --name ".config"
+man find
+find . --name .config
+find . -name .config
+find -name .config .
+find -name .config 
+find . -name "*xon"
+find "*xon"
+find *xon
+find
+clear
+ls *.xon
+ls *.x
+ls *.x*
+find .lua
+find *.lua
+ls *lua
+ls
+ls .back
+ls *.back
+rg "lua"
+ls
+pwd
+clear
+ls **/.lua
+ls **/*.lua
+ls **/*.lua | sort-by modified | first 10
+ls **/*.lua | sort-by modified |reverse | first 10
+ls **/*.lua | sort-by modified |reverse | first
+(ls **/*.lua | sort-by modified |reverse | first).name
+em (ls **/*.lua | sort-by modified |reverse | first).name
+emacsclient -nw (ls **/*.lua | sort-by modified |reverse | first).name
+emacsclient -nw
+nvim (ls **/*.lua | sort-by modified |reverse | first).name
+clear
+ls
+c
+clear
+ipython
+python
+c
+ls
+clear
+jj
+pwd
+clear
+ls
+ls | nvim
+ls | em
+ls | emacsclient -nw
+pwd
+c
+clear
+shell
+exit
+ls
+pp
+zode
+zoxide 
+zoxide query
+zoxide -h
+zoxide query -h
+zoxide query all
+zoxide query -l
+fzf (zoxide query -l)
+fzf zoxide query -l
+zoxide query -l | fzf
+zoxide query -l | fzf | cd
+ls
+pwd
+zoxide query -l | fzf | cd {}
+zoxide query -l | fzf | cd args
+zoxide query -l | fzf | cd $in
+cd (zoxide query -l | fzf)
+clear
+rift -h
+firt --help
+rift --help
+rift help
+ls
+pp
+cd (zoxide query -l | fzf)
+find -i ":angular:"
+find -i "*:angular:*"
+rg ":angular:"
+rg ":angular:" | lines
+find ":angular:"
+c
+clear
+rg -l ":angular:" | lines
+rg -l ":angular:" | lines | ($in)
+rg -l ":angular:" | lines | ls ($in) 
+rg -l ":angular:" | lines | ls ($in) | sort-by modified -r
+rg -l ":angular:" | lines | ls $in | sort-by modified -r
+clear
+rg -l ":angular:" | lines | ls ($in)
+pwd
+ps
+ps | find "pi"
+c
+clear
+ps | nvim
+procsystime 
+ps 
+ls
+ls | find med
+ls | sort-by size
+ls | sort-by size -v
+ls | sort-by size | reverse 
+ls | sort-by size | rev
+ls | sort-by size | reverse 
+rg -l ":angular:" | lines | each { |v| ls $v } 
+rg -l ":angular:" | lines | each { |v| ls $v } | flatten 
+rg -l ":angular:" | lines | each { |v| ls $v } | flatten  | sort-by modified
+rg -l ":angular:" | lines | each { |v| ls $v } | flatten  | sort-by modified | reverse | first 5
+c
+clear
+ls
+em
+clear
+cd (zoxide query -l | fzf)
+ls
+ls | find nu
+rm -rf nix-linux/
+clear
+config nu
+$env.config.buffer_editor = "emacsclient -nw"
+config nu
+$env.config.buffer_editor = "hx"
+config nu
+$env.config.buffer_editor = ["emacsclient", "-nw"]
+config nu
+$env.config.buffer_editor = ["nvim"]
+config nu
+exit
+ls
+clear
+pwd
+pp
+c
+clear
+nvim
+..
+-
+ls
+-
+cd -
+clear
+config nu
+$env.config.buffer_editor = ["nvim"]
+config nu
+exit
+ls
+pp
+cd (zoxide query -l | fzf)
+config nu
+$env.config.buffer_editor = ["nvim"]
+config nu
+exit
+config nu
+$env.config.buffer_editor = ["nvim"]
+config nu
+exit
+nu
+exit
+pwd
+config nu
