@@ -1,6 +1,7 @@
 {
   "hideThinkingBlock": true,
   "quietStartup": true,
+  "externalEditor": "emacsclient -nw",
   "enableSkillCommands": true,
   "tuiMode": "fullscreen",
   "packages": [
@@ -44,7 +45,8 @@
     "npm:pi-stats-ext",
     "npm:pi-open-agents",
     "../../Downloads/pi-worker-host",
-    "npm:@soleone/pi-tasks"
+    "npm:@soleone/pi-tasks",
+    "npm:pi-mermaid",
   ],
   "defaultProvider": "openai-codex",
   "defaultModel": "gpt-5.6-sol",
