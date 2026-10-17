@@ -70,6 +70,33 @@ EDITOR = "hx"
 VISUAL = "emacsclient"
 JJ_EDITOR = "emacsclient -nw"
 
+# Stable terminal alias names are extension points, not tool selections.
+# Enabled packages may explicitly provide an implementation for these aliases.
+[terminal.aliases.vcs]
+description = "Version control system"
+
+[terminal.aliases.skills]
+description = "AI skill manager"
+
+[terminal.aliases.ai]
+description = "Preferred AI agent launcher"
+
+[terminal.aliases.fm]
+description = "File manager"
+
+[terminal.aliases.run]
+description = "Run a task from Cargo, Justfile, or Make"
+
+[terminal.aliases.mx]
+description = "Terminal multiplexer"
+
+# Model profiles are configuration values for packages that integrate with AI tools;
+# they do not select or install the `ai` terminal alias provider.
+[ai.models]
+low = "antigravity/gemini-3.8-flash"
+medium = "openapi-codex/gpt-5.6-sol"
+high = "openapi-codex/gpt-6.1-sol"
+
 # Package declarations default to enabled = true; set enabled = false to keep one installed but inactive.
 
 # Registries are discovery catalogs; package manifests remain authoritative.

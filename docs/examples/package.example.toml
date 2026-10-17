@@ -25,6 +25,12 @@ schema = "./schema.example.json"
 # System dependencies manifest (tracked via reference counting)
 dependencies = "./dependencies.example.toml"
 
+# Optional terminal alias exports. These are explicit package contributions to
+# aliases declared in the user's [terminal.aliases] table. Values are argv arrays.
+# An implementation may call a binary provided by this package's own dependencies.
+# [package.aliases]
+# vcs = ["jj"]
+
 # Optional lifecycle scripts (require allow-post-install = true in config.toml)
 build-script = "./scripts/build.py"  # Optional: generates files in out/ from context.json
 compatibility-script = "make doctor" # Health check executed by `kaizen doctor`
