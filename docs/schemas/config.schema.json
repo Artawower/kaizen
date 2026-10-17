@@ -1,0 +1,189 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Kaizen User Configuration",
+  "description": "Schema for the user's config.toml (schema version 1).",
+  "type": "object",
+  "required": ["schema-version"],
+  "properties": {
+    "$schema": { "type": "string", "description": "Optional editor/tooling schema hint." },
+    "schema-version": { "const": 1, "description": "Kaizen configuration schema version." },
+    "extends": { "$ref": "#/$defs/extends" },
+    "system": {
+      "$ref": "#/$defs/extensible",
+      "properties": {
+        "email": { "type": "string", "format": "email" },
+        "full_name": { "type": "string" }
+      },
+      "unevaluatedProperties": false
+    },
+    "privacy": {
+      "$ref": "#/$defs/extensible",
+      "properties": {
+        "check-hash": { "type": "boolean", "default": true },
+        "allow-dependencies": { "type": "boolean", "default": true },
+        "ai-validation": { "type": "boolean" },
+        "quarantine": {
+          "type": "string",
+          "pattern": "^[0-9]+[wdmy]$",
+          "description": "Quarantine duration: w (weeks), d (days), m (months), or y (years)."
+        },
+        "foss": { "type": "boolean" },
+        "allow-post-install": { "type": "boolean", "default": false }
+      },
+      "unevaluatedProperties": false
+    },
+    "backup": {
+      "$ref": "#/$defs/extensible",
+      "properties": {
+        "enabled": { "type": "boolean", "default": true },
+        "directory": { "type": "string" },
+        "max-generations": { "type": "integer", "minimum": 0 }
+      },
+      "unevaluatedProperties": false
+    },
+    "ui": {
+      "$ref": "#/$defs/extensible",
+      "properties": {
+        "theme": {
+          "$ref": "#/$defs/extensible",
+          "properties": {
+            "name": { "type": "string" },
+            "light": { "type": "string" },
+            "dark": { "type": "string" }
+          },
+          "unevaluatedProperties": false
+        },
+        "typography": {
+          "$ref": "#/$defs/extensible",
+          "properties": {
+            "font_family": { "type": "string" },
+            "font_size": { "type": "number", "exclusiveMinimum": 0 }
+          },
+          "unevaluatedProperties": false
+        },
+        "workspaces": {
+          "$ref": "#/$defs/extensible",
+          "properties": {
+            "names": { "type": "array", "items": { "type": "string" }, "uniqueItems": true }
+          },
+          "unevaluatedProperties": false
+        },
+        "wallpaper": {
+          "$ref": "#/$defs/extensible",
+          "properties": {
+            "directory": { "type": "string" },
+            "directory_light": { "type": "string" },
+            "directory_dark": { "type": "string" }
+          },
+          "unevaluatedProperties": false
+        }
+      },
+      "unevaluatedProperties": false
+    },
+    "keyboard": {
+      "$ref": "#/$defs/extensible",
+      "properties": {
+        "use-fn-keys": { "type": "boolean" },
+        "layout": { "type": "string", "enum": ["qwerty", "dvorak", "colemak", "colemak-dh"] },
+        "langmap": {
+          "$ref": "#/$defs/extensible",
+          "patternProperties": { "^.$": { "type": "string" } },
+          "unevaluatedProperties": false
+        }
+      },
+      "unevaluatedProperties": false
+    },
+    "env": {
+      "$ref": "#/$defs/extensible",
+      "patternProperties": { "^[A-Za-z_][A-Za-z0-9_]*$": { "type": "string" } },
+      "unevaluatedProperties": false
+    },
+    "terminal": {
+      "$ref": "#/$defs/extensible",
+      "properties": {
+        "aliases": {
+          "$ref": "#/$defs/extensible",
+          "patternProperties": {
+            "^[a-z][a-z0-9_-]*$": { "$ref": "#/$defs/terminalAlias" }
+          },
+          "unevaluatedProperties": false
+        }
+      },
+      "unevaluatedProperties": false
+    },
+    "ai": {
+      "$ref": "#/$defs/extensible",
+      "properties": {
+        "models": {
+          "$ref": "#/$defs/extensible",
+          "patternProperties": {
+            "^[a-z][a-z0-9_-]*$": { "type": "string", "minLength": 1 }
+          },
+          "unevaluatedProperties": false
+        }
+      },
+      "unevaluatedProperties": false
+    },
+    "registry": { "type": "array", "items": { "$ref": "#/$defs/registry" } },
+    "resources": { "type": "array", "items": { "$ref": "#/$defs/resource" } },
+    "package": { "type": "array", "items": { "$ref": "#/$defs/packageDeclaration" } }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "extends": {
+      "type": "object",
+      "required": ["path", "type"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "type": { "type": "string", "enum": ["local", "git", "url"] }
+      },
+      "additionalProperties": false
+    },
+    "extensible": {
+      "type": "object",
+      "properties": { "extends": { "$ref": "#/$defs/extends" } }
+    },
+    "terminalAlias": {
+      "$ref": "#/$defs/extensible",
+      "type": "object",
+      "required": ["description"],
+      "properties": { "description": { "type": "string", "minLength": 1 } },
+      "unevaluatedProperties": false
+    },
+    "registry": {
+      "$ref": "#/$defs/extensible",
+      "type": "object",
+      "required": ["name", "source", "type"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "source": { "type": "string", "minLength": 1 },
+        "type": { "type": "string", "enum": ["git", "url", "local"] },
+        "enabled": { "type": "boolean", "default": true }
+      },
+      "unevaluatedProperties": false
+    },
+    "resource": {
+      "$ref": "#/$defs/extensible",
+      "type": "object",
+      "required": ["path", "type"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "type": { "type": "string", "enum": ["local", "git", "url"] }
+      },
+      "unevaluatedProperties": false
+    },
+    "packageDeclaration": {
+      "$ref": "#/$defs/extensible",
+      "type": "object",
+      "required": ["name", "path", "type"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "path": { "type": "string", "minLength": 1 },
+        "type": { "type": "string", "enum": ["git", "url", "local"] },
+        "enabled": { "type": "boolean", "default": true },
+        "arguments": { "type": "object" }
+      },
+      "unevaluatedProperties": false
+    }
+  }
+}
