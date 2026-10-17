@@ -1,0 +1,8 @@
+[[package]]
+name = "Name"
+path = "https://github.com/Artawower/neovim"
+
+# Arguments will override the ones defined in the config file
+[[package.arguments]]
+lsp = "default"
+theme = "catppuccin-latte" # reuse from 

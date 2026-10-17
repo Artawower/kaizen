@@ -1,4 +1,0 @@
-description = "Niri scrolling Wayland compositor for Linux"
-
-[linux]
-dnf = ["niri"]

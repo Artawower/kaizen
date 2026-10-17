@@ -1,0 +1,26 @@
+[keyboard]
+modes = "helix" # "helix" | "vim" | "default"
+modalLeader = "SPC"
+
+[navigation]
+# Navigation
+prefix = "" # 
+l = "moveLeft"
+h = "moveRight"
+
+
+[vcs]
+vl = "vcsLog"
+vc = "vcsCommit"
+vp = "vcsPush"
+vo = "vcsOpLog"
+vi = "vcsInit"
+
+
+[runner]
+rn = "runScript"
+
+[project]
+pp = "selectProject"
+pf = "forgetProject"
+

@@ -1,5 +1,0 @@
-description = "Battery charge threshold management"
-category = "system"
-
-[macos]
-cask = ["aldente"]

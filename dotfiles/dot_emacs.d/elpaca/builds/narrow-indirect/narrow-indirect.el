@@ -1,1 +1,0 @@
-/Users/darkawower/projects/pet/kaizen/dotfiles/dot_emacs.d/elpaca/sources/narrow-indirect/narrow-indirect.el

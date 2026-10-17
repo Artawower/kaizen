@@ -1,8 +1,0 @@
-description = "Social and communication"
-category = "social"
-
-[macos]
-cask = ["discord", "telegram-desktop", "mattermost", "whatsapp"]
-
-[linux]
-flatpak = ["com.discordapp.Discord", "org.telegram.desktop"]

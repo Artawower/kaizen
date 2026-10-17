@@ -1,0 +1,68 @@
+[system]
+email = "you@example.com"
+full_name = "Your Name"
+
+
+[privacy]
+check-hash = true
+allow-dependencies = true
+ai-validation = true
+# w - week
+# d - day
+# m - month
+# y - year
+carantine = "1w" 
+foss = true # Include ONLY FOSS
+allow-post-install = true
+
+[ui]
+[ui.typogrhapy]
+font_size = 14
+
+[ui.workspaces]
+names = [
+  "SOC",
+  "TERM",
+  "WEB",
+  "DEV",
+  "ENT",
+  "OTH",
+  "STD",
+  "AI",
+  "PRD",
+  "SYS",
+]
+
+[ui.wallpaper]
+directory = "~/Pictures/Wallpapers"
+directory_light = "~/Pictures/Wallpapers/Light"
+directory_dark = "~/Pictures/Wallpapers/Dark"
+
+
+[vcs]
+tool = "jj" # jj | git
+
+[tiling]
+variant = "yabai"
+
+[keyboard]
+use-fn-keys = false
+layout = "qwerty" # qwerty | dvorak | colemak | colemak-super | dvorak-super 
+
+
+[terminal]
+shell = "xonsh"
+
+[env]
+EDITOR = "hx"
+VISUAL = "emacsclient"
+JJ_EDITOR = "emacsclient -nw"
+
+[[env.resource]]
+path = "./terminal-preset.example.toml"
+type = "local" # git | url | local
+
+
+[[resources]]
+path = "./terminal-preset.example.toml"
+type = "local" # git | url | local

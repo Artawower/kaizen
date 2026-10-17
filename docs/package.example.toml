@@ -1,0 +1,24 @@
+[package]
+name = "Package name"
+description = "Some description"
+issues = "https://github.com/example/issues"
+path = "https://github.com/example/Package Name"
+type = "git"
+license = "GPL 3.0"
+
+install-script = "make install"
+uninstall-script = "make uninstall"
+compatibility-script = "make doctor"
+
+[package.compatibility]
+macos = "15.*>=27"
+fedora = "44"
+ubuntu = "22.x>=22.10"
+
+
+[package.provide]
+
+
+
+[package.dependencies]
+# 🤷‍♂

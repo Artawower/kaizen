@@ -1,9 +1,0 @@
-i = "extend_char_right"
-j = "extend_next_word_end"
-k = "extend_search_next"
-l = "insert_mode"
-J = "extend_next_long_word_end"
-K = "extend_search_prev"
-L = "insert_at_line_start"
-e = ["extend_line_up", "extend_to_line_bounds"]
-n = ["extend_line_down", "extend_to_line_bounds"]

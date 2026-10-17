@@ -1,1 +1,0 @@
-/Users/darkawower/projects/pet/kaizen/dotfiles/dot_emacs.d/elpaca/sources/flymake-stylelint/flymake-stylelint.el

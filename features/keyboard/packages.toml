@@ -1,8 +1,0 @@
-description = "Keyboard layout tooling"
-category = "system"
-
-[macos]
-cask = ["karabiner-elements", "input-source-pro"]
-
-[linux]
-apt = ["xremap"]
