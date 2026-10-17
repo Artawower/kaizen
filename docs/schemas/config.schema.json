@@ -191,7 +191,8 @@
       "type": "object",
       "properties": {
         "path": {
-          "type": "string"
+          "type": "string",
+          "minLength": 1
         },
         "type": {
           "$ref": "#/$defs/SourceType"
@@ -300,10 +301,12 @@
           ]
         },
         "name": {
-          "type": "string"
+          "type": "string",
+          "minLength": 1
         },
         "path": {
-          "type": "string"
+          "type": "string",
+          "minLength": 1
         },
         "type": {
           "$ref": "#/$defs/SourceType"
@@ -389,10 +392,12 @@
           ]
         },
         "name": {
-          "type": "string"
+          "type": "string",
+          "minLength": 1
         },
         "source": {
-          "type": "string"
+          "type": "string",
+          "minLength": 1
         },
         "type": {
           "$ref": "#/$defs/SourceType"
@@ -419,7 +424,8 @@
           ]
         },
         "path": {
-          "type": "string"
+          "type": "string",
+          "minLength": 1
         },
         "type": {
           "$ref": "#/$defs/SourceType"
@@ -473,7 +479,8 @@
       "type": "object",
       "properties": {
         "description": {
-          "type": "string"
+          "type": "string",
+          "minLength": 1
         },
         "extends": {
           "anyOf": [
@@ -570,11 +577,16 @@
           ]
         },
         "font_size": {
-          "type": [
-            "number",
-            "null"
-          ],
-          "format": "double"
+          "anyOf": [
+            {
+              "type": "number",
+              "format": "double",
+              "exclusiveMinimum": 0.0
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       },
       "additionalProperties": false
