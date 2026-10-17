@@ -1,3 +1,6 @@
+# Kaizen specification schema version
+schema-version = 1
+
 [system]
 email = "you@example.com"
 full_name = "Your Name"
@@ -66,4 +69,3 @@ JJ_EDITOR = "emacsclient -nw"
 [[resources]]
 path = "./preset.example.toml"
 type = "local" # "git" | "url" | "local"
-

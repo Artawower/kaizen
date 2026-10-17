@@ -1,3 +1,6 @@
+# Kaizen specification schema version
+schema-version = 1
+
 # A preset bundles multiple packages and passes default arguments to them.
 # Precedence: user config.toml > preset [package.arguments] > package schema.json defaults.
 #
@@ -34,4 +37,3 @@ type = "git"
 name = "yabai"
 path = "https://github.com/Artawower/kaizen-yabai"
 type = "git"
-
