@@ -9,7 +9,11 @@
 - `kaizen enable <package>` — set the package declaration's `enabled` flag to `true`.
 - `kaizen disable <package>` — set the package declaration's `enabled` flag to `false` without removing it.
 - `kaizen list` — list declared packages and their enabled state.
-- `kaizen search <query>` — search available packages (optionally filter with `--tag <tag>`).
+- `kaizen search <query>` — search configured package registries (optionally filter with `--registry <name>` or `--tag <tag>`).
+- `kaizen registry add <source> [--name <name>]` — add a Git, URL, or local registry.
+- `kaizen registry list` — list configured registries.
+- `kaizen registry remove <name>` — remove a registry without uninstalling packages already sourced from it.
+- `kaizen registry update [<name>]` — refresh cached registry indexes.
 - `kaizen outdated [--deps]` — show available package and, optionally, system dependency updates.
 - `kaizen update [<package>] [--sync]` — update lockfile revisions; optionally sync the result.
 

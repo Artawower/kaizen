@@ -1,0 +1,12 @@
+# Kaizen registry index schema version
+schema-version = 1
+
+# A registry is a discovery catalog. Package manifests remain authoritative.
+[[package]]
+name = "yabai"
+description = "Declarative Yabai tiling window manager configuration"
+tags = ["tiling", "wm", "macos", "desktop"]
+license = "GPL-3.0"
+source = "https://github.com/Artawower/kaizen-yabai"
+type = "git"
+manifest = "package.toml"

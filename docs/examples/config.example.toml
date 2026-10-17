@@ -70,9 +70,17 @@ EDITOR = "hx"
 VISUAL = "emacsclient"
 JJ_EDITOR = "emacsclient -nw"
 
-# External package presets or inline packages:
-# You can include presets via [[resources]] or declare [[package]] directly inline.
 # Package declarations default to enabled = true; set enabled = false to keep one installed but inactive.
+
+# Registries are discovery catalogs; package manifests remain authoritative.
+[[registry]]
+name = "community"
+source = "https://github.com/kaizen-protocol/registry"
+type = "git"
+enabled = true
+
+# Presets or packages may also be declared directly inline.
+# You can include presets via [[resources]] or declare [[package]] directly inline.
 [[resources]]
 path = "./preset.example.toml"
 type = "local" # "git" | "url" | "local"

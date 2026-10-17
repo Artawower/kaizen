@@ -7,6 +7,7 @@ description = "Declarative Yabai tiling window manager configuration for Kaizen"
 issues = "https://github.com/Artawower/kaizen-yabai/issues"
 path = "https://github.com/Artawower/kaizen-yabai"
 type = "git"
+# Required SPDX license identifier or expression; use LicenseRef-* for custom licenses.
 license = "GPL-3.0"
 
 # Tags for cross-cutting search, filtering, and dependency inspection in CLI/TUI/GUI

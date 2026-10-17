@@ -23,7 +23,6 @@ target
 
 release/*
 plans/*
-!plans/
 !plans/kaizen-architecture-map.md
 !plans/mnemonic-shortcuts-plan.md
 !plans/shortcut-audit.md
@@ -31,6 +30,7 @@ plans/*
 !plans/universal-layout-shortcuts.md
 !plans/variants-plan.md
 !plans/variants-research.md
+
 
 .pi/
 .pi-lens/
