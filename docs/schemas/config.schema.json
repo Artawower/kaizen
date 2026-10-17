@@ -1,189 +1,695 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Kaizen User Configuration",
-  "description": "Schema for the user's config.toml (schema version 1).",
+  "title": "Config",
+  "description": "Root user configuration (`config.toml`).",
   "type": "object",
-  "required": ["schema-version"],
   "properties": {
-    "$schema": { "type": "string", "description": "Optional editor/tooling schema hint." },
-    "schema-version": { "const": 1, "description": "Kaizen configuration schema version." },
-    "extends": { "$ref": "#/$defs/extends" },
-    "system": {
-      "$ref": "#/$defs/extensible",
-      "properties": {
-        "email": { "type": "string", "format": "email" },
-        "full_name": { "type": "string" }
-      },
-      "unevaluatedProperties": false
-    },
-    "privacy": {
-      "$ref": "#/$defs/extensible",
-      "properties": {
-        "check-hash": { "type": "boolean", "default": true },
-        "allow-dependencies": { "type": "boolean", "default": true },
-        "ai-validation": { "type": "boolean" },
-        "quarantine": {
-          "type": "string",
-          "pattern": "^[0-9]+[wdmy]$",
-          "description": "Quarantine duration: w (weeks), d (days), m (months), or y (years)."
+    "ai": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/AiConfig"
         },
-        "foss": { "type": "boolean" },
-        "allow-post-install": { "type": "boolean", "default": false }
-      },
-      "unevaluatedProperties": false
+        {
+          "type": "null"
+        }
+      ]
     },
     "backup": {
-      "$ref": "#/$defs/extensible",
-      "properties": {
-        "enabled": { "type": "boolean", "default": true },
-        "directory": { "type": "string" },
-        "max-generations": { "type": "integer", "minimum": 0 }
-      },
-      "unevaluatedProperties": false
-    },
-    "ui": {
-      "$ref": "#/$defs/extensible",
-      "properties": {
-        "theme": {
-          "$ref": "#/$defs/extensible",
-          "properties": {
-            "name": { "type": "string" },
-            "light": { "type": "string" },
-            "dark": { "type": "string" }
-          },
-          "unevaluatedProperties": false
+      "anyOf": [
+        {
+          "$ref": "#/$defs/BackupConfig"
         },
-        "typography": {
-          "$ref": "#/$defs/extensible",
-          "properties": {
-            "font_family": { "type": "string" },
-            "font_size": { "type": "number", "exclusiveMinimum": 0 }
-          },
-          "unevaluatedProperties": false
-        },
-        "workspaces": {
-          "$ref": "#/$defs/extensible",
-          "properties": {
-            "names": { "type": "array", "items": { "type": "string" }, "uniqueItems": true }
-          },
-          "unevaluatedProperties": false
-        },
-        "wallpaper": {
-          "$ref": "#/$defs/extensible",
-          "properties": {
-            "directory": { "type": "string" },
-            "directory_light": { "type": "string" },
-            "directory_dark": { "type": "string" }
-          },
-          "unevaluatedProperties": false
+        {
+          "type": "null"
         }
-      },
-      "unevaluatedProperties": false
-    },
-    "keyboard": {
-      "$ref": "#/$defs/extensible",
-      "properties": {
-        "use-fn-keys": { "type": "boolean" },
-        "layout": { "type": "string", "enum": ["qwerty", "dvorak", "colemak", "colemak-dh"] },
-        "langmap": {
-          "$ref": "#/$defs/extensible",
-          "patternProperties": { "^.$": { "type": "string" } },
-          "unevaluatedProperties": false
-        }
-      },
-      "unevaluatedProperties": false
+      ]
     },
     "env": {
-      "$ref": "#/$defs/extensible",
-      "patternProperties": { "^[A-Za-z_][A-Za-z0-9_]*$": { "type": "string" } },
-      "unevaluatedProperties": false
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "extends": {
+      "description": "Optional base configuration to merge before this config.",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Extends"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "keyboard": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/KeyboardConfig"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "package": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/PackageDeclaration"
+      }
+    },
+    "privacy": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/PrivacyConfig"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "registry": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/RegistrySource"
+      }
+    },
+    "resources": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Resource"
+      }
+    },
+    "schema-version": {
+      "description": "Kaizen config schema version. The v1 engine accepts only `1`.",
+      "type": "integer",
+      "format": "uint32",
+      "maximum": 1,
+      "minimum": 1
+    },
+    "system": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/SystemConfig"
+        },
+        {
+          "type": "null"
+        }
+      ]
     },
     "terminal": {
-      "$ref": "#/$defs/extensible",
-      "properties": {
-        "aliases": {
-          "$ref": "#/$defs/extensible",
-          "patternProperties": {
-            "^[a-z][a-z0-9_-]*$": { "$ref": "#/$defs/terminalAlias" }
-          },
-          "unevaluatedProperties": false
+      "anyOf": [
+        {
+          "$ref": "#/$defs/TerminalConfig"
+        },
+        {
+          "type": "null"
         }
-      },
-      "unevaluatedProperties": false
+      ]
     },
-    "ai": {
-      "$ref": "#/$defs/extensible",
-      "properties": {
-        "models": {
-          "$ref": "#/$defs/extensible",
-          "patternProperties": {
-            "^[a-z][a-z0-9_-]*$": { "type": "string", "minLength": 1 }
-          },
-          "unevaluatedProperties": false
+    "ui": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/UiConfig"
+        },
+        {
+          "type": "null"
         }
-      },
-      "unevaluatedProperties": false
-    },
-    "registry": { "type": "array", "items": { "$ref": "#/$defs/registry" } },
-    "resources": { "type": "array", "items": { "$ref": "#/$defs/resource" } },
-    "package": { "type": "array", "items": { "$ref": "#/$defs/packageDeclaration" } }
+      ]
+    }
   },
   "additionalProperties": false,
+  "required": [
+    "schema-version"
+  ],
   "$defs": {
-    "extends": {
+    "AiConfig": {
       "type": "object",
-      "required": ["path", "type"],
       "properties": {
-        "path": { "type": "string", "minLength": 1 },
-        "type": { "type": "string", "enum": ["local", "git", "url"] }
+        "extends": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Extends"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "models": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
       },
       "additionalProperties": false
     },
-    "extensible": {
+    "BackupConfig": {
       "type": "object",
-      "properties": { "extends": { "$ref": "#/$defs/extends" } }
-    },
-    "terminalAlias": {
-      "$ref": "#/$defs/extensible",
-      "type": "object",
-      "required": ["description"],
-      "properties": { "description": { "type": "string", "minLength": 1 } },
-      "unevaluatedProperties": false
-    },
-    "registry": {
-      "$ref": "#/$defs/extensible",
-      "type": "object",
-      "required": ["name", "source", "type"],
       "properties": {
-        "name": { "type": "string", "minLength": 1 },
-        "source": { "type": "string", "minLength": 1 },
-        "type": { "type": "string", "enum": ["git", "url", "local"] },
-        "enabled": { "type": "boolean", "default": true }
+        "directory": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "enabled": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "extends": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Extends"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "max-generations": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint32",
+          "minimum": 0
+        }
       },
-      "unevaluatedProperties": false
+      "additionalProperties": false
     },
-    "resource": {
-      "$ref": "#/$defs/extensible",
+    "Extends": {
+      "description": "Reference to an inherited local, Git, or URL configuration.",
       "type": "object",
-      "required": ["path", "type"],
       "properties": {
-        "path": { "type": "string", "minLength": 1 },
-        "type": { "type": "string", "enum": ["local", "git", "url"] }
+        "path": {
+          "type": "string"
+        },
+        "type": {
+          "$ref": "#/$defs/SourceType"
+        }
       },
-      "unevaluatedProperties": false
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "type"
+      ]
     },
-    "packageDeclaration": {
-      "$ref": "#/$defs/extensible",
+    "KeyboardConfig": {
       "type": "object",
-      "required": ["name", "path", "type"],
       "properties": {
-        "name": { "type": "string", "minLength": 1 },
-        "path": { "type": "string", "minLength": 1 },
-        "type": { "type": "string", "enum": ["git", "url", "local"] },
-        "enabled": { "type": "boolean", "default": true },
-        "arguments": { "type": "object" }
+        "extends": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Extends"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "langmap": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/LangmapConfig"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "layout": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/KeyboardLayout"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "use-fn-keys": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        }
       },
-      "unevaluatedProperties": false
+      "additionalProperties": false
+    },
+    "KeyboardLayout": {
+      "type": "string",
+      "enum": [
+        "qwerty",
+        "dvorak",
+        "colemak",
+        "colemak-dh"
+      ]
+    },
+    "LangmapConfig": {
+      "description": "Keyboard mapping keys are intentionally dynamic single-character strings.",
+      "type": "object",
+      "properties": {
+        "extends": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Extends"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "PackageDeclaration": {
+      "type": "object",
+      "properties": {
+        "arguments": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": true
+        },
+        "enabled": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "extends": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Extends"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "name": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "type": {
+          "$ref": "#/$defs/SourceType"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "path",
+        "type"
+      ]
+    },
+    "PrivacyConfig": {
+      "type": "object",
+      "properties": {
+        "ai-validation": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "allow-dependencies": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "allow-post-install": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "check-hash": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "extends": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Extends"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "foss": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "quarantine": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[0-9]+[wdmy]$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "RegistrySource": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "extends": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Extends"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "name": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        },
+        "type": {
+          "$ref": "#/$defs/SourceType"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "source",
+        "type"
+      ]
+    },
+    "Resource": {
+      "type": "object",
+      "properties": {
+        "extends": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Extends"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "path": {
+          "type": "string"
+        },
+        "type": {
+          "$ref": "#/$defs/SourceType"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "type"
+      ]
+    },
+    "SourceType": {
+      "description": "Source kind for registries, resources, and package declarations.",
+      "type": "string",
+      "enum": [
+        "local",
+        "git",
+        "url"
+      ]
+    },
+    "SystemConfig": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "email"
+        },
+        "extends": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Extends"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "full_name": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "TerminalAlias": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "extends": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Extends"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "description"
+      ]
+    },
+    "TerminalConfig": {
+      "type": "object",
+      "properties": {
+        "aliases": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "$ref": "#/$defs/TerminalAlias"
+          }
+        },
+        "extends": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Extends"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "ThemeConfig": {
+      "type": "object",
+      "properties": {
+        "dark": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "extends": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Extends"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "light": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "name": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "TypographyConfig": {
+      "type": "object",
+      "properties": {
+        "extends": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Extends"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "font_family": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "font_size": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        }
+      },
+      "additionalProperties": false
+    },
+    "UiConfig": {
+      "type": "object",
+      "properties": {
+        "extends": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Extends"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "theme": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ThemeConfig"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "typography": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TypographyConfig"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "wallpaper": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/WallpaperConfig"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "workspaces": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/WorkspacesConfig"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "WallpaperConfig": {
+      "type": "object",
+      "properties": {
+        "directory": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "directory_dark": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "directory_light": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "extends": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Extends"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "WorkspacesConfig": {
+      "type": "object",
+      "properties": {
+        "extends": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Extends"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "names": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
     }
   }
 }

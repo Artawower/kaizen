@@ -101,11 +101,12 @@ jj new -m "chore: bump dependencies"
 # lock files are already updated in dotfiles/ by bump
 ```
 
-### Running tests
+### Running tests and regenerating the config schema
 
 ```bash
-cargo test
-cargo clippy -- -D warnings
+cargo test --workspace
+cargo clippy --workspace --all-targets -- -D warnings
+cargo run -p kaizen-core --bin generate-config-schema > docs/schemas/config.schema.json
 ```
 
 ### Building locally
