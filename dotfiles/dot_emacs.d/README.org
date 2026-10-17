@@ -2992,6 +2992,7 @@ Function for search in buffer depends or visual or normal line
   (("C-x C-o" . completion-at-point)
    ("C-SPC" . completion-at-point)
    :map corfu-map
+   ("<escape>" . corfu-quit)
    ("TAB" . corfu-next)
    ([tab] . corfu-next)
    ("C-n" . corfu-next)
