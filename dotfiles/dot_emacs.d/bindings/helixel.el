@@ -328,9 +328,10 @@
 (with-eval-after-load 'apheleia
   (helixel-define-key 'normal (kbd "\\ p") #'apheleia-format-buffer))
 
-(with-eval-after-load 'consult
-  (helixel-define-key 'normal (kbd "SPC b a") #'consult-buffer)
-  (helixel-define-key 'normal (kbd "SPC b b") #'consult-project-buffer))
+(autoload 'consult-buffer "consult" nil t)
+(autoload 'consult-project-buffer "consult" nil t)
+(helixel-define-key 'normal (kbd "SPC b a") #'consult-buffer)
+(helixel-define-key 'normal (kbd "SPC b b") #'consult-project-buffer)
 
 (helixel-define-key 'normal (kbd "SPC f f") #'project-find-file)
 

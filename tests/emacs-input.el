@@ -34,6 +34,26 @@
     (should (equal kill-ring '("clipboard sentinel")))
     (should (eq kill-ring-yank-pointer pointer))))
 
+(ert-deftest buffer-bindings-work-before-consult-loads ()
+  (skip-unless (and (require 'hel nil t) (require 'helixel nil t)))
+  (should-not (featurep 'consult))
+  (dolist (scheme '((hel . hel-normal-state-map) (helixel . helixel-normal-map)))
+    (define-key (symbol-value (cdr scheme)) (kbd "SPC") (make-sparse-keymap))
+    (with-temp-buffer
+      (insert-file-contents
+       (expand-file-name (format "dotfiles/dot_emacs.d/bindings/%s.el" (car scheme))
+                         kaizen-test-root))
+      (goto-char (point-min))
+      (search-forward "(autoload 'consult-buffer")
+      (goto-char (match-beginning 0))
+      (dotimes (_ 4) (eval (read (current-buffer)) t)))
+    (dolist (binding '(("SPC b a" . consult-buffer) ("SPC b b" . consult-project-buffer)))
+      (should (eq (lookup-key (symbol-value (cdr scheme)) (kbd (car binding)))
+                  (cdr binding)))
+      (should (commandp (cdr binding)))
+      (should (autoloadp (symbol-function (cdr binding))))))
+  (should-not (featurep 'consult)))
+
 (ert-deftest word-deletion-supports-prefix-arguments-without-copying ()
   (dolist (case '((2 "first second third" nil "first ")
                   (-1 "first second" t " second")

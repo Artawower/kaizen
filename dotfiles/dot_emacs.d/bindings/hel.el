@@ -252,9 +252,10 @@
 (with-eval-after-load 'apheleia
   (hel-keymap-global-set :state 'normal "\\ p" #'apheleia-format-buffer))
 
-(with-eval-after-load 'consult
-  (hel-keymap-global-set :state 'normal "SPC b a" #'consult-buffer)
-  (hel-keymap-global-set :state 'normal "SPC b b" #'consult-project-buffer))
+(autoload 'consult-buffer "consult" nil t)
+(autoload 'consult-project-buffer "consult" nil t)
+(hel-keymap-global-set :state 'normal "SPC b a" #'consult-buffer)
+(hel-keymap-global-set :state 'normal "SPC b b" #'consult-project-buffer)
 
 (hel-keymap-global-set :state 'normal
   "SPC f f" #'project-find-file)
