@@ -323,5 +323,3 @@ require("octo").setup({
     },
   },
 })
-
-vim.pack.add{ 'https://forge.barrettruth.com/barrettruth/diffs.nvim' }
