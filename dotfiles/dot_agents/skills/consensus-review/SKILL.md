@@ -1,73 +1,33 @@
 ---
 name: consensus-review
-description: Runs an independent multi-model review of the current diff, stores per-model reports, merges duplicates, and produces a skeptical consolidated verdict in Russian. Use when one reviewer is not enough and the user wants crowd wisdom.
+description: Runs independent multi-model reviews of a requested diff, verifies findings and merges duplicates. Use when the user explicitly asks for multiple independent opinions rather than a normal single review.
 ---
 
 # Consensus Review
 
-Use this skill when the user wants several independent review opinions and one consolidated report.
+Use `../code-review/references/code-reviewer.md` as the shared review policy.
 
-## Canonical Review Rubric
+## Scope and reviewers
 
-Before starting, load:
+Determine the exact requested diff. In Jujutsu repositories, use `jj diff` or the
+requested revision range. Do not substitute a Git working-copy diff for a jj revision.
+Stop if the requested diff is empty.
 
-- `references/code-reviewer.md`
+Discover available authenticated models and delegation tools instead of assuming
+that an MCP bridge or a particular model version exists. Choose two or three
+independent reviewers, preferably across model families, using exact available
+provider/model IDs. Respect the active orchestration policy.
 
-Use that rubric as the common review contract for every model.
+If fewer than two reviewers are available, disclose that limitation rather than
+claiming consensus. Do not install providers or change credentials for the review.
 
-## Default Scope
+## Workflow
 
-Review only uncommitted changes unless the user specifies a different range.
+1. Send the same task, acceptance criteria and diff scope to each reviewer independently.
+2. Collect their results without showing one review to the other reviewers.
+3. Verify proposed findings against the actual code.
+4. Merge duplicates and reject unsupported claims or stylistic preferences.
+5. Return the models used, confirmed issues, material disagreements and verification gaps.
 
-```bash
-git diff HEAD --name-only
-```
-
-If there is no diff, report that and stop.
-
-## Required Artifacts
-
-Write results to:
-
-- `plans/review/qwen-cli-review.md`
-- `plans/review/codex-5.1-review.md`
-- `plans/review/gemini-2.5pro-review.md`
-- `plans/review/deepseek-3.2pro-review.md`
-- `plans/review/overview.md`
-
-Create `plans/review/` if needed.
-
-## Execution Workflow
-
-1. Identify the exact diff scope.
-2. Inspect available MCP or model gateway tools instead of assuming tool names blindly.
-3. Prepare one shared review brief based on `references/code-reviewer.md`.
-4. Run independent reviews with these targets when available:
-   - qwen cli
-   - codex 5.1 high
-   - gemini 2.5 pro
-   - deepseek 3.2 pro
-5. Save each raw review to its own artifact file.
-6. Merge findings by severity and deduplicate overlapping comments.
-7. For every merged point, verify relevance against the actual diff instead of trusting model output automatically.
-8. Produce `plans/review/overview.md` with:
-   - merged findings
-   - false positives removed or marked
-   - severity buckets
-   - short rationale per accepted point
-9. Return a final processed report in Russian.
-
-## Fallback Rules
-
-- If one or more models are unavailable, continue with the available ones.
-- Explicitly list which reviewers were unavailable.
-- Never invent tool names or pretend a model ran when it did not.
-
-## Final Output
-
-The final user-facing answer must include:
-- which models were used
-- the most important confirmed issues
-- which findings were rejected as noise
-- the overall verdict on the diff
-- references to the generated artifact files
+Respond in the user's language. Create persistent report files only when requested,
+using names derived from the models actually used rather than historical version labels.

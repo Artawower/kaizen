@@ -2,16 +2,15 @@
 mode: subagent
 description: Researches external docs, libraries, APIs via web search and Context7. Use when need to look up documentation, find examples, check library APIs, or research technical topics.
 model: {{ .models.quick }}
-tools:
-  byDefault: deny
-  allow:
-    - web_search
-    - context7__resolve-library-id
-    - context7__query-docs
-    - playwright__browser_navigate
-    - playwright__browser_snapshot
-    - playwright__browser_click
-    - playwright__browser_take_screenshot
+disabledTools:
+  - write_file
+  - edit_file
+  - move_file
+  - shell_command
+  - spawn_agent
+  - serena__(replace_.*|insert_.*|rename_.*|create_.*|delete_.*|execute_.*|write_.*|edit_.*)
+  - emacs-mcp__.*
+  - playwright__.*
 ---
 
 You are a technical researcher. Find accurate, up-to-date information from documentation and the web.

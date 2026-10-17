@@ -27,7 +27,7 @@ Perform end-to-end AI code review of GitHub Pull Requests:
 Run the bundled script. It handles URL parsing, GraphQL + REST queries, filtering, chunking, and saves data locally:
 
 ```bash
-python3 ~/.config/ai/skills/pr-review/fetch-pr-data.py <PR_REFERENCE>
+python3 ~/.agents/skills/pr-review/fetch-pr-data.py <PR_REFERENCE>
 ```
 
 Supported input formats:
@@ -81,8 +81,8 @@ If the PR is a draft, warn the user and ask if they still want to review.
 When `chunking.total_chunks > 1`, review chunk-by-chunk:
 
 ```bash
-python3 ~/.config/ai/skills/pr-review/fetch-pr-data.py <PR_REFERENCE> --chunk 1
-python3 ~/.config/ai/skills/pr-review/fetch-pr-data.py <PR_REFERENCE> --chunk 2
+python3 ~/.agents/skills/pr-review/fetch-pr-data.py <PR_REFERENCE> --chunk 1
+python3 ~/.agents/skills/pr-review/fetch-pr-data.py <PR_REFERENCE> --chunk 2
 ```
 
 Each chunk returns only its file patches:
@@ -121,52 +121,9 @@ Before reviewing, gather context:
 
 For each file in `file_patches`, analyze the `patch` (diff) against the review rules.
 
-#### REVIEW RULES (HARD — from project code-reviewer config)
-
-**Code structure:**
-- No large functions: max 20–30 LOC or 1 clear responsibility. Split otherwise.
-- No `else` statements: use guard clauses / early returns / fail fast. (except css/scss files)
-- No `switch`/`case`: prefer polymorphism, strategy/command pattern, or data maps.
-- No dead code, no TODOs, no unused params/imports, no magic numbers (extract constants).
-- Maximum nesting depth: target 1, max 2. Extract nested logic to functions.
-
-**Principles:**
-- Pure, side-effect-free logic where feasible; isolate I/O.
-- Strong, descriptive naming; single source of truth (DRY).
-- SOLID: SRP, Open/Closed via composition; Liskov-safe subs; Interface Segregation; Dependency Inversion.
-- Clear module boundaries; small files; private by default.
-- Composition over inheritance. Functional-first approach.
-- Immutable data where practical.
-
-**Error handling:**
-- Explicit, typed where applicable; no silent catches; meaningful messages.
-- Propagate or handle at boundaries. Fail fast.
-
-**Security:**
-- Validate inputs, avoid injection, safe defaults, least privilege, no secrets/hardcoding.
-- Output encoding, parameterized queries, no eval/innerHTML with untrusted data.
-
-**Performance:**
-- Avoid premature micro-opts; watch N+1, needless allocations, blocking I/O on hot paths.
-- Batch related queries, memoize expensive pure computations.
-
-**Tests:**
-- Require unit/behavior tests for branches; deterministic; fast; edge cases covered.
-
-**Style:**
-- Idiomatic style for the language; consistent lint rules; zero warnings.
-- Minimize comments — code must be self-documenting through clear naming.
-
-#### REVIEW FOCUS (ordered by importance)
-
-1. **Bugs & Logic errors** — will this code break in production?
-2. **Security vulnerabilities** — injection, auth bypass, data leaks
-3. **Error handling gaps** — unhandled failures, silent catches
-4. **Architecture violations** — SOLID, DRY, coupling issues
-5. **Performance problems** — N+1, blocking I/O, memory leaks
-6. **Code quality** — function size, nesting, naming, dead code
-7. **Test coverage** — missing tests for new logic
-8. **Style & consistency** — formatting, naming conventions
+Load `../code-review/references/code-reviewer.md` and apply its shared review
+policy to the requested PR diff. Prioritize verified defects and regressions,
+respect project conventions and keep optional suggestions separate from blockers.
 
 ### STEP 4: Categorize findings
 

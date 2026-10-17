@@ -1,49 +1,6 @@
 {
-  "defaultModel": "anthropic/claude-sonnet-4-6",
-  "defaultAgent": "manager",
-  "behavior": {
-    "manager": {
-      "systemPromptFile": "{{ .chezmoi.homeDir }}/.config/eca/agents/manager.md"
-    },
-    "code-reviewer": {
-      "systemPromptFile": "{{ .chezmoi.homeDir }}/.config/eca/agents/code-reviewer.md",
-      "toolCall": {
-        "byDefault": "ask",
-        "approval": {
-          "allow": {
-            "eca_shell_command": {
-              "argsMatchers": {
-                "command": [
-                  ".*find.*",
-                  ".*pwd.*",
-                  ".*ls.*",
-                  ".*cd.*",
-                  ".*cd.*",
-                  ".*gh.*",
-                  ".*cat.*",
-                  ".*grep.*",
-                  ".*git status.*",
-                  ".*git diff.*",
-                  ".*git log.*",
-                  ".*cat.*"
-                ]
-              }
-            },
-            "issue_details": {},
-            "eca_editor_diagnostics": {},
-            "find": {},
-            "eca_directory_tree": {},
-            "issue_comments": {},
-            "sequential-thinking": {},
-            "eca_read_file": {},
-            "search_codebase": {},
-            "eca_grep": {},
-            "context7": {}
-          }
-        }
-      }
-    }
-  },
+  "defaultModel": "{{ .models.default }}",
+  "defaultAgent": "code",
   "rules": [
     {
       "path": "{{ .chezmoi.homeDir }}/.config/eca/rules/common-rules.md"
@@ -75,120 +32,77 @@
       ]
     }
   },
+  "skills": [
+    {
+      "path": "{{ .chezmoi.homeDir }}/.agents/skills/playwright-cli"
+    }
+  ],
   "mcpServers": {
-    "codex": {
-      "command": "bunx",
-      "args": ["mcp-codex-cli", "--allow-npx"]
-    },
-    "deepcontext": {
-      "command": "npx",
-      "args": ["-y", "@wildcard-ai/deepcontext@latest"]
-    },
-    "toon-context": {
-      "command": "bun",
-      "args": [
-        "{{ .chezmoi.homeDir }}/apps/TOON-context-mcp-server/toon-context-mcp/build/index.js"
-      ],
-      "env": {
-        "TOON_THRESHOLD": "0.7",
-        "AUTO_CONVERT": "true"
-      }
-    },
-    "emacs-mcp": {
-      "command": "bunx",
-      "args": ["@keegancsmith/emacs-mcp-server", "--allow-npx"]
-    },
-    "qwen": {
-      "command": "npx",
-      "args": ["-y", "jeffery9/qwen-mcp-tool"]
-    },
-    "youtrack": {
-      "command": "npx",
-      "args": [
-        "mcp-remote",
-        "https://verifika.youtrack.cloud/mcp",
-        "--header",
-        "$YOUTRACK_AUTH_HEADER"
-      ]
-    },
-    "sequential-thinking": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"]
-    },
-    "sentry": {
-      "disabled": true,
-      "command": "npx",
-      "args": ["-y", "mcp-remote@latest", "https://mcp.sentry.dev/mcp"]
+    "context7": {
+      "url": "https://mcp.context7.com/mcp"
     },
     "serena": {
       "command": "uvx",
       "args": [
+        "--python",
+        "3.13",
         "--from",
-        "git+https://github.com/oraios/serena",
+        "serena-agent",
         "serena",
         "start-mcp-server",
+        "--context",
+        "ide",
+        "--project-from-cwd",
         "--enable-web-dashboard",
-        "False"
+        "false"
       ]
     },
-    "context7": {
+    "emacs-mcp": {
       "command": "npx",
-      "args": ["-y", "@upstash/context7-mcp@latest"]
+      "args": [
+        "-y",
+        "@keegancsmith/emacs-mcp-server"
+      ],
+      "disabled": true
     },
-    "gemini-cli": {
-      "command": "mcp-gemini-cli"
-    },
-    "playwright": {
+    "sequential-thinking": {
       "command": "npx",
-      "args": ["@playwright/mcp@latest"]
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking"
+      ],
+      "disabled": true
+    },
+    "deepcontext": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@wildcard-ai/deepcontext@latest"
+      ],
+      "disabled": true
+    },
+    "sentry": {
+      "url": "https://mcp.sentry.dev/mcp",
+      "disabled": true
     },
     "qmd": {
       "command": "qmd",
-      "args": ["mcp"]
-    }
-  },
-  "toolCall": {
-    "approval": {
-      "allow": {
-        "eca_shell_command": {
-          "argsMatchers": {
-            "command": [
-              ".*find.*",
-              ".*pwd.*",
-              ".*ls.*",
-              ".*cd.*",
-              ".*cd.*",
-              ".*gh.*",
-              ".*cat.*",
-              ".*grep.*",
-              ".*git status.*",
-              ".*git diff.*",
-              ".*git log.*",
-              ".*cat.*"
-            ]
-          }
-        },
-        "issue_details": {},
-        "eca_editor_diagnostics": {},
-        "find": {},
-        "eca_directory_tree": {},
-        "issue_comments": {},
-        "sequential-thinking": {},
-        "eca_read_file": {},
-        "search_codebase": {},
-        "eca_grep": {},
-        "serena": {},
-        "context7": {},
-        "eca": {},
-        "youtrack__get_issue": {},
-        "eca__spawn_agent": {}
-      }
+      "args": [
+        "mcp"
+      ],
+      "disabled": true
     }
   },
   "completion": {
     "model": "ollama/qwen2.5-coder:1.5b"
   },
   "prompts": {
-    "completion": "${file:./agents/completion.md}"
+    "completion": "${file:{{ .chezmoi.homeDir }}/.config/eca/agents/completion.md}"
+  },
+  "$schema": "https://eca.dev/config.json",
+  "mcpToolSearch": {
+    "includePattern": [
+      ".*"
+    ]
   }
 }
