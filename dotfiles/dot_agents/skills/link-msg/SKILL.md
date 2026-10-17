@@ -1,15 +1,17 @@
 ---
 name: link-msg
-description: Delegate a task to the most suitable connected agent via link_prompt and return the result to the user. Use when you want to route a request to a specialist colleague on the pi-link network.
+description: Explicitly route a task to a managed engineering colleague through pi-servitors. Use when the user asks to delegate via the link network.
 ---
 
-<arguments>
-${ARGS}
-</arguments>
+# Link Message
 
-Delegate the task via `link`:
+Load the `pi-servitors` skill. Select the smallest suitable role: researcher-code
+for broad investigation, coder for implementation or reviewer for review.
 
-1. Call `link_list` to see available colleagues and their current status.
-2. Based on the task in `<arguments>`, select the most appropriate colleague.
-3. Send the task to that colleague via `link_prompt` with a self-contained prompt.
-4. Wait for the response, analyze it, and return the result to the user.
+Provision that role and use the returned exact destination and Lead reply identity.
+Send a self-contained task packet with a task ID, goal, constraints and acceptance
+criteria. End the coordination turn after delivery and consume the callback.
+
+Do not use guessed names, synchronous request tools, polling or terminal-backend
+messaging. If the user explicitly names an unmanaged colleague, ask for an
+appropriate direct communication setup rather than adopting that agent as a worker.

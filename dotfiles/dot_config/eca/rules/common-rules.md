@@ -1,12 +1,8 @@
-- Never create *.md files if no one directly asks you
-- STOP and check: did user ask for .md file? If no, DON'T CREATE IT
-- **Never** create markdown files with instructions and documentation
-- Never write comments with explanations
-- Always communicates in the same language as the question
-- *CRITICAL!* Always write code, documentation and comments in ENGLISH and only ENGLISH!
-- Never write files with explanations or documentation unless someone asks you directly
-- Don't be verbose, answer only to the point, like Spock
-- Never add unstaged changes to stage via git!
-- Never use BEM for CSS and SCSS files! Use incapsulated styles instead!
-- This project uses **jj** (Jujutsu) for version control — never use `git commit` or `git add`
-- **BEFORE making any code changes**: run `jj log --no-graph -r @ --template 'description'` to check the current revision description. If the current task is semantically different from that description, run `jj new -m "<description>"` to create a new revision first.
+- Respond concisely in the user's language. Write source code and documentation in English.
+- Follow project conventions, including comment and styling rules, rather than imposing unrelated global style bans.
+- Do not create plan, review or explanation files unless requested. Update relevant existing documentation when required by the task.
+- Keep changes focused and preserve unrelated work. Do not expose credentials or private data.
+- Use Jujutsu in repositories with `.jj`; never run `git add` or `git commit` there.
+- Before editing, check the current jj revision and its scope. The Lead creates a new revision for unrelated work; delegated agents report scope conflicts instead of rewriting history.
+- Do not push changes, install optional integrations or alter credentials without explicit authorization.
+- Distinguish verified facts, proposed changes and checks that could not be run.

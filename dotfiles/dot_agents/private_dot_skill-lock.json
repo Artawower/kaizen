@@ -54,6 +54,25 @@
       "skillFolderHash": "437437f7f20bcdbbdb3081cf164435a388c0a39a",
       "installedAt": "2026-04-18T21:30:40.880Z",
       "updatedAt": "2026-04-18T21:30:40.880Z"
+    },
+    "grill-with-docs": {
+      "source": "mattpocock/skills",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/mattpocock/skills.git",
+      "skillPath": "skills/engineering/grill-with-docs/SKILL.md",
+      "skillFolderHash": "3c4ac970c404e8d32c24f2725bfe679e455a925b",
+      "pluginName": "mattpocock-skills",
+      "installedAt": "2026-05-15T09:55:55.905Z",
+      "updatedAt": "2026-05-15T09:55:55.905Z"
+    },
+    "playwright-cli": {
+      "source": "microsoft/playwright-cli",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/microsoft/playwright-cli.git",
+      "skillPath": "skills/playwright-cli/SKILL.md",
+      "skillFolderHash": "6b746b43751be277378e0ee04fe0db69f24da045",
+      "installedAt": "2026-10-17T17:59:47.902Z",
+      "updatedAt": "2026-10-17T17:59:47.902Z"
     }
   },
   "dismissed": {

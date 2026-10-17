@@ -1,19 +1,17 @@
 ---
 name: link-review
-description: Request a code review from an independent reviewer agent via link_prompt, then analyze and act on the findings. Use when you want an external perspective on recent changes before committing or merging.
-argument-hint: "<what to review>"
+description: Compatibility entry point for an explicitly requested independent link review. Uses the pi-servitors reviewer and callback contract.
 ---
 
-Send the review request to the reviewer agent via `link_prompt`, passing the arguments:
+# Link Review
 
-<arguments>
-${ARGS}
-</arguments>
+Load the `pi-servitors` skill and provision its reviewer role. Supply the original
+goal, acceptance criteria, exact diff scope and relevant check results using the
+returned worker destination and Lead reply identity.
 
-After receiving the review:
+Use the normal asynchronous task packet and callback contract. Do not poll for a
+result or assume worker names.
 
-1. Analyze the findings carefully.
-2. Separate blockers from suggestions.
-3. Apply comments you consider valid and relevant.
-4. Send a follow-up to the reviewer: share the changes made and explain which comments you skipped and why. Reach consensus on the skipped items.
-5. Maximum 5 rounds of back-and-forth. If no consensus after 5 rounds, defer to the reviewer's judgment — they have domain expertise.
+The Lead verifies findings against the actual diff and arbitrates disagreements.
+Do not defer automatically to the reviewer or modify files during a review-only
+request. Apply fixes only when authorized, following the shared correction policy.

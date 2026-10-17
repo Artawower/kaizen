@@ -1,84 +1,67 @@
 {
   "mcpServers": {
-    "codex": {
-      "command": "bunx",
-      "args": ["mcp-codex-cli", "--allow-npx"]
+    "context7": {
+      "url": "https://mcp.context7.com/mcp",
+      "exposure": "codemode",
+      "description": "Current, version-specific library documentation and examples."
     },
-    "deepcontext": {
-      "command": "npx",
-      "args": ["-y", "@wildcard-ai/deepcontext@latest"],
-      "lifecycle": "keep-alive",
-      "directTools": true
-    },
-    "emacs-mcp": {
-      "command": "bunx",
-      "args": ["@keegancsmith/emacs-mcp-server", "--allow-npx"]
-    },
-    "sequential-thinking": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
-      "lifecycle": "keep-alive",
-      "directTools": true
+    "exa": {
+      "url": "https://mcp.exa.ai/mcp",
+      "exposure": "codemode",
+      "description": "Web search and public source research."
     },
     "serena": {
       "command": "uvx",
       "args": [
-        "--from",
-        "git+https://github.com/oraios/serena",
-        "serena",
-        "start-mcp-server",
-        "--enable-web-dashboard",
-        "False"
+        "--python", "3.13", "--from", "serena-agent",
+        "serena", "start-mcp-server",
+        "--context", "ide", "--project-from-cwd",
+        "--enable-web-dashboard", "false"
       ],
-      "lifecycle": "keep-alive",
-      "directTools": true
+      "enabled": false,
+      "exposure": "codemode",
+      "description": "Optional symbolic code tools for projects not covered by pi-lens."
     },
-    "context7": {
+    "emacs-mcp": {
       "command": "npx",
-      "args": ["-y", "@upstash/context7-mcp@latest"],
-      "lifecycle": "keep-alive",
-      "directTools": true
+      "args": ["-y", "@keegancsmith/emacs-mcp-server"],
+      "enabled": false,
+      "exposure": "codemode",
+      "description": "Optional Emacs buffer tools; emacsclient --eval is normally sufficient."
     },
-    "playwright": {
+    "sequential-thinking": {
       "command": "npx",
-      "args": ["@playwright/mcp@latest"],
-      "directTools": true
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
+      "enabled": false,
+      "exposure": "codemode",
+      "description": "Optional structured thought tracking, not an external knowledge source."
     },
     "context-mode": {
       "command": "context-mode",
-      "lifecycle": "keep-alive",
-      "directTools": true
+      "enabled": false,
+      "exposure": "codemode",
+      "description": "Optional indexed output processing; requires compatible native SQLite dependencies."
     },
-    "exa": {
-      "type": "remote",
-      "url": "https://mcp.exa.ai/mcp",
-      "enabled": true
-    },
-    "youtrack": {
+    "deepcontext": {
       "command": "npx",
-      "args": [
-        "mcp-remote",
-        "https://verifika.youtrack.cloud/mcp",
-        "--header",
-        "Authorization:${AUTH_HEADER}"
-      ],
-      "env": {
-        "AUTH_HEADER": "${YOUTRACK_AUTH_HEADER}"
-      },
-      "lifecycle": "lazy",
-      "directTools": true
+      "args": ["-y", "@wildcard-ai/deepcontext@latest"],
+      "enabled": false,
+      "exposure": "codemode",
+      "description": "Legacy semantic indexer; verify upstream availability before enabling."
     },
     "mem0": {
       "command": "uvx",
       "args": ["mem0-mcp-server"],
-      "enabled": true,
-      "directTools": true
+      "enabled": false,
+      "exposure": "codemode",
+      "description": "Optional external memory service; configure credentials and data policy first."
     },
     "qmd": {
       "command": "qmd",
       "args": ["mcp"],
-      "lifecycle": "lazy",
-      "directTools": true
+      "enabled": false,
+      "exposure": "codemode",
+      "description": "Optional local document search; requires configured QMD collections."
     }
   }
 }

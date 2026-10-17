@@ -1,0 +1,11 @@
+.pi/agent/extensions/swarm-prompt.ts
+.pi/agent/agents_old/ag-coder.md
+.pi/agent/agents_old/ag-critic.md
+.pi/agent/agents_old/ag-planner.md
+.pi/agent/agents_old/ag-researcher.md
+.pi/agent/agents_old/ag-reviewer.md
+.pi/agent/agents_old/one-shot.chain.md
+.pi/agent/agents_old/post-feature-review.chain.md
+.pi/agent/agents_old/teams.yaml
+.agents/skills/consensus-review/references/code-reviewer.md
+.agents/skill-lock.json

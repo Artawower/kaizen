@@ -1,4 +1,5 @@
 {
+  "$schema": "https://pi.dev/schemas/settings.schema.json",
   "hideThinkingBlock": true,
   "quietStartup": true,
   "externalEditor": "emacsclient -nw",
@@ -13,10 +14,6 @@
     "npm:@benvargas/pi-claude-code-use",
     "npm:pi-opencode-bridge",
     "git:github.com/Artawower/pi-servitors",
-    {
-      "source": "git:github.com/HazAT/pi-interactive-subagents",
-      "extensions": ["-pi-extension/subagents/index.ts"]
-    },
     "npm:@andrewjacop/pi-herdr",
     {
       "source": "npm:pi-lens",
@@ -30,26 +27,17 @@
     "npm:pi-jj-auto",
     "npm:@tomooshi/condensed-milk-pi",
     "npm:pi-observational-memory",
-    "npm:pi-tool-stats",
     "npm:@observal/pi-insights",
     "npm:pi-provider-fallback",
     "npm:pi-open-tui",
-    "npm:@tmustier/pi-usage-extension",
-    {
-      "source": "npm:@singh-gur/pi-usage",
-      "extension": ["-intex.ts"]
-    },
+    "npm:@singh-gur/pi-usage",
     "npm:pi-context-view",
-    "npm:@specode/pi-subscription-usage",
     "npm:pi-trace-extension",
-    "npm:pi-stats-ext",
     "npm:pi-open-agents",
-    "../../Downloads/pi-worker-host",
-    "npm:@soleone/pi-tasks",
-    "npm:pi-mermaid",
+    "npm:@soleone/pi-tasks"
   ],
   "defaultProvider": "openai-codex",
-  "defaultModel": "gpt-5.6-sol",
+  "defaultModel": "gpt-6.1-sol",
   "defaultThinkingLevel": "high",
   "collapseChangelog": true,
   "autocompleteMaxVisible": 3,
