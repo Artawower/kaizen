@@ -21,8 +21,9 @@ import time
 faulthandler.dump_traceback_later(90, exit=True)
 project = Path(sys.argv[1])
 source = (project / 'dotfiles/dot_emacs.d/README.org').read_text()
-blocks = '\n'.join(source.split(f'*** {heading}\n#+BEGIN_SRC emacs-lisp\n', 1)[1].split('#+END_SRC', 1)[0]
-                   for heading in ['Terminal background', 'Terminal client colors', 'Terminal cursor', 'Terminal mouse'])
+blocks = source.split('** Disable menu bar mode and other stuff\n#+BEGIN_SRC emacs-lisp\n', 1)[1].split('#+END_SRC', 1)[0]
+blocks += '\n' + '\n'.join(source.split(f'*** {heading}\n#+BEGIN_SRC emacs-lisp\n', 1)[1].split('#+END_SRC', 1)[0]
+                          for heading in ['Terminal background', 'Terminal client colors', 'Terminal cursor', 'Terminal mouse'])
 emacs = shutil.which('emacs')
 client = shutil.which('emacsclient')
 assert emacs and client and shutil.which('tic'), 'emacs, emacsclient and tic are required'
@@ -43,6 +44,16 @@ with tempfile.TemporaryDirectory(prefix='kaizen-emacs-terminal-') as folder:
     print('passed: idempotent user terminfo installation', flush=True)
     guards = root / 'guards.el'
     guards.write_text("(require 'ert)\n(require 'cl-lib)\n" + blocks + '''
+(ert-deftest terminal-menu-bars-are-hidden-without-changing-gui-frames ()
+  (let (changes)
+    (cl-letf (((symbol-function 'frame-list) (lambda () '(terminal graphical)))
+              ((symbol-function 'display-graphic-p) (lambda (frame) (eq frame 'graphical)))
+              ((symbol-function 'set-frame-parameter)
+               (lambda (frame parameter value)
+                 (push (list frame parameter value) changes))))
+      (my/hide-terminal-menu-bars 'graphical)
+      (should (equal changes '((terminal menu-bar-lines 0)))))))
+
 (ert-deftest graphical-background-is-untouched ()
   (cl-letf (((symbol-function 'display-graphic-p) (lambda (_) t))
             ((symbol-function 'set-face-background)
@@ -80,7 +91,7 @@ with tempfile.TemporaryDirectory(prefix='kaizen-emacs-terminal-') as folder:
 ''')
     guard_result = subprocess.run([emacs, '-Q', '--batch', '-l', str(guards), '-f', 'ert-run-tests-batch-and-exit'], env=env, capture_output=True, text=True)
     assert guard_result.returncode == 0, guard_result.stdout + guard_result.stderr
-    print('passed: 5 ERT guards for GUI, client capabilities, missing terminfo and argument preservation', flush=True)
+    print('passed: 6 ERT guards for menu bars, GUI, client capabilities, missing terminfo and argument preservation', flush=True)
 
     for index, (daemon, colorterm) in enumerate([(False, 'truecolor'), (True, 'truecolor'), (True, '24bit'), (True, None)]):
         result = root / f'result-{index}.json'
@@ -114,6 +125,7 @@ with tempfile.TemporaryDirectory(prefix='kaizen-emacs-terminal-') as folder:
                      :margin-after-spacing (face-background 'margin nil t)
                      :insert-cursor insert-cursor
                      :normal-cursor (terminal-parameter nil 'xterm--cursor-type)
+                     :menu-bar-lines (frame-parameter nil 'menu-bar-lines)
                      :mouse (terminal-parameter nil 'xterm-mouse-mode)
                      :mouse-click (symbol-name (key-binding [mouse-1]))
                      :mouse-drag (symbol-name (key-binding [down-mouse-1]))
@@ -173,6 +185,7 @@ with tempfile.TemporaryDirectory(prefix='kaizen-emacs-terminal-') as folder:
             assert state['colors'] == expected_colors, (daemon, colorterm, state)
             assert state['default'] == state['margin'] == state['margin-after-spacing'] == 'unspecified-bg', state
             assert state['insert-cursor'] == 5 and state['normal-cursor'] == 1, state
+            assert state['menu-bar-lines'] == 0, state
             assert state['mouse'] and state['mouse-click'] == 'mouse-set-point', state
             assert state['mouse-drag'] == 'mouse-drag-region', state
             if colorterm:

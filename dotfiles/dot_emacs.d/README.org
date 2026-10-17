@@ -958,6 +958,16 @@ Fix neomacs issue
 (add-to-list 'frameset-filter-alist '(ns-appearance . dark))
 (tool-bar-mode -1)
 (menu-bar-mode -1)
+
+(defun my/hide-terminal-menu-bars (&optional _frame)
+  "Hide menu bars in terminal frames without changing graphical frames."
+  (dolist (frame (frame-list))
+    (unless (display-graphic-p frame)
+      (set-frame-parameter frame 'menu-bar-lines 0))))
+
+(add-hook 'after-make-frame-functions #'my/hide-terminal-menu-bars)
+(my/hide-terminal-menu-bars)
+
 (setq ring-bell-function 'ignore)
 (setq scroll-step 1)
 (setq scroll-margin 1)
