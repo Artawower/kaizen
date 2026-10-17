@@ -48,6 +48,31 @@
               {
                 "type": "basic",
                 "from": {
+                  "key_code": "q",
+                  "modifiers": {
+                    "optional": ["any"]
+                  }
+                },
+                "conditions": [
+                  {
+                    "type": "variable_if",
+                    "name": "caps_alt_shift",
+                    "value": true
+                  },
+                  {
+                    "type": "frontmost_application_if",
+                    "bundle_identifiers": ["^com\\.mitchellh\\.ghostty$"]
+                  }
+                ],
+                "to": [
+                  {
+                    "key_code": "f20"
+                  }
+                ]
+              },
+              {
+                "type": "basic",
+                "from": {
                   "any": "key_code",
                   "modifiers": {
                     "optional": ["any"]
