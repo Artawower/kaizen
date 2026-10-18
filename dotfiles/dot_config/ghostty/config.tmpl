@@ -44,7 +44,7 @@ macos-option-as-alt = true
 
 shell-integration-features = path
 {{- if eq .chezmoi.os "linux" }}
-command = xonsh
+command = nu
 {{- else }}
-command = shell:zsh -l -c 'exec xonsh'
+command = shell:zsh -l -c 'exec nu'
 {{- end }}
