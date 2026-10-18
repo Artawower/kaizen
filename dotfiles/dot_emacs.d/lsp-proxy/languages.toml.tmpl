@@ -14,7 +14,7 @@ args = ["serve"]
 command = "typescript-language-server"
 args = ["--stdio"]
 config.hostInfo = "Emacs"
-config.tsserver.fallbackPath = "tsserver"
+config.tsserver.fallbackPath = "{{ .chezmoi.homeDir }}/.local/share/mise/installs/npm-typescript/6.0.3/node_modules/typescript/lib/tsserver.js"
 
 [language-server.angular]
 command = "angular-language-server"
