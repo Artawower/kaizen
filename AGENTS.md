@@ -73,8 +73,6 @@ tiling = true
 [tiling]
 variant = "yabai"
 
-[kaizen.shortcuts]
-"nav.down" = ["n"]
 ```
 
 `dotfiles/.chezmoidata.toml` contains committed defaults. Kaizen deep-merges the user config over those defaults and generates the ignored `dotfiles/.chezmoidata/99-user.toml` symlink before applying chezmoi. Dictionaries merge recursively; lists and scalar values are replaced.

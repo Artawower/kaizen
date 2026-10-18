@@ -91,14 +91,14 @@
 (defun kaizen/meow-setup ()
   (setq meow--kbd-forward-line "<down>")
   (setq meow--kbd-backward-line "<up>")
-  (setq meow-cheatsheet-layout meow-cheatsheet-layout-colemak)
+  (setq meow-cheatsheet-layout meow-cheatsheet-layout-qwerty)
   (meow-motion-overwrite-define-key
-   `(,(or (bound-and-true-p kaizen/nav-down) "n") . meow-next)
-   `(,(or (bound-and-true-p kaizen/nav-up)   "e") . meow-prev)
+   `(,"j" . meow-next)
+   `(,"k" . meow-prev)
    '("<escape>" . ignore))
   (meow-leader-define-key
-   `(,(or (bound-and-true-p kaizen/nav-down) "n") . ,(format "H-%s" (or (bound-and-true-p kaizen/nav-down) "n")))
-   `(,(or (bound-and-true-p kaizen/nav-up)   "e") . ,(format "H-%s" (or (bound-and-true-p kaizen/nav-up)   "e")))
+   `(,"j" . ,(format "H-%s" "j"))
+   `(,"k" . ,(format "H-%s" "k"))
    '("1" . meow-digit-argument)
    '("2" . meow-digit-argument)
    '("3" . meow-digit-argument)
@@ -143,7 +143,7 @@
    '("s-D" . meow-bounds-of-thing)
    '("M-[" . meow-beginning-of-thing)
    '("M-]" . meow-end-of-thing)
-   `(,(or (bound-and-true-p kaizen/nav-insert) "l") . meow-append)
+   `(,"i" . meow-append)
    '("o" . meow-open-below)
    '("b" . meow-back-word)
    '("B" . meow-back-symbol)
@@ -156,16 +156,16 @@
    '("f" . avy-goto-word-1)
    '("q" . meow-cancel-selection)
    '("G" . meow-grab)
-   `(,(or (bound-and-true-p kaizen/nav-left)  "h") . meow-left)
-   `(,(upcase (or (bound-and-true-p kaizen/nav-left)  "h")) . meow-left-expand)
+   `(,"h" . meow-left)
+   `(,(upcase "h") . meow-left-expand)
    '("a" . meow-insert)
    '("O" . meow-open-above)
-   `(,(or (bound-and-true-p kaizen/nav-down)  "n") . meow-next)
-   `(,(upcase (or (bound-and-true-p kaizen/nav-down)  "n")) . meow-next-expand)
-   `(,(or (bound-and-true-p kaizen/nav-up)    "e") . meow-prev)
-   `(,(upcase (or (bound-and-true-p kaizen/nav-up)    "e")) . meow-prev-expand)
-   `(,(or (bound-and-true-p kaizen/nav-right) "i") . meow-right)
-   `(,(upcase (or (bound-and-true-p kaizen/nav-right) "i")) . meow-right-expand)
+   `(,"j" . meow-next)
+   `(,(upcase "j") . meow-next-expand)
+   `(,"k" . meow-prev)
+   `(,(upcase "k") . meow-prev-expand)
+   `(,"l" . meow-right)
+   `(,(upcase "l") . meow-right-expand)
    '("m" . meow-join)
    '("k" . meow-search)
    '("/" . meow-block)
@@ -219,8 +219,7 @@
     '("C-<tab>" . indent-rigidly-right)
     '("<backtab>" . indent-rigidly-left)
     '("g c" . comment-or-uncomment-region))
-  (unless (string= (or (bound-and-true-p kaizen/nav-down) "n") "n")
-    (my/meow-setup-qwerty)))
+  (my/meow-setup-qwerty))
 
 ;;; Thing registration
 
@@ -268,12 +267,12 @@
     '("<escape>" . org-agenda-quit)
     '("SPC" . meow-keypad)
     '("q" . org-agenda-quit)
-    `(,(or (bound-and-true-p kaizen/nav-down)  "n") . org-agenda-next-line)
-    `(,(or (bound-and-true-p kaizen/nav-up)    "e") . org-agenda-previous-line)
-    `(,(or (bound-and-true-p kaizen/nav-left)  "h") . org-agenda-earlier)
-    `(,(or (bound-and-true-p kaizen/nav-right) "i") . org-agenda-later)
-    `(,(upcase (or (bound-and-true-p kaizen/nav-down)  "n")) . org-agenda-next-item)
-    `(,(upcase (or (bound-and-true-p kaizen/nav-up)    "e")) . org-agenda-previous-item)
+    `(,"j" . org-agenda-next-line)
+    `(,"k" . org-agenda-previous-line)
+    `(,"h" . org-agenda-earlier)
+    `(,"l" . org-agenda-later)
+    `(,(upcase "j") . org-agenda-next-item)
+    `(,(upcase "k") . org-agenda-previous-item)
     '("f" . avy-goto-word-1)
     '("g" . org-agenda-redo)
     '("." . org-agenda-goto-today)
@@ -310,10 +309,10 @@
 
   (meow-define-keys 'paren
     '("<escape>" . meow-normal-mode)
-    `(,(or (bound-and-true-p kaizen/nav-right) "i") . sp-forward-sexp)
-    `(,(or (bound-and-true-p kaizen/nav-left)  "h") . sp-backward-sexp)
-    `(,(or (bound-and-true-p kaizen/nav-down)  "n") . sp-down-sexp)
-    `(,(or (bound-and-true-p kaizen/nav-up)    "e") . sp-up-sexp)
+    `(,"l" . sp-forward-sexp)
+    `(,"h" . sp-backward-sexp)
+    `(,"j" . sp-down-sexp)
+    `(,"k" . sp-up-sexp)
     '("k" . sp-forward-slurp-sexp)
     '("b" . sp-forward-barf-sexp)
     '("v" . sp-backward-barf-sexp)
@@ -382,8 +381,8 @@
   (defvar my/meow-ediff-state-keymap
     (let ((map (make-sparse-keymap)))
       (set-keymap-parent map meow-motion-state-keymap)
-      (define-key map (kbd (or (bound-and-true-p kaizen/nav-down) "n")) #'ediff-next-difference)
-      (define-key map (kbd (or (bound-and-true-p kaizen/nav-up)   "e")) #'ediff-previous-difference)
+      (define-key map (kbd "j") #'ediff-next-difference)
+      (define-key map (kbd "k") #'ediff-previous-difference)
       map)
     "Meow keymap used while navigating Ediff buffers.")
 
@@ -465,12 +464,12 @@
   (define-key meow-normal-state-keymap (kbd "[g") #'git-gutter:previous-hunk))
 
 (define-key meow-normal-state-keymap
-  (kbd (concat "SPC " (or (bound-and-true-p kaizen/vcs-ui) "v l")))
+  (kbd "SPC v l")
   #'kaizen/open-vcs-ui)
 
 (with-eval-after-load 'git-timemachine
   (define-key meow-normal-state-keymap
-    (kbd (concat "SPC " (or (bound-and-true-p kaizen/vcs-history) "v h"))) #'git-timemachine))
+    (kbd "SPC v h") #'git-timemachine))
 
 (with-eval-after-load 'blamer
   (add-hook 'meow-insert-mode-hook #'my/disable-blamer-mode)

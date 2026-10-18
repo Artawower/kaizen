@@ -8,9 +8,5 @@ def _load_module(filename):
         return compile(file.read(), filepath, "exec")
 
 
-{{- if eq .layout "colemak" }}
-exec(_load_module("keybindings_colemak.xsh"))
-{{- else }}
 exec(_load_module("keybindings_qwerty.xsh"))
-{{- end }}
 exec(_load_module("keybindings_shared.xsh"))

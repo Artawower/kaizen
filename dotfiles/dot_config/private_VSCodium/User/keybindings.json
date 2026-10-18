@@ -1,15 +1,4 @@
-{{- $mod := "meta" }}
-{{- $groupMod := "ctrl" }}
-{{- if eq .chezmoi.os "darwin" }}
-{{-   $mod = "cmd" }}
-{{-   $groupMod = "cmd" }}
-{{- end }}
-{{- $navDown := "ctrl+j" }}
-{{- $navUp := "ctrl+k" }}
-{{- if eq .layout "colemak" }}
-{{-   $navDown = "ctrl+n" }}
-{{-   $navUp = "ctrl+e" }}
-{{- end }}
+
 [
   {
     "key": "] g",
@@ -32,142 +21,142 @@
     "when": "isInDiffEditor && vim.active && vim.mode == 'Normal'"
   },
   {
-    "key": "{{ $navDown }}",
+    "key": "ctrl+j",
     "command": "selectNextSuggestion",
     "when": "suggestWidgetVisible && vim.active"
   },
   {
-    "key": "{{ $navUp }}",
+    "key": "ctrl+k",
     "command": "selectPrevSuggestion",
     "when": "suggestWidgetVisible && vim.active"
   },
   {
-    "key": "{{ $navDown }}",
+    "key": "ctrl+j",
     "command": "workbench.action.quickOpenSelectNext",
     "when": "inQuickOpen && vim.active"
   },
   {
-    "key": "{{ $navUp }}",
+    "key": "ctrl+k",
     "command": "workbench.action.quickOpenSelectPrevious",
     "when": "inQuickOpen && vim.active"
   },
   {
-    "key": "{{ $mod }}+[KeyA]",
+    "key": "meta+[KeyA]",
     "command": "editor.action.selectAll",
     "when": "textInputFocus && !terminalFocus"
   },
   {
-    "key": "{{ $mod }}+[KeyC]",
+    "key": "meta+[KeyC]",
     "command": "editor.action.clipboardCopyAction",
     "when": "textInputFocus && !terminalFocus"
   },
   {
-    "key": "{{ $mod }}+[KeyX]",
+    "key": "meta+[KeyX]",
     "command": "editor.action.clipboardCutAction",
     "when": "textInputFocus && !terminalFocus"
   },
   {
-    "key": "{{ $mod }}+[KeyV]",
+    "key": "meta+[KeyV]",
     "command": "editor.action.clipboardPasteAction",
     "when": "textInputFocus && !terminalFocus"
   },
   {
-    "key": "{{ $mod }}+[KeyZ]",
+    "key": "meta+[KeyZ]",
     "command": "undo",
     "when": "textInputFocus && !terminalFocus"
   },
   {
-    "key": "shift+{{ $mod }}+[KeyZ]",
+    "key": "shift+meta+[KeyZ]",
     "command": "redo",
     "when": "textInputFocus && !terminalFocus"
   },
   {
-    "key": "{{ $mod }}+[KeyS]",
+    "key": "meta+[KeyS]",
     "command": "workbench.action.files.save"
   },
   {
-    "key": "shift+{{ $mod }}+[KeyS]",
+    "key": "shift+meta+[KeyS]",
     "command": "workbench.action.files.saveAs"
   },
   {
-    "key": "{{ $mod }}+[KeyF]",
+    "key": "meta+[KeyF]",
     "command": "actions.find",
     "when": "editorFocus"
   },
   {
-    "key": "shift+{{ $mod }}+[KeyF]",
+    "key": "shift+meta+[KeyF]",
     "command": "workbench.action.findInFiles"
   },
   {
-    "key": "{{ $mod }}+[KeyP]",
+    "key": "meta+[KeyP]",
     "command": "workbench.action.quickOpen"
   },
   {
-    "key": "shift+{{ $mod }}+[KeyP]",
+    "key": "shift+meta+[KeyP]",
     "command": "workbench.action.showCommands"
   },
   {
-    "key": "{{ $mod }}+[KeyN]",
+    "key": "meta+[KeyN]",
     "command": "workbench.action.files.newUntitledFile"
   },
   {
-    "key": "shift+{{ $mod }}+[KeyN]",
+    "key": "shift+meta+[KeyN]",
     "command": "workbench.action.newWindow"
   },
   {
-    "key": "{{ $mod }}+[KeyW]",
+    "key": "meta+[KeyW]",
     "command": "workbench.action.closeActiveEditor"
   },
   {
-    "key": "shift+{{ $mod }}+[KeyW]",
+    "key": "shift+meta+[KeyW]",
     "command": "workbench.action.closeWindow"
   },
   {
-    "key": "{{ $mod }}+[Comma]",
+    "key": "meta+[Comma]",
     "command": "workbench.action.openSettings"
   },
   {
-    "key": "{{ $mod }}+[Slash]",
+    "key": "meta+[Slash]",
     "command": "editor.action.commentLine",
     "when": "editorTextFocus && !editorReadonly"
   },
   {
-    "key": "{{ $mod }}+[KeyB]",
+    "key": "meta+[KeyB]",
     "command": "workbench.action.toggleSidebarVisibility"
   },
   {
-    "key": "{{ $mod }}+[KeyJ]",
+    "key": "meta+[KeyJ]",
     "command": "workbench.action.togglePanel"
   },
   {
-    "key": "{{ $mod }}+[KeyC]",
+    "key": "meta+[KeyC]",
     "command": "workbench.action.terminal.copySelection",
     "when": "terminalFocus && terminalHasBeenCreated && terminalTextSelected"
   },
   {
-    "key": "{{ $mod }}+[KeyV]",
+    "key": "meta+[KeyV]",
     "command": "workbench.action.terminal.paste",
     "when": "terminalFocus"
   },
   {
-    "key": "{{ $groupMod }}+.",
+    "key": "ctrl+.",
     "command": "-editor.changeDropType"
   },
   {
-    "key": "{{ $groupMod }}+.",
+    "key": "ctrl+.",
     "command": "-editor.changePasteType"
   },
   {
-    "key": "{{ $groupMod }}+.",
+    "key": "ctrl+.",
     "command": "-workbench.action.chat.openModePicker"
   },
   {
-    "key": "{{ $groupMod }}+.",
+    "key": "ctrl+.",
     "command": "workbench.action.focusNextGroup",
     "when": "vim.active"
   },
   {
-    "key": "shift+{{ $groupMod }}+.",
+    "key": "shift+ctrl+.",
     "command": "workbench.action.focusPreviousGroup",
     "when": "vim.active"
   }

@@ -127,13 +127,13 @@
   "h" #'split-window-below
   "r" #'rotate-window)
 
-(let* ((left  (or (bound-and-true-p kaizen/nav-left)   "h"))
-       (down  (or (bound-and-true-p kaizen/nav-down)   "n"))
-       (up    (or (bound-and-true-p kaizen/nav-up)     "e"))
-       (right (or (bound-and-true-p kaizen/nav-right)  "i"))
-       (ins   (or (bound-and-true-p kaizen/nav-insert) "l"))
-       (line-start (or (bound-and-true-p kaizen/line-start) "0"))
-       (line-end   (or (bound-and-true-p kaizen/line-end)   "$")))
+(let* ((left  "h")
+       (down  "j")
+       (up    "k")
+       (right "l")
+       (ins   "i")
+       (line-start "0")
+       (line-end   "$"))
 
   (hel-keymap-global-set :state 'normal
     left  #'hel-backward-char
@@ -270,7 +270,7 @@
 
 (with-eval-after-load 'git-timemachine
   (hel-keymap-global-set :state 'normal
-    (concat "SPC " (or (bound-and-true-p kaizen/vcs-history) "v h")) #'git-timemachine))
+    "SPC v h" #'git-timemachine))
 
 (with-eval-after-load 'blamer
   (add-hook 'hel-insert-state-enter-hook #'my/disable-blamer-mode)
@@ -373,8 +373,8 @@
               #'my/better-jump-preserve-pos-advice))
 
 ;; husky-fold — public API via husky-autoloads
-(let ((fold-next (concat "z " (or (bound-and-true-p kaizen/nav-down) "j")))
-      (fold-prev (concat "z " (or (bound-and-true-p kaizen/nav-up) "k"))))
+(let ((fold-next "z j")
+      (fold-prev "z k"))
   (hel-keymap-global-set :state 'normal
     "z r" #'husky-fold-open
     "z R" #'husky-fold-open-all

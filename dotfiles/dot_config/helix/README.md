@@ -16,11 +16,10 @@ or:
 variant = "steel"
 ```
 
-The Steel variant uses Scheme as its primary configuration. `config.toml` stays empty so TOML keymaps do not conflict with Scheme keymaps. Official Helix ignores the Scheme files and therefore uses its defaults unless the TOML backup is restored manually.
+The Steel variant uses Scheme as its primary configuration. `config.toml` stays empty so TOML keymaps do not conflict with Scheme keymaps. Official Helix ignores the Scheme files and therefore uses upstream defaults unless you configure its TOML keymap directly.
 
 - `core.scm` owns Steel editor options.
 - `bindings.scm` owns Steel keymaps.
-- `config.toml.bak` preserves the previous TOML configuration.
 - `languages.toml` owns language-server configuration.
 - `init.scm` loads the Scheme configuration and Steel plugins.
 - `appearance.scm` selects `my` or `my_light` from the system color scheme for Steel.
@@ -28,14 +27,14 @@ The Steel variant uses Scheme as its primary configuration. `config.toml` stays 
 - `modeline.scm` configures Moka and Scopeline.
 - `file-manager.scm` configures Forest.
 - `helix.scm` exports commands to the Steel runtime.
-- `kaizen.scm` is generated from the shared Kaizen shortcut registry.
+- `bindings.scm` contains direct QWERTY keybindings; shortcut changes start in `config.example.toml` and are adapted into native configs.
 
 Scheme keybindings include:
 
 - `Space b b`: open the buffer picker.
 - `Space ]` / `Space [`: go to the next / previous buffer.
-- `Ctrl+n` / `Ctrl+e` on Colemak and `Ctrl+j` / `Ctrl+k` on QWERTY: go to the next / previous diagnostic.
-- `k` / `K` on Colemak and `n` / `N` on QWERTY: go to the next / previous search match.
+- `Ctrl+j` / `Ctrl+k`: go to the next / previous diagnostic.
+- `k` / `K`: go to the next / previous search match.
 - `/`: open the search prompt, or search immediately for the current non-empty selection.
 - `Space o f`: open or focus Forest.
 - `Space o F`: close Forest when visible, otherwise open it. Forest captures keys while focused, so use `Escape` first or close it directly with `q`.

@@ -1,5 +1,4 @@
 (require "helix/keymaps.scm")
-(require "kaizen.scm")
 (require "tools.scm")
 (require "vcs.scm")
 
@@ -23,9 +22,9 @@
       "yank"
       "D"
       (list "ensure_selections_forward" "extend_to_line_end" "delete_selection")
-      kaizen-line-start
+      "0"
       "goto_line_start"
-      kaizen-line-end
+      "$"
       "goto_line_end"
       "^"
       "goto_first_nonwhitespace"
@@ -84,12 +83,13 @@
         "b"
         (hash "b" "buffer_picker" "]" "goto_next_buffer" "[" "goto_previous_buffer" "q" ":buffer-close")
         "w"
-        (hash kaizen-split-right "vsplit"
-          kaizen-split-down
+        (hash "q" ":wclose"
+          "v" "vsplit"
+          "h"
           "hsplit"
-          kaizen-window-rotate
+          "r"
           "rotate_view"
-          kaizen-nav-right
+          "l"
           (list ":toggle-option soft-wrap.enable" ":redraw"))
         "m"
         (hash "e" (hash "b" ":eval-buffer"))
@@ -108,8 +108,8 @@
           "d"
           yazi-actions)
         "v"
-        (hash kaizen-vcs-ui gitu-actions
-          kaizen-vcs-history
+        (hash "l" gitu-actions
+          "h"
           vcs-history-actions)
         "g"
         (hash "G" lazygit-actions
@@ -132,7 +132,7 @@
           "h"
           ":run-shell-command ~/.config/helix/utils/git-hunk.sh %{buffer_name} %{cursor_line} 3")
         "h"
-        (hash "r" (hash kaizen-nav-up ":config-reload"))
+        (hash "r" (hash "k" ":config-reload"))
         "l"
         (hash "a" "code_action"
           "r"
@@ -169,9 +169,9 @@
       "paste_clipboard_after"
       "P"
       "paste_clipboard_before"
-      kaizen-line-start
+      "0"
       "goto_line_start"
-      kaizen-line-end
+      "$"
       "goto_line_end"
       "^"
       "goto_first_nonwhitespace"
@@ -184,9 +184,9 @@
   (hash
     "normal"
     (hash
-      (string-append "C-" kaizen-nav-down)
+      "C-j"
       "goto_next_diag"
-      (string-append "C-" kaizen-nav-up)
+      "C-k"
       "goto_prev_diag"
       "C-A-left"
       "jump_view_left"
@@ -196,13 +196,13 @@
       "jump_view_up"
       "C-A-down"
       "jump_view_down"
-      (string-append "C-A-" kaizen-nav-left)
+      "C-A-h"
       "jump_view_left"
-      (string-append "C-A-" kaizen-nav-right)
+      "C-A-l"
       "jump_view_right"
-      (string-append "C-A-" kaizen-nav-up)
+      "C-A-k"
       "jump_view_up"
-      (string-append "C-A-" kaizen-nav-down)
+      "C-A-j"
       "jump_view_down"
       "C-A-S-left"
       "swap_view_left"
@@ -212,65 +212,20 @@
       "swap_view_up"
       "C-A-S-down"
       "swap_view_down"
-      (string-append "C-A-S-" kaizen-nav-left)
+      "C-A-S-h"
       "swap_view_left"
-      (string-append "C-A-S-" kaizen-nav-right)
+      "C-A-S-l"
       "swap_view_right"
-      (string-append "C-A-S-" kaizen-nav-up)
+      "C-A-S-k"
       "swap_view_up"
-      (string-append "C-A-S-" kaizen-nav-down)
+      "C-A-S-j"
       "swap_view_down")))
 
-(if (equal? kaizen-layout "colemak")
-  (add-global-keybinding
-    (hash
-      "normal"
-      (hash
-        kaizen-nav-down
-        "move_visual_line_down"
-        kaizen-nav-up
-        "move_visual_line_up"
-        kaizen-nav-right
-        "move_char_right"
-        kaizen-nav-insert
-        "insert_mode"
-        "j"
-        "move_next_word_end"
-        "k"
-        "search_next"
-        "J"
-        "move_next_long_word_end"
-        "K"
-        "search_prev"
-        "L"
-        "insert_at_line_start"
-        "E"
-        "hover")
-      "select"
-      (hash
-        kaizen-nav-right
-        "extend_char_right"
-        kaizen-nav-insert
-        "insert_mode"
-        "j"
-        "extend_next_word_end"
-        "k"
-        "extend_search_next"
-        "J"
-        "extend_next_long_word_end"
-        "K"
-        "extend_search_prev"
-        "L"
-        "insert_at_line_start"
-        "e"
-        (list "extend_line_up" "extend_to_line_bounds")
-        "n"
-        (list "extend_line_down" "extend_to_line_bounds"))))
-  (add-global-keybinding
+(add-global-keybinding
     (hash
       "normal"
       (hash "K" "hover")
       "select"
       (hash "k" (list "extend_line_up" "extend_to_line_bounds")
         "j"
-        (list "extend_line_down" "extend_to_line_bounds")))))
+        (list "extend_line_down" "extend_to_line_bounds"))))

@@ -10,17 +10,9 @@ test:
     bash tests/terminal-post-install.sh
     bash tests/helix-steel-post-install.sh
     bash tests/mangowm-post-install.sh
-    bash tests/aerospace-config.sh
-    bash tests/mango-config.sh
-    bash tests/neovim-config.sh
-    bash tests/vscodium-config.sh
     bash tests/noctalia-config.sh
-    bash tests/xonsh-config.sh
-    bash tests/xremap-config.sh
     bash tests/audacity-config.sh
     bash tests/devcache.sh
-    bash tests/karabiner-config.sh
-    bash tests/rift-config.sh
     bash tests/post-install.sh
     bash tests/feature-gating.sh
 

@@ -1,5 +1,4 @@
 local map = vim.keymap.set
-local kaizen = require("helpers").kaizen
 
 local treesitter_parsers = {
   "lua",
@@ -299,10 +298,9 @@ require("blink.cmp").setup({
   keymap = {
     preset = "enter",
     ["<C-n>"] = { "select_next", "fallback" },
-    ["<C-e>"] = kaizen.has_colemak_rebinds() and { "select_prev", "fallback" } or nil,
-    ["<C-p>"] = not kaizen.has_colemak_rebinds() and { "select_prev", "fallback" } or nil,
-    ["<C-j>"] = not kaizen.has_colemak_rebinds() and { "select_next", "fallback" } or nil,
-    ["<C-k>"] = not kaizen.has_colemak_rebinds() and { "select_prev", "fallback" } or nil,
+    ["<C-p>"] = { "select_prev", "fallback" },
+    ["<C-j>"] = { "select_next", "fallback" },
+    ["<C-k>"] = { "select_prev", "fallback" },
     ["<C-S-Space>"] = {
       function(cmp)
         require("lz.n").trigger_load("minuet-ai.nvim")

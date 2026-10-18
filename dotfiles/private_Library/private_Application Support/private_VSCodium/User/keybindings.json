@@ -1,0 +1,163 @@
+
+[
+  {
+    "key": "] g",
+    "command": "workbench.action.compareEditor.nextChange",
+    "when": "isInDiffEditor && vim.active && vim.mode == 'Normal'"
+  },
+  {
+    "key": "[ g",
+    "command": "workbench.action.compareEditor.previousChange",
+    "when": "isInDiffEditor && vim.active && vim.mode == 'Normal'"
+  },
+  {
+    "key": "] c",
+    "command": "workbench.action.compareEditor.nextChange",
+    "when": "isInDiffEditor && vim.active && vim.mode == 'Normal'"
+  },
+  {
+    "key": "[ c",
+    "command": "workbench.action.compareEditor.previousChange",
+    "when": "isInDiffEditor && vim.active && vim.mode == 'Normal'"
+  },
+  {
+    "key": "ctrl+j",
+    "command": "selectNextSuggestion",
+    "when": "suggestWidgetVisible && vim.active"
+  },
+  {
+    "key": "ctrl+k",
+    "command": "selectPrevSuggestion",
+    "when": "suggestWidgetVisible && vim.active"
+  },
+  {
+    "key": "ctrl+j",
+    "command": "workbench.action.quickOpenSelectNext",
+    "when": "inQuickOpen && vim.active"
+  },
+  {
+    "key": "ctrl+k",
+    "command": "workbench.action.quickOpenSelectPrevious",
+    "when": "inQuickOpen && vim.active"
+  },
+  {
+    "key": "cmd+[KeyA]",
+    "command": "editor.action.selectAll",
+    "when": "textInputFocus && !terminalFocus"
+  },
+  {
+    "key": "cmd+[KeyC]",
+    "command": "editor.action.clipboardCopyAction",
+    "when": "textInputFocus && !terminalFocus"
+  },
+  {
+    "key": "cmd+[KeyX]",
+    "command": "editor.action.clipboardCutAction",
+    "when": "textInputFocus && !terminalFocus"
+  },
+  {
+    "key": "cmd+[KeyV]",
+    "command": "editor.action.clipboardPasteAction",
+    "when": "textInputFocus && !terminalFocus"
+  },
+  {
+    "key": "cmd+[KeyZ]",
+    "command": "undo",
+    "when": "textInputFocus && !terminalFocus"
+  },
+  {
+    "key": "shift+cmd+[KeyZ]",
+    "command": "redo",
+    "when": "textInputFocus && !terminalFocus"
+  },
+  {
+    "key": "cmd+[KeyS]",
+    "command": "workbench.action.files.save"
+  },
+  {
+    "key": "shift+cmd+[KeyS]",
+    "command": "workbench.action.files.saveAs"
+  },
+  {
+    "key": "cmd+[KeyF]",
+    "command": "actions.find",
+    "when": "editorFocus"
+  },
+  {
+    "key": "shift+cmd+[KeyF]",
+    "command": "workbench.action.findInFiles"
+  },
+  {
+    "key": "cmd+[KeyP]",
+    "command": "workbench.action.quickOpen"
+  },
+  {
+    "key": "shift+cmd+[KeyP]",
+    "command": "workbench.action.showCommands"
+  },
+  {
+    "key": "cmd+[KeyN]",
+    "command": "workbench.action.files.newUntitledFile"
+  },
+  {
+    "key": "shift+cmd+[KeyN]",
+    "command": "workbench.action.newWindow"
+  },
+  {
+    "key": "cmd+[KeyW]",
+    "command": "workbench.action.closeActiveEditor"
+  },
+  {
+    "key": "shift+cmd+[KeyW]",
+    "command": "workbench.action.closeWindow"
+  },
+  {
+    "key": "cmd+[Comma]",
+    "command": "workbench.action.openSettings"
+  },
+  {
+    "key": "cmd+[Slash]",
+    "command": "editor.action.commentLine",
+    "when": "editorTextFocus && !editorReadonly"
+  },
+  {
+    "key": "cmd+[KeyB]",
+    "command": "workbench.action.toggleSidebarVisibility"
+  },
+  {
+    "key": "cmd+[KeyJ]",
+    "command": "workbench.action.togglePanel"
+  },
+  {
+    "key": "cmd+[KeyC]",
+    "command": "workbench.action.terminal.copySelection",
+    "when": "terminalFocus && terminalHasBeenCreated && terminalTextSelected"
+  },
+  {
+    "key": "cmd+[KeyV]",
+    "command": "workbench.action.terminal.paste",
+    "when": "terminalFocus"
+  },
+  {
+    "key": "cmd+.",
+    "command": "-editor.changeDropType"
+  },
+  {
+    "key": "cmd+.",
+    "command": "-editor.changePasteType"
+  },
+  {
+    "key": "cmd+.",
+    "command": "-workbench.action.chat.openModePicker"
+  },
+  {
+    "key": "cmd+.",
+    "command": "workbench.action.focusNextGroup",
+    "when": "vim.active"
+  },
+  {
+    "key": "shift+cmd+.",
+    "command": "workbench.action.focusPreviousGroup",
+    "when": "vim.active"
+  }
+]

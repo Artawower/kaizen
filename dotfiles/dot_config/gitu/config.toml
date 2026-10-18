@@ -1,13 +1,4 @@
-# Gitu config — layout: {{ .layout }}
-
-{{- $down := "j" }}
-{{- $up := "k" }}
-{{- $down_next := "J" }}
-{{- if eq .layout "colemak" }}
-{{-   $down = "n" }}
-{{-   $up = "e" }}
-{{-   $down_next = "N" }}
-{{- end }}
+# Gitu config — layout: qwerty
 
 [core]
 editor = "emacs-terminal"
@@ -74,12 +65,12 @@ hotkey = { fg = "magenta" }
 root.quit = ["q", "<esc>"]
 root.refresh = ["g"]
 root.toggle_section = ["<tab>"]
-root.move_up = ["{{ $up }}", "<up>"]
-root.move_down = ["{{ $down }}", "<down>"]
-root.move_up_line = ["ctrl+{{ $up }}", "ctrl+up"]
-root.move_down_line = ["ctrl+{{ $down }}", "ctrl+down"]
+root.move_up = ["k", "<up>"]
+root.move_down = ["j", "<down>"]
+root.move_up_line = ["ctrl+k", "ctrl+up"]
+root.move_down_line = ["ctrl+j", "ctrl+down"]
 root.move_prev_section = ["["]
-root.move_next_section = ["]", "{{ $down_next }}"]
+root.move_next_section = ["]", "J"]
 root.move_parent_section = ["H"]
 root.half_page_up = ["ctrl+u"]
 root.half_page_down = ["ctrl+d"]

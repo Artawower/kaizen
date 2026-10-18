@@ -1,40 +1,29 @@
 # HNEI (colemak) / HJKL (qwerty) keybindings for jjui
-# Layout: {{ .layout }}
-
-{{- $shortcuts := .kaizen.shortcuts -}}
-{{- if or (eq .layout "colemak-regular") (eq .layout "qwerty") -}}
-{{-   $shortcuts = .kaizen.base_shortcuts -}}
-{{- end -}}
-{{- $down := join "" (index $shortcuts "nav.down") }}
-{{- $up := join "" (index $shortcuts "nav.up") }}
-{{- $right := join "" (index $shortcuts "nav.right") }}
-{{- $new         := join "" (index $shortcuts "jjui.new") }}
-{{- $edit        := join "" (index $shortcuts "jjui.edit") }}
-{{- $interactive := join "" (index $shortcuts "jjui.interactive") }}
+# Layout: qwerty
 
 # --- Navigation ---
 
 [[bindings]]
 action = "revisions.move_down"
-key = "{{ $down }}"
+key = "j"
 scope = "revisions"
 desc = "down"
 
 [[bindings]]
 action = "revisions.move_up"
-key = "{{ $up }}"
+key = "k"
 scope = "revisions"
 desc = "up"
 
 [[bindings]]
 action = "revisions.open_details"
-key = "{{ $right }}"
+key = "l"
 scope = "revisions"
 desc = "details"
 
 [[bindings]]
 action = "revset.edit"
-key = "shift+{{ $right }}"
+key = "shift+l"
 scope = "revisions"
 desc = "revset"
 
@@ -42,13 +31,13 @@ desc = "revset"
 
 [[bindings]]
 action = "revisions.new"
-key = "{{ $new }}"
+key = "n"
 scope = "revisions"
 desc = "new"
 
 [[bindings]]
 action = "revisions.edit"
-key = "{{ $edit }}"
+key = "e"
 scope = "revisions"
 desc = "edit"
 
@@ -56,13 +45,13 @@ desc = "edit"
 
 [[bindings]]
 action = "help.scroll_down"
-key = "{{ $down }}"
+key = "j"
 scope = "help"
 desc = "down"
 
 [[bindings]]
 action = "help.scroll_up"
-key = "{{ $up }}"
+key = "k"
 scope = "help"
 desc = "up"
 
@@ -70,19 +59,19 @@ desc = "up"
 
 [[bindings]]
 action = "diff.scroll_down"
-key = "{{ $down }}"
+key = "j"
 scope = "diff"
 desc = "down"
 
 [[bindings]]
 action = "diff.scroll_up"
-key = "{{ $up }}"
+key = "k"
 scope = "diff"
 desc = "up"
 
 [[bindings]]
 action = "diff.right"
-key = "{{ $right }}"
+key = "l"
 scope = "diff"
 desc = "right"
 
@@ -90,13 +79,13 @@ desc = "right"
 
 [[bindings]]
 action = "oplog.move_down"
-key = "{{ $down }}"
+key = "j"
 scope = "oplog"
 desc = "down"
 
 [[bindings]]
 action = "oplog.move_up"
-key = "{{ $up }}"
+key = "k"
 scope = "oplog"
 desc = "up"
 
@@ -104,13 +93,13 @@ desc = "up"
 
 [[bindings]]
 action = "bookmarks.move_down"
-key = "{{ $down }}"
+key = "j"
 scope = "bookmarks"
 desc = "down"
 
 [[bindings]]
 action = "bookmarks.move_up"
-key = "{{ $up }}"
+key = "k"
 scope = "bookmarks"
 desc = "up"
 
@@ -118,13 +107,13 @@ desc = "up"
 
 [[bindings]]
 action = "git.move_down"
-key = "{{ $down }}"
+key = "j"
 scope = "git"
 desc = "down"
 
 [[bindings]]
 action = "git.move_up"
-key = "{{ $up }}"
+key = "k"
 scope = "git"
 desc = "up"
 
@@ -132,13 +121,13 @@ desc = "up"
 
 [[bindings]]
 action = "choose.move_down"
-key = "{{ $down }}"
+key = "j"
 scope = "choose"
 desc = "down"
 
 [[bindings]]
 action = "choose.move_up"
-key = "{{ $up }}"
+key = "k"
 scope = "choose"
 desc = "up"
 
@@ -146,13 +135,13 @@ desc = "up"
 
 [[bindings]]
 action = "revisions.details.move_down"
-key = "{{ $down }}"
+key = "j"
 scope = "revisions.details"
 desc = "down"
 
 [[bindings]]
 action = "revisions.details.move_up"
-key = "{{ $up }}"
+key = "k"
 scope = "revisions.details"
 desc = "up"
 
@@ -160,13 +149,13 @@ desc = "up"
 
 [[bindings]]
 action = "revisions.move_down"
-key = "{{ $down }}"
+key = "j"
 scope = "revisions.rebase"
 desc = "down"
 
 [[bindings]]
 action = "revisions.move_up"
-key = "{{ $up }}"
+key = "k"
 scope = "revisions.rebase"
 desc = "up"
 
@@ -174,25 +163,25 @@ desc = "up"
 
 [[bindings]]
 action = "revisions.move_down"
-key = "{{ $down }}"
+key = "j"
 scope = "revisions.squash"
 desc = "down"
 
 [[bindings]]
 action = "revisions.move_up"
-key = "{{ $up }}"
+key = "k"
 scope = "revisions.squash"
 desc = "up"
 
 [[bindings]]
 action = "revisions.squash.keep_emptied"
-key = "{{ $edit }}"
+key = "e"
 scope = "revisions.squash"
 desc = "keep emptied"
 
 [[bindings]]
 action = "revisions.squash.interactive"
-key = "{{ $interactive }}"
+key = "i"
 scope = "revisions.squash"
 desc = "interactive"
 
@@ -200,13 +189,13 @@ desc = "interactive"
 
 [[bindings]]
 action = "revisions.evolog.move_down"
-key = "{{ $down }}"
+key = "j"
 scope = "revisions.evolog"
 desc = "down"
 
 [[bindings]]
 action = "revisions.evolog.move_up"
-key = "{{ $up }}"
+key = "k"
 scope = "revisions.evolog"
 desc = "up"
 

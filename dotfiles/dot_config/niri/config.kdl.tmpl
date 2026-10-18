@@ -6,15 +6,7 @@
 // Find the full list of options on the wiki:
 // https://yalter.github.io/niri/Configuration:-Input
 
-{{- $shortcuts := .kaizen.shortcuts -}}
-{{- if or (eq .layout "colemak-regular") (eq .layout "qwerty") -}}
-{{-   $shortcuts = .kaizen.base_shortcuts -}}
-{{- end -}}
-{{- $down := join "" (index $shortcuts "nav.down") -}}
-{{- $up := join "" (index $shortcuts "nav.up") -}}
-{{- $right := join "" (index $shortcuts "nav.right") -}}
-{{- $overview := "k" -}}
-{{- if eq .layout "colemak" }}{{- $overview = "l" -}}{{ end }}
+
 
 environment {
     QT_PLUGIN_PATH null
@@ -267,7 +259,7 @@ binds {
     Mod5+Shift+G {
         maximize-window-to-edges
     }
-    Mod5+Shift+{{ $overview }} repeat=false {
+    Mod5+Shift+k repeat=false {
         toggle-overview
     }
     Mod5+Shift+Q repeat=false {
@@ -276,7 +268,7 @@ binds {
     Mod5+Shift+H {
         focus-column-left
     }
-    Mod5+Shift+{{ $right }} {
+    Mod5+Shift+l {
         focus-column-right
     }
     Mod5+Shift+Super+Left {
@@ -294,7 +286,7 @@ binds {
     Mod5+Shift+Super+H {
         move-column-left
     }
-    Mod5+Shift+Super+{{ $right }} {
+    Mod5+Shift+Super+l {
         move-column-right
     }
     Mod5+Shift+Home {
@@ -324,13 +316,13 @@ binds {
     Mod5+Shift+Ctrl+Super+H {
         move-column-to-monitor-left
     }
-    Mod5+Shift+Ctrl+Super+{{ $down }} {
+    Mod5+Shift+Ctrl+Super+j {
         move-column-to-monitor-down
     }
-    Mod5+Shift+Ctrl+Super+{{ $up }} {
+    Mod5+Shift+Ctrl+Super+k {
         move-column-to-monitor-up
     }
-    Mod5+Shift+Ctrl+Super+{{ $right }} {
+    Mod5+Shift+Ctrl+Super+l {
         move-column-to-monitor-right
     }
     Mod5+Shift+Page_Down {
@@ -339,10 +331,10 @@ binds {
     Mod5+Shift+Page_Up {
         focus-workspace-up
     }
-    Mod5+Shift+{{ $down }} {
+    Mod5+Shift+j {
         focus-workspace-down
     }
-    Mod5+Shift+{{ $up }} {
+    Mod5+Shift+k {
         focus-workspace-up
     }
     Mod5+Shift+Ctrl+Page_Down {
@@ -351,10 +343,10 @@ binds {
     Mod5+Shift+Ctrl+Page_Up {
         move-column-to-workspace-up
     }
-    Mod5+Shift+Super+{{ $down }} {
+    Mod5+Shift+Super+j {
         move-column-to-workspace-down
     }
-    Mod5+Shift+Super+{{ $up }} {
+    Mod5+Shift+Super+k {
         move-column-to-workspace-up
     }
     Mod5+Shift+Super+Page_Down {
@@ -363,14 +355,14 @@ binds {
     Mod5+Shift+Super+Page_Up {
         move-workspace-up
     }
-{{- if ne .layout "colemak" }}
+
     Mod5+Shift+Super+U {
         move-workspace-down
     }
     Mod5+Shift+Super+I {
         move-workspace-up
     }
-{{- end }}
+
     Mod5+Shift+WheelScrollDown cooldown-ms=150 {
         focus-workspace-down
     }

@@ -1,5 +1,4 @@
 local map = vim.keymap.set
-local kaizen = require("helpers").kaizen
 
 local function configure_servers()
 vim.lsp.config("lua_ls", {
@@ -319,35 +318,20 @@ map({ "n", "x" }, "gd", without_selection(vim.lsp.buf.definition), {
   desc = "Go to definition",
 })
 
-local lsp_action_key = "<leader>" .. kaizen.key("lsp.action", "la")
-map({ "n", "x" }, lsp_action_key, without_selection(vim.lsp.buf.code_action), {
+map({ "n", "x" }, "<leader>la", without_selection(vim.lsp.buf.code_action), {
   desc = "Code action",
 })
-if lsp_action_key ~= "<leader>la" then
-  map({ "n", "x" }, "<leader>la", without_selection(vim.lsp.buf.code_action), {
-    desc = "Code action",
-  })
-end
 
-local lsp_rename_key = "<leader>" .. kaizen.key("lsp.rename", "lr")
-map({ "n", "x" }, lsp_rename_key, without_selection(vim.lsp.buf.rename), {
+
+map({ "n", "x" }, "<leader>lr", without_selection(vim.lsp.buf.rename), {
   desc = "Rename symbol",
 })
-if lsp_rename_key ~= "<leader>lr" then
-  map({ "n", "x" }, "<leader>lr", without_selection(vim.lsp.buf.rename), {
-    desc = "Rename symbol",
-  })
-end
 
-local lsp_hover_key = "<leader>" .. kaizen.key("lsp.hover", "lh")
-map({ "n", "x" }, lsp_hover_key, without_selection(vim.lsp.buf.hover), {
+
+map({ "n", "x" }, "<leader>lh", without_selection(vim.lsp.buf.hover), {
   desc = "Hover",
 })
-if lsp_hover_key ~= "<leader>lh" then
-  map({ "n", "x" }, "<leader>lh", without_selection(vim.lsp.buf.hover), {
-    desc = "Hover",
-  })
-end
+
 
 -- Breadcrumbs
 

@@ -207,15 +207,15 @@
 (dolist (mode '(ediff-mode ediff-meta-mode))
   (add-to-list 'helixel-motion-parent-excluded-modes mode))
 
-;;; Layout-aware navigation bindings
 
-(let* ((left     (or (bound-and-true-p kaizen/nav-left)   "h"))
-       (down     (or (bound-and-true-p kaizen/nav-down)   "n"))
-       (up       (or (bound-and-true-p kaizen/nav-up)     "e"))
-       (right    (or (bound-and-true-p kaizen/nav-right)  "i"))
-       (ins      (or (bound-and-true-p kaizen/nav-insert) "l"))
-       (line-beg (or (bound-and-true-p kaizen/nav-beg) "0"))
-       (line-end (or (bound-and-true-p kaizen/line-end)   "$")))
+
+(let* ((left     "h")
+       (down     "j")
+       (up       "k")
+       (right    "l")
+       (ins      "i")
+       (line-beg "0")
+       (line-end "$"))
 
   ;; Generic navigation for normal/motion buffers.
   ;; Ediff is excluded from generic motion parent above.
@@ -241,20 +241,12 @@
   (helixel-define-key 'normal (kbd "C-:")        #'query-replace-regexp)
   (helixel-define-key 'normal "/"                #'helixel-search-forward)
 
-  (if (string= down "n")
-      (progn
-        (helixel-define-key 'normal "k" #'kaizen/helixel-search-or-next)
-        (helixel-define-key 'normal "K" #'helixel-search-repeat-reverse)
-        (helixel-define-key 'normal "j" #'helixel-forward-word-start)
-        (helixel-define-key 'normal "J" #'helixel-forward-WORD-start)
-        (define-key helixel-normal-map (kbd "C-n") #'flymake-goto-next-error)
-        (define-key helixel-normal-map (kbd "C-e") #'flymake-goto-prev-error))
-    (helixel-define-key 'normal "n" #'kaizen/helixel-search-or-next)
-    (helixel-define-key 'normal "N" #'helixel-search-repeat-reverse)
-    (helixel-define-key 'normal "w" #'helixel-forward-word-start)
-    (helixel-define-key 'normal "W" #'helixel-forward-WORD-start)
-    (define-key helixel-normal-map (kbd "C-j") #'flymake-goto-next-error)
-    (define-key helixel-normal-map (kbd "C-k") #'flymake-goto-prev-error))
+  (helixel-define-key 'normal "n" #'kaizen/helixel-search-or-next)
+  (helixel-define-key 'normal "N" #'helixel-search-repeat-reverse)
+  (helixel-define-key 'normal "w" #'helixel-forward-word-start)
+  (helixel-define-key 'normal "W" #'helixel-forward-WORD-start)
+  (define-key helixel-normal-map (kbd "C-j") #'flymake-goto-next-error)
+  (define-key helixel-normal-map (kbd "C-k") #'flymake-goto-prev-error)
 
   (helixel-define-key 'motion (kbd (upcase ins)) #'back-to-indentation)
 
@@ -289,10 +281,10 @@
   (helixel-define-key 'normal (kbd "RET") #'org-agenda-switch-to 'org-agenda-mode)
   (helixel-define-key 'normal "f" #'avy-goto-word-1 'org-agenda-mode)
 
-  (let ((down  (or (bound-and-true-p kaizen/nav-down)  "n"))
-        (up    (or (bound-and-true-p kaizen/nav-up)    "e"))
-        (left  (or (bound-and-true-p kaizen/nav-left)  "h"))
-        (right (or (bound-and-true-p kaizen/nav-right) "i")))
+  (let ((down  "j")
+        (up    "k")
+        (left  "h")
+        (right "l"))
     (helixel-define-key 'normal (kbd down)          #'org-agenda-next-line 'org-agenda-mode)
     (helixel-define-key 'normal (kbd up)            #'org-agenda-previous-line 'org-agenda-mode)
     (helixel-define-key 'normal (kbd left)          #'org-agenda-earlier 'org-agenda-mode)
@@ -352,7 +344,7 @@
 
 (with-eval-after-load 'git-timemachine
   (helixel-define-key 'normal
-                      (kbd (concat "SPC " (or (bound-and-true-p kaizen/vcs-history) "v h")))
+                      (kbd "SPC v h")
                       #'git-timemachine))
 
 (with-eval-after-load 'blamer
@@ -371,11 +363,9 @@
 ;;; Ediff integration
 
 (defun kaizen/helixel-ediff-bindings ()
-  "Setup layout-aware Ediff bindings for Helixel motion state."
-  (let* ((down (or (bound-and-true-p kaizen/nav-down) "n"))
-         (up   (or (bound-and-true-p kaizen/nav-up)   "e"))
-         ;; Bind both layout keys and explicit n/e fallbacks.
-         ;; This fixes cases where `kaizen/nav-up' is not currently \"e\".
+  "Set up Ediff bindings for Helixel motion state."
+  (let* ((down "j")
+         (up   "k")
          (next-keys (delete-dups (list down "n")))
          (prev-keys (delete-dups (list up "e" "p"))))
 
@@ -432,8 +422,8 @@
                         (kaizen/helixel-ediff--control-buffer))))
       (when buffer
         (with-current-buffer buffer
-          (let* ((down (or (and (boundp 'kaizen/nav-down) kaizen/nav-down) "n"))
-                 (up   (or (and (boundp 'kaizen/nav-up) kaizen/nav-up) "e"))
+          (let* ((down "j")
+                 (up   "k")
                  (next-keys (delete-dups (delq nil (list down "n" "j" "SPC"))))
                  (prev-keys (delete-dups
                              (delq nil
@@ -606,8 +596,8 @@
   (advice-add 'helixel-forward-word-start :around
               #'my/better-jump-preserve-pos-advice))
 
-(let ((fold-next (concat "z " (or (bound-and-true-p kaizen/nav-down) "j")))
-      (fold-prev (concat "z " (or (bound-and-true-p kaizen/nav-up) "k"))))
+(let ((fold-next "z j")
+      (fold-prev "z k"))
   (helixel-define-key 'normal (kbd "z r") #'husky-fold-open)
   (helixel-define-key 'normal (kbd "z R") #'husky-fold-open-all)
   (helixel-define-key 'normal (kbd "z A") #'husky-fold-toggle-all)

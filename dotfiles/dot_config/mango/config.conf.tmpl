@@ -101,8 +101,16 @@ circle_layout=scroller,monocle
 tag_num=9
 tag_gather=0
 
-{{ range $tag := list 1 2 3 4 5 6 7 8 9 }}tagrule=id:{{ $tag }},layout_name:scroller,no_hide:1
-{{ end }}
+tagrule=id:1,layout_name:scroller,no_hide:1
+tagrule=id:2,layout_name:scroller,no_hide:1
+tagrule=id:3,layout_name:scroller,no_hide:1
+tagrule=id:4,layout_name:scroller,no_hide:1
+tagrule=id:5,layout_name:scroller,no_hide:1
+tagrule=id:6,layout_name:scroller,no_hide:1
+tagrule=id:7,layout_name:scroller,no_hide:1
+tagrule=id:8,layout_name:scroller,no_hide:1
+tagrule=id:9,layout_name:scroller,no_hide:1
+
 
 windowrule=tags:1,appid:^(org\.telegram\.desktop|telegram-desktop|com\.mattermost\.Desktop|mattermost|discord|vesktop)$
 windowrule=tags:2,appid:^(com\.mitchellh\.ghostty|org\.wezfurlong\.wezterm|Alacritty)$
@@ -195,37 +203,7 @@ bind=CTRL+SUPER+ALT+SHIFT,2,set_proportion,0.5
 bind=CTRL+SUPER+ALT+SHIFT,3,set_proportion,0.667
 bind=CTRL+SUPER+ALT+SHIFT,0,set_proportion,1.0
 
-{{ if eq .layout "colemak" }}bind=ALT+SHIFT,h,focus_window_or_workspace,left
-bind=ALT+SHIFT,n,focusstack,next
-bind=ALT+SHIFT,e,focusstack,prev
-bind=ALT+SHIFT,i,focus_window_or_workspace,right
-bind=SUPER+ALT+SHIFT,h,move_client,left
-bind=SUPER+ALT+SHIFT,n,move_client,down
-bind=SUPER+ALT+SHIFT,e,move_client,up
-bind=SUPER+ALT+SHIFT,i,move_client,right
-bind=CTRL+SUPER+ALT+SHIFT,h,smartresizewin,left
-bind=CTRL+SUPER+ALT+SHIFT,n,smartresizewin,down
-bind=CTRL+SUPER+ALT+SHIFT,e,smartresizewin,up
-bind=CTRL+SUPER+ALT+SHIFT,i,smartresizewin,right
-bind=ALT+SHIFT,s,view,1
-bind=ALT+SHIFT,t,view,2
-bind=ALT+SHIFT,w,view,3
-bind=ALT+SHIFT,d,view,4
-bind=ALT+SHIFT,o,view,5
-bind=ALT+SHIFT,r,view,6
-bind=ALT+SHIFT,u,view,7
-bind=ALT+SHIFT,l,view,8
-bind=ALT+SHIFT,a,view,9
-bind=SUPER+ALT+SHIFT,s,tag,1
-bind=SUPER+ALT+SHIFT,t,tag,2
-bind=SUPER+ALT+SHIFT,w,tag,3
-bind=SUPER+ALT+SHIFT,d,tag,4
-bind=SUPER+ALT+SHIFT,o,tag,5
-bind=SUPER+ALT+SHIFT,r,tag,6
-bind=SUPER+ALT+SHIFT,u,tag,7
-bind=SUPER+ALT+SHIFT,l,tag,8
-bind=SUPER+ALT+SHIFT,a,tag,9
-{{ else }}bind=ALT+SHIFT,h,focus_window_or_workspace,left
+bind=ALT+SHIFT,h,focus_window_or_workspace,left
 bind=ALT+SHIFT,j,focusstack,next
 bind=ALT+SHIFT,k,focusstack,prev
 bind=ALT+SHIFT,l,focus_window_or_workspace,right
@@ -255,11 +233,27 @@ bind=SUPER+ALT+SHIFT,e,tag,6
 bind=SUPER+ALT+SHIFT,x,tag,7
 bind=SUPER+ALT+SHIFT,u,tag,8
 bind=SUPER+ALT+SHIFT,a,tag,9
-{{ end }}
 
-{{ range $tag := list 1 2 3 4 5 6 7 8 9 }}bind=ALT+SHIFT,{{ $tag }},view,{{ $tag }}
-bind=SUPER+ALT+SHIFT,{{ $tag }},tag,{{ $tag }}
-{{ end }}
+
+bind=ALT+SHIFT,1,view,1
+bind=SUPER+ALT+SHIFT,1,tag,1
+bind=ALT+SHIFT,2,view,2
+bind=SUPER+ALT+SHIFT,2,tag,2
+bind=ALT+SHIFT,3,view,3
+bind=SUPER+ALT+SHIFT,3,tag,3
+bind=ALT+SHIFT,4,view,4
+bind=SUPER+ALT+SHIFT,4,tag,4
+bind=ALT+SHIFT,5,view,5
+bind=SUPER+ALT+SHIFT,5,tag,5
+bind=ALT+SHIFT,6,view,6
+bind=SUPER+ALT+SHIFT,6,tag,6
+bind=ALT+SHIFT,7,view,7
+bind=SUPER+ALT+SHIFT,7,tag,7
+bind=ALT+SHIFT,8,view,8
+bind=SUPER+ALT+SHIFT,8,tag,8
+bind=ALT+SHIFT,9,view,9
+bind=SUPER+ALT+SHIFT,9,tag,9
+
 
 source-optional=~/.config/mango/noctalia.conf
 focuscolor=0x313244ff

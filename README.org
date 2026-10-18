@@ -88,8 +88,8 @@ leaders, modes, and activation mechanisms are application-specific; they are
 not part of the sequences. Agents must report unsupported actions or conflicts
 rather than silently changing their meaning.
 
-This catalog is for AI adaptation, not runtime binding generation. Existing
-chezmoi shortcut tables remain in use until their consumers are migrated.
+This catalog is for AI adaptation, not runtime binding generation. Application
+configs contain direct QWERTY bindings; chezmoi does not resolve or remap them.
 Existing installations can copy the =shortcuts= list from the example into
 their local Kaizen config.
 
@@ -155,16 +155,15 @@ variant = "standard"
 [tiling]
 variant = "yabai"
 
-[kaizen.shortcuts]
-"nav.down" = ["n"]
-"nav.up" = ["e"]
-
 [models]
 default = "anthropic/claude-sonnet-4-6"
 #+END_SRC
 
 Kaizen recursively merges dictionaries. Scalars and lists replace their
-default values, so every setting, model, and shortcut can be overridden.
+default values. Shortcut changes start in the =shortcuts= list in
+=config.example.toml= and are adapted directly into native application configs.
+The =layout= setting configures OS keyboard layout where supported; it no longer
+selects application keymaps.
 
 Additional machine-local packages and mise tools can be declared in
 =~/.config/kaizen/dependencies.toml=:

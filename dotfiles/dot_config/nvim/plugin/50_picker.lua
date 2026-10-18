@@ -23,7 +23,6 @@ vim.pack.add({
 
 local Snacks = require("snacks")
 local map = vim.keymap.set
-local kaizen = require("helpers").kaizen
 
 local function split_grep_query(str)
   local function find_unescaped(s, start)
@@ -162,8 +161,7 @@ local function project_root()
 end
 
 -- Files
-local file_find_key = "<leader>" .. kaizen.key("file.find", "ff")
-map("n", file_find_key, function()
+map("n", "<leader>ff", function()
   local root = project_root()
 
   Snacks.picker.smart({
@@ -177,21 +175,7 @@ end, {
   desc = "Find project files",
 })
 
-if file_find_key ~= "<leader>ff" then
-  map("n", "<leader>ff", function()
-    local root = project_root()
 
-    Snacks.picker.smart({
-      cwd = root,
-
-      filter = {
-        cwd = root,
-      },
-    })
-  end, {
-    desc = "Find project files",
-  })
-end
 
 -- Grep
 map({ "n", "x" }, "<leader>/", function()
@@ -283,8 +267,7 @@ end, {
   desc = "Go to type definition",
 })
 
-local lsp_symbols_key = "<leader>" .. kaizen.key("lsp.symbols", "ls")
-map("n", lsp_symbols_key, function()
+map("n", "<leader>ls", function()
   Snacks.picker.lsp_symbols()
 end, {
   desc = "Document symbols",
@@ -296,8 +279,7 @@ end, {
   desc = "Workspace symbols",
 })
 
-local lsp_diag_key = "<leader>" .. kaizen.key("lsp.diagnostics", "ld")
-map("n", lsp_diag_key, function()
+map("n", "<leader>ld", function()
   Snacks.picker.diagnostics_buffer()
 end, {
   desc = "Diagnostics",
@@ -516,30 +498,24 @@ local function toggle_bookmark()
   end)
 end
 
-local bm_toggle_key = "<leader>" .. kaizen.key("bookmark.toggle", "bm")
-map({ "n", "x" }, bm_toggle_key, toggle_bookmark, {
+map({ "n", "x" }, "<leader>bm", toggle_bookmark, {
   desc = "Toggle bookmark",
 })
-if bm_toggle_key ~= "<leader>ma" then
-  map({ "n", "x" }, "<leader>ma", toggle_bookmark, {
-    desc = "Toggle bookmark",
-  })
-end
+map({ "n", "x" }, "<leader>ma", toggle_bookmark, {
+  desc = "Toggle bookmark",
+})
 
 local function toggle_bookmarks_panel()
   require("lz.n").trigger_load("grapple.nvim")
   require("grapple").toggle_tags()
 end
 
-local bm_list_key = "<leader>" .. kaizen.key("bookmark.list", "bl")
-map({ "n", "x" }, bm_list_key, toggle_bookmarks_panel, {
+map({ "n", "x" }, "<leader>bl", toggle_bookmarks_panel, {
   desc = "Bookmarks",
 })
-if bm_list_key ~= "<leader>mm" then
-  map({ "n", "x" }, "<leader>mm", toggle_bookmarks_panel, {
-    desc = "Bookmarks",
-  })
-end
+map({ "n", "x" }, "<leader>mm", toggle_bookmarks_panel, {
+  desc = "Bookmarks",
+})
 
 map("n", "]m", function()
   require("lz.n").trigger_load("grapple.nvim")
@@ -555,8 +531,7 @@ end, {
   desc = "Previous bookmark",
 })
 
-local projects_key = "<leader>" .. kaizen.key("projects.pick", "pp")
-map("n", projects_key, function()
+map("n", "<leader>pp", function()
   Snacks.picker.projects()
 end, {
   desc = "Projects",

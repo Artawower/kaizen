@@ -8,23 +8,8 @@ $env.config = ($env.config | merge {
 
 source ~/.config/nushell/aliases.nu
 source ~/.config/nushell/task-runner.nu
-
-{{- $shortcuts := .kaizen.shortcuts -}}
-{{- if or (eq .layout "colemak-regular") (eq .layout "qwerty") -}}
-{{-   $shortcuts = .kaizen.base_shortcuts -}}
-{{- end }}
-alias {{ index $shortcuts "vcs.ui" | join "" }} = jjui
-alias {{ index $shortcuts "projects.pick" | join "" }} = kaizen-zoxide-pick
-
-{{- if eq .layout "colemak" }}
-$env.config.keybindings ++= [
-    {name: colemak_left_normal, modifier: none, keycode: char_h, mode: [helix_normal, helix_select], event: {edit: MoveLeft}}
-    {name: colemak_down_normal, modifier: none, keycode: char_n, mode: [helix_normal, helix_select], event: {edit: MoveLineDown}}
-    {name: colemak_up_normal, modifier: none, keycode: char_e, mode: [helix_normal, helix_select], event: {edit: MoveLineUp}}
-    {name: colemak_right_normal, modifier: none, keycode: char_i, mode: [helix_normal, helix_select], event: {edit: MoveRight}}
-    {name: colemak_insert, modifier: none, keycode: char_l, mode: [helix_normal, helix_select], event: {send: SwitchMode, mode: helix_insert}}
-]
-{{- end }}
+alias vl = jjui
+alias pp = kaizen-zoxide-pick
 
 def "parse mise vars" [] {
     $in | from csv --noheaders --no-infer | rename op name value

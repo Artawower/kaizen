@@ -1,0 +1,19 @@
+[[mgr.prepend_keymap]]
+on = "h"
+run = "leave"
+desc = "Parent directory"
+
+[[mgr.prepend_keymap]]
+on = "j"
+run = "arrow next"
+desc = "Next file"
+
+[[mgr.prepend_keymap]]
+on = "k"
+run = "arrow prev"
+desc = "Previous file"
+
+[[mgr.prepend_keymap]]
+on = "l"
+run = "enter"
+desc = "Open selected entry"

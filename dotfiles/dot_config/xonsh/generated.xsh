@@ -1,13 +1,5 @@
-{{- $shortcuts := .kaizen.shortcuts -}}
-{{- if or (eq .layout "colemak-regular") (eq .layout "qwerty") -}}
-{{-   $shortcuts = .kaizen.base_shortcuts -}}
-{{- end -}}
 import shutil
 from xonsh.tools import unthreadable, uncapturable
-
-
-def _kaizen_alias(keys, command):
-    aliases[''.join(keys)] = command
 
 
 # unthreadable + uncapturable: interactive fzf (spawned by `zoxide query -i`)
@@ -24,7 +16,7 @@ def _kaizen_zoxide_pick(args):
         cd @(dest)
 
 
-_kaizen_alias({{ index $shortcuts "vcs.ui" | toJson }}, 'jjui')
+aliases['vl'] = 'jjui'
 # projects.pick → zoxide interactive directly (no dependency on zoxide's own `zi`
 # alias, which only exists after `zoxide init` runs and was order/PATH-fragile).
-aliases[''.join({{ index $shortcuts "projects.pick" | toJson }})] = _kaizen_zoxide_pick
+aliases[''.join(["p","p"])] = _kaizen_zoxide_pick

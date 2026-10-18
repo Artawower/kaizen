@@ -1,3 +1,14 @@
+.emacs.d/layout-override.el
+.config/nvim/lua/kaizen.lua
+.config/helix/kaizen.scm
+.config/helix/keys-colemak.toml
+.config/helix/keys-qwerty.toml
+.config/helix/keys-select-colemak.toml
+.config/helix/keys-select-qwerty.toml
+.config/skhd/skhdrc-colemak
+.config/zellij/config-colemak.kdl
+.config/zellij/config-qwerty.kdl
+.config/xonsh/keybindings_colemak.xsh
 .config/scripts/layout
 .config/scripts/upgrade
 .config/scripts/mise-bump

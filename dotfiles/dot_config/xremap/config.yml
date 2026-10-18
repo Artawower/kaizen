@@ -12,29 +12,12 @@ keymap:
     remap:
       Ctrl-Super-h: Left
       Ctrl-Super-Shift-h: Shift-Left
-{{- if eq .layout "colemak-regular" }}
-      Ctrl-Super-y: Down
-      Ctrl-Super-n: Up
-      Ctrl-Super-u: Right
-      Ctrl-Super-Shift-y: Shift-Down
-      Ctrl-Super-Shift-n: Shift-Up
-      Ctrl-Super-Shift-u: Shift-Right
-{{- else }}
       Ctrl-Super-j: Down
       Ctrl-Super-k: Up
       Ctrl-Super-l: Right
       Ctrl-Super-Shift-j: Shift-Down
       Ctrl-Super-Shift-k: Shift-Up
       Ctrl-Super-Shift-l: Shift-Right
-{{- if eq .layout "colemak" }}
-      Ctrl-Super-n: Down
-      Ctrl-Super-e: Up
-      Ctrl-Super-i: Right
-      Ctrl-Super-Shift-n: Shift-Down
-      Ctrl-Super-Shift-e: Shift-Up
-      Ctrl-Super-Shift-i: Shift-Right
-{{- end }}
-{{- end }}
 
   - name: Super clicks as Ctrl clicks
     remap:
@@ -52,15 +35,6 @@ keymap:
       Super-x: C-x
       Super-z: C-z
       Super-a: C-a
-{{- if eq .layout "colemak" }}
-      Super-e: C-f
-      Super-u: C-l
-      Super-f: C-t
-      Super-w: C-w
-      Super-s: C-r
-      Super-d: C-s
-      Super-j: C-n
-{{- else }}
       Super-f: C-f
       Super-l: C-l
       Super-t: C-t
@@ -68,7 +42,6 @@ keymap:
       Super-r: C-r
       Super-s: C-s
       Super-n: C-n
-{{- end }}
       Super-q: C-q
 
   - name: Terminals commands
@@ -114,35 +87,21 @@ keymap:
     application:
       only: [brave-browser, org.mozilla.firefox, "app.zen_browser.zen", zen, helium, org.telegram.desktop]
     remap:
-{{- if eq .layout "colemak-regular" }}
-      C-y: C-Tab
-      C-n: C-Shift-Tab
-{{- else }}
       C-j: C-Tab
       C-k: C-Shift-Tab
-{{- end }}
       Alt-Left: Home
       Alt-Right: End
       Super-a: C-a
       Super-c: C-c
       Super-v: Shift-Insert
       Super-z: C-z
-{{- if eq .layout "colemak" }}
-      Super-Shift-f: C-Shift-t
-{{- else }}
       Super-Shift-t: C-Shift-t
-{{- end }}
 
   - name: Browser shortcuts
     application:
       only: [brave-browser, org.mozilla.firefox, "app.zen_browser.zen", zen, helium]
     exact_match: true
     remap:
-{{- if eq .layout "colemak" }}
-      Super-e: C-f
-{{- else }}
-      Super-f: C-f
-{{- end }}
       Super-t: C-t
       Super-f: C-f
       Super-g: C-g
@@ -162,14 +121,11 @@ keymap:
       Super-z: C-z
 
 
-{{ $shortcuts := .kaizen.shortcuts -}}
-{{- if or (eq .layout "colemak-regular") (eq .layout "qwerty") -}}
-{{-   $shortcuts = .kaizen.base_shortcuts -}}
-{{- end }}
+
   - name: Fn tabs
     remap:
-      Fn-{{ join "" (index $shortcuts "nav.down") }}: C-Tab
-      Fn-{{ join "" (index $shortcuts "nav.up") }}: C-S-Tab
+      Fn-j: C-Tab
+      Fn-k: C-S-Tab
 
   - name: Emacs
     application:

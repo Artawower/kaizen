@@ -1,16 +1,3 @@
-{{- $colemakRebinds := eq .layout "colemak" -}}
-{{- $navDown := "<C-j>" -}}
-{{- $navUp := "<C-k>" -}}
-{{- $windowDown := "j" -}}
-{{- $windowUp := "k" -}}
-{{- $windowRight := "l" -}}
-{{- if $colemakRebinds -}}
-{{-   $navDown = "<C-n>" -}}
-{{-   $navUp = "<C-e>" -}}
-{{-   $windowDown = "n" -}}
-{{-   $windowUp = "e" -}}
-{{-   $windowRight = "i" -}}
-{{- end -}}
 {
   "vim.disableExtension": false,
   "vim.leader": "<space>",
@@ -25,615 +12,522 @@
   "vim.showcmd": true,
   "vim.showmodename": true,
   "vim.statusBarColorControl": false,
-{{- if eq .layout "qwerty" }}
   "vim.langmap": "й;q,ц;w,у;e,к;r,е;t,н;y,г;u,ш;i,щ;o,з;p,ф;a,ы;s,в;d,а;f,п;g,р;h,о;j,л;k,д;l,я;z,ч;x,с;c,м;v,и;b,т;n,ь;m",
-{{- else }}
-  "vim.langmap": "й;q,ц;w,у;f,к;p,е;g,н;j,г;l,ш;u,щ;y,з;\\;,ф;a,ы;r,в;s,а;t,п;d,р;h,о;n,л;e,д;i,ж;o,я;z,ч;x,с;c,м;v,и;b,т;k,ь;m",
-{{- end }}
   "vim.normalModeKeyBindingsNonRecursive": [
-{{- if $colemakRebinds }}
-    {
-      "before": ["n"],
-      "after": ["g", "j"],
-      "silent": true,
-    },
-    {
-      "before": ["e"],
-      "after": ["g", "k"],
-      "silent": true,
-    },
-    {
-      "before": ["i"],
-      "after": ["l"],
-      "silent": true,
-    },
-    {
-      "before": ["l"],
-      "after": ["i"],
-      "silent": true,
-    },
-    {
-      "before": ["L"],
-      "after": ["I"],
-      "silent": true,
-    },
-    {
-      "before": ["j"],
-      "after": ["e"],
-      "silent": true,
-    },
-    {
-      "before": ["J"],
-      "after": ["E"],
-      "silent": true,
-    },
-    {
-      "before": ["k"],
-      "after": ["n"],
-      "silent": true,
-    },
-    {
-      "before": ["K"],
-      "after": ["N"],
-      "silent": true,
-    },
-    {
-      "before": ["E"],
-      "commands": ["editor.action.showHover"],
-      "silent": true,
-    },
-{{- end }}
     {
       "before": ["m", "i"],
       "after": ["v", "i"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["m", "a"],
       "after": ["v", "a"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["+"],
       "commands": ["editor.action.smartSelect.expand"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["-"],
       "commands": ["editor.action.smartSelect.shrink"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["x"],
       "after": ["V"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["m", "m"],
       "after": ["%"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["c"],
       "after": ["\"", "_", "c"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["C"],
       "after": ["\"", "_", "C"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["c", "c"],
       "after": ["\"", "_", "c", "c"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["d"],
       "after": ["x"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["U"],
       "after": ["<C-r>"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["f"],
       "after": ["<leader>", "<leader>", "<leader>", "b", "d", "w"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["F"],
       "after": ["<leader>", "<leader>", "s"],
-      "silent": true,
+      "silent": true
     },
     {
-      "before": ["{{ $navDown }}"],
+      "before": ["<C-j>"],
       "commands": ["editor.action.marker.next"],
-      "silent": true,
+      "silent": true
     },
     {
-      "before": ["{{ $navUp }}"],
+      "before": ["<C-k>"],
       "commands": ["editor.action.marker.prev"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["]", "d"],
       "commands": ["editor.action.marker.next"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["[", "d"],
       "commands": ["editor.action.marker.prev"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["]", "b"],
       "commands": ["workbench.action.nextEditor"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["[", "b"],
       "commands": ["workbench.action.previousEditor"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["<M-]>"],
       "commands": ["workbench.action.nextEditor"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["<M-[>"],
       "commands": ["workbench.action.previousEditor"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["]", "g"],
       "commands": ["workbench.action.editor.nextChange"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["[", "g"],
       "commands": ["workbench.action.editor.previousChange"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["]", "c"],
       "commands": ["workbench.action.editor.nextChange"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["[", "c"],
       "commands": ["workbench.action.editor.previousChange"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["]", "m"],
       "commands": ["bookmarks.jumpToNext"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["[", "m"],
       "commands": ["bookmarks.jumpToPrevious"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["g", "d"],
       "commands": ["editor.action.revealDefinition"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["g", "r"],
       "commands": ["editor.action.goToReferences"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["g", "i"],
       "commands": ["editor.action.goToImplementation"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["g", "t"],
       "commands": ["editor.action.goToTypeDefinition"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["g", "D"],
       "commands": ["editor.action.revealDefinitionAside"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["<C-w>", "h"],
       "commands": ["workbench.action.focusLeftGroup"],
-      "silent": true,
+      "silent": true
     },
     {
-      "before": ["<C-w>", "{{ $windowDown }}"],
+      "before": ["<C-w>", "j"],
       "commands": ["workbench.action.focusBelowGroup"],
-      "silent": true,
+      "silent": true
     },
     {
-      "before": ["<C-w>", "{{ $windowUp }}"],
+      "before": ["<C-w>", "k"],
       "commands": ["workbench.action.focusAboveGroup"],
-      "silent": true,
+      "silent": true
     },
     {
-      "before": ["<C-w>", "{{ $windowRight }}"],
+      "before": ["<C-w>", "l"],
       "commands": ["workbench.action.focusRightGroup"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["<leader>", "?"],
       "commands": ["whichkey.show"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["<leader>", "p", "p"],
       "commands": ["projectManager.listProjects"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["<leader>", "p", "n"],
       "commands": ["projectManager.listProjectsNewWindow"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["<leader>", "p", "s"],
       "commands": ["projectManager.saveProject"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["<leader>", "f", "f"],
       "commands": ["workbench.action.quickOpen"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["<leader>", "f", "r"],
       "commands": ["workbench.action.showAllEditorsByMostRecentlyUsed"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["<leader>", "f", "R"],
       "commands": ["workbench.action.openRecent"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["<leader>", "f", "s"],
       "commands": ["workbench.action.files.save"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["<leader>", "f", "n"],
       "commands": ["workbench.action.files.newUntitledFile"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["<leader>", "/"],
       "commands": ["workbench.action.findInFiles"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["<leader>", "*"],
       "commands": ["workbench.action.findInFiles"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["<leader>", "b", "b"],
       "commands": ["workbench.action.showAllEditorsByMostRecentlyUsed"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["<leader>", "b", "n"],
       "commands": ["workbench.action.nextEditor"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["<leader>", "b", "p"],
       "commands": ["workbench.action.previousEditor"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["<leader>", "b", "d"],
       "commands": ["workbench.action.closeActiveEditor"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["<leader>", "b", "o"],
       "commands": ["workbench.action.closeOtherEditors"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["<leader>", "["],
       "commands": ["workbench.action.previousEditor"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["<leader>", "]"],
       "commands": ["workbench.action.nextEditor"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["<leader>", "q"],
       "commands": ["workbench.action.closeActiveEditor"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["<leader>", "x"],
       "commands": ["workbench.action.closeActiveEditor"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["<leader>", "Q"],
       "commands": ["workbench.action.closeAllEditors"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["<leader>", "."],
       "commands": ["workbench.view.explorer"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["<leader>", "w", "v"],
       "commands": ["workbench.action.splitEditorRight"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["<leader>", "w", "h"],
       "commands": ["workbench.action.splitEditorDown"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["<leader>", "w", "f"],
       "commands": ["workbench.action.toggleMaximizeEditorGroup"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["<leader>", "w", "r"],
       "commands": ["workbench.action.toggleEditorGroupLayout"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["<leader>", "l", "a"],
       "commands": ["editor.action.quickFix"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["<leader>", "l", "r"],
       "commands": ["editor.action.rename"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["<leader>", "l", "h"],
       "commands": ["editor.action.showHover"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["<leader>", "l", "f"],
       "commands": ["editor.action.formatDocument"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["<leader>", "l", "s"],
       "commands": ["workbench.action.gotoSymbol"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["<leader>", "l", "S"],
       "commands": ["workbench.action.showAllSymbols"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["<leader>", "l", "d"],
       "commands": ["workbench.actions.view.problems"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["<leader>", "m", "a"],
       "commands": ["bookmarks.toggle"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["<leader>", "m", "m"],
       "commands": ["bookmarks.listFromAllFiles"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["<leader>", "v", "l"],
       "commands": ["workbench.view.scm"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["<leader>", "v", "c"],
       "commands": ["workbench.view.scm"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["<leader>", "v", "h"],
       "commands": ["timeline.focus"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["<leader>", "v", "j"],
       "commands": ["workbench.action.quickOpenView"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["<leader>", "d", "c"],
       "commands": ["workbench.action.debug.continue"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["<leader>", "d", "b"],
       "commands": ["editor.debug.action.toggleBreakpoint"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["<leader>", "d", "B"],
       "commands": ["editor.debug.action.conditionalBreakpoint"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["<leader>", "d", "n"],
       "commands": ["workbench.action.debug.stepOver"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["<leader>", "d", "i"],
       "commands": ["workbench.action.debug.stepInto"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["<leader>", "d", "o"],
       "commands": ["workbench.action.debug.stepOut"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["<leader>", "d", "q"],
       "commands": ["workbench.action.debug.stop"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["<leader>", "d", "v"],
       "commands": ["workbench.view.debug"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["<leader>", "d", "r"],
       "commands": ["workbench.debug.action.focusRepl"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["<leader>", "r", "t"],
       "commands": ["workbench.action.tasks.runTask"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["<leader>", "r", "r"],
       "commands": ["workbench.action.tasks.reRunTask"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["<leader>", "h", "c"],
       "commands": ["workbench.action.showCommands"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["<leader>", "h", "h"],
       "commands": ["workbench.action.openGlobalKeybindings"],
-      "silent": true,
-    },
+      "silent": true
+    }
   ],
   "vim.visualModeKeyBindingsNonRecursive": [
-{{- if $colemakRebinds }}
-    {
-      "before": ["n"],
-      "after": ["g", "j"],
-      "silent": true,
-    },
-    {
-      "before": ["e"],
-      "after": ["g", "k"],
-      "silent": true,
-    },
-    {
-      "before": ["i"],
-      "after": ["l"],
-      "silent": true,
-    },
-    {
-      "before": ["j"],
-      "after": ["e"],
-      "silent": true,
-    },
-    {
-      "before": ["J"],
-      "after": ["E"],
-      "silent": true,
-    },
-    {
-      "before": ["k"],
-      "after": ["n"],
-      "silent": true,
-    },
-    {
-      "before": ["K"],
-      "after": ["N"],
-      "silent": true,
-    },
-{{- end }}
     {
       "before": ["m", "i"],
       "after": ["i"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["m", "a"],
       "after": ["a"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["+"],
       "commands": ["editor.action.smartSelect.expand"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["-"],
       "commands": ["editor.action.smartSelect.shrink"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["x"],
       "after": ["j"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["X"],
       "after": ["k"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["p"],
       "after": ["\"", "_", "d", "P"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["c"],
       "after": ["\"", "_", "c"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["<leader>", "/"],
       "commands": ["workbench.action.findInFiles"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["<leader>", "l", "a"],
       "commands": ["editor.action.quickFix"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["<leader>", "l", "r"],
       "commands": ["editor.action.rename"],
-      "silent": true,
+      "silent": true
     },
     {
       "before": ["<leader>", "l", "h"],
       "commands": ["editor.action.showHover"],
-      "silent": true,
-    },
+      "silent": true
+    }
   ],
   "vim.insertModeKeyBindingsNonRecursive": [
     {
-      "before": ["{{ $navDown }}"],
+      "before": ["<C-j>"],
       "commands": ["selectNextSuggestion"],
-      "silent": true,
+      "silent": true
     },
     {
-      "before": ["{{ $navUp }}"],
+      "before": ["<C-k>"],
       "commands": ["selectPrevSuggestion"],
-      "silent": true,
-    },
+      "silent": true
+    }
   ],
   "vim.handleKeys": {
     "<D-a>": false,
@@ -647,10 +541,10 @@
     "<D-v>": false,
     "<D-w>": false,
     "<D-x>": false,
-    "<D-z>": false,
+    "<D-z>": false
   },
   "extensions.experimental.affinity": {
-    "vscodevim.vim": 1,
+    "vscodevim.vim": 1
   },
   "keyboard.dispatch": "keyCode",
   "whichkey.sortOrder": "alphabetically",
@@ -660,19 +554,19 @@
       "key": "?",
       "name": "Keymaps",
       "type": "command",
-      "command": "whichkey.searchBindings",
+      "command": "whichkey.searchBindings"
     },
     {
       "key": "/",
       "name": "Search project",
       "type": "command",
-      "command": "workbench.action.findInFiles",
+      "command": "workbench.action.findInFiles"
     },
     {
       "key": ".",
       "name": "Explorer",
       "type": "command",
-      "command": "workbench.view.explorer",
+      "command": "workbench.view.explorer"
     },
     {
       "key": "p",
@@ -683,21 +577,21 @@
           "key": "p",
           "name": "Open project",
           "type": "command",
-          "command": "projectManager.listProjects",
+          "command": "projectManager.listProjects"
         },
         {
           "key": "n",
           "name": "Open project in new window",
           "type": "command",
-          "command": "projectManager.listProjectsNewWindow",
+          "command": "projectManager.listProjectsNewWindow"
         },
         {
           "key": "s",
           "name": "Save current project",
           "type": "command",
-          "command": "projectManager.saveProject",
-        },
-      ],
+          "command": "projectManager.saveProject"
+        }
+      ]
     },
     {
       "key": "b",
@@ -708,27 +602,27 @@
           "key": "b",
           "name": "Switch buffer",
           "type": "command",
-          "command": "workbench.action.showAllEditorsByMostRecentlyUsed",
+          "command": "workbench.action.showAllEditorsByMostRecentlyUsed"
         },
         {
           "key": "n",
           "name": "Next buffer",
           "type": "command",
-          "command": "workbench.action.nextEditor",
+          "command": "workbench.action.nextEditor"
         },
         {
           "key": "p",
           "name": "Previous buffer",
           "type": "command",
-          "command": "workbench.action.previousEditor",
+          "command": "workbench.action.previousEditor"
         },
         {
           "key": "d",
           "name": "Close buffer",
           "type": "command",
-          "command": "workbench.action.closeActiveEditor",
-        },
-      ],
+          "command": "workbench.action.closeActiveEditor"
+        }
+      ]
     },
     {
       "key": "f",
@@ -739,21 +633,21 @@
           "key": "f",
           "name": "Find project file",
           "type": "command",
-          "command": "workbench.action.quickOpen",
+          "command": "workbench.action.quickOpen"
         },
         {
           "key": "r",
           "name": "Recent/open editors",
           "type": "command",
-          "command": "workbench.action.showAllEditorsByMostRecentlyUsed",
+          "command": "workbench.action.showAllEditorsByMostRecentlyUsed"
         },
         {
           "key": "R",
           "name": "Open recent",
           "type": "command",
-          "command": "workbench.action.openRecent",
-        },
-      ],
+          "command": "workbench.action.openRecent"
+        }
+      ]
     },
     {
       "key": "l",
@@ -764,45 +658,45 @@
           "key": "a",
           "name": "Code action",
           "type": "command",
-          "command": "editor.action.quickFix",
+          "command": "editor.action.quickFix"
         },
         {
           "key": "r",
           "name": "Rename",
           "type": "command",
-          "command": "editor.action.rename",
+          "command": "editor.action.rename"
         },
         {
           "key": "h",
           "name": "Hover",
           "type": "command",
-          "command": "editor.action.showHover",
+          "command": "editor.action.showHover"
         },
         {
           "key": "f",
           "name": "Format",
           "type": "command",
-          "command": "editor.action.formatDocument",
+          "command": "editor.action.formatDocument"
         },
         {
           "key": "s",
           "name": "Document symbols",
           "type": "command",
-          "command": "workbench.action.gotoSymbol",
+          "command": "workbench.action.gotoSymbol"
         },
         {
           "key": "S",
           "name": "Workspace symbols",
           "type": "command",
-          "command": "workbench.action.showAllSymbols",
+          "command": "workbench.action.showAllSymbols"
         },
         {
           "key": "d",
           "name": "Diagnostics",
           "type": "command",
-          "command": "workbench.actions.view.problems",
-        },
-      ],
+          "command": "workbench.actions.view.problems"
+        }
+      ]
     },
     {
       "key": "w",
@@ -813,27 +707,27 @@
           "key": "v",
           "name": "Split right",
           "type": "command",
-          "command": "workbench.action.splitEditorRight",
+          "command": "workbench.action.splitEditorRight"
         },
         {
           "key": "h",
           "name": "Split below",
           "type": "command",
-          "command": "workbench.action.splitEditorDown",
+          "command": "workbench.action.splitEditorDown"
         },
         {
           "key": "f",
           "name": "Toggle maximize",
           "type": "command",
-          "command": "workbench.action.toggleMaximizeEditorGroup",
+          "command": "workbench.action.toggleMaximizeEditorGroup"
         },
         {
           "key": "r",
           "name": "Toggle layout",
           "type": "command",
-          "command": "workbench.action.toggleEditorGroupLayout",
-        },
-      ],
+          "command": "workbench.action.toggleEditorGroupLayout"
+        }
+      ]
     },
     {
       "key": "m",
@@ -844,15 +738,15 @@
           "key": "a",
           "name": "Toggle bookmark",
           "type": "command",
-          "command": "bookmarks.toggle",
+          "command": "bookmarks.toggle"
         },
         {
           "key": "m",
           "name": "List bookmarks",
           "type": "command",
-          "command": "bookmarks.listFromAllFiles",
-        },
-      ],
+          "command": "bookmarks.listFromAllFiles"
+        }
+      ]
     },
     {
       "key": "v",
@@ -863,27 +757,27 @@
           "key": "l",
           "name": "Source control",
           "type": "command",
-          "command": "workbench.view.scm",
+          "command": "workbench.view.scm"
         },
         {
           "key": "c",
           "name": "Changed files",
           "type": "command",
-          "command": "workbench.view.scm",
+          "command": "workbench.view.scm"
         },
         {
           "key": "h",
           "name": "Timeline/history",
           "type": "command",
-          "command": "timeline.focus",
+          "command": "timeline.focus"
         },
         {
           "key": "j",
           "name": "Views / VisualJJ",
           "type": "command",
-          "command": "workbench.action.quickOpenView",
-        },
-      ],
+          "command": "workbench.action.quickOpenView"
+        }
+      ]
     },
     {
       "key": "d",
@@ -894,40 +788,40 @@
           "key": "c",
           "name": "Continue",
           "type": "command",
-          "command": "workbench.action.debug.continue",
+          "command": "workbench.action.debug.continue"
         },
         {
           "key": "b",
           "name": "Breakpoint",
           "type": "command",
-          "command": "editor.debug.action.toggleBreakpoint",
+          "command": "editor.debug.action.toggleBreakpoint"
         },
         {
           "key": "n",
           "name": "Step over",
           "type": "command",
-          "command": "workbench.action.debug.stepOver",
+          "command": "workbench.action.debug.stepOver"
         },
         {
           "key": "i",
           "name": "Step into",
           "type": "command",
-          "command": "workbench.action.debug.stepInto",
+          "command": "workbench.action.debug.stepInto"
         },
         {
           "key": "o",
           "name": "Step out",
           "type": "command",
-          "command": "workbench.action.debug.stepOut",
+          "command": "workbench.action.debug.stepOut"
         },
         {
           "key": "q",
           "name": "Stop",
           "type": "command",
-          "command": "workbench.action.debug.stop",
-        },
-      ],
-    },
+          "command": "workbench.action.debug.stop"
+        }
+      ]
+    }
   ],
   "projectManager.sortList": "Recent",
   "projectManager.groupList": false,
@@ -991,5 +885,5 @@
   "terminal.integrated.minimumContrastRatio": 1,
   "telemetry.telemetryLevel": "off",
   "git-graph-libre.telemetry.enabled": "disabled",
-  "githubPullRequests.hideViewedFiles": true,
+  "githubPullRequests.hideViewedFiles": true
 }
