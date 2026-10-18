@@ -113,6 +113,7 @@ jj --config 'signing.behavior="drop"' describe -m "..."  # update description
 
 ## Code rules
 
+- All keybinding changes MUST start in `config.example.toml` (`shortcuts`), then be reflected in application configs.
 - No comments in code. If a comment feels necessary, refactor instead.
 - English only — no Russian anywhere in source files.
 - `kaizen.py` is the only orchestrator; do not add new Python files unless adding a `post_install.py` to a feature.
