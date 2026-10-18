@@ -7,6 +7,7 @@ $env.config = ($env.config | merge {
 })
 
 source ~/.config/nushell/aliases.nu
+source ~/.config/nushell/task-runner.nu
 
 {{- $shortcuts := .kaizen.shortcuts -}}
 {{- if or (eq .layout "colemak-regular") (eq .layout "qwerty") -}}
