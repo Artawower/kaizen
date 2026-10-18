@@ -35,7 +35,7 @@ def resolve_codium_runner(os_name: str) -> list[str] | None:
         if app_binary.is_file():
             return [str(app_binary)]
 
-    if os_name == "linux" and shutil.which("flatpak"):
+    if os_name != "macos" and shutil.which("flatpak"):
         probe = subprocess.run(
             ["flatpak", "info", "com.vscodium.codium"],
             stdout=subprocess.DEVNULL,

@@ -1,8 +1,61 @@
-kaizen/
-.config/mise.lock
+**/.DS_Store
+**/*.log
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/.pytest_cache/
+**/.ruff_cache/
+.config/**/*.lock
+.config/**/*-lock.json
 .config/herdr/session.json
-.config/herdr/*.log
+.config/nvim_old/
 .emacs.d/elpaca/
+.emacs.d/elpaca.lock
+.omp/agent/*.lock
+.agents/.skill-lock.json
+skills-lock.json
+{{- if not (dig "features" "emacs" false .) }}
+.emacs.d/
+{{- end }}
+{{- if not (dig "features" "ai" false .) }}
+.agents/
+.pi/
+.omp/
+.config/eca/
+.config/opencode/
+.config/gh-copilot/
+.config/github-copilot/
+{{- end }}
+{{- if not (dig "features" "terminal" false .) }}
+.config/ghostty/
+.config/wezterm/
+.config/xonsh/
+.config/nushell/
+.config/zellij/
+.config/yazi/
+Library/Application Support/nushell/
+{{- end }}
+{{- if not (dig "features" "keyboard" false .) }}
+.config/karabiner/
+.config/xremap/
+{{- end }}
+{{- if not (dig "features" "helix" false .) }}
+.config/helix/
+{{- end }}
+{{- if not (dig "features" "tiling" false .) }}
+.config/aerospace/
+.config/yabai/
+.config/skhd/
+.config/borders/
+.config/komorebi/
+.config/rift/
+.config/mango/
+.config/niri/
+.config/noctalia/
+.config/hypr/
+.glzr/
+.local/share/noctalia/
+{{- end }}
 {{- if or (ne .chezmoi.os "linux") (not (dig "features" "media" false .)) }}
 .local/bin/audacity
 .local/bin/audacity4

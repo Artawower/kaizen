@@ -139,6 +139,8 @@ def test_install_does_not_apply_dotfiles() -> None:
     original_parse = kaizen.parse_features
     original_load = kaizen.load_user_dependencies
     original_run = kaizen.subprocess.run
+    original_which = kaizen.shutil.which
+    kaizen.shutil.which = lambda _: "/tmp/chezmoi"
     kaizen.parse_features = lambda _: events.append("features") or []
     kaizen.load_user_dependencies = lambda: events.append("dependencies") or {}
     kaizen.subprocess.run = lambda command, **_: events.append(command)
@@ -153,6 +155,7 @@ def test_install_does_not_apply_dotfiles() -> None:
         kaizen.parse_features = original_parse
         kaizen.load_user_dependencies = original_load
         kaizen.subprocess.run = original_run
+        kaizen.shutil.which = original_which
     assert events[:4] == ["features", "dependencies", "write", "install"]
     assert events[4][0:2] == ["chezmoi", "apply"]
 
@@ -185,6 +188,58 @@ def test_dependency_workflow_runs_integrations() -> None:
     assert "install" in kaizen._COMMANDS
 
 
+def test_failures_stop_workflow() -> None:
+    from unittest.mock import patch
+    import subprocess
+
+    with tempfile.TemporaryDirectory() as directory:
+        path = Path(directory) / "packages.toml"
+        write(path, "[macos\n")
+        try:
+            kaizen.load_toml(path)
+        except ValueError:
+            pass
+        else:
+            raise AssertionError("malformed feature manifest accepted")
+
+        with patch.object(kaizen.shutil, "which", return_value="/tmp/tool"):
+            with patch.object(kaizen.subprocess, "run", side_effect=subprocess.CalledProcessError(2, ["sample"])) as run:
+                try:
+                    kaizen.Brew()._run(["sample"])
+                except subprocess.CalledProcessError:
+                    pass
+                else:
+                    raise AssertionError("native command failure ignored")
+                assert run.call_args.kwargs["check"] is True
+
+        instance = object.__new__(kaizen.Kaizen)
+        with patch.object(kaizen.shutil, "which", return_value=None):
+            with patch.object(instance, "_write_user_data") as write_data:
+                try:
+                    instance.sync()
+                except kaizen.DependencyNotFoundError:
+                    pass
+                else:
+                    raise AssertionError("sync without chezmoi accepted")
+                write_data.assert_not_called()
+
+        kaizen.MISE_CONFIG = Path(directory) / "mise.toml"
+        write(kaizen.MISE_CONFIG, '[tools]\nnode = "latest"\n')
+        instance._os = "linux"
+        instance._install_user_packages = lambda _: None
+        instance._generate_mise_config = lambda *_: None
+        with patch.object(kaizen.shutil, "which", return_value=None):
+            with patch.object(instance, "_run_post_install") as hook:
+                try:
+                    instance._install_dependencies([], {})
+                except kaizen.DependencyNotFoundError:
+                    pass
+                else:
+                    raise AssertionError("configured mise tools silently skipped")
+                hook.assert_not_called()
+
+
+test_failures_stop_workflow()
 test_manifest_validation()
 test_package_adapter_reuse()
 test_user_tools_override_features()

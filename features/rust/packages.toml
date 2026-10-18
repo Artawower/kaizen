@@ -8,5 +8,3 @@ brew = ["gcc", "cmake"]
 dnf = ["gcc", "cmake", "clang"]
 apt = ["gcc", "cmake", "clang"]
 
-[all]
-mise = ["rust@latest"]

@@ -23,7 +23,7 @@ for layout in colemak qwerty colemak-regular; do
         --override-data "{\"layout\":\"$layout\"}" \
         --file "$source_dir/.chezmoitemplates/vscodium/keybindings.json.tmpl" >"$keybindings"
 
-    python3 - "$settings" "$keybindings" "$layout" <<'PY'
+    python3 - "$settings" "$keybindings" "$layout" "$(uname -s)" <<'PY'
 import json
 import re
 import sys
@@ -38,6 +38,8 @@ def load_jsonc(path):
 settings = load_jsonc(sys.argv[1])
 keybindings = load_jsonc(sys.argv[2])
 layout = sys.argv[3]
+mod = "cmd" if sys.argv[4] == "Darwin" else "meta"
+group_mod = "cmd" if sys.argv[4] == "Darwin" else "ctrl"
 normal = {tuple(binding["before"]): binding for binding in settings["vim.normalModeKeyBindingsNonRecursive"]}
 visual = {tuple(binding["before"]): binding for binding in settings["vim.visualModeKeyBindingsNonRecursive"]}
 insert = {tuple(binding["before"]): binding for binding in settings["vim.insertModeKeyBindingsNonRecursive"]}
@@ -47,12 +49,12 @@ assert settings["window.autoDetectColorScheme"] is True
 assert settings["workbench.preferredDarkColorTheme"] == "Catppuccin Mocha"
 assert settings["workbench.preferredLightColorTheme"] == "Catppuccin Latte"
 assert settings["workbench.colorTheme"] == "Catppuccin Mocha"
-assert ("meta+[KeyS]", "workbench.action.files.save") in keys
-assert ("meta+[KeyW]", "workbench.action.closeActiveEditor") in keys
-assert ("meta+[KeyC]", "editor.action.clipboardCopyAction") in keys
-assert ("meta+[KeyV]", "editor.action.clipboardPasteAction") in keys
-assert ("ctrl+.", "workbench.action.focusNextGroup") in keys
-assert all(any(code in key for code in ("[Key", "[Comma]", "[Slash]")) for key, _ in keys if key.startswith("meta+"))
+assert (f"{mod}+[KeyS]", "workbench.action.files.save") in keys
+assert (f"{mod}+[KeyW]", "workbench.action.closeActiveEditor") in keys
+assert (f"{mod}+[KeyC]", "editor.action.clipboardCopyAction") in keys
+assert (f"{mod}+[KeyV]", "editor.action.clipboardPasteAction") in keys
+assert (f"{group_mod}+.", "workbench.action.focusNextGroup") in keys
+assert all(any(code in key for code in ("[Key", "[Comma]", "[Slash]")) for key, _ in keys if key.startswith(f"{mod}+") and key != f"{group_mod}+.")
 
 if layout == "colemak":
     assert normal[("n",)]["after"] == ["g", "j"]

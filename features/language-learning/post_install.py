@@ -18,7 +18,7 @@ def get_addons_directories(os_name: str) -> list[Path]:
         directories.append(
             home / "Library" / "Application Support" / "Anki2" / "addons21"
         )
-    elif os_name == "linux":
+    else:
         flatpak_dir = (
             home
             / ".var"
@@ -60,7 +60,7 @@ def install_addon(addon_id: int, addons_dir: Path) -> None:
 def main() -> int:
     os_name = sys.argv[1] if len(sys.argv) > 1 else "linux"
     addons_to_install = [ANKI_CONNECT_ADDON_ID]
-    if os_name == "linux":
+    if os_name != "macos":
         addons_to_install.append(LINUX_TTS_ADDON_ID)
 
     for directory in get_addons_directories(os_name):

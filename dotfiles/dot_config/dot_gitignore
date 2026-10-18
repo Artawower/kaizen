@@ -124,7 +124,6 @@ prowlarr-config
 !emacs/
 emacs/**
 !emacs/*.org
-!emacs/elpaca.lock
 !emacs/init.el
 !emacs/templates
 !emacs/templates/**

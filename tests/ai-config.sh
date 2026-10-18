@@ -15,7 +15,6 @@ for target in eca/config opencode/opencode; do
 done
 
 python3 - "$repo_root" "$tmp_dir" <<'PY'
-import hashlib
 import json
 import re
 import sys
@@ -95,45 +94,20 @@ assert all((playwright / reference).is_file() for reference in references)
 assert not (playwright / 'LICENSE').exists()
 assert not (playwright / 'UPSTREAM.md').exists()
 assert not (root / 'dotfiles/dot_agents/private_skill-lock.json').exists()
-skill_lock = json.loads((root / 'dotfiles/dot_agents/private_dot_skill-lock.json').read_text())['skills']
-assert skill_lock['playwright-cli']['source'] == 'microsoft/playwright-cli'
-assert skill_lock['playwright-cli']['skillPath'] == 'skills/playwright-cli/SKILL.md'
-assert skill_lock['playwright-cli']['skillFolderHash']
+assert not (root / 'dotfiles/dot_agents/private_dot_skill-lock.json').exists()
 assert any(entry['path'].endswith('/.agents/skills/playwright-cli') for entry in eca['skills'])
 tools = tomllib.loads((root / 'features/ai/mise.toml').read_text())['tools']
 assert tools['npm:@playwright/cli'] == '0.1.22'
 assert tools['npm:skills'] == 'latest'
 for servers in [mcp, eca['mcpServers'], opencode['mcp']]:
     assert 'playwright' not in servers
-print('PASS: Playwright CLI skill, lockfile and ECA discovery replace browser MCP')
-
-def git_object_hash(kind, content):
-    return hashlib.sha1(f'{kind} {len(content)}\0'.encode() + content).digest()
-
-
-def skill_tree_hash(directory):
-    entries = []
-    for path in sorted(directory.iterdir(), key=lambda path: path.name + ('/' if path.is_dir() else '')):
-        assert not path.is_symlink(), path
-        if path.is_dir():
-            mode, digest = '40000', skill_tree_hash(path)
-        else:
-            mode = '100755' if path.stat().st_mode & 0o111 else '100644'
-            digest = git_object_hash('blob', path.read_bytes())
-        entries.append(f'{mode} {path.name}\0'.encode() + digest)
-    return git_object_hash('tree', b''.join(entries))
-
-
-for name, entry in skill_lock.items():
-    assert skill_tree_hash(skills / name).hex() == entry['skillFolderHash'], f'External skill differs from upstream: {name}'
-print('PASS: all external skill contents match their locked upstream trees')
+print('PASS: Playwright CLI skill and ECA discovery replace browser MCP')
 
 policy = root / 'dotfiles/dot_agents/references/code-reviewer.md'
 assert policy.is_file()
 assert 'arbitrary line limit' in policy.read_text()
 for name in ['writing-for-agents', 'grilling', 'domain-modeling']:
     assert (skills / name / 'SKILL.md').is_file(), name
-    assert skill_lock[name]['source'] == 'mattpocock/skills', name
 agent_guidance = (root / 'dotfiles/literal_AGENTS.md').read_text()
 assert 'nearest project-specific `AGENTS.md`' in agent_guidance
 assert 'Use Jujutsu (`jj`) for all repository version-control work' in agent_guidance

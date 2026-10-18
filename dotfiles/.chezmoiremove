@@ -1,3 +1,8 @@
+.config/scripts/layout
+.config/scripts/upgrade
+.config/scripts/mise-bump
+.config/scripts/ai-workers-setup
+.config/kaizen/feature-meta.json
 .pi/agent/extensions/swarm-prompt.ts
 .pi/agent/agents_old/ag-coder.md
 .pi/agent/agents_old/ag-critic.md

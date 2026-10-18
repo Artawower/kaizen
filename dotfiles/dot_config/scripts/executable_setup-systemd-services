@@ -28,7 +28,12 @@ def run(*cmd: str) -> None:
 
 def install_titdb_service() -> None:
     unit = Path("/etc/systemd/system/titdb.service")
-    run("sudo", "tee", str(unit), input=TITDB_UNIT.encode(), stdout=subprocess.DEVNULL)
+    subprocess.run(
+        ["sudo", "tee", str(unit)],
+        input=TITDB_UNIT.encode(),
+        stdout=subprocess.DEVNULL,
+        check=True,
+    )
     run("sudo", "systemctl", "daemon-reload")
     run("sudo", "systemctl", "enable", "titdb.service")
     run("sudo", "systemctl", "restart", "titdb.service")

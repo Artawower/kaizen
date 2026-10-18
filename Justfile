@@ -19,7 +19,10 @@ test:
     bash tests/xremap-config.sh
     bash tests/audacity-config.sh
     bash tests/devcache.sh
-    bash tests/devcache-mount.sh
+    bash tests/karabiner-config.sh
+    bash tests/rift-config.sh
+    bash tests/post-install.sh
+    bash tests/feature-gating.sh
 
 # Transfer dotfiles to a new machine
 apply:
@@ -33,7 +36,7 @@ sync:
 update:
     python3 kaizen.py update
 
-# Interactively bump mise tool versions and capture lock files
+# Interactively bump tool versions in feature manifests
 bump:
     python3 kaizen.py bump
 

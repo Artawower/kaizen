@@ -32,7 +32,7 @@ def configure_hid_apple() -> None:
 
 
 def main() -> None:
-    if len(sys.argv) > 1 and sys.argv[1] == "linux":
+    if len(sys.argv) > 1 and sys.argv[1] != "macos":
         configure_hid_apple()
 
 

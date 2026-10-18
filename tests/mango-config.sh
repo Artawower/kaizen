@@ -15,7 +15,7 @@ for layout in colemak qwerty colemak-regular; do
 	rendered="$tmp_dir/mango-$layout.conf"
 	chezmoi execute-template \
 		--source "$source_dir" \
-		--override-data "{\"layout\":\"$layout\"}" \
+		--override-data "{\"chezmoi\":{\"os\":\"linux\"},\"layout\":\"$layout\"}" \
 		--file "$template" >"$rendered"
 
 	python3 - "$rendered" "$layout" <<'PY'
@@ -40,7 +40,8 @@ assert "bind=SUPER,space,spawn,vicinae vicinae://launch/clipboard/history?toggle
 assert "bind=SUPER+SHIFT,space,spawn,vicinae vicinae://launch/core/search-emojis?toggle=true" in lines
 assert "bind=SUPER+ALT,space,spawn,vicinae vicinae://launch/@vlades/store.raycast.herdr/dashboard?toggle=true" in lines
 assert "bind=CTRL,backslash,spawn_shell,hyprvoice toggle" in lines
-assert "bind=CTRL+SHIFT,backslash,spawn,handy --toggle-transcription" in lines
+assert "bind=CTRL+SHIFT,plus,spawn,handy --toggle-transcription" in lines
+assert "bind=CTRL+SHIFT,backslash,spawn,handy --toggle-post-process" in lines
 assert "bind=SUPER+SHIFT,x,spawn_shell,grim -g \"$(slurp)\" - | satty --filename -" in lines
 assert "bind=SUPER+SHIFT,1,spawn_shell,grim - | satty --filename -" in lines
 assert "bind=SUPER+SHIFT,2,spawn_shell,grim -g \"$(slurp)\" - | satty --filename -" in lines
@@ -53,13 +54,10 @@ assert "monitorrule=name:^HDMI-A-1$,width:3840,height:2160,refresh:60,x:0,y:0,sc
 assert "mousebind=ALT+SHIFT,btn_left,moveresize,curmove" in lines
 assert "mousebind=ALT+SHIFT,btn_right,moveresize,curresize" in lines
 assert not any(line.startswith("mousebind=SUPER,") for line in lines)
-assert "mouse_accel_profile=2" in lines
+assert "mouse_accel_profile=1" in lines
 assert "trackpad_natural_scrolling=0" in lines
 assert "trackpad_scroll_factor=0.9" in lines
-assert "tap_to_click=1" in lines
-assert "tap_and_drag=1" in lines
-assert "drag_lock=1" in lines
-assert "trackpad_disable_while_typing=1" in lines
+assert "devicerule=type:trackpad,tap_to_click:0,tap_and_drag:0,drag_lock:0,click_method:2,button_map:0,disable_while_typing:1" in lines
 assert "swipe_min_threshold=1" in lines
 assert "gesture_live=1" in lines
 for direction in ("left", "right", "up", "down"):
@@ -112,7 +110,7 @@ for variant in mangowm niri; do
 	rendered="$tmp_dir/ignore-$variant"
 	chezmoi execute-template \
 		--source "$source_dir" \
-		--override-data "{\"features\":{\"tiling\":true},\"tiling\":{\"variant\":\"$variant\"}}" \
+		--override-data "{\"chezmoi\":{\"os\":\"linux\"},\"features\":{\"tiling\":true},\"tiling\":{\"variant\":\"$variant\"}}" \
 		--file "$source_dir/.chezmoiignore.tmpl" >"$rendered"
 	if [[ "$variant" == mangowm ]]; then
 		! grep -qxF '.config/mango/' "$rendered"

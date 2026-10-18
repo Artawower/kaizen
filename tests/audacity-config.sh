@@ -4,9 +4,11 @@ set -euo pipefail
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 wrapper="$repo_root/dotfiles/dot_local/bin/executable_audacity"
 desktop_template="$repo_root/dotfiles/dot_local/share/applications/audacity.desktop.tmpl"
-rendered=$(mktemp --suffix=.desktop)
-source_dir=$(mktemp -d)
-trap 'rm -f "$rendered"; rmdir "$source_dir"' EXIT
+tmp_dir=$(mktemp -d)
+rendered="$tmp_dir/audacity.desktop"
+source_dir="$tmp_dir/source"
+mkdir "$source_dir"
+trap 'rm -rf "$tmp_dir"' EXIT
 
 grep -Fxq 'export AU_QT_QPA_PLATFORM=wayland' "$wrapper"
 grep -Fxq 'export QT_QPA_PLATFORM=wayland' "$wrapper"

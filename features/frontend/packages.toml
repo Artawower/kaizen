@@ -8,5 +8,3 @@ brew = ["lua-language-server"]
 dnf = ["lua-language-server"]
 apt = ["lua-language-server"]
 
-[all]
-mise = ["npm:@mermaid-js/mermaid-cli"]

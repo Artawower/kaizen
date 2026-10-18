@@ -122,7 +122,7 @@ jj --config 'signing.behavior="drop"' describe -m "..."  # update description
 
 ## External skills
 
-Skills listed in `dotfiles/dot_agents/private_dot_skill-lock.json` are immutable external dependencies. Never manually edit, reformat, patch, or add files inside their directories. Restore or update them only from exact upstream contents; never change a lock hash to legitimize a local patch.
+Skills under `dotfiles/dot_agents/skills/` and `dotfiles/.agents/skills/` are immutable external dependencies. Never manually edit, reformat, patch, or add files inside their directories. Restore or update them only through the skill manager or exact upstream contents. Project dependency lock files are not versioned; upstream files inside external skills remain untouched.
 
 Keep compatibility rules in `dotfiles/literal_AGENTS.md` and local review policy in `dotfiles/dot_agents/references/`. Keep custom workflows outside external skill directories.
 

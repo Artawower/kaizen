@@ -19,9 +19,6 @@ capture:
 status:
     kaizen status
 
-layout layout="":
-    ~/.config/scripts/layout {{ layout }}
-
 fedora-upgrade VERSION="44":
     sudo dnf system-upgrade download --releasever={{VERSION}} --allowerasing
     sudo dnf system-upgrade reboot

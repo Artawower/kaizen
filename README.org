@@ -25,6 +25,10 @@ Its components are deliberately small:
 Requires Git and curl. The installer reuses Python 3.11+ when available or
 installs an isolated Python 3.12 runtime through standalone uv.
 
+Before =kaizen sync=, install [[https://www.chezmoi.io/install/][chezmoi]]. On Linux, also install
+[[https://mise.jdx.dev/getting-started.html][mise]] before installing runtime tools. Missing prerequisites stop the
+workflow rather than silently skipping dependencies.
+
 #+BEGIN_SRC shell
 curl -fsSL https://raw.githubusercontent.com/artawower/kaizen/master/install.sh | sh
 #+END_SRC
@@ -171,7 +175,13 @@ file during =bump=.
 
 Before applying dotfiles, Kaizen links the user config as the ignored
 =dotfiles/.chezmoidata/99-user.toml=. Chezmoi reads this overlay automatically,
-so direct =chezmoi diff= and =chezmoi apply= commands always use current values.
+so direct =chezmoi diff= and =chezmoi apply= commands read current values for
+the current config schema. Legacy configs use a normalized snapshot refreshed
+by =kaizen sync=.
+
+Dependency lock files and generated package caches are not versioned. Versions
+that should stay explicit belong in feature-local =mise.toml= files. External
+skills retain their exact upstream contents.
 
 * Variants
 

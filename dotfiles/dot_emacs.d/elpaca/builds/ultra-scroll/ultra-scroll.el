@@ -1,1 +1,0 @@
-/Users/darkawower/projects/pet/kaizen/dotfiles/dot_emacs.d/elpaca/sources/ultra-scroll/ultra-scroll.el

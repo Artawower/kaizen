@@ -305,16 +305,6 @@ right-side position (e.g., assistants, help, documentation)."
         new-window)))))
 #+END_SRC
 
-** Casual package
-#+BEGIN_SRC emacs-lisp :results silent
-(use-package casual
-  :defer t
-  :bind (:map org-agenda-mode-map
-              ("s-/" . casual-agenda-tmenu))
-  :config
-  (casual-mode 1))
-#+END_SRC
-
 * Environment
 ** Env
 Exec path replacement https://www.reddit.com/r/emacs/comments/f8xwau/hack_replace_execpathfromshell/
@@ -525,16 +515,6 @@ but it does not copy $SHELL into `shell-file-name'."
     (interactive)
     (let ((new-window (split-window-below)))
         (select-window new-window)))
-#+END_SRC
-*** Try package from github
-#+BEGIN_SRC emacs-lisp :results silent
-(defun my/try-package-from-github (repo)
-  "Try package from github REPO.
-REPO should be in format 'owner/repo-name'."
-  (interactive "sGitHub repo (owner/name): ")
-  (let* ((repo-name (car (last (split-string repo "/"))))
-         (package-sym (intern repo-name)))
-    (elpaca-try `(,package-sym :host github :repo ,repo))))
 #+END_SRC
 * UI
 ** Faces

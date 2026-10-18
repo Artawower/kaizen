@@ -19,7 +19,11 @@ chezmoi execute-template \
     --source "$source_dir" \
     --override-data '{"ui":{"wallpaper":{"directory":"~/Pictures/wallpappers","directory_light":"~/Pictures/wallpappers/light","directory_dark":"~/Pictures/wallpappers/dark"}}}' \
     --file "$source_dir/dot_config/noctalia/config.toml.tmpl" >"$rendered"
-noctalia config validate "$rendered"
+if command -v noctalia >/dev/null; then
+    noctalia config validate "$rendered"
+else
+    printf 'Noctalia binary validation skipped: executable unavailable\n'
+fi
 python3 - "$rendered" <<'PY'
 import sys
 import tomllib

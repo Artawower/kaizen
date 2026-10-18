@@ -8,5 +8,3 @@ brew = ["uv"]
 dnf = ["uv", "python3"]
 apt = ["python3-pip", "python3"]
 
-[all]
-mise = ["python@latest"]

@@ -6,13 +6,12 @@ import re
 import shutil
 import subprocess
 import sys
+import tomllib
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
 from typing import TextIO, cast
-
-import tomllib
 
 KAIZEN_DIR = Path(__file__).parent
 FEATURES_DIR = KAIZEN_DIR / "features"
@@ -223,11 +222,7 @@ class PackageManager(ABC):
         if not shutil.which(cmd[0]):
             raise ExecutableNotFoundError(cmd[0])
         print(f"  $ {' '.join(cmd)}")
-        result = subprocess.run(cmd, env=env or os.environ)
-        if result.returncode != 0:
-            _print_warning(
-                f"  warning: command failed (exit {result.returncode}), continuing"
-            )
+        subprocess.run(cmd, env=env or os.environ, check=True)
 
 
 class Brew(PackageManager):
@@ -322,12 +317,7 @@ def adapter_for(os_name: str) -> PackageManager:
 def load_toml(path: Path) -> dict[str, object]:
     if not path.exists():
         return {}
-    try:
-        with open(path, "rb") as f:
-            return tomllib.load(f)
-    except (OSError, tomllib.TOMLDecodeError) as error:
-        _print_warning(f"  warning: {path}: {error}")
-        return {}
+    return read_toml(path)
 
 
 def read_toml(path: Path) -> dict[str, object]:
@@ -724,6 +714,8 @@ class Kaizen:
         self._install_dependencies(features, user_dependencies)
 
     def sync(self) -> None:
+        if not shutil.which("chezmoi"):
+            raise DependencyNotFoundError("chezmoi", "sync", "https://www.chezmoi.io/install/")
         features = parse_features(self._config)
         user_dependencies = load_user_dependencies()
         self._write_user_data()
@@ -845,6 +837,8 @@ class Kaizen:
             self._install_packages(feature)
         self._install_user_packages(user_dependencies)
         self._generate_mise_config(features, user_dependencies)
+        if MISE_CONFIG.exists() and not shutil.which("mise"):
+            raise DependencyNotFoundError("mise", "install", "https://mise.jdx.dev/")
         if shutil.which("mise"):
             print("[mise]")
             _ = subprocess.run(["mise", "install", "--jobs=1"], check=True)
