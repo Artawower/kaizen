@@ -28,4 +28,3 @@ _kaizen_alias({{ index $shortcuts "vcs.ui" | toJson }}, 'jjui')
 # projects.pick → zoxide interactive directly (no dependency on zoxide's own `zi`
 # alias, which only exists after `zoxide init` runs and was order/PATH-fragile).
 aliases[''.join({{ index $shortcuts "projects.pick" | toJson }})] = _kaizen_zoxide_pick
-# run.task (keys: {{ index $shortcuts "run.task" | toJson }}) — alias registered by xontrib-runner
