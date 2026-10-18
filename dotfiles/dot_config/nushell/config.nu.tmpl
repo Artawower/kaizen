@@ -16,7 +16,7 @@ source ~/.config/nushell/task-runner.nu
 alias {{ index $shortcuts "vcs.ui" | join "" }} = jjui
 alias {{ index $shortcuts "projects.pick" | join "" }} = kaizen-zoxide-pick
 
-{{- if or (eq .layout "colemak") (eq .layout "colemak-regular") }}
+{{- if eq .layout "colemak" }}
 $env.config.keybindings ++= [
     {name: colemak_left_normal, modifier: none, keycode: char_h, mode: [helix_normal, helix_select], event: {edit: MoveLeft}}
     {name: colemak_down_normal, modifier: none, keycode: char_n, mode: [helix_normal, helix_select], event: {edit: MoveLineDown}}
