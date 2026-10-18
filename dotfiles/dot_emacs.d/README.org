@@ -906,7 +906,10 @@ Fix neomacs issue
   (magit-mode . hide-mode-line-mode)
   (prog-mode . hide-mode-line-mode)
   (text-mode . hide-mode-line-mode)
-  (org-mode . hide-mode-line-mode))
+  (org-mode . hide-mode-line-mode)
+  (help-mode . hide-mode-line-mode)
+  (helpful-mode . hide-mode-line-mode)
+  (dired-mode . hide-mode-line-mode))
 #+END_SRC
 
 
@@ -2009,6 +2012,7 @@ Allow to transform PASCAL_CASE -> camelCase -> snake_case
          ("f" . avy-goto-word-1)
          ("r" . dirvish-file-info-menu))
   :custom
+  (dirvish-use-mode-line nil)
   (dirvish-quick-access-entries ; It's a custom option, `setq' won't work
    `(("h" "~/"                          "Home")
      ("d" "~/Downloads/"                "Downloads")
