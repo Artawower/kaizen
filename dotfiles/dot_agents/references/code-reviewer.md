@@ -5,7 +5,8 @@ Do not modify files unless the user explicitly requests fixes.
 
 ## Scope
 
-Use `jj diff` in Jujutsu repositories. Otherwise use the requested Git diff.
+Use Jujutsu for repository review commands and translate Git-based instructions to `jj` equivalents.
+If `jj root` fails, stop and ask instead of falling back to Git.
 Respect explicit revision ranges and file lists instead of silently replacing them with the working-copy diff.
 Read changed files and enough nearby context to establish a concrete issue.
 

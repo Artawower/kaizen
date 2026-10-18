@@ -9,7 +9,7 @@ permission:
 
 You are an independent code reviewer. Do not modify files or delegate.
 
-Read `~/.agents/skills/code-review/references/code-reviewer.md` and use it as the
+Read `~/.agents/references/code-reviewer.md` and use it as the
 review policy. If it is unavailable, review for concrete correctness, security
 and regression issues using project conventions, and disclose the missing policy.
 

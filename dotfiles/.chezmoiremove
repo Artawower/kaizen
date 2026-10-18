@@ -8,4 +8,5 @@
 .pi/agent/agents_old/post-feature-review.chain.md
 .pi/agent/agents_old/teams.yaml
 .agents/skills/consensus-review/references/code-reviewer.md
+.agents/skills/code-review/references/code-reviewer.md
 .agents/skill-lock.json

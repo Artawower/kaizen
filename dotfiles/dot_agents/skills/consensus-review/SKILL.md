@@ -5,7 +5,7 @@ description: Runs independent multi-model reviews of a requested diff, verifies 
 
 # Consensus Review
 
-Use `../code-review/references/code-reviewer.md` as the shared review policy.
+Use `../../references/code-reviewer.md` as the shared review policy.
 
 ## Scope and reviewers
 

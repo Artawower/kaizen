@@ -15,6 +15,7 @@ for target in eca/config opencode/opencode; do
 done
 
 python3 - "$repo_root" "$tmp_dir" <<'PY'
+import hashlib
 import json
 import re
 import sys
@@ -106,11 +107,48 @@ for servers in [mcp, eca['mcpServers'], opencode['mcp']]:
     assert 'playwright' not in servers
 print('PASS: Playwright CLI skill, lockfile and ECA discovery replace browser MCP')
 
-policy = skills / 'code-review/references/code-reviewer.md'
+def git_object_hash(kind, content):
+    return hashlib.sha1(f'{kind} {len(content)}\0'.encode() + content).digest()
+
+
+def skill_tree_hash(directory):
+    entries = []
+    for path in sorted(directory.iterdir(), key=lambda path: path.name + ('/' if path.is_dir() else '')):
+        assert not path.is_symlink(), path
+        if path.is_dir():
+            mode, digest = '40000', skill_tree_hash(path)
+        else:
+            mode = '100755' if path.stat().st_mode & 0o111 else '100644'
+            digest = git_object_hash('blob', path.read_bytes())
+        entries.append(f'{mode} {path.name}\0'.encode() + digest)
+    return git_object_hash('tree', b''.join(entries))
+
+
+for name, entry in skill_lock.items():
+    assert skill_tree_hash(skills / name).hex() == entry['skillFolderHash'], f'External skill differs from upstream: {name}'
+print('PASS: all external skill contents match their locked upstream trees')
+
+policy = root / 'dotfiles/dot_agents/references/code-reviewer.md'
 assert policy.is_file()
 assert 'arbitrary line limit' in policy.read_text()
-assert not (skills / 'consensus-review/references/code-reviewer.md').exists()
-assert '../code-review/references/code-reviewer.md' in (skills / 'consensus-review/SKILL.md').read_text()
+for name in ['writing-for-agents', 'grilling', 'domain-modeling']:
+    assert (skills / name / 'SKILL.md').is_file(), name
+    assert skill_lock[name]['source'] == 'mattpocock/skills', name
+agent_guidance = (root / 'dotfiles/literal_AGENTS.md').read_text()
+assert 'nearest project-specific `AGENTS.md`' in agent_guidance
+assert 'Use Jujutsu (`jj`) for all repository version-control work' in agent_guidance
+assert 'Never invoke `git` directly' in agent_guidance
+assert 'stop and ask; do not fall back to Git' in agent_guidance
+assert 'External skills are immutable' in agent_guidance
+assert 'Never manually edit, reformat, patch, or add files' in agent_guidance
+assert 'Never change a lock-file hash to legitimize a local patch' in agent_guidance
+assert 'chezmoi source-path' in agent_guidance
+assert 'nix-darwin' not in agent_guidance
+assert 'immutable external dependencies' in (root / 'AGENTS.md').read_text()
+for name in ['consensus-review', 'jj-review', 'pr-review']:
+    assert '../../references/code-reviewer.md' in (skills / name / 'SKILL.md').read_text(), name
+    assert not (skills / name / 'references/code-reviewer.md').exists(), name
+assert not (skills / 'code-review/references/code-reviewer.md').exists()
 assert 'when requested' in (skills / 'consensus-review/SKILL.md').read_text()
 context = (skills / 'context-mode/SKILL.md').read_text()
 assert 'Optional indexed analysis' in context
@@ -131,12 +169,15 @@ for path in (root / 'dotfiles/dot_config/eca/agents').glob('*.md*'):
     assert 'disabledTools:' in header, path
     assert all(f'- {tool}' in header for tool in ['write_file', 'edit_file', 'move_file', 'shell_command', 'spawn_agent']), path
 for path in [root / 'dotfiles/dot_config/eca/agents/code-reviewer.md', root / 'dotfiles/dot_config/opencode/agent/code-reviewer.md']:
-    assert '~/.agents/skills/code-review/references/code-reviewer.md' in path.read_text()
+    assert '~/.agents/references/code-reviewer.md' in path.read_text()
 assert '~/.config/ai/skills/' not in (skills / 'pr-review/SKILL.md').read_text()
-print('PASS: shared review policy, optional indexing and current delegation contract')
+print('PASS: local review policy, immutable external skills, Jujutsu guidance and delegation contract')
 PY
 
 cp "$repo_root/dotfiles/.chezmoiremove" "$tmp_dir/source/.chezmoiremove"
+cp "$repo_root/dotfiles/literal_AGENTS.md" "$tmp_dir/source/literal_AGENTS.md"
+mkdir -p "$tmp_dir/source/dot_agents/references"
+cp "$repo_root/dotfiles/dot_agents/references/code-reviewer.md" "$tmp_dir/source/dot_agents/references/code-reviewer.md"
 python3 - "$tmp_dir" <<'PY'
 import sys
 from pathlib import Path
@@ -159,5 +200,7 @@ temporary = Path(sys.argv[1])
 for name in (temporary / 'source/.chezmoiremove').read_text().splitlines():
     assert not (temporary / 'target' / name).exists(), name
 assert (temporary / 'target/.pi/agent/agents_old/user-note.md').read_text() == 'preserve unrelated files'
-print('PASS: chezmoi removes only explicitly named obsolete artifacts')
+assert (temporary / 'target/AGENTS.md').read_bytes() == (temporary / 'source/literal_AGENTS.md').read_bytes()
+assert (temporary / 'target/.agents/references/code-reviewer.md').read_bytes() == (temporary / 'source/dot_agents/references/code-reviewer.md').read_bytes()
+print('PASS: chezmoi deploys global guidance and local policy, removing only named obsolete artifacts')
 PY

@@ -5,13 +5,13 @@ description: Reviews a Jujutsu (jj) revision range using the canonical KISS/DRY/
 
 # JJ Review
 
-Code review for Jujutsu (jj) revision ranges. Uses the same rubric as the `code-review` skill — any changes to that rubric are automatically picked up here.
+Code review for Jujutsu (jj) revision ranges. Uses the locally maintained shared review policy.
 
 ## Canonical Review Rubric
 
-Load the shared rubric from the code-review skill:
+Load the shared local rubric:
 
-- `../code-review/references/code-reviewer.md`
+- `../../references/code-reviewer.md`
 
 Treat that file as the source of truth for:
 - review rules
@@ -75,7 +75,7 @@ This gives context on how many commits are being reviewed and their descriptions
 2. **Show what's in scope** — run `jj log -r '<from>::<to>'` to list revisions being reviewed. Report count.
 3. **Get the diff** — run `jj diff --from <from> --to <to>` to get the full patch.
 4. **List changed files** — run `jj diff --from <from> --to <to> --name-only` for the file list.
-5. **Load the rubric** — read `../code-review/references/code-reviewer.md`.
+5. **Load the rubric** — read `../../references/code-reviewer.md`.
 6. **Read context** — load the changed files and minimum surrounding context needed to judge correctness. Do not load the entire codebase.
 7. **Apply rubric strictly** — follow the severity model and rules from the rubric.
 8. **For multi-revision ranges** — optionally group findings per revision when a finding is clearly tied to a specific commit. But keep the overall report unified; do not produce N separate reports.
@@ -91,4 +91,4 @@ This gives context on how many commits are being reviewed and their descriptions
 
 ## Output
 
-Follow the output structure defined in `../code-review/references/code-reviewer.md`.
+Follow the output structure defined in `../../references/code-reviewer.md`.

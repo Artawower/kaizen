@@ -121,7 +121,7 @@ Before reviewing, gather context:
 
 For each file in `file_patches`, analyze the `patch` (diff) against the review rules.
 
-Load `../code-review/references/code-reviewer.md` and apply its shared review
+Load `../../references/code-reviewer.md` and apply its shared review
 policy to the requested PR diff. Prioritize verified defects and regressions,
 respect project conventions and keep optional suggestions separate from blockers.
 
