@@ -1234,6 +1234,8 @@ Move to husky
 *** Terminal keyboard protocol
 #+BEGIN_SRC emacs-lisp
 (use-package kkp
+  :ensure (:host github :repo "benotn/kkp"
+           :ref "f55ab4316d9e6798356fc2ea1840956b24a2fe12")
   :demand t
   :custom
   (kkp-restore-legacy-keys-around-subprocesses t)
