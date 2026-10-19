@@ -228,6 +228,16 @@ between scrolling and dwindle with =Caps+Super+V=. Helix supports =standard=
 (plugin-enabled fork). Changing a variant does not uninstall packages from the
 previously selected variant.
 
+* Archive development experiments
+
+Project skills =archive= and =unarchive= move experiments to and from
+=.arhive/<name>/=, preserving repository-relative paths and adjusting their
+dependencies and integrations. An optional =dotfiles= list helps discovery;
+the agent also searches for related files. Installed tools and live configs
+are left unchanged.
+
+In Pi, run =/reload=, then =/skill:archive yabai= or =/skill:unarchive yabai=.
+
 * Links
 
 - [[https://www.chezmoi.io/][chezmoi]]
