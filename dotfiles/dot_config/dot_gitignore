@@ -132,7 +132,6 @@ emacs/**
 # Linux
 !xremap
 !niri
-!hypr
 !vicinae
 !systemd
 
