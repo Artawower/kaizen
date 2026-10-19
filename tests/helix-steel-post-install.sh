@@ -2,7 +2,7 @@
 set -euo pipefail
 
 PROJECT_DIR=$(cd "$(dirname "$0")/.." && pwd)
-POST_INSTALL_PATH="$PROJECT_DIR/features/helix/variants/steel/post_install.py" python3 <<'PY'
+POST_INSTALL_PATH="$PROJECT_DIR/features/hooks/helix-steel/post_install.py" python3 <<'PY'
 import importlib.util
 import os
 import tempfile

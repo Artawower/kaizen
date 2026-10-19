@@ -2,25 +2,16 @@
 
 Kaizen supports the official Helix release and the plugin-enabled `steel-event-system` fork.
 
-Select the implementation in `~/.config/kaizen/config.toml`:
+The independent `[helix]` and `[helix-steel]` sections live in
+`features/editor.toml`. Both install on their supported OS unless their
+section declares `archive = true`. There is no user feature
+selector. To keep a recipe inactive, archive it; to choose between installed
+binaries, manage PATH explicitly.
 
-```toml
-[helix]
-variant = "standard"
-```
-
-or:
-
-```toml
-[helix]
-variant = "steel"
-```
-
-The Steel variant uses Scheme as its primary configuration. `config.toml` stays empty so TOML keymaps do not conflict with Scheme keymaps. Official Helix ignores the Scheme files and therefore uses its defaults unless the TOML backup is restored manually.
+The Steel implementation uses Scheme as its primary configuration. `config.toml` stays empty so TOML keymaps do not conflict with Scheme keymaps. Official Helix ignores the Scheme files and therefore uses upstream defaults unless you configure its TOML keymap directly.
 
 - `core.scm` owns Steel editor options.
 - `bindings.scm` owns Steel keymaps.
-- `config.toml.bak` preserves the previous TOML configuration.
 - `languages.toml` owns language-server configuration.
 - `init.scm` loads the Scheme configuration and Steel plugins.
 - `appearance.scm` selects `my` or `my_light` from the system color scheme for Steel.
@@ -28,20 +19,20 @@ The Steel variant uses Scheme as its primary configuration. `config.toml` stays 
 - `modeline.scm` configures Moka and Scopeline.
 - `file-manager.scm` configures Forest.
 - `helix.scm` exports commands to the Steel runtime.
-- `kaizen.scm` is generated from the shared Kaizen shortcut registry.
+- `kaizen.scm` reads layout mappings from the shared registry in `dotfiles/.chezmoidata.toml`; `bindings.scm` adapts them to Steel commands.
 
 Scheme keybindings include:
 
 - `Space b b`: open the buffer picker.
 - `Space ]` / `Space [`: go to the next / previous buffer.
-- `Ctrl+n` / `Ctrl+e` on Colemak and `Ctrl+j` / `Ctrl+k` on QWERTY: go to the next / previous diagnostic.
-- `k` / `K` on Colemak and `n` / `N` on QWERTY: go to the next / previous search match.
+- `Ctrl+j` / `Ctrl+k`: go to the next / previous diagnostic.
+- `k` / `K`: go to the next / previous search match.
 - `/`: open the search prompt, or search immediately for the current non-empty selection.
 - `Space o f`: open or focus Forest.
 - `Space o F`: close Forest when visible, otherwise open it. Forest captures keys while focused, so use `Escape` first or close it directly with `q`.
 
 `languages.toml` mirrors the primary LSP setup from Emacs for Python, JavaScript, TypeScript, Vue, HTML, Go, and Rust. ESLint contributes only diagnostics and code actions, while Copilot contributes only completions. Angular starts only when the selected project root contains `angular.json`.
 
-The `standard` variant installs the platform Helix package. The `steel` variant builds the fork, installs Forge packages, and links its runtime into `~/.config/helix/runtime`.
+The `helix` feature installs the platform Helix package. The independent `helix-steel` feature builds the fork, installs Forge packages, and links its runtime into `~/.config/helix/runtime`.
 
-Changing variants does not remove the previous installation. When switching from `steel` to `standard`, remove the old `~/.cargo/bin/hx` if it still takes precedence over the platform binary.
+Switching features does not remove the previous installation. When switching from `helix-steel` to `helix`, remove the old `~/.cargo/bin/hx` if it still takes precedence over the platform binary.

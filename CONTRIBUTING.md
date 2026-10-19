@@ -22,10 +22,12 @@ packages or applying your real dotfiles.
 ## Layout and feature changes
 
 - `kaizen.py` is the orchestrator.
-- `features/<name>/packages.toml` declares native packages.
-- Optional `mise.toml` declares runtime tools under `[tools]`.
-- Optional `post_install.py` receives the OS identifier and `sync` or `update`.
-- `features/<name>/variants/<variant>/` adds variant-specific declarations.
+- `features/*.toml` category catalogs contain named feature sections with flat
+  package lists, inline `tools`, archive status, and optional hook/dotfile paths.
+- Explicit hooks under `features/hooks/<name>/` receive the OS identifier and
+  `sync` or `update`; keep their assets beside the script.
+- Every non-archived OS-compatible feature participates; there are no variants
+  or user feature toggles. Installation does not select a running WM.
 - `dotfiles/` is the chezmoi source tree.
 - `config.example.toml` is the user configuration template.
 
@@ -45,7 +47,7 @@ python3 kaizen.py sync
 use the user overlay prepared by the last sync; they do not install packages.
 
 In development mode, `kaizen bump` interactively upgrades mise tools and
-captures their versions into feature-local `mise.toml` files. `kaizen capture`
+captures their versions into applicable catalog sections' inline `tools` tables. `kaizen capture`
 re-adds known mutable Pi settings. Dependency lock files and generated caches
 are not versioned. External skills remain upstream-managed and immutable.
 

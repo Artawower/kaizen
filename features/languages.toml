@@ -1,0 +1,19 @@
+[go]
+description = "Go development tooling"
+dnf = ["golang-x-tools-gopls"]
+apt = ["gopls"]
+tools = {go = "latest", "go:golang.org/x/tools/gopls" = "0.24.0", golangci-lint = "latest"}
+
+[python]
+description = "Python development tooling"
+brew = ["uv"]
+dnf = ["uv", "python3"]
+apt = ["python3-pip", "python3"]
+tools = {python = "latest", "pipx:basedpyright" = "latest", "pipx:ruff" = "latest", "pipx:ty" = "latest", "pipx:uv" = "latest"}
+
+[rust]
+description = "Rust toolchain"
+brew = ["gcc", "cmake"]
+dnf = ["gcc", "cmake", "clang"]
+apt = ["gcc", "cmake", "clang"]
+tools = {rust = "latest", cargo-binstall = "latest"}

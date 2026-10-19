@@ -22,9 +22,9 @@ def load(name, relative):
     return module
 
 
-keyboard = load("keyboard_hook", "features/keyboard/post_install.py")
-anki = load("anki_hook", "features/language-learning/post_install.py")
-codium = load("codium_hook", "features/vscodium/post_install.py")
+keyboard = load("keyboard_hook", "features/hooks/keyboard/post_install.py")
+anki = load("anki_hook", "features/hooks/language-learning/post_install.py")
+codium = load("codium_hook", "features/hooks/vscodium/post_install.py")
 services = load("services_hook", "dotfiles/dot_config/scripts/executable_setup-systemd-services")
 
 for os_name in ("macos", "linux", "fedora", "fedora-asahi-remix", "ubuntu", "debian"):

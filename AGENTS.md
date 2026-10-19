@@ -10,14 +10,8 @@ prerequisites. Missing Homebrew is offered interactively through its official in
 ## Repository layout
 
 ```
-features/<name>/
-  packages.toml     # system packages per OS (required)
-  mise.toml         # runtime tools via mise (optional)
-  post_install.py   # runs after packages, receives OS name as argv[1] (optional)
-  variants/<name>/
-    packages.toml   # additional packages for this variant
-    mise.toml       # additional runtime tools (optional)
-    post_install.py # variant-specific setup (optional)
+features/*.toml     # category catalogs, one named section per feature
+features/hooks/     # only executable hooks and their assets
 
 dotfiles/           # chezmoi source tree (dot_config/ → ~/.config/, etc.)
 kaizen.py           # orchestrator — the only Python source file
@@ -27,36 +21,20 @@ Justfile            # thin wrappers: sync, update, bump, capture, status, instal
 
 ## Feature anatomy
 
-`packages.toml`:
+Add a named section to a category file such as `features/editor.toml`:
 
 ```toml
-description = "..."
-category = "dev"          # system | dev | editor | terminal | desktop | ai | ...
-
-[macos]
-taps = ["tap/name"]
-brew = ["pkg-a", "pkg-b"]
-cask = ["app-name"]
-
-[macos.brew_args]         # per-package flags
-"pkg-a" = ["--with-foo"]
-
-[linux]
-dnf = ["pkg-a"]           # Fedora/RHEL
-apt = ["pkg-a"]           # Ubuntu/Debian
-flatpak = ["com.app.Id"]
+[example]
+description = "Example CLI tools"
+brew = ["jq"]
+dnf = ["jq"]
+apt = ["jq"]
+tools = { go = "latest" }
 ```
 
-`mise.toml` — standard mise format, only `[tools]` section:
+Use flat manager keys and an inline `tools` table. Optional `brew_args` is a package-to-flags table. A `post_install` path is repository-relative, such as `features/hooks/emacs/post_install.py`; colocate its assets with the script. There are no per-feature package or mise files. See `docs/feature-format.org` when changing the schema.
 
-```toml
-[tools]
-go = "latest"
-"npm:typescript" = "6.0.3"
-"go:golang.org/x/tools/gopls" = "0.20.0"
-```
-
-`kaizen sync` generates `~/.config/mise.toml` by merging `mise.toml` from all enabled features.
+Omitted `platforms` means macOS and Linux; restrict a whole recipe with `platforms = ["macos"]` or `["linux"]`. Optional `distributions` restricts Linux distro IDs. The same filter applies to native packages, mise, and hooks. `kaizen sync` generates `~/.config/mise.toml` from applicable `tools` entries. Feature names are unique across category files; there is no inheritance or variant selection. Dotfiles are independent: chezmoi applies source files with general platform exclusions; archive owned files physically to stop managing them.
 
 ## User config
 
@@ -65,19 +43,11 @@ go = "latest"
 ```toml
 layout = "colemak"
 
-[features]
-core = true
-go = false
-tiling = true
-
-[tiling]
-variant = "yabai"
-
-[kaizen.shortcuts]
-"nav.down" = ["n"]
+[ui]
+font_size = 14
 ```
 
-`dotfiles/.chezmoidata.toml` contains committed defaults. Kaizen deep-merges the user config over those defaults and generates the ignored `dotfiles/.chezmoidata/99-user.toml` symlink before applying chezmoi. Dictionaries merge recursively; lists and scalar values are replaced.
+`dotfiles/.chezmoidata.toml` contains committed defaults. Chezmoi merges user settings over those defaults. Kaizen writes an ignored `dotfiles/.chezmoidata/99-user.toml` snapshot before applying chezmoi. User `[features]` tables and old variant selectors are rejected; set `archive = true` in unwanted feature sections instead. Dictionaries merge recursively; lists and scalar values are replaced. Refresh the snapshot with `kaizen sync` after changing user settings.
 
 ## Key commands
 
@@ -87,7 +57,7 @@ variant = "yabai"
 | `kaizen docs` | show documentation, config, and installed source paths |
 | `just sync` | install packages → generate mise.toml → mise install → chezmoi apply |
 | `kaizen self-update` | fast-forward a managed installation; unavailable in development mode |
-| `just bump` | developer-only: mise upgrade --interactive → capture versions to feature mise.toml files |
+| `just bump` | developer-only: mise upgrade --interactive → capture versions to feature catalog `tools` entries |
 | `just capture` | developer-only: chezmoi re-add for known mutable paths (pi settings, mcp config) |
 | `just update` | upgrade native packages, mise tools, and feature integrations |
 | `just cleanup` | clean system (mole), project artifacts (kondo), and toolchain caches (go, cargo, uv, npm, pnpm, bun) |
@@ -129,7 +99,8 @@ Keep compatibility rules in `dotfiles/literal_AGENTS.md` and local review policy
 
 ## Adding a feature
 
-1. Create `features/<name>/packages.toml` with OS sections.
-2. Optionally add `features/<name>/mise.toml` for runtime tools.
-3. Enable in `config.example.toml` under `[features]`.
-4. For tiling variants: add `features/tiling/variants/<name>/packages.toml` and set `[tiling].variant`.
+1. Add a uniquely named section to the appropriate `features/*.toml` catalog.
+2. Declare packages and inline tools there; specify `platforms`, `distributions`, and an explicit hook path only when needed.
+3. The feature is discovered automatically; installation does not choose the running WM or start its service.
+4. Set `archive = true` in its section to archive a feature; omission means active. Keep the section and dependencies in place when moving owned files to `.arhive/<name>/`. Optional `dotfiles` metadata lists repository-relative source paths for AI discovery, not runtime ownership rules.
+5. Keep implementation-specific profiles in their app directories. Shared selectors, such as `dot_config/skhd/skhdrc` with one `.load`, choose a profile explicitly. Resolve selector references before archiving a selected profile; restoring files does not switch the selection.

@@ -3,7 +3,7 @@ set -euo pipefail
 
 PROJECT_DIR=$(cd "$(dirname "$0")/.." && pwd)
 PYTHON=$(command -v python3)
-POST_INSTALL="$PROJECT_DIR/features/terminal/post_install.py"
+POST_INSTALL="$PROJECT_DIR/features/hooks/terminal/post_install.py"
 TMP_ROOT=$(mktemp -d)
 trap 'rm -rf "$TMP_ROOT"' EXIT
 

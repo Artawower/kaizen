@@ -1,5 +1,0 @@
-[tools]
-"cargo:gitu" = "latest"
-"github:idursun/jjui" = "latest"
-"npm:git-trim" = "0.3.1"
-"github:agavra/tuicr" = "latest"

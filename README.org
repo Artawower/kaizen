@@ -41,7 +41,8 @@ offers to run the official Homebrew installer when required.
 
 On a first install, the script opens the generated config in your editor
 (=$VISUAL=, =$EDITOR=, or =vi=) so you can replace the placeholder identity
-and enable features. After you save and quit, the installer offers to run
+and adjust preferences. Review the feature catalog before syncing; all
+non-archived recipes for this OS will participate. After you save and quit, the installer offers to run
 =kaizen sync= immediately. A config still containing placeholder values falls
 back to manual instructions, as do sessions without a controlling TTY. If you
 decline the prompt or skip editing, run later:
@@ -56,14 +57,14 @@ command with its full path.
 * Repository layout
 
 #+BEGIN_SRC text
-features/<name>/
-  packages.toml
-  mise.toml
-  post_install.py
-  variants/<name>/
-    packages.toml
-    mise.toml
-    post_install.py
+features/editor.toml
+features/languages.toml
+features/tiling.toml
+features/desktop.toml
+features/development.toml
+features/system.toml
+features/tools.toml
+features/hooks/<name>/post_install.py
 
 dotfiles/             # chezmoi source
 dotfiles/.chezmoidata.toml
@@ -71,8 +72,11 @@ config.example.toml
 kaizen.py
 #+END_SRC
 
-Only =packages.toml= is required. The remaining feature and variant files are
-optional.
+Each =features/*.toml= file groups named feature sections. Packages and mise
+versions live together in each section; only real hooks and their assets need
+separate files. Category files have no inheritance or shared defaults. Every
+feature is active on its supported OS unless its section declares
+=archive = true=. There is no user-maintained feature enable list.
 
 * Shared shortcut registry
 
@@ -92,7 +96,7 @@ kaizen install      # install packages and tools without applying dotfiles
 kaizen sync         # install dependencies and apply dotfiles
 kaizen update       # upgrade native packages, mise tools, and feature integrations
 kaizen self-update  # fast-forward a managed installation from its remote branch
-kaizen bump         # developer: update mise pins in feature-local manifests
+kaizen bump         # developer: update tools entries in feature catalogs
 kaizen capture      # developer: re-add known mutable dotfiles to the source
 kaizen status       # show installation mode, source, features, and tools
 #+END_SRC
@@ -108,16 +112,18 @@ local changes. Run ~kaizen sync~ separately after an update.
 
 ~kaizen install~ performs these steps:
 
-1. Validate enabled features, selected variants, and user dependencies.
+1. Discover non-archived features for the current OS and validate user dependencies.
 2. Install feature and user packages with the native package manager.
 3. Merge feature and user tools into the generated mise config and install them.
 4. Install missing feature integrations without refreshing existing ones.
 
 It does not generate the chezmoi data overlay or apply dotfiles. ~kaizen sync~
 validates the same inputs, generates the overlay, runs the dependency workflow,
-and then runs =chezmoi apply=.
+and then runs =chezmoi apply= without =--force=, preserving its normal
+confirmation when destination files were changed locally. =just apply= also
+keeps this protection.
 
-~kaizen update~ upgrades native packages and mise tools, then refreshes enabled
+~kaizen update~ upgrades native packages and mise tools, then refreshes applicable
 feature integrations. Helix Steel fetches and rebuilds only when its source
 revision changes; Forge packages are reinstalled only when their remote revision
 changes.
@@ -133,28 +139,15 @@ layout = "colemak"
 [ui]
 font_size = 16
 
-[features]
-core = true
-frontend = true
-helix = true
-tiling = true
-
-[helix]
-variant = "standard"
-
-[tiling]
-variant = "yabai"
-
-[kaizen.shortcuts]
-"nav.down" = ["n"]
-"nav.up" = ["e"]
-
 [models]
 default = "anthropic/claude-sonnet-4-6"
 #+END_SRC
 
-Kaizen recursively merges dictionaries. Scalars and lists replace their
-default values, so every setting, model, and shortcut can be overridden.
+Chezmoi recursively merges settings dictionaries. Scalars and lists replace their
+default values. Shared shortcuts and descriptions live in the registry above.
+The =layout= setting selects QWERTY mappings for =qwerty= and =colemak-regular=,
+Colemak mappings for =colemak=, and the corresponding Russian aliases. Low-level
+physical key mappings compensate for =colemak-regular= where required.
 
 Additional machine-local packages and mise tools can be declared in
 =~/.config/kaizen/dependencies.toml=:
@@ -178,54 +171,93 @@ flatpak = ["dev.zed.Zed"]
 #+END_SRC
 
 The file is optional. Kaizen validates it before making changes, installs its
-native packages after enabled feature packages, and gives its =[tools]= entries
+native packages after applicable feature packages, and gives its =[tools]= entries
 precedence over feature mise versions. Kaizen does not modify this user-owned
 file during =bump=.
 
-Before applying dotfiles, Kaizen links the user config as the ignored
-=dotfiles/.chezmoidata/99-user.toml=. Chezmoi reads this overlay automatically,
-so direct =chezmoi diff= and =chezmoi apply= commands read current values for
-the current config schema. Legacy configs use a normalized snapshot refreshed
-by =kaizen sync=.
+Before applying dotfiles, Kaizen writes the ignored
+=dotfiles/.chezmoidata/99-user.toml= snapshot with normalized user settings.
+Direct chezmoi commands read the last snapshot, not live user edits. Refresh
+it through =kaizen sync= after changing user configuration.
 
 Dependency lock files and generated package caches are not versioned. Versions
-that should stay explicit belong in feature-local =mise.toml= files. External
+that should stay explicit belong in each feature's inline =tools= table. External
 skills retain their exact upstream contents.
 
-* Variants
+* Catalog and OS filtering
 
-A feature with variants reads its base manifest and the selected variant:
-
-#+BEGIN_SRC text
-features/tiling/packages.toml
-features/tiling/variants/yabai/packages.toml
-#+END_SRC
-
-Select it in the user config:
+Kaizen reads named sections from =features/*.toml=. For example:
 
 #+BEGIN_SRC toml
-[features]
-tiling = true
+[helix]
+brew = ["git", "marksman", "helix"]
+dnf = ["git", "marksman", "helix", "nvim"]
+apt = ["git", "marksman", "hx"]
 
-[tiling]
-variant = "yabai"
+[helix-steel]
+archive = true
+tools = { rust = "latest", "cargo:schemat" = "latest" }
+post_install = "features/hooks/helix-steel/post_install.py"
 #+END_SRC
 
-Available tiling variants are =aerospace=, =glazewm=, =komorebi=, =yabai=,
-=niri=, and =mangowm=. Niri and MangoWM target Fedora Linux; MangoWM bootstraps
-the official Terra repository, starts with the scrolling layout, and switches
-between scrolling and dwindle with =Caps+Super+V=. Helix supports =standard=
-(official release) and =steel=
-(plugin-enabled fork). Changing a variant does not uninstall packages from the
-previously selected variant.
+This shortened example shows an archived alternative; see =features/editor.toml=
+for the actual catalog. Native manager keys are flat, and =tools= contains mise
+versions. =platforms= defaults to macOS and Linux; =platforms = ["macos"]= or
+=["linux"]= restricts the whole recipe. Optional =distributions= narrows Linux
+eligibility to IDs such as =fedora= and =fedora-asahi-remix=. Discovery is ordered
+by catalog filename, then feature name; user tool versions take precedence.
+The filter covers packages, mise tools, and hooks. Dotfiles are managed separately: chezmoi applies files present in
+its source tree, with general platform and generated-file exclusions. A Linux
+machine can therefore receive an unused Mango config even when its distro is
+not eligible for installing Mango.
+
+For example, =[rift]= in =features/tiling.toml= applies only to macOS; =niri= applies to
+Linux, and the MangoWM hook is restricted to its supported Fedora systems.
+Multiple applicable WM packages can coexist. Kaizen does not pick a running
+WM or enable its service.
+
+WM-specific skhd profiles live in =~/.config/yabai/skhdrc= and
+=~/.config/komorebi/skhdrc=. The normal =~/.config/skhd/skhdrc= selects one
+using skhd's native include:
+
+#+BEGIN_SRC text
+.load "../yabai/skhdrc"
+#+END_SRC
+
+To select Komorebi, change that line to =.load "../komorebi/skhdrc"= in the
+source file and apply it. Use skhd's normal service and reload configuration
+with =skhd --reload= when needed; no custom LaunchAgent or feature selector
+is required. Keep only one WM profile loaded to avoid conflicting hotkeys.
+Profile relocation does not change the bindings.
+
+The =wayland= section supplies shared Wayland desktop utilities.
+=helix= installs official Helix and =helix-steel= builds the
+fork. Both can be installed; the selected executable still depends on PATH.
+
+For existing configs, remove =[features]=, =[tiling].variant=, and
+=[helix].variant=. Kaizen rejects old selectors instead of silently ignoring
+previously disabled entries. This model installs all non-archived applicable
+features, including recipes that used to be disabled; review the catalog and
+archive unwanted entries before syncing.
 
 * Archive development experiments
 
 Project skills =archive= and =unarchive= move experiments to and from
 =.arhive/<name>/=, preserving repository-relative paths and adjusting their
-dependencies and integrations. An optional =dotfiles= list helps discovery;
-the agent also searches for related files. Installed tools and live configs
-are left unchanged.
+dependencies and integrations. The named section stays in its category catalog
+with =archive = true=; packages, tools, and hook paths remain declared but
+inactive. An optional =dotfiles= list in that section contains
+repository-relative source paths and helps discovery; the agent also searches
+for related files. Installed tools and live configs are left unchanged.
+
+=archive = true= excludes packages, mise tools, and feature hooks. It does not
+hide dotfiles: move owned files out of the chezmoi source to stop managing them.
+Keep shared selectors active and resolve references before archiving a selected
+profile. Unarchive restores files without selecting that profile; conflicting
+destinations require an explicit decision, not a silent overwrite.
+
+Existing global package and mise upgrades can still affect previously installed
+tools; archive status is not an uninstall or version freeze.
 
 In Pi, run =/reload=, then =/skill:archive yabai= or =/skill:unarchive yabai=.
 

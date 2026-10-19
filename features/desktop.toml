@@ -1,0 +1,48 @@
+[browser]
+description = "Web browser: Zen"
+cask = ["zen", "helium"]
+flatpak = ["app.zen_browser.zen"]
+
+[language-learning]
+description = "Language learning tools: Anki flashcards and dependencies"
+cask = ["anki"]
+flatpak = ["net.ankiweb.Anki"]
+dnf = ["mpv", "espeak-ng"]
+apt = ["mpv", "espeak-ng"]
+post_install = "features/hooks/language-learning/post_install.py"
+
+[media]
+description = "Media players: VLC, Spotube"
+taps = ["krtirtho/apps"]
+cask = ["vlc", "krtirtho/apps/spotube"]
+dnf = ["vlc", "audacity"]
+apt = ["vlc"]
+tools = {"pipx:yt-dlp" = "latest"}
+
+[productivity]
+description = "Productivity: notes, tasks, time-tracking"
+cask = ["obsidian", "ticktick", "wakatime", "stretchly", "loom", "macshot"]
+dnf = ["obsidian"]
+apt = ["obsidian"]
+
+[screencast]
+description = "Screencasting and demo tools"
+platforms = ["macos"]
+cask = ["licecap", "keycastr"]
+
+[security]
+description = "Security: firewall, password manager, VPN"
+cask = ["lulu", "bitwarden", "openvpn-connect", "amneziavpn", "rustdesk"]
+dnf = ["bitwarden-cli", "lynis"]
+apt = ["bitwarden-cli", "lynis"]
+
+[social]
+description = "Social and communication"
+cask = ["discord", "telegram-desktop", "mattermost", "whatsapp"]
+flatpak = ["com.discordapp.Discord", "org.telegram.desktop"]
+
+[utilities]
+description = "Desktop utilities: launcher, menu bar, file manager, cleaner"
+platforms = ["macos"]
+cask = ["thaw", "stats", "clop", "marta", "pearcleaner", "vicinae"]
+post_install = "features/hooks/utilities/post_install.py"

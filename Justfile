@@ -22,11 +22,11 @@ test:
     bash tests/karabiner-config.sh
     bash tests/rift-config.sh
     bash tests/post-install.sh
-    bash tests/feature-gating.sh
+    bash tests/chezmoi-ignore.sh
 
 # Transfer dotfiles to a new machine
 apply:
-    chezmoi apply --force --source "{{kaizen_dir}}/dotfiles"
+    chezmoi apply --source "{{kaizen_dir}}/dotfiles"
 
 # Install packages and apply dotfiles
 sync:

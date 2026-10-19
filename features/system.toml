@@ -1,0 +1,23 @@
+[battery]
+description = "Battery charge threshold management"
+platforms = ["macos"]
+cask = ["aldente"]
+
+[core]
+description = "Core CLI utilities"
+brew = ["ripgrep", "fd", "fzf", "jq", "tree", "htop", "ncdu", "sqlite", "just", "mise", "mole", "pandoc", "wget", "dtach", "dash", "kondo", "scc"]
+dnf = ["ripgrep", "fd-find", "fzf", "jq", "tree", "htop", "ncdu", "sqlite", "just", "pandoc", "wget", "dash", "kondo"]
+apt = ["ripgrep", "fd-find", "fzf", "jq", "tree", "htop", "ncdu", "sqlite", "pandoc", "wget", "dash", "kondo"]
+tools = {node = "26.12.0", pnpm = "12.14.0", bun = "latest", "cargo:tree-sitter-cli" = "latest"}
+
+[fonts]
+description = "Fonts and Nerd Fonts"
+cask = ["font-jetbrains-mono-nerd-font", "font-fira-code-nerd-font", "font-caskaydia-cove-nerd-font", "font-liga-comic-mono", "font-monaspace-nerd-font"]
+dnf = ["jetbrains-mono-fonts", "fira-code-fonts"]
+apt = ["fonts-jetbrains-mono", "fonts-firacode"]
+
+[keyboard]
+description = "Keyboard layout tooling"
+cask = ["karabiner-elements", "input-source-pro"]
+apt = ["xremap"]
+post_install = "features/hooks/keyboard/post_install.py"

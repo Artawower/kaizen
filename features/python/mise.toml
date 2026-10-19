@@ -1,6 +1,0 @@
-[tools]
-python = "latest"
-"pipx:basedpyright" = "latest"
-"pipx:ruff" = "latest"
-"pipx:ty" = "latest"
-"pipx:uv" = "latest"

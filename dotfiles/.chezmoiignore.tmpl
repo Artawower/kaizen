@@ -14,62 +14,6 @@
 .omp/agent/*.lock
 .agents/.skill-lock.json
 skills-lock.json
-{{- if not (dig "features" "emacs" false .) }}
-.emacs.d/
-{{- end }}
-{{- if not (dig "features" "ai" false .) }}
-.agents/
-.pi/
-.omp/
-.config/eca/
-.config/opencode/
-.config/gh-copilot/
-.config/github-copilot/
-{{- end }}
-{{- if not (dig "features" "terminal" false .) }}
-.config/ghostty/
-.config/wezterm/
-.config/xonsh/
-.config/nushell/
-.config/zellij/
-.config/yazi/
-Library/Application Support/nushell/
-{{- end }}
-{{- if not (dig "features" "keyboard" false .) }}
-.config/karabiner/
-.config/xremap/
-{{- end }}
-{{- if not (dig "features" "helix" false .) }}
-.config/helix/
-{{- end }}
-{{- if not (dig "features" "tiling" false .) }}
-.config/aerospace/
-.config/yabai/
-.config/skhd/
-.config/borders/
-.config/komorebi/
-.config/rift/
-.config/mango/
-.config/niri/
-.config/noctalia/
-.config/hypr/
-.glzr/
-.local/share/noctalia/
-{{- end }}
-{{- if or (ne .chezmoi.os "linux") (not (dig "features" "media" false .)) }}
-.local/bin/audacity
-.local/bin/audacity4
-.local/share/applications/audacity.desktop
-.local/share/applications/audacity4.desktop
-{{- end }}
-{{- if not (dig "features" "neovim" false .) }}
-.config/nvim/
-{{- end }}
-{{- if not (dig "features" "vscodium" false .) }}
-.config/VSCodium/
-.var/app/com.vscodium.codium/
-Library/Application Support/VSCodium/
-{{- end }}
 {{- if eq .chezmoi.os "darwin" }}
 .config/VSCodium/
 .var/
@@ -82,22 +26,10 @@ Library/Application Support/VSCodium/
 .local/share/noctalia/
 .config/systemd/
 .config/autostart/
-{{- $wm := dig "tiling" "variant" "yabai" . }}
-{{- if ne $wm "yabai" }}
-.config/yabai/
-{{- end }}
-{{- if and (ne $wm "yabai") (ne $wm "komorebi") }}
-.config/skhd/
-{{- end }}
-{{- if ne $wm "aerospace" }}
-.config/aerospace/
-{{- end }}
-{{- if ne $wm "glazewm" }}
-.glzr/glazewm/
-{{- end }}
-{{- if ne $wm "komorebi" }}
-.config/komorebi/
-{{- end }}
+.local/bin/audacity
+.local/bin/audacity4
+.local/share/applications/audacity.desktop
+.local/share/applications/audacity4.desktop
 {{- else if eq .chezmoi.os "linux" }}
 Library/
 .config/skhd/
@@ -105,13 +37,9 @@ Library/
 .config/karabiner/
 .config/sketchybar/
 .config/yabai/
+.config/komorebi/
+.config/borders/
+.config/rift/
+.glzr/
 .config/launchagents/
-{{- $tiling := dig "features" "tiling" false . }}
-{{- $wm := dig "tiling" "variant" "niri" . }}
-{{- if or (not $tiling) (ne $wm "niri") }}
-.config/niri/
-{{- end }}
-{{- if or (not $tiling) (ne $wm "mangowm") }}
-.config/mango/
-{{- end }}
 {{- end }}
