@@ -55,3 +55,6 @@ let platform_paths = if (sys host | get name) == "Darwin" {
 } else { ["/usr/sbin" "/usr/bin" "/usr/local/bin"] }
 $env.PATH = ($platform_paths | append $extra_paths | append $env.PATH | uniq)
 
+mkdir $nu.cache-dir
+^carapace _carapace nushell | save --force $"($nu.cache-dir)/carapace.nu"
+

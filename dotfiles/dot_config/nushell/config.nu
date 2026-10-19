@@ -6,6 +6,7 @@ $env.config = ($env.config | merge {
     render_right_prompt_on_last_line: true
 })
 
+source $"($nu.cache-dir)/carapace.nu"
 source ~/.config/nushell/aliases.nu
 source ~/.config/nushell/task-runner.nu
 alias vl = jjui

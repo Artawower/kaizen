@@ -80,44 +80,10 @@ feature is active on its supported OS unless its section declares
 
 * Configuration source of truth
 
-=config.example.toml= is the authoritative source for explicit user intent,
-preferences, and requirements that agents must preserve when adapting or
-replacing applications. Agents must read it in full before adding, changing,
-or adapting application configurations, and update intended behavior there
-first. It includes shortcut intents, workspace names, and terminal preferences;
-it is not an inventory of installed software or every native setting.
-
-Software, versions, platforms, and installation hooks belong in
-=features/*.toml=. Native application configs implement the intended behavior.
-
-** Shortcut intents
-
-The top-level =shortcuts= list is copied into
-=~/.config/kaizen/config.toml= by the installer for new installations. Each
-entry has an English =description= and =keys=: a list of alternative QWERTY
-key sequences. Uppercase letters denote shifted letters; =1..9= denotes an
-indexed action family.
-
-AI agents use these intents when adapting any application with matching
-capabilities, including editors, file managers, and pane managers. Super,
-leaders, modes, and activation mechanisms are application-specific; they are
-not part of the sequences. Agents must report unsupported actions or conflicts
-rather than silently changing their meaning.
-
-This catalog is for AI adaptation, not runtime binding generation. Application
-configs contain direct QWERTY bindings; chezmoi does not resolve or remap them.
-Existing installations can copy the =shortcuts= list from the example into
-their local Kaizen config.
-
-** Terminal
-
-=[terminal].shell= selects the preferred interactive shell. The =completion=
-entry declares a provider, whether it is required, and an upstream =source=
-reference for adaptation. Carapace is required for every managed interactive
-shell, including newly added or restored shells; this requirement is independent
-of the preferred shell. The source URL is documentation, not an installation
-recipe. Terminal emulators such as Ghostty remain features, not global
-requirements.
+=config.example.toml= is the single source of truth for user intent,
+preferences, and requirements. Agents must read it in full before adding,
+changing, or adapting application configurations and update intended behavior
+there first.
 
 * Usage
 

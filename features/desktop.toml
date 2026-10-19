@@ -14,7 +14,10 @@ post_install = "features/hooks/language-learning/post_install.py"
 [media]
 description = "Media players: VLC, Spotube"
 taps = ["krtirtho/apps"]
-cask = ["vlc", "krtirtho/apps/spotube"]
+cask = [
+  "vlc",
+  # "krtirtho/apps/spotube"
+]
 dnf = ["vlc", "audacity"]
 apt = ["vlc"]
 tools = {"pipx:yt-dlp" = "latest"}
@@ -38,11 +41,18 @@ apt = ["bitwarden-cli", "lynis"]
 
 [social]
 description = "Social and communication"
-cask = ["discord", "telegram-desktop", "mattermost", "whatsapp"]
+cask = ["discord", "mattermost"]
 flatpak = ["com.discordapp.Discord", "org.telegram.desktop"]
 
 [utilities]
 description = "Desktop utilities: launcher, menu bar, file manager, cleaner"
 platforms = ["macos"]
-cask = ["thaw", "stats", "clop", "marta", "pearcleaner", "vicinae"]
+cask = [
+  # "thaw",
+  "stats",
+  "clop",
+  "marta",
+  "pearcleaner",
+  "vicinae"
+]
 post_install = "features/hooks/utilities/post_install.py"
