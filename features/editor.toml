@@ -5,7 +5,7 @@ brew = ["emacs-plus@32", "imagemagick", "tree-sitter"]
 brew_args = {"emacs-plus@32" = ["--with-xwidgets", "--with-dbus", "--build-from-source"]}
 dnf = ["emacs", "enchant2-devel", "pkg-config", "isync", "msmtp", "ca-certificates", "imagemagick", "libtree-sitter-devel", "wl-clipboard"]
 apt = ["emacs", "libenchant-2-dev", "pkg-config", "isync", "msmtp", "ca-certificates", "imagemagick", "wl-clipboard"]
-tools = {"npm:orgnote-cli" = "0.64.0", "npm:@mermaid-js/mermaid-cli" = "12.0.0", "pipx:rassumfrassum" = "latest", "pipx:black" = "latest"}
+tools = {"npm:orgnote-cli" = "0.64.0", "npm:@mermaid-js/mermaid-cli" = "12.0.0", "pipx:black" = "latest"}
 post_install = "features/hooks/emacs/post_install.py"
 
 [helix]
@@ -21,6 +21,12 @@ dnf = ["git", "marksman"]
 apt = ["git", "marksman"]
 tools = {rust = "latest", "cargo:schemat" = "latest"}
 post_install = "features/hooks/helix-steel/post_install.py"
+
+[rassumfrassum]
+description = "LSP server multiplexer"
+dotfiles = ["dotfiles/dot_config/rassumfrassum"]
+tools = {"pipx:rassumfrassum" = "latest"}
+archive = true
 
 [neovim]
 description = "Neovim editor"

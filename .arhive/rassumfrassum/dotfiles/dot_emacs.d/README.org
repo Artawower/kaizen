@@ -1,0 +1,50 @@
+#+TITLE: Archived Rassumfrassum Emacs configuration
+
+This is an excerpt from the shared Emacs README, not a replacement for it.
+Merge the relevant sections on restore. The Eglot configuration was under a
+COMMENT heading; the active lsp-proxy integration remains independent.
+
+*** Rassumfrassum - LSP multiplexer
+[[https://github.com/joaotavora/rassumfrassum][rassumfrassum]] connects multiple LSP servers to one client.
+
+#+BEGIN_SRC shell :tangle no
+pip install rassumfrassum
+npm install -g typescript-language-server vscode-langservers-extracted
+#+END_SRC
+
+**** Angular/TypeScript preset
+Create =~/.config/rassumfrassum/angular.py=:
+#+BEGIN_SRC python :tangle ~/.config/rassumfrassum/angular.py
+"""Angular/TypeScript preset: typescript-language-server + eslint."""
+
+
+def servers():
+    return [
+        ['typescript-language-server', '--stdio'],
+        ["ngserver", "--stdio", "--tsProbeLocations", ".", "--ngProbeLocations", "."],
+        ['codebook-lsp', 'serve'],
+    ]
+#+END_SRC
+
+**** Python preset
+#+BEGIN_SRC python :tangle ~/.config/rassumfrassum/python.py
+"""Python preset: pyright + ty"""
+def servers():
+    return [
+        ['ty', '--server'],
+        ['ruff', 'server'],
+        ['codebook-lsp', 'serve'],
+    ]
+#+END_SRC
+
+**** Eglot server entries
+Restore inside the existing Eglot configuration rather than as a separate package.
+#+BEGIN_SRC emacs-lisp :tangle no
+(add-to-list
+ 'eglot-server-programs
+ '(html-ts-mode . ("rass" "angular-html")))
+
+(add-to-list
+ 'eglot-server-programs
+ '(python-ts-mode . ("rass" "python")))
+#+END_SRC

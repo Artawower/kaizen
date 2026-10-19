@@ -10,7 +10,7 @@ from dataclasses import dataclass
 @dataclass(frozen=True)
 class Paths:
     yabai: str = "/opt/homebrew/bin/yabai"
-    wezterm: str = "/opt/homebrew/bin/wezterm"
+    terminal: str = "Ghostty.app"
     zsh: str = "/bin/zsh"
     zen: str = "/Applications/Twilight.app/Contents/MacOS/zen"
     notifier: str = "/opt/homebrew/bin/terminal-notifier"
@@ -102,7 +102,7 @@ class WindowRule(ABC):
                 return
 
 
-class WeztermRule(WindowRule):
+class TerminalRule(WindowRule):
     def __init__(
         self,
         title: str,
@@ -117,16 +117,27 @@ class WeztermRule(WindowRule):
         self.paths = paths
 
     def find_existing(self) -> dict | None:
-        return self.yabai.find_window(lambda w: w.get("title") == self.title)
+        return self.yabai.find_window(
+            lambda w: self._matches_app(w) and w.get("title") == self.title
+        )
 
     def launch(self) -> None:
-        full_cmd = f'echo -ne "\\033]2;{self.title}\\007"; {self.cmd}'
         subprocess.Popen(
-            [self.paths.wezterm, "start", "--", self.paths.zsh, "-c", full_cmd]
+            [
+                "open",
+                "-na",
+                self.paths.terminal,
+                "--args",
+                f"--title={self.title}",
+                "-e",
+                self.paths.zsh,
+                "-c",
+                self.cmd,
+            ]
         )
 
     def _matches_app(self, win: dict) -> bool:
-        return win.get("app") in ("wezterm-gui", "WezTerm")
+        return win.get("app") == "Ghostty"
 
 
 @dataclass(frozen=True)
@@ -205,14 +216,14 @@ def create_config() -> AppConfig:
     paths = Paths()
 
     rules = [
-        WeztermRule(
+        TerminalRule(
             title="cava",
             cmd="cava",
             layout=WindowLayout(grid="100:100:8:62:84:37", space="6"),
             yabai=yabai,
             paths=paths,
         ),
-        WeztermRule(
+        TerminalRule(
             title="WIN_PIPES.SH",
             cmd="pipes.sh",
             layout=WindowLayout(grid="100:100:2:10:40:40", space="6"),

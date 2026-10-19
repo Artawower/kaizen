@@ -15,7 +15,7 @@ STATE_DIR = Path('/tmp/yabai-scratchpads')
 @dataclass(frozen=True)
 class Paths:
     yabai: str = '/opt/homebrew/bin/yabai'
-    wezterm: str = '/opt/homebrew/bin/wezterm'
+    terminal: str = 'Ghostty.app'
 
 
 @dataclass(frozen=True)
@@ -125,20 +125,15 @@ class Scratchpad:
     def launch(self) -> Optional[int]:
         old_ids = {w['id'] for w in self.yabai.query_windows()}
 
+        command = ['open', '-na', self.paths.terminal]
         if self.config.cmd:
-            subprocess.Popen([
-                self.paths.wezterm, 'start', '--always-new-process', '--',
-                '/bin/zsh', '-c', self.config.cmd
-            ])
-        else:
-            subprocess.Popen([
-                self.paths.wezterm, 'start', '--always-new-process'
-            ])
+            command.extend(['--args', '-e', '/bin/zsh', '-c', self.config.cmd])
+        subprocess.Popen(command)
 
         for _ in range(30):
             time.sleep(0.1)
             for win in self.yabai.query_windows():
-                if win['id'] not in old_ids and win.get('app') in ('wezterm-gui', 'WezTerm'):
+                if win['id'] not in old_ids and win.get('app') == 'Ghostty':
                     return win['id']
         return None
 

@@ -23,6 +23,11 @@ cask = ["db-browser-for-sqlite", "mongodb-compass"]
 dnf = ["sqlitebrowser"]
 apt = ["sqlitebrowser"]
 
+[hunk]
+description = "Hunk diff viewer configuration experiment"
+dotfiles = ["dotfiles/dot_config/hunk"]
+archive = true
+
 [terminal]
 description = "Terminal, TUI tools, and shell"
 taps = ["muxy-app/tap"]
@@ -33,6 +38,16 @@ apt = ["herdr", "yazi", "starship", "zoxide", "eza", "fastfetch", "direnv", "nus
 flatpak = ["com.mitchellh.ghostty"]
 tools = {"npm:typescript-language-server" = "latest", "npm:vscode-langservers-extracted" = "4.10.0", "npm:yaml-language-server" = "latest", "npm:@github/copilot-language-server" = "1.554.0", "cargo:kdlfmt" = "latest", "cargo:codebook-lsp" = "latest", "npm:lua-fmt" = "2.6.0", "cargo:runner-run" = "latest"}
 post_install = "features/hooks/terminal/post_install.py"
+
+[wezterm]
+description = "WezTerm terminal configuration experiment"
+dotfiles = ["dotfiles/dot_config/wezterm"]
+archive = true
+
+[zellij]
+description = "Zellij multiplexer configuration experiment"
+dotfiles = ["dotfiles/dot_config/zellij"]
+archive = true
 
 [xonsh]
 description = "Xonsh Python-powered shell"

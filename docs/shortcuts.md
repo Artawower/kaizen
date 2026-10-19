@@ -37,7 +37,7 @@ Known conflicts requiring per-app rebind:
 
 ## Tiling / WM
 
-Handled by: **Aerospace** (macOS), **Niri** (Linux).
+Handled by: **Yabai / Rift** (macOS), **Niri / MangoWM** (Linux).
 
 | Action                | QWERTY        | Colemak       |
 | --------------------- | ------------- | ------------- |

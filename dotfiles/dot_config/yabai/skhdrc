@@ -203,7 +203,7 @@ ralt + rshift - e : /opt/homebrew/bin/yabai -m space --focus entertainment
 ralt + rshift - o : /opt/homebrew/bin/yabai -m space --focus other
 
 
-ralt + rshift + lshift - return : /opt/homebrew/bin/wezterm
+ralt + rshift + lshift - return : open -na Ghostty.app
 ralt + rshift - return : open -na Ghostty.app
 
 lcmd + ralt + rshift - return : open -a kitty.app

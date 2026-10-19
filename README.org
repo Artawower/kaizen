@@ -226,19 +226,18 @@ Linux, and the MangoWM hook is restricted to its supported Fedora systems.
 Multiple applicable WM packages can coexist. Kaizen does not pick a running
 WM or enable its service.
 
-WM-specific skhd profiles live in =~/.config/yabai/skhdrc= and
-=~/.config/komorebi/skhdrc=. The normal =~/.config/skhd/skhdrc= selects one
-using skhd's native include:
+The active skhd profile lives in =~/.config/yabai/skhdrc=. The normal
+=~/.config/skhd/skhdrc= selects it using skhd's native include:
 
 #+BEGIN_SRC text
 .load "../yabai/skhdrc"
 #+END_SRC
 
-To select Komorebi, change that line to =.load "../komorebi/skhdrc"= in the
-source file and apply it. Use skhd's normal service and reload configuration
-with =skhd --reload= when needed; no custom LaunchAgent or feature selector
-is required. Keep only one WM profile loaded to avoid conflicting hotkeys.
-Profile relocation does not change the bindings.
+The Komorebi profile is archived under =.arhive/komorebi/=. Restore it before
+selecting =.load "../komorebi/skhdrc"=; restoring does not activate it.
+Use skhd's normal service and reload configuration with =skhd --reload= when
+needed; no custom LaunchAgent or feature selector is required. Keep only
+one WM profile loaded to avoid conflicting hotkeys.
 
 The =wayland= section supplies shared Wayland desktop utilities.
 =helix= installs official Helix and =helix-steel= builds the

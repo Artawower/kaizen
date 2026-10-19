@@ -3079,39 +3079,6 @@ Function for search in buffer depends or visual or normal line
 
 * Programming
 ** COMMENT Lsp (Eglot)
-*** Rassumfrassum - LSP multiplexer
-[[https://github.com/joaotavora/rassumfrassum][rassumfrassum]] connects multiple LSP servers to one client.
-
-#+BEGIN_SRC shell :tangle no
-pip install rassumfrassum
-npm install -g typescript-language-server vscode-langservers-extracted
-#+END_SRC
-
-**** Angular/TypeScript preset
-Create =~/.config/rassumfrassum/angular.py=:
-#+BEGIN_SRC python :tangle ~/.config/rassumfrassum/angular.py
-"""Angular/TypeScript preset: typescript-language-server + eslint."""
-
-
-def servers():
-    return [
-        ['typescript-language-server', '--stdio'],
-        ["ngserver", "--stdio", "--tsProbeLocations", ".", "--ngProbeLocations", "."],
-        ['codebook-lsp', 'serve'],
-    ]
-#+END_SRC
-
-**** Python preset
-#+BEGIN_SRC python :tangle ~/.config/rassumfrassum/python.py
-"""Python preset: pyright + ty"""
-def servers():
-    return [
-        ['ty', '--server'],
-        ['ruff', 'server'],
-        ['codebook-lsp', 'serve'],
-    ]
-#+END_SRC
-
 *** Eglot booster
 #+BEGIN_SRC emacs-lisp :results silent
 (use-package eglot-booster
@@ -3291,11 +3258,11 @@ def servers():
 
   (add-to-list
    'eglot-server-programs
-   '(html-ts-mode . ("rass" "angular-html")))
+   '(html-ts-mode . ("vscode-html-language-server" "--stdio")))
 
   (add-to-list
    'eglot-server-programs
-   '(python-ts-mode . ("rass" "python")))
+   '(python-ts-mode . ("basedpyright-langserver" "--stdio")))
 
   (add-to-list
    'eglot-server-programs
