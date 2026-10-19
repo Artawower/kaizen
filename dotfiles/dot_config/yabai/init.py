@@ -11,7 +11,7 @@ from dataclasses import dataclass
 class Paths:
     yabai: str = "/opt/homebrew/bin/yabai"
     wezterm: str = "/opt/homebrew/bin/wezterm"
-    xonsh: str = "/opt/homebrew/bin/xonsh"
+    zsh: str = "/bin/zsh"
     zen: str = "/Applications/Twilight.app/Contents/MacOS/zen"
     notifier: str = "/opt/homebrew/bin/terminal-notifier"
 
@@ -122,7 +122,7 @@ class WeztermRule(WindowRule):
     def launch(self) -> None:
         full_cmd = f'echo -ne "\\033]2;{self.title}\\007"; {self.cmd}'
         subprocess.Popen(
-            [self.paths.wezterm, "start", "--", self.paths.xonsh, "-c", full_cmd]
+            [self.paths.wezterm, "start", "--", self.paths.zsh, "-c", full_cmd]
         )
 
     def _matches_app(self, win: dict) -> bool:

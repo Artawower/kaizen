@@ -41,7 +41,6 @@ local treesitter_filetypes = {
 
 vim.pack.add({
   "https://github.com/nvim-mini/mini.surround",
-  "https://github.com/meatballs/vim-xonsh",
   {
     src = "https://github.com/serhez/bento.nvim",
     version = "feat/v2",

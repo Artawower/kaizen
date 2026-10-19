@@ -25,6 +25,8 @@ class Event(set):
 
 root = Path(sys.argv[1])
 source = root / "dotfiles/dot_config/xonsh"
+if not source.exists():
+    source = root / ".arhive/xonsh/dotfiles/dot_config/xonsh"
 activation = """for event in (__xonsh__.builtins.events.on_pre_prompt, __xonsh__.builtins.events.on_chdir):
     for handler in list(event):
         if handler.__name__ == 'mise_hook':

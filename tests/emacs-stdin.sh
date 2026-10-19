@@ -102,12 +102,15 @@ sys.exit(int(os.environ.get('KAIZEN_CLIENT_EXIT', '0')))
     print('passed: client failure status and cleanup', flush=True)
 
     xonsh = shutil.which('xonsh')
-    if xonsh:
-        aliases = shlex.quote(str(project / 'dotfiles/dot_config/xonsh/aliases.xsh'))
+    aliases_path = project / 'dotfiles/dot_config/xonsh/aliases.xsh'
+    if not aliases_path.exists():
+        aliases_path = project / '.arhive/xonsh/dotfiles/dot_config/xonsh/aliases.xsh'
+    if xonsh and aliases_path.exists():
+        aliases = shlex.quote(str(aliases_path))
         result = run([xonsh, '--no-rc', '-c',
                       f"source {aliases}; printf '%s' 'xonsh pipeline help' | em --socket-name=fixture"])
         assert result['terminal'] and base64.b64decode(result['payload']) == b'xonsh pipeline help', result
         print('passed: real xonsh alias and pipeline', flush=True)
     else:
-        print('skipped: xonsh is not installed', flush=True)
+        print('skipped: xonsh is not installed or aliases missing', flush=True)
 PY

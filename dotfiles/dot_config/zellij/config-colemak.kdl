@@ -1157,7 +1157,7 @@ theme "catppuccin-frappe"
 default_mode "locked"
 // Choose the path to the default shell that zellij will use for opening new panes
 // default_shell "/opt/homebrew/bin/xonsh"
-default_shell "xonsh"
+default_shell "nu"
 // Choose the path to override cwd that zellij will use for opening new panes
 //
 // default_cwd "/tmp"
