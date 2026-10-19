@@ -78,14 +78,29 @@ separate files. Category files have no inheritance or shared defaults. Every
 feature is active on its supported OS unless its section declares
 =archive = true=. There is no user-maintained feature enable list.
 
-* Shared shortcut registry
+* Configuration source of truth
 
-=dotfiles/.chezmoidata.toml= owns shared action IDs, their English descriptions,
-QWERTY and Colemak key maps, and Russian aliases. Application templates adapt
-these mappings to native commands. Read =kaizen.shortcut_descriptions= before
-adapting an application, then update the registry and its adapters together.
-Descriptions express action intent; report unsupported semantics rather than
-silently substituting a different action. The key-array format is unchanged.
+Agents must read =config.example.toml= in full before changing application
+configuration. It describes user preferences and requirements, not installed
+software or every native setting. Installation recipes live in =features/*.toml=.
+
+** Shared shortcut registry
+
+=dotfiles/.chezmoidata.toml= owns action IDs and their English descriptions in
+=kaizen.shortcut_descriptions=, the QWERTY and Colemak key maps, and Russian
+aliases. Application templates adapt the maps to native commands. Update this
+registry before its adapters; descriptions define intent without changing the
+key-array format. Report unsupported semantics rather than substituting them.
+
+** Terminal
+
+=[terminal].shell= selects the preferred interactive shell. The =completion=
+entry declares a provider, whether it is required, and an upstream =source=
+reference for adaptation. Carapace is required for every managed interactive
+shell, including newly added or restored shells; this requirement is independent
+of the preferred shell. The source URL is documentation, not an installation
+recipe. Terminal emulators such as Ghostty remain features, not global
+requirements.
 
 * Usage
 
@@ -144,7 +159,7 @@ default = "anthropic/claude-sonnet-4-6"
 #+END_SRC
 
 Chezmoi recursively merges settings dictionaries. Scalars and lists replace their
-default values. Shared shortcuts and descriptions live in the registry above.
+default values. The local config supplies machine-specific runtime overrides.
 The =layout= setting selects QWERTY mappings for =qwerty= and =colemak-regular=,
 Colemak mappings for =colemak=, and the corresponding Russian aliases. Low-level
 physical key mappings compensate for =colemak-regular= where required.

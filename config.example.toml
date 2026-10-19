@@ -4,6 +4,10 @@ layout = "qwerty"
 preferred_vcs = "jj"
 
 
+[terminal]
+shell = "nu"
+completion = { provider = "carapace", required = true, source = "https://github.com/carapace-sh/carapace" }
+
 [ui]
 font_size = 14
 workspaces = [
