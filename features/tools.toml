@@ -26,13 +26,22 @@ apt = ["sqlitebrowser"]
 [terminal]
 description = "Terminal, TUI tools, and shell"
 taps = ["muxy-app/tap"]
-brew = ["ghostty", "herdr", "yazi", "starship", "zoxide", "eza", "fastfetch", "direnv", "nushell", "xonsh"]
+brew = ["ghostty", "herdr", "yazi", "starship", "zoxide", "eza", "fastfetch", "direnv", "nushell"]
 cask = ["ghostty"]
-dnf = ["herdr", "yazi", "starship", "zoxide", "eza", "fastfetch", "direnv", "nushell", "python3-pip", "xonsh"]
-apt = ["herdr", "yazi", "starship", "zoxide", "eza", "fastfetch", "direnv", "nushell", "python3-pip", "xonsh"]
+dnf = ["herdr", "yazi", "starship", "zoxide", "eza", "fastfetch", "direnv", "nushell"]
+apt = ["herdr", "yazi", "starship", "zoxide", "eza", "fastfetch", "direnv", "nushell"]
 flatpak = ["com.mitchellh.ghostty"]
 tools = {"npm:typescript-language-server" = "latest", "npm:vscode-langservers-extracted" = "4.10.0", "npm:yaml-language-server" = "latest", "npm:@github/copilot-language-server" = "1.554.0", "cargo:kdlfmt" = "latest", "cargo:codebook-lsp" = "latest", "npm:lua-fmt" = "2.6.0", "cargo:runner-run" = "latest"}
 post_install = "features/hooks/terminal/post_install.py"
+
+[xonsh]
+description = "Xonsh Python-powered shell"
+dotfiles = ["dotfiles/dot_config/xonsh"]
+brew = ["xonsh"]
+dnf = ["xonsh", "python3-pip"]
+apt = ["xonsh", "python3-pip"]
+post_install = "features/hooks/xonsh/post_install.py"
+archive = true
 
 [vcs]
 description = "Version control tooling"

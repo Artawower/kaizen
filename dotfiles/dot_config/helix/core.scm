@@ -5,7 +5,7 @@
 (mouse #t)
 (middle-click-paste #t)
 (scroll_lines 3)
-(shell (list "/usr/bin/env" "xonsh" "-c"))
+(shell (list "/bin/bash" "-c"))
 (text-width 80)
 (set-option! 'workspace-lsp-roots
   (list ".git"

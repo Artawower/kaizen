@@ -110,9 +110,6 @@ fonts/Cascadia*.ttf
 fonts/Monaspace*.ttf
 
 
-!xonsh
-xonsh/.secrets.xsh
-xonsh/project-markers.json
 !starship.toml
 !ghostty
 !docker-services
