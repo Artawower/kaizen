@@ -81,26 +81,10 @@ feature is active on its supported OS unless its section declares
 * Configuration source of truth
 
 Agents must read =config.example.toml= in full before changing application
-configuration. It describes user preferences and requirements, not installed
-software or every native setting. Installation recipes live in =features/*.toml=.
-
-** Shared shortcut registry
-
-=dotfiles/.chezmoidata.toml= owns action IDs and their English descriptions in
-=kaizen.shortcut_descriptions=, the QWERTY and Colemak key maps, and Russian
-aliases. Application templates adapt the maps to native commands. Update this
-registry before its adapters; descriptions define intent without changing the
-key-array format. Report unsupported semantics rather than substituting them.
-
-** Terminal
-
-=[terminal].shell= selects the preferred interactive shell. The =completion=
-entry declares a provider, whether it is required, and an upstream =source=
-reference for adaptation. Carapace is required for every managed interactive
-shell, including newly added or restored shells; this requirement is independent
-of the preferred shell. The source URL is documentation, not an installation
-recipe. Terminal emulators such as Ghostty remain features, not global
-requirements.
+configuration. Shared keybindings have one registry in =dotfiles/.chezmoidata.toml=:
+=kaizen.shortcut_descriptions= records action intent, =kaizen.base_shortcuts= and
+=kaizen.shortcuts= hold QWERTY and Colemak mappings, and =kaizen.key_aliases= holds
+Russian aliases. Update that registry before its application adapters.
 
 * Usage
 
