@@ -81,6 +81,6 @@ assert_absent swayidle "$repo_root/features/tiling.toml"
 assert_absent swayidle "$repo_root/dotfiles/dot_config/scripts/executable_setup-fedora-deps"
 assert_absent swayidle "$repo_root/dotfiles/dot_config/mango/executable_autostart.sh"
 assert_absent swayidle "$repo_root/dotfiles/dot_config/niri/config.kdl.tmpl"
-assert_absent swayidle "$repo_root/dotfiles/dot_config/hypr/hyprland.conf"
+[[ ! -f "$repo_root/dotfiles/dot_config/hypr/hyprland.conf" ]] || assert_absent swayidle "$repo_root/dotfiles/dot_config/hypr/hyprland.conf"
 [[ ! -e "$repo_root/dotfiles/dot_config/private_net.imput.helium/video-idle-inhibit" ]]
 printf 'Noctalia config tests passed\n'
