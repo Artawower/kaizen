@@ -60,6 +60,10 @@ shortcuts = [
   { keys = [["w", "f"]], description = "Toggle expansion of the current pane and restore the previous layout on unzoom." },
 ]
 
+[terminal]
+shell = "nu"
+completion = { provider = "carapace", required = true, source = "https://github.com/carapace-sh/carapace" }
+
 [ui]
 font_size = 14
 workspaces = [

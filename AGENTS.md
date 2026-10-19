@@ -15,7 +15,7 @@ features/hooks/     # only executable hooks and their assets
 
 dotfiles/           # chezmoi source tree (dot_config/ → ~/.config/, etc.)
 kaizen.py           # orchestrator — the only Python source file
-config.example.toml # user config template
+config.example.toml # authoritative user intent, preferences, and requirements
 Justfile            # thin wrappers: sync, update, bump, capture, status, install
 ```
 
@@ -35,6 +35,12 @@ tools = { go = "latest" }
 Use flat manager keys and an inline `tools` table. Optional `brew_args` is a package-to-flags table. A `post_install` path is repository-relative, such as `features/hooks/emacs/post_install.py`; colocate its assets with the script. There are no per-feature package or mise files. See `docs/feature-format.org` when changing the schema.
 
 Omitted `platforms` means macOS and Linux; restrict a whole recipe with `platforms = ["macos"]` or `["linux"]`. Optional `distributions` restricts Linux distro IDs. The same filter applies to native packages, mise, and hooks. `kaizen sync` generates `~/.config/mise.toml` from applicable `tools` entries. Feature names are unique across category files; there is no inheritance or variant selection. Dotfiles are independent: chezmoi applies source files with general platform exclusions; archive owned files physically to stop managing them.
+
+## Configuration authority
+
+Before adding, changing, or adapting any application configuration, agents MUST read `config.example.toml` in full. It is the single source of truth for explicit user intent, preferences, and requirements to preserve when adapting or replacing applications, not an inventory of installed software or every native configuration option. Update that intent there first, then keep native configs and runtime defaults consistent. Software, versions, platforms, and installation hooks belong in `features/*.toml`; application-specific implementation belongs in native configs. Report unsupported requirements or conflicts instead of silently substituting preferences.
+
+`[terminal].shell` selects the preferred interactive shell. Apply the required completion provider in `[terminal].completion` to every managed interactive shell, including newly added or restored shells. Its `source` URL is upstream reference material for adaptation, not an installation recipe. Noninteractive command interpreters are unaffected.
 
 ## User config
 
@@ -83,7 +89,6 @@ jj --config 'signing.behavior="drop"' describe -m "..."  # update description
 
 ## Code rules
 
-- All keybinding changes MUST start in `config.example.toml` (`shortcuts`), then be reflected in application configs.
 - No comments in code. If a comment feels necessary, refactor instead.
 - English only — no Russian anywhere in source files.
 - `kaizen.py` is the only orchestrator; do not add new Python files unless adding a `post_install.py` to a feature.

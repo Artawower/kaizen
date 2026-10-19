@@ -78,9 +78,21 @@ separate files. Category files have no inheritance or shared defaults. Every
 feature is active on its supported OS unless its section declares
 =archive = true=. There is no user-maintained feature enable list.
 
-* Shortcut intents
+* Configuration source of truth
 
-=config.example.toml= includes the top-level =shortcuts= list, copied into
+=config.example.toml= is the authoritative source for explicit user intent,
+preferences, and requirements that agents must preserve when adapting or
+replacing applications. Agents must read it in full before adding, changing,
+or adapting application configurations, and update intended behavior there
+first. It includes shortcut intents, workspace names, and terminal preferences;
+it is not an inventory of installed software or every native setting.
+
+Software, versions, platforms, and installation hooks belong in
+=features/*.toml=. Native application configs implement the intended behavior.
+
+** Shortcut intents
+
+The top-level =shortcuts= list is copied into
 =~/.config/kaizen/config.toml= by the installer for new installations. Each
 entry has an English =description= and =keys=: a list of alternative QWERTY
 key sequences. Uppercase letters denote shifted letters; =1..9= denotes an
@@ -96,6 +108,16 @@ This catalog is for AI adaptation, not runtime binding generation. Application
 configs contain direct QWERTY bindings; chezmoi does not resolve or remap them.
 Existing installations can copy the =shortcuts= list from the example into
 their local Kaizen config.
+
+** Terminal
+
+=[terminal].shell= selects the preferred interactive shell. The =completion=
+entry declares a provider, whether it is required, and an upstream =source=
+reference for adaptation. Carapace is required for every managed interactive
+shell, including newly added or restored shells; this requirement is independent
+of the preferred shell. The source URL is documentation, not an installation
+recipe. Terminal emulators such as Ghostty remain features, not global
+requirements.
 
 * Usage
 
@@ -154,8 +176,10 @@ default = "anthropic/claude-sonnet-4-6"
 #+END_SRC
 
 Chezmoi recursively merges settings dictionaries. Scalars and lists replace their
-default values. Shortcut changes start in the =shortcuts= list in
-=config.example.toml= and are adapted directly into native application configs.
+default values. =config.example.toml= remains authoritative for agent-facing
+configuration intent; the local config supplies machine-specific runtime
+overrides. Its recommendations are adapted directly into native application
+configs rather than interpreted as a runtime generator.
 The =layout= setting configures OS keyboard layout where supported; it no longer
 selects application keymaps.
 
