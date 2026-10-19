@@ -77,7 +77,7 @@ from pathlib import Path
 
 compile(Path(sys.argv[1]).read_text(), sys.argv[1], "exec")
 PY
-assert_absent swayidle "$repo_root/features/tiling/packages.toml"
+assert_absent swayidle "$repo_root/features/tiling.toml"
 assert_absent swayidle "$repo_root/dotfiles/dot_config/scripts/executable_setup-fedora-deps"
 assert_absent swayidle "$repo_root/dotfiles/dot_config/mango/executable_autostart.sh"
 assert_absent swayidle "$repo_root/dotfiles/dot_config/niri/config.kdl.tmpl"

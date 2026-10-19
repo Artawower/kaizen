@@ -34,7 +34,7 @@ with tempfile.TemporaryDirectory(prefix='kaizen-emacs-terminal-') as folder:
     for key in ['TERM', 'COLORTERM', 'TERMINFO', 'TERMINFO_DIRS', 'TERMCAP']:
         env.pop(key, None)
     env['HOME'] = str(root)
-    install = [sys.executable, str(project / 'features/emacs/post_install.py'), 'linux']
+    install = [sys.executable, str(project / 'features/hooks/emacs/post_install.py'), 'linux']
     subprocess.run(install, env=env, check=True, capture_output=True)
     entries = list((root / '.terminfo').glob('*/xterm-kaizen-direct'))
     assert len(entries) == 1, entries

@@ -96,7 +96,7 @@ assert not (playwright / 'UPSTREAM.md').exists()
 assert not (root / 'dotfiles/dot_agents/private_skill-lock.json').exists()
 assert not (root / 'dotfiles/dot_agents/private_dot_skill-lock.json').exists()
 assert any(entry['path'].endswith('/.agents/skills/playwright-cli') for entry in eca['skills'])
-tools = tomllib.loads((root / 'features/ai/mise.toml').read_text())['tools']
+tools = tomllib.loads((root / 'features/tools.toml').read_text())['ai']['tools']
 assert tools['npm:@playwright/cli'] == '0.1.22'
 assert tools['npm:skills'] == 'latest'
 for servers in [mcp, eca['mcpServers'], opencode['mcp']]:

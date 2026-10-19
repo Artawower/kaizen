@@ -2,21 +2,13 @@
 
 Kaizen supports the official Helix release and the plugin-enabled `steel-event-system` fork.
 
-Select the implementation in `~/.config/kaizen/config.toml`:
+The independent `[helix]` and `[helix-steel]` sections live in
+`features/editor.toml`. Both install on their supported OS unless their
+section declares `archive = true`. There is no user feature
+selector. To keep a recipe inactive, archive it; to choose between installed
+binaries, manage PATH explicitly.
 
-```toml
-[helix]
-variant = "standard"
-```
-
-or:
-
-```toml
-[helix]
-variant = "steel"
-```
-
-The Steel variant uses Scheme as its primary configuration. `config.toml` stays empty so TOML keymaps do not conflict with Scheme keymaps. Official Helix ignores the Scheme files and therefore uses upstream defaults unless you configure its TOML keymap directly.
+The Steel implementation uses Scheme as its primary configuration. `config.toml` stays empty so TOML keymaps do not conflict with Scheme keymaps. Official Helix ignores the Scheme files and therefore uses upstream defaults unless you configure its TOML keymap directly.
 
 - `core.scm` owns Steel editor options.
 - `bindings.scm` owns Steel keymaps.
@@ -41,6 +33,6 @@ Scheme keybindings include:
 
 `languages.toml` mirrors the primary LSP setup from Emacs for Python, JavaScript, TypeScript, Vue, HTML, Go, and Rust. ESLint contributes only diagnostics and code actions, while Copilot contributes only completions. Angular starts only when the selected project root contains `angular.json`.
 
-The `standard` variant installs the platform Helix package. The `steel` variant builds the fork, installs Forge packages, and links its runtime into `~/.config/helix/runtime`.
+The `helix` feature installs the platform Helix package. The independent `helix-steel` feature builds the fork, installs Forge packages, and links its runtime into `~/.config/helix/runtime`.
 
-Changing variants does not remove the previous installation. When switching from `steel` to `standard`, remove the old `~/.cargo/bin/hx` if it still takes precedence over the platform binary.
+Switching features does not remove the previous installation. When switching from `helix-steel` to `helix`, remove the old `~/.cargo/bin/hx` if it still takes precedence over the platform binary.

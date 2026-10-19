@@ -92,12 +92,12 @@ def test_user_tools_override_features() -> None:
         kaizen.FEATURES_DIR = root / "features"
         kaizen.MISE_CONFIG = root / "mise.toml"
         write(
-            kaizen.FEATURES_DIR / "sample" / "mise.toml",
-            '[tools]\nnode = "20"\npython = "3.11"\n',
+            kaizen.FEATURES_DIR / "editor.toml",
+            '[sample]\ntools = { node = "20", python = "3.11" }\n',
         )
         instance = object.__new__(kaizen.Kaizen)
         instance._generate_mise_config(
-            [kaizen.Feature("sample")],
+            kaizen.discover_features("macos"),
             {
                 "tools": {
                     "node": "22",
@@ -123,25 +123,29 @@ def test_bump_preserves_user_overrides() -> None:
         kaizen.KAIZEN_DIR = root
         kaizen.FEATURES_DIR = root / "features"
         kaizen.MISE_CONFIG = root / "mise.toml"
-        feature_file = kaizen.FEATURES_DIR / "sample" / "mise.toml"
-        write(feature_file, '[tools]\nnode = "20"\npython = "3.11"\n')
-        write(kaizen.MISE_CONFIG, '[tools]\nnode = "22"\npython = "3.12"\n')
+        feature_file = kaizen.FEATURES_DIR / "editor.toml"
+        write(feature_file, '[sample]\nbrew = ["jq"]\ntools = { node = "20", python = "3.11" }\n\n[second]\ntools = { go = "1.21" }\n\n[archived]\narchive = true\ntools = { rust = "1.80" }\n')
+        write(kaizen.MISE_CONFIG, '[tools]\nnode = "22"\npython = "3.12"\ngo = "1.22"\nrust = "1.81"\n')
         instance = object.__new__(kaizen.Kaizen)
-        instance._capture_mise_versions([kaizen.Feature("sample")], {"node"})
-        tools = kaizen.read_toml(feature_file)["tools"]
-        assert tools == {"node": "20", "python": "3.12"}
+        instance._capture_mise_versions(kaizen.discover_features("macos"), {"node"})
+        catalog = kaizen.read_toml(feature_file)
+        assert catalog["sample"]["tools"] == {"node": "20", "python": "3.12"}
+        assert catalog["sample"]["brew"] == ["jq"]
+        assert catalog["second"]["tools"] == {"go": "1.22"}
+        assert catalog["archived"] == {"archive": True, "tools": {"rust": "1.80"}}
+        assert "[sample.tools]" not in feature_file.read_text()
 
 
 def test_install_does_not_apply_dotfiles() -> None:
     events: list[object] = []
     instance = object.__new__(kaizen.Kaizen)
-    instance._config = {}
-    original_parse = kaizen.parse_features
+    instance._os = "macos"
+    original_parse = kaizen.discover_features
     original_load = kaizen.load_user_dependencies
     original_run = kaizen.subprocess.run
     original_which = kaizen.shutil.which
     kaizen.shutil.which = lambda _: "/tmp/chezmoi"
-    kaizen.parse_features = lambda _: events.append("features") or []
+    kaizen.discover_features = lambda _: events.append("features") or []
     kaizen.load_user_dependencies = lambda: events.append("dependencies") or {}
     kaizen.subprocess.run = lambda command, **_: events.append(command)
     instance._write_user_data = lambda: events.append("write")
@@ -152,19 +156,20 @@ def test_install_does_not_apply_dotfiles() -> None:
         events.clear()
         instance.sync()
     finally:
-        kaizen.parse_features = original_parse
+        kaizen.discover_features = original_parse
         kaizen.load_user_dependencies = original_load
         kaizen.subprocess.run = original_run
         kaizen.shutil.which = original_which
     assert events[:4] == ["features", "dependencies", "write", "install"]
     assert events[4][0:2] == ["chezmoi", "apply"]
+    assert "--force" not in events[4]
 
 
 def test_dependency_workflow_runs_integrations() -> None:
     events: list[object] = []
     instance = object.__new__(kaizen.Kaizen)
     instance._os = "macos"
-    feature = kaizen.Feature("sample")
+    feature = kaizen.Feature(kaizen.FEATURES_DIR / "editor.toml", "sample", {})
     original_which = kaizen.shutil.which
     original_run = kaizen.subprocess.run
     kaizen.shutil.which = lambda _: "/tmp/mise"
@@ -193,8 +198,8 @@ def test_failures_stop_workflow() -> None:
     import subprocess
 
     with tempfile.TemporaryDirectory() as directory:
-        path = Path(directory) / "packages.toml"
-        write(path, "[macos\n")
+        path = Path(directory) / "editor.toml"
+        write(path, "[sample\n")
         try:
             kaizen.load_toml(path)
         except ValueError:
@@ -239,6 +244,86 @@ def test_failures_stop_workflow() -> None:
                 hook.assert_not_called()
 
 
+def test_feature_discovery_filters_whole_recipe() -> None:
+    from unittest.mock import Mock, patch
+
+    with tempfile.TemporaryDirectory() as directory:
+        root = Path(directory)
+        features = root / "features"
+        catalogs = {
+            "tiling": {
+                "first": 'platforms = ["linux"]\ndistributions = ["fedora"]\ndnf = ["first"]\n',
+                "second": 'platforms = ["linux"]\ndnf = ["second"]\n',
+                "rift": 'platforms = ["macos"]\nbrew = ["rift"]\n',
+            },
+            "editor": {"archived": 'archive = true\n'},
+            "system": {"shared": 'description = "Shared tools"\n'},
+        }
+        for category, entries in catalogs.items():
+            sections = []
+            for name, settings in entries.items():
+                hook = f"features/hooks/{name}/post_install.py"
+                sections.append(f'[{name}]\n{settings}tools = {{ {name} = "latest" }}\npost_install = "{hook}"\n')
+                if name != "archived":
+                    write(root / hook, 'raise RuntimeError("must be mocked")\n')
+            write(features / f"{category}.toml", "\n".join(sections))
+        user_data = {
+            "shortcuts": [{"keys": [["h"], ["Left"]], "description": "Move left."}],
+        }
+        overlay = root / "dotfiles/.chezmoidata/99-user.toml"
+        overlay.parent.mkdir(parents=True)
+        original_config = root / "user.toml"
+        original_config.write_text("unchanged\n")
+        overlay.symlink_to(original_config)
+        with (
+            patch.object(kaizen, "KAIZEN_DIR", root),
+            patch.object(kaizen, "FEATURES_DIR", features),
+            patch.object(kaizen, "USER_DATA_FILE", overlay),
+            patch.object(kaizen, "MISE_CONFIG", root / "mise.toml"),
+            patch.object(kaizen, "detect_os", return_value="fedora"),
+            patch.object(kaizen.shutil, "which", return_value="/tmp/tool"),
+            patch.object(kaizen.subprocess, "run") as run,
+        ):
+            selected = kaizen.discover_features("fedora")
+            names = {item.name for item in selected}
+            assert names == {"first", "second", "shared"}
+            assert {item.name for item in kaizen.discover_features("macos")} == {"rift", "shared"}
+            assert {item.name for item in kaizen.discover_features("ubuntu")} == {"second", "shared"}
+            instance = kaizen.Kaizen(user_data)
+            instance._adapter = Mock()
+            instance._write_user_data()
+            assert not overlay.is_symlink()
+            assert kaizen.read_toml(overlay) == user_data
+            assert original_config.read_text() == "unchanged\n"
+            instance._install_dependencies(selected, {})
+            assert instance._adapter.install.call_count == len(selected)
+            assert set(kaizen.read_toml(kaizen.MISE_CONFIG)["tools"]) == names
+            instance.update()
+            hooks = [
+                call.args[0] for call in run.call_args_list
+                if call.args[0][0] == sys.executable
+            ]
+            assert len(hooks) == 2 * len(selected)
+            assert all(Path(command[1]).parent.name in names for command in hooks)
+            assert all(command[2] == "fedora" for command in hooks)
+            write(features / "editor.toml", '[archived]\narchive = "true"\n')
+            try:
+                kaizen.discover_features("fedora")
+            except TypeError as error:
+                assert "archive must be true or false" in str(error)
+            else:
+                raise AssertionError("invalid archive flag accepted")
+            for config in ({"features": {"first": False}}, {"tiling": {"variant": "old"}}):
+                try:
+                    kaizen.normalize_config(config)
+                except ValueError as error:
+                    assert "no longer supported" in str(error)
+                else:
+                    raise AssertionError("obsolete feature selection silently ignored")
+
+
+
+test_feature_discovery_filters_whole_recipe()
 test_failures_stop_workflow()
 test_manifest_validation()
 test_package_adapter_reuse()

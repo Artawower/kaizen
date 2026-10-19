@@ -1,63 +1,92 @@
 #+TITLE: Kaizen feature format
 
-* Structure
+* Category catalogs
 
 #+BEGIN_SRC text
-features/<name>/
-  packages.toml
-  mise.toml
-  post_install.py
-  variants/<variant>/
-    packages.toml
-    mise.toml
-    post_install.py
+features/editor.toml
+features/languages.toml
+features/tiling.toml
+features/desktop.toml
+features/development.toml
+features/system.toml
+features/tools.toml
+features/hooks/<name>/post_install.py
 #+END_SRC
 
-Only the base =packages.toml= is required. Enable the feature with
-=[features].<name> = true= and select a variant through
-=[<name>].variant= in =~/.config/kaizen/config.toml=.
+Every top-level table in a category catalog is an independent feature. Names
+are unique across all catalogs. Kaizen discovers =features/*.toml= in filename
+order, then feature-name order. Categories provide no inheritance or defaults;
+there is no user =[features]= enable list and no variant selection.
 
-* Native packages
+* Feature section
 
 #+BEGIN_SRC toml
-description = "Example tools"
-category = "dev"
-
-[macos]
-taps = []
+[example]
+description = "Example CLI tools"
 brew = ["jq"]
-cask = []
-
-[macos.brew_args]
-jq = ["--HEAD"]
-
-[linux]
 dnf = ["jq"]
 apt = ["jq"]
-flatpak = []
+brew_args = { jq = ["--HEAD"] }
+tools = { go = "latest" }
+dotfiles = ["dotfiles/dot_config/example"]
 #+END_SRC
 
-Use package names that exist for the corresponding manager. Variants add to
-the base packages; changing variants does not uninstall earlier packages.
+Native manager keys are flat: =taps=, =brew=, =cask=, =dnf=, =apt=, and =flatpak=.
+Use real package names for their manager. Optional =brew_args= maps package
+names to flag lists. =tools= is an inline table of mise tool names and versions;
+there are no separate package or mise manifests for individual features.
 
-* Runtime tools
+Kaizen merges applicable =tools= in discovery order into =~/.config/mise.toml=.
+User =[tools]= in =~/.config/kaizen/dependencies.toml= overrides feature versions.
+Developer =bump= captures live versions into applicable feature sections while
+preserving other sections and user-owned tool overrides.
 
-Declare tools in =mise.toml=, not in =packages.toml=:
+* OS eligibility
+
+Omitted =platforms= means both macOS and Linux. Restrict a whole recipe with
+=platforms = ["macos"]= or =platforms = ["linux"]=. Package manager keys select
+native commands, not whole-feature eligibility; explicitly restrict hooks and
+tools when they are platform-specific.
+
+For a distro-specific integration:
 
 #+BEGIN_SRC toml
-[tools]
-python = "latest"
-"npm:typescript" = "6.0.3"
+[mangowm]
+platforms = ["linux"]
+distributions = ["fedora", "fedora-asahi-remix"]
+post_install = "features/hooks/mangowm/post_install.py"
 #+END_SRC
 
-Kaizen merges these declarations into =~/.config/mise.toml=. The file is a
-generated output. Variant versions override the base feature, and user
-=[tools]= in =~/.config/kaizen/dependencies.toml= overrides feature versions.
+=distributions= applies only on Linux and matches =/etc/os-release= IDs.
+The eligibility filter covers packages, mise tools, and hooks. Dotfiles are
+independent: chezmoi uses general platform and generated-file exclusions, not
+per-feature gates. An unused app config may still be deployed on its platform.
+Installation does not select a running WM or activate its service.
+
+* Archive status
+
+Set =archive = true= inside the feature section to exclude its whole recipe;
+omission means active. Keep the section, dependencies, metadata, and hook path
+in the catalog. Move owned dotfiles, hooks, and assets to =.arhive/<name>/=,
+preserving repository-relative paths. Remove the flag after restoring them;
+there is no need to write =archive = false=.
+
+Optional =dotfiles= lists repository-relative source paths. It guides AI
+ownership discovery, not runtime assembly or deployment. Shared files stay
+active when another feature needs them. Resolve selectors such as skhd =.load=
+before moving a selected profile; restoring files does not switch selection.
+
+The flag alone does not hide dotfiles or remove deployed files. Archive does
+not uninstall packages, stop services, or prevent global package/mise upgrades.
 
 * Integrations
 
-A =post_install.py= hook runs with the same Python interpreter as Kaizen.
-Its arguments are the OS identifier and action:
+Declare an optional repository-relative =post_install= path in the feature
+section. Only actual hooks and their assets need directories under
+=features/hooks/=. Archived or unsupported features do not require their hook
+to be present; applicable features must reference an existing file.
+
+Hooks run with Kaizen's Python interpreter and receive the OS and action:
 
 #+BEGIN_SRC text
 post_install.py macos sync
@@ -65,12 +94,7 @@ post_install.py fedora update
 post_install.py ubuntu sync
 #+END_SRC
 
-The OS identifier is =macos= or the Linux distribution's =/etc/os-release=
-=ID=, such as =fedora=, =fedora-asahi-remix=, =ubuntu=, or =debian=.
-Both =install= and =sync= pass the =sync= action. Hooks should avoid refreshing
-existing integrations on =sync= and perform explicit refreshes on =update=.
-
-Keep privileged system configuration opt-in. Put dotfile selection rules in
-=dotfiles/.chezmoiignore.tmpl=; a package feature flag alone does not define
-file ownership. Test package declarations, hooks, and rendered templates
-without modifying the real home directory.
+The OS is =macos= or the Linux distribution ID. Both =install= and =sync= pass
+=sync=. Integrations should be idempotent and refresh existing installations
+explicitly on =update=. Keep privileged changes opt-in. Validate catalog edits
+and templates without applying them to the real home.

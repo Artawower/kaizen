@@ -1,0 +1,48 @@
+[aerospace]
+description = "Aerospace tiling WM for macOS"
+platforms = ["macos"]
+taps = ["nikitabobko/tap"]
+cask = ["nikitabobko/tap/aerospace"]
+
+[glazewm]
+description = "GlazeWM tiling WM"
+platforms = ["macos"]
+taps = ["glzr-io/tap"]
+cask = ["glzr-io/tap/glazewm", "glzr-io/tap/zebar"]
+
+[komorebi]
+description = "Komorebi tiling WM for macOS"
+dotfiles = ["dotfiles/dot_config/komorebi"]
+platforms = ["macos"]
+taps = ["lgug2z/tap", "koekeishiya/formulae", "FelixKratz/formulae"]
+brew = ["lgug2z/tap/komorebi-for-mac", "koekeishiya/formulae/skhd", "FelixKratz/formulae/borders"]
+
+[mangowm]
+description = "MangoWM scrolling Wayland compositor for Fedora"
+platforms = ["linux"]
+distributions = ["fedora", "fedora-asahi-remix"]
+post_install = "features/hooks/mangowm/post_install.py"
+
+[niri]
+description = "Niri scrolling Wayland compositor for Linux"
+platforms = ["linux"]
+dnf = ["niri"]
+
+[rift]
+description = "Rift tiling window manager for macOS"
+dotfiles = ["dotfiles/dot_config/rift"]
+platforms = ["macos"]
+taps = ["acsandmann/tap"]
+brew = ["acsandmann/tap/rift"]
+
+[wayland]
+description = "Shared Wayland desktop utilities"
+platforms = ["linux"]
+dnf = ["brightnessctl", "cliphist", "grim", "playerctl", "slurp", "wf-recorder", "wireplumber", "wl-clipboard", "xdg-desktop-portal-wlr", "ydotool"]
+
+[yabai]
+description = "yabai tiling WM for macOS"
+dotfiles = ["dotfiles/dot_config/yabai"]
+platforms = ["macos"]
+taps = ["koekeishiya/formulae", "FelixKratz/formulae"]
+brew = ["koekeishiya/formulae/yabai", "koekeishiya/formulae/skhd", "FelixKratz/formulae/borders"]

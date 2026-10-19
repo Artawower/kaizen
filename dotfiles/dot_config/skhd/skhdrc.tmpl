@@ -1,6 +1,0 @@
-{{- $wm := dig "tiling" "variant" "yabai" . -}}
-{{- if eq $wm "komorebi" -}}
-{{ include "dot_config/skhd/skhdrc-komorebi" }}
-{{- else -}}
-{{ include "dot_config/skhd/skhdrc-qwerty" }}
-{{- end -}}

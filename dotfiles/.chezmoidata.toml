@@ -10,37 +10,6 @@ username = "darkawower"
 [emacs]
 binding-scheme = "helixel"
 
-[helix]
-variant = "standard"
-
-[features]
-ai = true
-android = false
-api = false
-battery = false
-browser = false
-containers = false
-core = true
-database = false
-desktop = true
-emacs = true
-fonts = true
-frontend = false
-go = false
-helix = false
-keyboard = true
-media = false
-neovim = false
-productivity = false
-python = false
-rust = false
-screencast = false
-security = false
-social = false
-terminal = true
-tiling = true
-vcs = true
-vscodium = false
 
 [models]
 coder = "anthropic/claude-sonnet-5-5"
@@ -50,8 +19,6 @@ quick = "anthropic/claude-haiku-5-5"
 research = "openai/gpt-6.1-sol"
 reviewer = "openai/gpt-6.1-sol"
 
-[tiling]
-variant = "yabai"
 
 [ui]
 font_size = 14

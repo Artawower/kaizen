@@ -8,29 +8,55 @@ There is no build step and no third-party Python dependency for the orchestrator
 Committed defaults are in `dotfiles/.chezmoidata.toml`. User overrides are in
 `~/.config/kaizen/config.toml`. Dictionaries merge recursively; scalar values
 and lists replace defaults. Optional `~/.config/kaizen/dependencies.toml` adds
-native packages and mise tools without editing feature manifests.
+native packages and mise tools without editing feature catalogs.
 
 Before sync, Kaizen prepares the ignored `dotfiles/.chezmoidata/99-user.toml`.
-For the current schema this is a symlink to the user config. Legacy schemas
-are normalized into a generated TOML snapshot, refreshed on the next sync.
-Chezmoi reads defaults and this overlay when rendering application configs.
+It is a generated TOML snapshot of normalized user settings, refreshed on sync.
+Chezmoi reads defaults and this overlay when rendering application configs;
+direct chezmoi commands see the last snapshot, not subsequent user edits.
 
 ## Features
 
-Enabled features come from `[features]`. Their declarations live under
-`features/<name>/`; variants add declarations under `variants/<variant>/`.
-Package declarations are additive. Mise tools merge in feature order, then
-variant overrides, then user dependencies. The resulting `~/.config/mise.toml`
-is generated and should not be edited as a source of truth.
+Kaizen reads `features/*.toml` category catalogs, ordered by filename and
+then feature name. Each named section contains flat native-manager lists,
+inline mise `tools`, optional metadata, and an explicit `post_install` path.
+Only hooks and their assets live in `features/hooks/<name>/`. Feature names
+are unique across catalogs; categories provide no inheritance or defaults.
+
+Every feature applies unless archived or unsupported on the current OS;
+there is no user feature enable list. `platforms` defaults to macOS and Linux.
+An explicit list restricts the entire recipe. Optional `distributions` restricts
+Linux distro IDs. The same filter selects package installs, generated mise
+tools, and hooks. Dotfiles are
+independent: chezmoi manages source files with general platform and generated-file
+exclusions, not per-feature conditions. Unsupported apps may have unused configs
+on an otherwise supported platform.
+
+`archive = true` in a feature section skips it; omission means active.
+The section, dependencies, and hook path stay in the category catalog. Move owned dotfiles to `.arhive/` to stop
+managing them; the archive flag alone does not hide files from chezmoi.
+Global package and mise upgrades still affect previously installed tools.
+Installation does not select a running WM or activate its service. Multiple
+WM packages and both Helix implementations can coexist; runtime selection is
+separate from installation. WM-specific skhd profiles live inside their WM's
+config directory; one shared `skhd/skhdrc` selects a profile through native
+`.load`. The standard skhd service needs no custom arguments. Archive must
+resolve references to the selected profile before moving it; unarchive does
+not change this selector automatically.
+
+Package declarations are additive. Mise tools merge in discovery order, then
+user dependencies. Bump updates each applicable section's inline `tools` table,
+preserving sibling sections, archived entries, and user-owned overrides. The resulting `~/.config/mise.toml` is generated and should
+not be edited as a source of truth.
 
 ## Commands
 
 - `install`: validate inputs, install native packages, generate mise config,
-  install tools, then run enabled integrations with the `sync` action.
-- `sync`: prepare the chezmoi overlay, perform installation, then force-apply
-  dotfiles from the source tree.
+  install tools, then run applicable integrations with the `sync` action.
+- `sync`: prepare the chezmoi overlay, perform installation, then apply
+  dotfiles from the source tree with normal chezmoi conflict prompting.
 - `update`: upgrade native packages globally, upgrade installed mise tools,
-  then run enabled integrations with the `update` action.
+  then run applicable integrations with the `update` action.
 - `bump`: development-only interactive mise upgrade and version capture.
 - `capture`: development-only capture of known mutable Pi settings.
 - `self-update`: fast-forward a clean managed installation; does not sync.
@@ -40,9 +66,12 @@ Native command failures stop the workflow. Required executables must be
 available; Linux users install mise and chezmoi separately. Homebrew can be
 bootstrapped interactively when needed on macOS.
 
-Disabling a feature does not uninstall its packages or remove previously
-applied files. Ignore rules control which files a subsequent apply manages;
-there is no general automatic uninstall or rollback mechanism. The package,
+Archiving a feature does not uninstall its packages or remove previously
+applied files. Moving source files out stops future management, not deployment
+already on disk. Conflicts during restore are resolved in the source tree
+before applying; locally edited destination files retain chezmoi's normal
+confirmation because sync and apply do not pass `--force`. There is no general
+automatic uninstall or rollback mechanism. The package,
 file, and hook boundaries are still deliberately explicit, not a plugin DSL.
 
 ## Installation
