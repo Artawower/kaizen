@@ -155,7 +155,7 @@ ralt + rshift - l : /opt/homebrew/bin/yabai -m space --focus study
 ralt + rshift - o : /opt/homebrew/bin/yabai -m space --focus other
 
 
-lcmd + ralt + rshift - return : /opt/homebrew/bin/wezterm
+lcmd + ralt + rshift - return : open -na Ghostty.app
 ralt + rshift - return : open -na Ghostty.app
 
 cmd + ralt + rshift - f : /opt/homebrew/bin/yabai -m space --focus 3;\

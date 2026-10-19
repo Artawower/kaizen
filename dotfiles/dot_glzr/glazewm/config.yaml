@@ -327,5 +327,5 @@ keybindings:
   # ── APP LAUNCHERS ─────────────────────────────────────────────
   - commands: ["shell-exec open -na Ghostty.app"]
     bindings: ["ralt+rshift+return"]
-  - commands: ["shell-exec open -na WezTerm.app"]
+  - commands: ["shell-exec open -na Ghostty.app"]
     bindings: ["lcmd+ralt+rshift+return"]

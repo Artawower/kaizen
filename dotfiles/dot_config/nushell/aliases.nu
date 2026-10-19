@@ -19,7 +19,6 @@ def czcd [] { cd (chezmoi source-path) }
 alias kdiff = tuicr
 
 alias y = yazi
-alias z = zellij
 alias l = python ~/.config/scripts/layout-presets.py
 
 alias pip = pip3

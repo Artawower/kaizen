@@ -85,8 +85,8 @@
 | Shortcut | Keys | Description |
 |----------|------|-------------|
 | `prefix.editor` | `space` | Editor leader key (Helix space mode) |
-| `prefix.multiplexer` | `CTRL + b` | Terminal multiplexer prefix (herdr / zellij) |
-| `prefix.wm` | `Caps` | Tiling WM modifier key (Aerospace / Niri) |
+| `prefix.multiplexer` | `CTRL + b` | Terminal multiplexer prefix (herdr) |
+| `prefix.wm` | `Caps` | Tiling WM modifier key (Yabai / Rift / Niri / MangoWM) |
 
 ## Projects
 
