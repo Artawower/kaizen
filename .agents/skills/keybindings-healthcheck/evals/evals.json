@@ -1,0 +1,62 @@
+{
+  "skill_name": "keybindings-healthcheck",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Perform a complete read-only audit of the supplied fixture root against its config.example.toml. Discover all components and selected sources yourself. ENGINE.md defines the toy engines' semantics. Treat the fixture as intentionally unversioned; do not initialize VCS. Resolve load chains and input behavior before reporting. Keep notes outside the fixture. Return the report in Russian.",
+      "expected_output": "All seven fixture components inspected through their loaders. Correct logical navigation and physical compensation accepted; canvas mismatch, desktop duplicate and shell alias mismatch detected. Literate Org included. Chooser primary j/k accepted; unreachable duplicate distinguished from broken navigation. Unread owned inputs are not reported as runtime uncertainty.",
+      "files": ["evals/files/fixture.json"],
+      "expectations": [
+        "Inspects panel and canvas selected profiles, desktop includes, shell aliases, literate Org and chooser mode dispatch.",
+        "Accepts panel logical HJKL despite its QWERTY comment and accepts devices physical H/Y/N/U.",
+        "Demonstrates canvas logical navigation mismatch, desktop conflicting declaration and incorrect explicit shell alias.",
+        "Distinguishes chooser dead duplicate branch from its working normal j/k and search text input; permits its extra alias because no required horizontal action exists.",
+        "Completes source coverage with evidence and leaves all fixture inputs unchanged.",
+        "Makes no unsupported confirmed claims, including requiring application-workspace actions from the desktop engine's limited OS-workspace context.",
+        "Checks chooser Russian command equivalence from its explicit normal-mode dispatch independently of literal search input.",
+        "Keeps extracted fields and actions attributed to the component whose cited source actually defines them.",
+        "Proves the included extra.kdl target is supplied by empty_extra.kdl rather than speculating about an external generator."
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "/skill:keybindings-healthcheck dotfiles/dot_config/devices/config.json — check only Ctrl+Super directions and their supplied Shift variants for logical navigation and Russian equivalence. Use the supplied fixture root, config.example.toml and ENGINE.md. Compare actual decoding rather than comments. Do not modify inputs. Return the report in Russian.",
+      "expected_output": "On the paired mutated fixture, identifies physical J for Down as inconsistent while retaining correct H/N/U and Shift+Y. On the unmodified control, accepts H/Y/N/U. No blanket Cyrillic-absence finding.",
+      "files": ["evals/files/fixture.json"],
+      "expectations": [
+        "Rejects only the mutated physical J Down binding with an explicit decoded-character mismatch.",
+        "Accepts the unchanged physical Shift+Y Down and the other correct directions.",
+        "Does not infer Russian failure from missing Cyrillic duplicate strings.",
+        "Treats the supplied argument as the scope, skips whole-repository discovery and makes no completeness claims for unrelated components."
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Perform a complete read-only audit of owned nonarchived bindings against config.example.toml. Independently inspect components, platforms, load chains, actual actions and Russian equivalents. Leave configuration unchanged and keep scratch artifacts outside the repository. Return a source-complete report in Russian with behavior-validation limits stated separately.",
+      "expected_output": "Discovery and loader evidence reconciled across owned components, including Herdr, all Niri includes, literate Emacs and interactive helpers. Correct physical compensation retained. No false missing-source/catalog findings. Source work completed or a concrete execution blocker identified; uncertainty is scoped to attempted engine questions.",
+      "files": [],
+      "expectations": [
+        "Accounts for discovered components and nonmatching load dependencies with inspected sources or justified exclusions.",
+        "Includes Herdr, Niri empty_/cursor includes, executable Emacs Org and interactive helper dispatch.",
+        "Accepts correct xremap physical compensation and logical Gitu/jjui navigation without comment-based drift claims.",
+        "Checks every selected shortcut command's options and paths, including OS bindings outside application-action preferences; separates proven defects and redundancy from unknown layout behavior.",
+        "Rechecks final local-source facts through cited excerpts or parsed data; does not claim an explicit binding table is absent or attribute another component's fields to it.",
+        "Completes source investigation without inventing a time limit or treating unread files as runtime uncertainty.",
+        "Keeps the repository and live configuration unchanged."
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "/skill:keybindings-healthcheck dotfiles/dot_config/panel/config.toml\nUse the supplied fixture root and ENGINE.md. Keep the audit read-only and return the report in Russian.",
+      "expected_output": "Focused panel audit follows its selected profiles/nav.toml and checks applicable dimensions. Correct logical navigation and explicit Russian translation accepted despite the QWERTY comment. No unrelated fixture-component audit or repository-wide completion claim.",
+      "files": ["evals/files/fixture.json"],
+      "expectations": [
+        "Records the supplied file as the audit scope and skips repository-wide discovery.",
+        "Follows the selected panel profile and checks loading, commands, Latin behavior and Russian equivalence rather than stopping at the entry point.",
+        "Accepts the correct logical navigation despite the misleading layout comment.",
+        "Limits completion to panel and its relevant dependencies; other fixture components are outside scope, not unfinished work.",
+        "Leaves all fixture inputs unchanged."
+      ]
+    }
+  ]
+}
