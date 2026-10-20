@@ -14,7 +14,6 @@
     "npm:@benvargas/pi-claude-code-use",
     "npm:pi-opencode-bridge",
     "git:github.com/Artawower/pi-servitors",
-    "npm:@andrewjacop/pi-herdr",
     {
       "source": "npm:pi-lens",
       "extensions": ["+index.ts"],
