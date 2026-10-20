@@ -74,24 +74,14 @@ kaizen.py
 Only =packages.toml= is required. The remaining feature and variant files are
 optional.
 
-* Shortcut intents
+* Shared shortcut registry
 
-=config.example.toml= includes the top-level =shortcuts= list, copied into
-=~/.config/kaizen/config.toml= by the installer for new installations. Each
-entry has an English =description= and =keys=: a list of alternative QWERTY
-key sequences. Uppercase letters denote shifted letters; =1..9= denotes an
-indexed action family.
-
-AI agents use these intents when adapting any application with matching
-capabilities, including editors, file managers, and pane managers. Super,
-leaders, modes, and activation mechanisms are application-specific; they are
-not part of the sequences. Agents must report unsupported actions or conflicts
-rather than silently changing their meaning.
-
-This catalog is for AI adaptation, not runtime binding generation. Existing
-chezmoi shortcut tables remain in use until their consumers are migrated.
-Existing installations can copy the =shortcuts= list from the example into
-their local Kaizen config.
+=dotfiles/.chezmoidata.toml= owns shared action IDs, their English descriptions,
+QWERTY and Colemak key maps, and Russian aliases. Application templates adapt
+these mappings to native commands. Read =kaizen.shortcut_descriptions= before
+adapting an application, then update the registry and its adapters together.
+Descriptions express action intent; report unsupported semantics rather than
+silently substituting a different action. The key-array format is unchanged.
 
 * Usage
 

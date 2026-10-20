@@ -113,7 +113,7 @@ jj --config 'signing.behavior="drop"' describe -m "..."  # update description
 
 ## Code rules
 
-- All keybinding changes MUST start in `config.example.toml` (`shortcuts`), then be reflected in application configs.
+- Before keybinding changes, read the shared registry in `dotfiles/.chezmoidata.toml`: `kaizen.shortcut_descriptions` defines action intent, `kaizen.base_shortcuts` and `kaizen.shortcuts` define layout mappings. Update the registry first, then its application adapters; preserve the Russian alias maps.
 - No comments in code. If a comment feels necessary, refactor instead.
 - English only — no Russian anywhere in source files.
 - `kaizen.py` is the only orchestrator; do not add new Python files unless adding a `post_install.py` to a feature.
