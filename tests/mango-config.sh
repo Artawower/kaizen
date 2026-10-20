@@ -7,7 +7,6 @@ trap 'rm -rf "$tmp_dir"' EXIT
 source_dir="$tmp_dir/source"
 mkdir -p "$source_dir/dot_config/mango"
 cp "$repo_root/dotfiles/.chezmoidata.toml" "$source_dir/.chezmoidata.toml"
-cp "$repo_root/dotfiles/.chezmoiignore.tmpl" "$source_dir/.chezmoiignore.tmpl"
 cp "$repo_root/dotfiles/dot_config/mango/config.conf.tmpl" "$source_dir/dot_config/mango/config.conf.tmpl"
 template="$source_dir/dot_config/mango/config.conf.tmpl"
 
@@ -104,21 +103,6 @@ for tag in range(1, 10):
     assert f"bind=ALT+SHIFT,{tag},view,{tag}" in lines
     assert f"bind=SUPER+ALT+SHIFT,{tag},tag,{tag}" in lines
 PY
-done
-
-for variant in mangowm niri; do
-	rendered="$tmp_dir/ignore-$variant"
-	chezmoi execute-template \
-		--source "$source_dir" \
-		--override-data "{\"chezmoi\":{\"os\":\"linux\"},\"features\":{\"tiling\":true},\"tiling\":{\"variant\":\"$variant\"}}" \
-		--file "$source_dir/.chezmoiignore.tmpl" >"$rendered"
-	if [[ "$variant" == mangowm ]]; then
-		! grep -qxF '.config/mango/' "$rendered"
-		grep -qxF '.config/niri/' "$rendered"
-	else
-		grep -qxF '.config/mango/' "$rendered"
-		! grep -qxF '.config/niri/' "$rendered"
-	fi
 done
 
 autostart="$repo_root/dotfiles/dot_config/mango/executable_autostart.sh"

@@ -7,7 +7,7 @@ trap 'rm -rf "$tmp_dir"' EXIT
 source_dir="$tmp_dir/source"
 mkdir -p "$source_dir/dot_config/aerospace"
 cp "$repo_root/dotfiles/.chezmoidata.toml" "$source_dir/.chezmoidata.toml"
-cp "$repo_root/dotfiles/dot_config/aerospace/aerospace.toml.tmpl" "$source_dir/dot_config/aerospace/aerospace.toml.tmpl"
+cp "$repo_root/.arhive/aerospace/dotfiles/dot_config/aerospace/aerospace.toml.tmpl" "$source_dir/dot_config/aerospace/aerospace.toml.tmpl"
 template="$source_dir/dot_config/aerospace/aerospace.toml.tmpl"
 
 for layout in colemak qwerty colemak-regular; do

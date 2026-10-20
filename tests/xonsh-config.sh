@@ -8,7 +8,7 @@ source_dir="$tmp_dir/source"
 mkdir -p "$source_dir/dot_config/xonsh"
 cp "$repo_root/dotfiles/.chezmoidata.toml" "$source_dir/.chezmoidata.toml"
 cp "$repo_root/dotfiles/.chezmoiignore.tmpl" "$source_dir/.chezmoiignore.tmpl"
-cp "$repo_root/dotfiles/dot_config/xonsh/keybindings.xsh.tmpl" "$source_dir/dot_config/xonsh/keybindings.xsh.tmpl"
+cp "$repo_root/.arhive/xonsh/dotfiles/dot_config/xonsh/keybindings.xsh.tmpl" "$source_dir/dot_config/xonsh/keybindings.xsh.tmpl"
 template="$source_dir/dot_config/xonsh/keybindings.xsh.tmpl"
 
 for layout in colemak qwerty colemak-regular; do
