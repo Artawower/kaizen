@@ -12,12 +12,12 @@ keymap:
     remap:
       Ctrl-Super-h: Left
       Ctrl-Super-Shift-h: Shift-Left
-      Ctrl-Super-j: Down
-      Ctrl-Super-k: Up
-      Ctrl-Super-l: Right
-      Ctrl-Super-Shift-j: Shift-Down
-      Ctrl-Super-Shift-k: Shift-Up
-      Ctrl-Super-Shift-l: Shift-Right
+      Ctrl-Super-y: Down
+      Ctrl-Super-n: Up
+      Ctrl-Super-u: Right
+      Ctrl-Super-Shift-y: Shift-Down
+      Ctrl-Super-Shift-n: Shift-Up
+      Ctrl-Super-Shift-u: Shift-Right
 
   - name: Super clicks as Ctrl clicks
     remap:
@@ -35,13 +35,13 @@ keymap:
       Super-x: C-x
       Super-z: C-z
       Super-a: C-a
+      Super-e: C-e
+      Super-u: C-u
       Super-f: C-f
-      Super-l: C-l
-      Super-t: C-t
       Super-w: C-w
-      Super-r: C-r
       Super-s: C-s
-      Super-n: C-n
+      Super-d: C-d
+      Super-j: C-j
       Super-q: C-q
 
   - name: Terminals commands
@@ -87,27 +87,27 @@ keymap:
     application:
       only: [brave-browser, org.mozilla.firefox, "app.zen_browser.zen", zen, helium, org.telegram.desktop]
     remap:
-      C-j: C-Tab
-      C-k: C-Shift-Tab
+      C-y: C-Tab
+      C-n: C-Shift-Tab
       Alt-Left: Home
       Alt-Right: End
       Super-a: C-a
       Super-c: C-c
       Super-v: Shift-Insert
       Super-z: C-z
-      Super-Shift-t: C-Shift-t
+      Super-Shift-f: C-Shift-f
 
   - name: Browser shortcuts
     application:
       only: [brave-browser, org.mozilla.firefox, "app.zen_browser.zen", zen, helium]
     exact_match: true
     remap:
-      Super-t: C-t
       Super-f: C-f
-      Super-g: C-g
-      Super-r: C-r
-      Super-p: C-p
       Super-e: C-e
+      Super-t: C-t
+      Super-s: C-s
+      Super-r: C-r
+      Super-k: C-k
 
       Super-1: C-1
       Super-2: C-2
@@ -124,14 +124,14 @@ keymap:
 
   - name: Fn tabs
     remap:
-      Fn-j: C-Tab
-      Fn-k: C-S-Tab
+      Fn-y: C-Tab
+      Fn-n: C-S-Tab
 
   - name: Emacs
     application:
       only: [emacs, emacs-31-1]
     remap:
-      S-k: S-k
+      S-n: S-n
       Super-c: Super-c
       Super-v: Super-v
       # Super-Dot: Super-Dot

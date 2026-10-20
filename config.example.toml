@@ -1,6 +1,6 @@
 email = "you@example.com"
 full_name = "Your Name"
-layout = "qwerty"
+layout = "colemak-regular"
 preferred_vcs = "jj"
 
 shortcuts = [
@@ -59,6 +59,47 @@ shortcuts = [
   { keys = [["w", "r"]], description = "Rotate the arrangement of panes." },
   { keys = [["w", "f"]], description = "Toggle expansion of the current pane and restore the previous layout on unzoom." },
 ]
+
+[keyboard]
+shortcut_keys = "logical_characters"
+adaptation = "Preserve shortcut characters in the configured Latin layout. Translate physical key codes where necessary, including Karabiner; do not substitute QWERTY key positions."
+bindings = "Maintain bindings directly in application configs, without shortcut-generation templates or a runtime shortcut registry."
+alias_policy = "Use Russian aliases for command bindings and navigation, preserving sequences, modifiers and Shift; never transliterate inserted text."
+
+[keyboard.aliases.ru]
+"`" = "ё"
+q = "й"
+w = "ц"
+f = "у"
+p = "к"
+g = "е"
+j = "н"
+l = "г"
+u = "ш"
+y = "щ"
+";" = "з"
+"[" = "х"
+"]" = "ъ"
+a = "ф"
+r = "ы"
+s = "в"
+t = "а"
+d = "п"
+h = "р"
+n = "о"
+e = "л"
+i = "д"
+o = "ж"
+"'" = "э"
+z = "я"
+x = "ч"
+c = "с"
+v = "м"
+b = "и"
+k = "т"
+m = "ь"
+"," = "б"
+"." = "ю"
 
 [terminal]
 shell = "nu"

@@ -40,6 +40,8 @@ Omitted `platforms` means macOS and Linux; restrict a whole recipe with `platfor
 
 Before adding, changing, or adapting any application configuration, agents MUST read `config.example.toml` in full. It is the single source of truth for explicit user intent, preferences, and requirements to preserve when adapting or replacing applications, not an inventory of installed software or every native configuration option. Update that intent there first, then keep native configs and runtime defaults consistent. Software, versions, platforms, and installation hooks belong in `features/*.toml`; application-specific implementation belongs in native configs. Report unsupported requirements or conflicts instead of silently substituting preferences.
 
+For keybinding additions, changes, or restored configs, agents MUST follow `[keyboard]` and `[keyboard.aliases.ru]` in `config.example.toml`. Determine whether the application consumes characters or physical key codes; compensate physical inputs and outputs for `layout`. Use native language-mapping facilities or explicit command aliases, preserving sequences, modifiers, and Shift without altering text insertion. Verify Latin/Russian command equivalence and report unsupported mappings or collisions instead of silently skipping them.
+
 `[terminal].shell` selects the preferred interactive shell. Apply the required completion provider in `[terminal].completion` to every managed interactive shell, including newly added or restored shells. Its `source` URL is upstream reference material for adaptation, not an installation recipe. Noninteractive command interpreters are unaffected.
 
 ## User config
@@ -90,7 +92,7 @@ jj --config 'signing.behavior="drop"' describe -m "..."  # update description
 ## Code rules
 
 - No comments in code. If a comment feels necessary, refactor instead.
-- English only — no Russian anywhere in source files.
+- English prose only. Non-Latin key symbols are allowed in keyboard mapping data.
 - `kaizen.py` is the only orchestrator; do not add new Python files unless adding a `post_install.py` to a feature.
 - Package names must be valid for their manager — verify before adding (e.g., `go-tools` does not exist in Homebrew).
 - Prefer adding features over modifying `kaizen.py`.

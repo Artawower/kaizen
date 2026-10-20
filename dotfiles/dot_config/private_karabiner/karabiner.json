@@ -143,7 +143,7 @@
             ]
           },
           {
-            "description": "Kagi Search: Tab Navigation with Ctrl+j/k",
+            "description": "Kagi Search: Ctrl+j/k tab navigation in Colemak (physical y/n)",
             "manipulators": [
               {
                 "conditions": [
@@ -156,7 +156,7 @@
                   }
                 ],
                 "from": {
-                  "key_code": "j",
+                  "key_code": "y",
                   "modifiers": {
                     "mandatory": ["control"],
                     "optional": ["caps_lock"]
@@ -181,7 +181,7 @@
                   }
                 ],
                 "from": {
-                  "key_code": "k",
+                  "key_code": "n",
                   "modifiers": {
                     "mandatory": ["control"],
                     "optional": ["caps_lock"]
@@ -196,14 +196,14 @@
                 "type": "basic"
               }
             ],
-            "title": "Kagi: Remap Ctrl+j/k to Tab Navigation"
+            "title": "Kagi: Colemak Ctrl+j/k tab navigation"
           },
           {
-            "description": "Map ctrl+cmd navigation keys to arrow keys", 
+            "description": "Colemak: Ctrl+Cmd+h/j/k/l to arrows (physical h/y/n/u)",
             "manipulators": [
               {
                 "from": {
-                  "key_code": "k",
+                  "key_code": "n",
                   "modifiers": {
                     "mandatory": ["control", "command"],
                     "optional": ["any"]
@@ -218,7 +218,7 @@
               },
               {
                 "from": {
-                  "key_code": "j",
+                  "key_code": "y",
                   "modifiers": {
                     "mandatory": ["control", "command"],
                     "optional": ["any"]
@@ -248,7 +248,7 @@
               },
               {
                 "from": {
-                  "key_code": "l",
+                  "key_code": "u",
                   "modifiers": {
                     "mandatory": ["control", "command"],
                     "optional": ["any"]
@@ -263,7 +263,7 @@
               },
               {
                 "from": {
-                  "key_code": "k",
+                  "key_code": "n",
                   "modifiers": {
                     "mandatory": ["control", "command", "shift"],
                     "optional": ["any"]
@@ -279,7 +279,7 @@
               },
               {
                 "from": {
-                  "key_code": "j",
+                  "key_code": "y",
                   "modifiers": {
                     "mandatory": ["control", "command", "shift"],
                     "optional": ["any"]
@@ -311,7 +311,7 @@
               },
               {
                 "from": {
-                  "key_code": "l",
+                  "key_code": "u",
                   "modifiers": {
                     "mandatory": ["control", "command", "shift"],
                     "optional": ["any"]
@@ -328,7 +328,7 @@
             ]
           },
           {
-            "description": "Remap Shift + Tab to Ctrl + j in Telegram",
+            "description": "Telegram: Fn+j/k tab navigation in Colemak (physical y/n)",
             "manipulators": [
               {
                 "conditions": [
@@ -342,7 +342,7 @@
                   }
                 ],
                 "from": {
-                  "key_code": "j",
+                  "key_code": "y",
                   "modifiers": {
                     "mandatory": ["fn"],
                     "optional": ["any"]
@@ -368,7 +368,7 @@
                   }
                 ],
                 "from": {
-                  "key_code": "k",
+                  "key_code": "n",
                   "modifiers": {
                     "mandatory": ["fn"],
                     "optional": ["any"]
@@ -383,14 +383,14 @@
                 "type": "basic"
               }
             ],
-            "title": "Remap Shift + Tab to Ctrl + j for telegram"
+            "title": "Telegram: Colemak Fn+j/k to Ctrl+Tab/Ctrl+Shift+Tab"
           },
           {
-            "description": "Map fn+j/k/h/l to arrow keys",
+            "description": "Colemak: Fn+h/j/k/l to arrows (physical h/y/n/u)",
             "manipulators": [
               {
                 "from": {
-                  "key_code": "k",
+                  "key_code": "n",
                   "modifiers": {
                     "mandatory": ["fn"],
                     "optional": ["any"]
@@ -405,7 +405,7 @@
               },
               {
                 "from": {
-                  "key_code": "j",
+                  "key_code": "y",
                   "modifiers": {
                     "mandatory": ["fn"],
                     "optional": ["any"]
@@ -435,7 +435,7 @@
               },
               {
                 "from": {
-                  "key_code": "l",
+                  "key_code": "u",
                   "modifiers": {
                     "mandatory": ["fn"],
                     "optional": ["any"]
@@ -451,7 +451,7 @@
             ]
           },
           {
-            "description": "Browsers: tab navigation with Ctrl+j/k",
+            "description": "Browsers: Ctrl+j/k tab navigation in Colemak (physical y/n)",
             "manipulators": [
               {
                 "conditions": [
@@ -468,7 +468,7 @@
                   }
                 ],
                 "from": {
-                  "key_code": "j",
+                  "key_code": "y",
                   "modifiers": {
                     "mandatory": ["left_control"],
                     "optional": ["caps_lock"]
@@ -497,7 +497,7 @@
                   }
                 ],
                 "from": {
-                  "key_code": "k",
+                  "key_code": "n",
                   "modifiers": {
                     "mandatory": ["left_control"],
                     "optional": ["caps_lock"]
@@ -536,7 +536,7 @@
                 "type": "basic"
               }
             ],
-            "title": "Browsers: Ctrl+j/k physical tab navigation"
+            "title": "Browsers: Colemak Ctrl+j/k tab navigation"
           }
         ]
       },

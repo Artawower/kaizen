@@ -12,7 +12,7 @@
   "vim.showcmd": true,
   "vim.showmodename": true,
   "vim.statusBarColorControl": false,
-  "vim.langmap": "й;q,ц;w,у;e,к;r,е;t,н;y,г;u,ш;i,щ;o,з;p,ф;a,ы;s,в;d,а;f,п;g,р;h,о;j,л;k,д;l,я;z,ч;x,с;c,м;v,и;b,т;n,ь;m",
+  "vim.langmap": "ё;`,Ё;~,й;q,Й;Q,ц;w,Ц;W,у;f,У;F,к;p,К;P,е;g,Е;G,н;j,Н;J,г;l,Г;L,ш;u,Ш;U,щ;y,Щ;Y,з;\\;,З;:,х;[,Х;{,ъ;],Ъ;},ф;a,Ф;A,ы;r,Ы;R,в;s,В;S,а;t,А;T,п;d,П;D,р;h,Р;H,о;n,О;N,л;e,Л;E,д;i,Д;I,ж;o,Ж;O,э;',Э;\",я;z,Я;Z,ч;x,Ч;X,с;c,С;C,м;v,М;V,и;b,И;B,т;k,Т;K,ь;m,Ь;M,б;\\,,Б;<,ю;.,Ю;>",
   "vim.normalModeKeyBindingsNonRecursive": [
     {
       "before": ["m", "i"],

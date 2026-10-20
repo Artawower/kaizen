@@ -14,31 +14,31 @@ show_agent_labels_on_pane_borders = true
 
 [keys]
 prefix = ["ctrl+b","ctrl+и"]
-reload_config = ["prefix+shift+r","prefix+shift+к"]
+reload_config = ["prefix+shift+r","prefix+shift+ы"]
 detach = ["prefix+q","prefix+й"]
-workspace_picker = ["alt+w","alt+ц","prefix+w","prefix+ц","super+p","super+з"]
-new_workspace = ["super+shift+w","super+shift+ц","prefix+shift+n","prefix+shift+т"]
-rename_workspace = ["super+shift+r","super+shift+к"]
-close_workspace = ["super+shift+d","super+shift+в"]
-new_tab = ["alt+shift+t","alt+shift+е","prefix+c","prefix+с","super+t","super+е"]
-rename_tab = ["super+r","super+к"]
+workspace_picker = ["alt+w","alt+ц","prefix+w","prefix+ц","super+p","super+к"]
+new_workspace = ["super+shift+w","super+shift+ц","prefix+shift+n","prefix+shift+о"]
+rename_workspace = ["super+shift+r","super+shift+ы"]
+close_workspace = ["super+shift+d","super+shift+п"]
+new_tab = ["alt+shift+t","alt+shift+а","prefix+c","prefix+с","super+t","super+а"]
+rename_tab = ["super+r","super+ы"]
 close_tab = ["super+x","super+ч"]
 previous_tab = ["super+shift+h","super+shift+р"]
-next_tab = ["super+shift+l","super+shift+д"]
+next_tab = ["super+shift+l","super+shift+г"]
 switch_tab = ["prefix+1..9"]
-previous_workspace = ["super+shift+k","super+shift+л"]
-next_workspace = ["super+shift+j","super+shift+о"]
+previous_workspace = ["super+shift+k","super+shift+т"]
+next_workspace = ["super+shift+j","super+shift+н"]
 focus_pane_left = ["alt+h","alt+р"]
-focus_pane_down = ["alt+j","alt+о"]
-focus_pane_up = ["alt+k","alt+л"]
-focus_pane_right = ["alt+l","alt+д"]
+focus_pane_down = ["alt+j","alt+н"]
+focus_pane_up = ["alt+k","alt+т"]
+focus_pane_right = ["alt+l","alt+г"]
 split_vertical = ["prefix+v","prefix+м"]
 split_horizontal = ["prefix+minus"]
 close_pane = ["prefix+x","prefix+ч","alt+q","alt+й"]
-zoom = ["prefix+f","prefix+а","alt+f","alt+а"]
-resize_mode = ["prefix+r","prefix+к"]
+zoom = ["prefix+f","prefix+у","alt+f","alt+у"]
+resize_mode = ["prefix+r","prefix+ы"]
 toggle_sidebar = ["prefix+b","prefix+и","super+b","super+и"]
-open_worktree = ["alt+p","alt+з","prefix+shift+o","prefix+shift+щ"]
+open_worktree = ["alt+p","alt+к","prefix+shift+o","prefix+shift+ж"]
 
 [[keys.command]]
 key = "prefix+alt+5"
@@ -50,7 +50,7 @@ key = "prefix+shift+e"
 type = "plugin_action"
 command = "herdr-tmux-layout.balance"
 [[keys.command]]
-key = "prefix+shift+у"
+key = "prefix+shift+л"
 type = "plugin_action"
 command = "herdr-tmux-layout.balance"
 
