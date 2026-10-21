@@ -13,6 +13,10 @@ source ~/.config/nushell/task-runner.nu
 alias vl = jjui
 alias pp = kaizen-zoxide-pick
 
+
+# Disable banner
+$env.config.show_banner = false
+
 def "parse mise vars" [] {
     $in | from csv --noheaders --no-infer | rename op name value
 }

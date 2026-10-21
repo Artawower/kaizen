@@ -85,7 +85,7 @@
 | Shortcut | Keys | Description |
 |----------|------|-------------|
 | `prefix.editor` | `space` | Editor leader key (Helix space mode) |
-| `prefix.multiplexer` | `CTRL + b` | Terminal multiplexer prefix (herdr) |
+| `prefix.multiplexer` | `CTRL + b` | Terminal multiplexer prefix (TUIOS; see [migration](tuios.md)) |
 | `prefix.wm` | `Caps` | Tiling WM modifier key (Yabai / Rift / Niri / MangoWM) |
 
 ## Projects

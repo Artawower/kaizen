@@ -5,7 +5,7 @@
 | Container           | Modifier      | Direction set                                          |
 | ------------------- | ------------- | ------------------------------------------------------ |
 | OS / WM             | `Caps`        | Full: h / j / k / l                                    |
-| Multiplexer pane    | `Alt`         | Full: h / j / k / l (herdr only, stays in multiplexer) |
+| Multiplexer pane    | `Alt`         | Full: h / j / k / l (TUIOS, stays in multiplexer) |
 | App pane / split    | `Ctrl + Alt`  | Full: h / j / k / l (passes through multiplexer)       |
 | Tab / Buffer        | `Cmd + Shift` | Horizontal pair: h = prev, l = next                    |
 | Workspace / Session | `Cmd + Shift` | Vertical pair: k = prev, j = next                      |
@@ -15,7 +15,8 @@ Same modifier `Cmd+Shift` — direction keys distinguish tabs (horizontal) from 
 **Spatial navigation** (windows, splits, panes) — full 4-direction set.  
 **Linear navigation** (tabs, workspaces) — direction pair only.
 
-Colemak remaps `j→n`, `k→e`, `l→i`; `h` stays.
+TUIOS binds logical characters: `h/j/k/l` stay `h/j/k/l` in Colemak.
+The position table below describes physical keys, not TUIOS binding names.
 
 Known conflicts requiring per-app rebind:
 
@@ -26,7 +27,7 @@ Known conflicts requiring per-app rebind:
 
 ## Direction keys
 
-| Direction     | QWERTY | Colemak |
+| Direction     | QWERTY position | Colemak character |
 | ------------- | :----: | :-----: |
 | Left          |  `h`   |   `h`   |
 | Down / Next   |  `j`   |   `n`   |
@@ -51,22 +52,38 @@ Handled by: **Yabai / Rift** (macOS), **Niri / MangoWM** (Linux).
 
 ## Terminal multiplexer
 
-Handled by: **herdr** (`prefix = Ctrl+B`).
+Handled by: **TUIOS** (`prefix = Ctrl+B`).
 
-herdr has three navigation layers:
+Herdr workspaces become TUIOS sessions; herdr tabs become TUIOS workspaces;
+herdr panes become TUIOS windows. All keys below are logical characters in
+any Latin layout. Command bindings also have the Russian aliases from
+`config.example.toml`.
 
-| Action                | QWERTY            | Colemak           | Notes                         |
-| --------------------- | ----------------- | ----------------- | ----------------------------- |
-| Focus pane left       | `Alt + h`         | `Alt + h`         | terminal mode, stays in herdr |
-| Focus pane down       | `Alt + j`         | `Alt + n`         |                               |
-| Focus pane up         | `Alt + k`         | `Alt + e`         |                               |
-| Focus pane right      | `Alt + l`         | `Alt + i`         |                               |
-| Previous tab          | `Cmd + Shift + h` | `Cmd + Shift + h` |                               |
-| Next tab              | `Cmd + Shift + l` | `Cmd + Shift + i` |                               |
-| Switch tab by №       | `Cmd + 1..9`      | `Cmd + 1..9`      |                               |
-| Previous workspace    | `Cmd + Shift + k` | `Cmd + Shift + e` |                               |
-| Next workspace        | `Cmd + Shift + j` | `Cmd + Shift + n` |                               |
-| Switch workspace by № | `Ctrl + 1..9`     | `Ctrl + 1..9`     |                               |
+| Action | Keys |
+| ------ | ---- |
+| Focus pane left / down / up / right | `Alt+h/j/k/l` |
+| Previous / next tab (TUIOS workspace) | `Cmd+Shift+h/l` |
+| Select tab by index | `Cmd+1..9` or `prefix 1..9` |
+| Previous / next session | `Cmd+Shift+k/j` |
+| Select session by index | `Ctrl+1..9` |
+| Pick session | `Alt+w`, `Cmd+p`, or `prefix w` |
+| New session | `Cmd+Shift+w` or `prefix Shift+n` |
+| Rename / close session | `Cmd+Shift+r/d` |
+| New tab | `Alt+Shift+t`, `Cmd+t`, or `prefix c` |
+| Rename / close tab | `Cmd+r/x` |
+| Split right / below | `prefix v` / `prefix -` |
+| Close pane | `Alt+q` or `prefix x` |
+| Zoom / restore pane | `Alt+f` or `prefix f` |
+| Toggle sidebar | `Cmd+b` or `prefix b` |
+| Reload config | `prefix Shift+r` |
+| Detach without stopping panes | `prefix q` |
+| Equalize splits | `prefix Shift+e` |
+| Arrange a tiled grid | `prefix Alt+5` |
+| Resize left / down / up / right by five cells | `prefix Alt+h/j/k/l` |
+| Open resize/layout menu | `prefix r`, then `h/j/k/l` |
+
+`Ctrl+Alt+direction` remains available to the application inside the pane.
+See [TUIOS migration](tuios.md) for deployment, changed defaults and limitations.
 
 ---
 
