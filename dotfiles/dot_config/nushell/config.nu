@@ -7,6 +7,7 @@ $env.config = ($env.config | merge {
 })
 
 source $"($nu.cache-dir)/carapace.nu"
+source ~/.atuin/init.nu
 source ~/.config/nushell/aliases.nu
 source ~/.config/nushell/task-runner.nu
 alias vl = jjui
