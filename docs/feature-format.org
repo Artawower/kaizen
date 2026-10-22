@@ -71,13 +71,33 @@ in the catalog. Move owned dotfiles, hooks, and assets to =.arhive/<name>/=,
 preserving repository-relative paths. Remove the flag after restoring them;
 there is no need to write =archive = false=.
 
+The flag alone does not hide dotfiles or remove deployed files. Archive does
+not uninstall packages, stop services, or prevent global package/mise upgrades.
+
+* Skills inventory
+
+A feature may declare global agent skills in =owner/repo@skill= format:
+
+#+BEGIN_SRC toml
+[ai]
+skills = ["dietrichgebert/ponytail@ponytail"]
+#+END_SRC
+
+The AI feature supplies the =skills= CLI through mise. Kaizen combines skills
+from active, applicable features and installs them after mise, before hooks.
+Repeated declarations are deduplicated; different sources for the same skill
+name are rejected. =install= and =sync= skip skills already installed from the
+requested source. =update= refreshes only declared skills through =skills add=;
+unlisted skills are neither updated nor removed. If the CLI is unavailable,
+Kaizen reports a skip. Fresh mise installations use =mise exec= when =skills=
+is not yet on =PATH=. Installation and CLI-output errors stop the operation.
+
+* Dotfiles metadata
+
 Optional =dotfiles= lists repository-relative source paths. It guides AI
 ownership discovery, not runtime assembly or deployment. Shared files stay
 active when another feature needs them. Resolve selectors such as skhd =.load=
 before moving a selected profile; restoring files does not switch selection.
-
-The flag alone does not hide dotfiles or remove deployed files. Archive does
-not uninstall packages, stop services, or prevent global package/mise upgrades.
 
 * Integrations
 

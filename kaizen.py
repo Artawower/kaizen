@@ -549,6 +549,10 @@ class Feature:
         return _string_map(self.data.get("tools"))
 
     @property
+    def skills(self) -> list[str]:
+        return _string_list(self.data.get("skills"))
+
+    @property
     def post_install(self) -> Path | None:
         hook = self.data.get("post_install")
         return KAIZEN_DIR / hook if isinstance(hook, str) else None
@@ -562,7 +566,7 @@ class Feature:
             return False
         list_keys = (
             *_USER_MACOS_DEPENDENCY_LISTS, *_USER_LINUX_DEPENDENCY_LISTS,
-            "platforms", "distributions", "dotfiles",
+            "platforms", "distributions", "dotfiles", "skills",
         )
         _validate_keys(
             self.data,
@@ -571,6 +575,9 @@ class Feature:
         )
         for key in list_keys:
             _validate_string_list(self.data, key, label)
+        for skill in self.skills:
+            if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9-]*/[\w.-]+@[\w.-]+", skill, re.ASCII):
+                raise ValueError(f"{label}: skill must use owner/repo@skill format: {skill}")
         tools = _dependency_table(self.data, "tools", self.manifest)
         _validate_string_map(tools, f"{label}: tools")
         brew_args = _dependency_table(self.data, "brew_args", self.manifest)
@@ -696,6 +703,7 @@ class Kaizen:
         self._adapter.update()
         if shutil.which("mise"):
             _ = subprocess.run(["mise", "upgrade"], check=True)
+        self._install_skills(features, update=True)
         for feature in features:
             self._run_post_install(feature, "update")
 
@@ -805,8 +813,52 @@ class Kaizen:
             print("[mise]")
             _ = subprocess.run(["mise", "install", "--jobs=1"], check=True)
             print()
+        self._install_skills(features)
         for feature in features:
             self._run_post_install(feature, "sync")
+
+    def _install_skills(self, features: list[Feature], *, update: bool = False) -> None:
+        packages = list(dict.fromkeys(skill for feature in features for skill in feature.skills))
+        if not packages:
+            return
+        if len({package.rsplit("@", 1)[1] for package in packages}) != len(packages):
+            raise ValueError("skills inventory contains different sources for the same skill name")
+        skills = shutil.which("skills")
+        command = [skills] if skills else []
+        if not command and (mise := shutil.which("mise")):
+            resolved = subprocess.run(
+                [mise, "which", "skills"], check=False,
+                cwd=Path.home(), capture_output=True, text=True,
+            )
+            if resolved.returncode == 0:
+                command = [mise, "exec", "--", "skills"]
+        if not command:
+            _print_warning("skipping skill installation: skills CLI is not available")
+            return
+        print("[skills]")
+        result = subprocess.run(
+            [*command, "list", "-g", "--json"], cwd=Path.home(),
+            check=True, capture_output=True, text=True,
+        )
+        try:
+            records = json.loads(result.stdout)
+        except json.JSONDecodeError as error:
+            raise ValueError("skills list returned invalid JSON") from error
+        if not isinstance(records, list) or any(
+            not isinstance(item, dict) or not isinstance(item.get("name"), str)
+            or item.get("source") is not None and not isinstance(item["source"], str)
+            for item in records
+        ):
+            raise ValueError("skills list must return a JSON array of skill records")
+        installed = {(item["name"], item.get("source")) for item in records}
+        for package in packages:
+            source, name = package.rsplit("@", 1)
+            if not update and (name, source) in installed:
+                continue
+            _ = subprocess.run(
+                [*command, "add", package, "-g", "-y"], cwd=Path.home(), check=True,
+            )
+        print()
 
     def _install_packages(self, feature: Feature) -> None:
         print(f"[{feature.label}]")

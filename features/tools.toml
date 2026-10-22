@@ -1,5 +1,12 @@
 [ai]
 description = "AI coding agents and tooling"
+skills = [
+  "dietrichgebert/ponytail@ponytail",
+  "mattpocock/skills@retro",
+  "mattpocock/skills@grill-me",
+  "mattpocock/skills@grill-with-docs",
+  "microsoft/playwright-cli@playwright-cli",
+]
 brew = ["podman"]
 cask = ["claude-code"]
 dnf = ["podman"]

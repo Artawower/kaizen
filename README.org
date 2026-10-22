@@ -149,6 +149,19 @@ configs rather than interpreted as a runtime generator.
 The =layout= setting configures OS keyboard layout where supported; it no longer
 selects application keymaps.
 
+Desired global agent skills belong in feature catalogs, alongside their tools:
+
+#+BEGIN_SRC toml
+[ai]
+skills = ["dietrichgebert/ponytail@ponytail"]
+#+END_SRC
+
+The AI feature installs the =skills= CLI. During =install= or =sync=, Kaizen
+installs missing declared skills after mise, globally and without prompts.
+=update= refreshes only declared skills. Removing a declaration does not
+uninstall a skill; archiving a feature excludes its skills from future runs.
+If =skills= is unavailable, Kaizen reports a skip and retries on the next run.
+
 Additional machine-local packages and mise tools can be declared in
 =~/.config/kaizen/dependencies.toml=:
 

@@ -124,13 +124,14 @@ def test_bump_preserves_user_overrides() -> None:
         kaizen.FEATURES_DIR = root / "features"
         kaizen.MISE_CONFIG = root / "mise.toml"
         feature_file = kaizen.FEATURES_DIR / "editor.toml"
-        write(feature_file, '[sample]\nbrew = ["jq"]\ntools = { node = "20", python = "3.11" }\n\n[second]\ntools = { go = "1.21" }\n\n[archived]\narchive = true\ntools = { rust = "1.80" }\n')
+        write(feature_file, '[sample]\nbrew = ["jq"]\nskills = ["dietrichgebert/ponytail@ponytail"]\ntools = { node = "20", python = "3.11" }\n\n[second]\ntools = { go = "1.21" }\n\n[archived]\narchive = true\ntools = { rust = "1.80" }\n')
         write(kaizen.MISE_CONFIG, '[tools]\nnode = "22"\npython = "3.12"\ngo = "1.22"\nrust = "1.81"\n')
         instance = object.__new__(kaizen.Kaizen)
         instance._capture_mise_versions(kaizen.discover_features("macos"), {"node"})
         catalog = kaizen.read_toml(feature_file)
         assert catalog["sample"]["tools"] == {"node": "20", "python": "3.12"}
         assert catalog["sample"]["brew"] == ["jq"]
+        assert catalog["sample"]["skills"] == ["dietrichgebert/ponytail@ponytail"]
         assert catalog["second"]["tools"] == {"go": "1.22"}
         assert catalog["archived"] == {"archive": True, "tools": {"rust": "1.80"}}
         assert "[sample.tools]" not in feature_file.read_text()
@@ -177,6 +178,7 @@ def test_dependency_workflow_runs_integrations() -> None:
     instance._install_packages = lambda item: events.append(("packages", item))
     instance._install_user_packages = lambda _: events.append("user packages")
     instance._generate_mise_config = lambda *_: events.append("mise config")
+    instance._install_skills = lambda _: events.append("skills")
     instance._run_post_install = lambda item, action: events.append((item, action))
     try:
         instance._install_dependencies([feature], {})
@@ -188,6 +190,7 @@ def test_dependency_workflow_runs_integrations() -> None:
         "user packages",
         "mise config",
         ["mise", "install", "--jobs=1"],
+        "skills",
         (feature, "sync"),
     ]
     assert "install" in kaizen._COMMANDS
