@@ -4438,8 +4438,6 @@ Automatically creates parent directories if needed."
   :mode (("\\.org$" . org-mode))
   :ensure nil
   :hook
-  (org-mode . org-indent-mode)
-  (org-mode . (lambda () (corfu-mode -1)))
   (org-mode . (lambda () (setq truncate-lines nil)))
   (org-mode . my/init-org-ligatures)
   :bind
