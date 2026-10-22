@@ -42,6 +42,19 @@ alias d = docker
 alias sudo = sudo env PATH=$env.PATH
 alias j = just ~/.config/
 
+def hs [] {
+    let cmd = (atuin history list --cmd-only --print0
+        | split row (char nul)
+        | reverse
+        | each {|cmd| $cmd | nu-highlight }
+        | str join (char nul)
+        | fzf --read0 --ansi --multi-line --gap 1)
+
+    if ($cmd | is-empty) { return }
+
+    nu -c $cmd
+}
+
 if (sys host | get name) == "Darwin" {
     def yabai-apps [] { yabai -m query --windows | from json | get app }
     def yabai-titles [] { yabai -m query --windows | from json | get title }
