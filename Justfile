@@ -9,6 +9,7 @@ test:
     bash tests/ai-config.sh
     bash tests/terminal-post-install.sh
     bash tests/helix-steel-post-install.sh
+    bash tests/flow-config.sh
     bash tests/mangowm-post-install.sh
     bash tests/noctalia-config.sh
     bash tests/audacity-config.sh

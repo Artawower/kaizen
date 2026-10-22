@@ -6,59 +6,103 @@
   },
 
   "normal": {
+    "on_match_failure": "ignore",
+    "name": "NOR",
+    "line_numbers": "relative",
+    "cursor": "block",
+    "selection": "inclusive",
     "press": [
-      ["n", "move_down"],
-      ["e", "move_up"],
-      ["i", "move_right"],
+      ["ctrl+о", "goto_next_diagnostic"],
+      ["ctrl+л", "goto_prev_diagnostic"],
+      ["space и и", "switch_buffers"],
+      ["space у у", "find_file"],
+      ["space г п", "show_diagnostics"],
+      ["space г у", "format"],
+      ["space г р", "hover"],
+      ["space г ы", "rename_symbol"],
+      ["space г в", "show_symbols"],
+      ["space к к", "open_recent_project"],
+      ["space ы а", "run_task"],
+      ["space ц й", "close_split"],
+      ["space х", "previous_tab"],
+      ["space ъ", "next_tab"],
+      ["super+shift+р", "previous_tab"],
+      ["super+Р", "previous_tab"],
+      ["super+shift+г", "next_tab"],
+      ["super+Г", "next_tab"],
 
-      ["j", "move_next_word_end"],
-      ["J", "move_next_long_word_end"],
-
-      ["k", "goto_next_match"],
-      ["K", "goto_prev_match"],
-
-      ["l", "enter_mode", "insert"],
-      ["L", ["enter_mode", "insert"], ["smart_move_begin"]],
-
-      ["E", "hover"],
+      ["0", "move_begin"],
+      ["$", "move_end"],
 
       ["ctrl+n", "goto_next_diagnostic"],
       ["ctrl+e", "goto_prev_diagnostic"],
 
+      ["space b b", "switch_buffers"],
+      ["space f f", "find_file"],
+      ["space l d", "show_diagnostics"],
+      ["space l f", "format"],
+      ["space l h", "hover"],
+      ["space l r", "rename_symbol"],
+      ["space l s", "show_symbols"],
+      ["space p p", "open_recent_project"],
+      ["space r t", "run_task"],
+      ["space w q", "close_split"],
+
       ["space [", "previous_tab"],
       ["space ]", "next_tab"],
-
-      ["ctrl+alt+left", "goto_left_split"],
-      ["ctrl+alt+right", "goto_right_split"],
-      ["ctrl+alt+h", "goto_left_split"],
-      ["ctrl+alt+i", "goto_right_split"],
-
-      ["ctrl+alt+shift+left", "swap_left_split"],
-      ["ctrl+alt+shift+right", "swap_right_split"],
-      ["ctrl+alt+shift+h", "swap_left_split"],
-      ["ctrl+alt+shift+i", "swap_right_split"]
+      ["super+shift+h", "previous_tab"],
+      ["super+shift+l", "next_tab"]
     ]
   },
 
   "select": {
+    "on_match_failure": "ignore",
+    "name": "SEL",
+    "line_numbers": "relative",
+    "cursor": "block",
+    "selection": "inclusive",
+    "init_command": ["enable_selection"],
     "press": [
-      ["n", "select_down"],
-      ["e", "select_up"],
-      ["i", "select_right_helix"],
+      ["ctrl+о", "goto_next_diagnostic"],
+      ["ctrl+л", "goto_prev_diagnostic"],
+      ["space и и", "switch_buffers"],
+      ["space у у", "find_file"],
+      ["space г п", "show_diagnostics"],
+      ["space г у", "format"],
+      ["space г р", "hover"],
+      ["space г ы", "rename_symbol"],
+      ["space г в", "show_symbols"],
+      ["space к к", "open_recent_project"],
+      ["space ы а", "run_task"],
+      ["space ц й", "close_split"],
+      ["space х", "previous_tab"],
+      ["space ъ", "next_tab"],
+      ["super+shift+р", "previous_tab"],
+      ["super+Р", "previous_tab"],
+      ["super+shift+г", "next_tab"],
+      ["super+Г", "next_tab"],
 
-      ["j", "extend_next_word_end"],
-      ["J", "extend_next_long_word_end"],
-
-      ["k", "add_next_match_helix"],
-
-      ["l", "enter_mode", "insert"],
-      ["L", ["enter_mode", "insert"], ["smart_move_begin"]],
+      ["0", "select_begin"],
+      ["$", "select_end"],
 
       ["ctrl+n", "goto_next_diagnostic"],
       ["ctrl+e", "goto_prev_diagnostic"],
 
+      ["space b b", "switch_buffers"],
+      ["space f f", "find_file"],
+      ["space l d", "show_diagnostics"],
+      ["space l f", "format"],
+      ["space l h", "hover"],
+      ["space l r", "rename_symbol"],
+      ["space l s", "show_symbols"],
+      ["space p p", "open_recent_project"],
+      ["space r t", "run_task"],
+      ["space w q", "close_split"],
+
       ["space [", "previous_tab"],
-      ["space ]", "next_tab"]
+      ["space ]", "next_tab"],
+      ["super+shift+h", "previous_tab"],
+      ["super+shift+l", "next_tab"]
     ]
   }
 }

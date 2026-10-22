@@ -240,6 +240,7 @@
   (helixel-define-key 'normal "G"                #'kaizen/helixel-G)
   (helixel-define-key 'normal (kbd "C-:")        #'query-replace-regexp)
   (helixel-define-key 'normal "/"                #'helixel-search-forward)
+  (helixel-define-key 'normal (kbd "SPC Q")      #'save-buffers-kill-terminal)
 
   (helixel-define-key 'normal "n" #'kaizen/helixel-search-or-next)
   (helixel-define-key 'normal "N" #'helixel-search-repeat-reverse)
