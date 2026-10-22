@@ -1562,6 +1562,12 @@ Bookmark for navigation inside file
   (let ((end (point)))
     (backward-word arg)
     (delete-region (point) end)))
+
+(defconst my/delete-backward-word-binding
+  '(menu-item "" my/delete-backward-word
+     :filter (lambda (command)
+               (unless (derived-mode-p 'ghostel-mode) command)))
+  "Word deletion binding that preserves native Ghostel input handling.")
 #+END_SRC
 
 *** Copy with AI context

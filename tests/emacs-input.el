@@ -20,6 +20,8 @@
 
 (eval (kaizen-test-form "dotfiles/dot_emacs.d/README.org"
                         "(defun my/delete-backward-word"))
+(eval (kaizen-test-form "dotfiles/dot_emacs.d/README.org"
+                        "(defconst my/delete-backward-word-binding"))
 
 (defun kaizen-test-delete-without-copying (command)
   (let* ((kill-ring (list "clipboard sentinel"))
@@ -64,6 +66,26 @@
       (let ((current-prefix-arg (car case)))
         (kaizen-test-delete-without-copying #'my/delete-backward-word))
       (should (equal (buffer-string) (nth 3 case))))))
+
+(ert-deftest copying-after-word-deletion-does-not-append-old-kill ()
+  (dolist (key '("C-w" "M-DEL" "M-<backspace>"))
+    (let* ((kill-ring (list "clipboard sentinel"))
+           (kill-ring-yank-pointer kill-ring)
+           (copied nil)
+           (interprogram-cut-function (lambda (text &rest _) (setq copied text)))
+           (this-command nil)
+           (last-command nil))
+      (save-window-excursion
+        (with-temp-buffer
+          (switch-to-buffer (current-buffer))
+          (use-local-map (make-sparse-keymap))
+          (define-key (current-local-map) (kbd key) my/delete-backward-word-binding)
+          (insert "first second")
+          (set-mark (point-min))
+          (execute-kbd-macro (kbd (concat key " M-w")))
+          (should (equal (buffer-string) "first "))
+          (should (equal copied "first "))
+          (should (equal kill-ring '("first " "clipboard sentinel"))))))))
 
 (defun kaizen-test-corfu-bindings ()
   (dolist (package '("corfu" "corfu-popupinfo"))
@@ -185,7 +207,7 @@
     (hel-insert-state)
     (kaizen-test-delete-word-keys)))
 
-(ert-deftest meow-insert-keymap-deletes-previous-word ()
+(defun kaizen-test-meow-insert-map ()
   (let ((insert-map (make-sparse-keymap)))
     (cl-letf (((symbol-function 'meow-insert-define-key)
                (lambda (&rest definitions)
@@ -193,10 +215,51 @@
                    (define-key insert-map (kbd (car definition)) (cdr definition))))))
       (eval (kaizen-test-form "dotfiles/dot_emacs.d/bindings/meow.el"
                               "(meow-insert-define-key\n")))
-    (with-temp-buffer
-      (use-local-map insert-map)
-      (kaizen-test-delete-word-keys)))
+    insert-map))
+
+(ert-deftest meow-insert-keymap-deletes-previous-word ()
+  (with-temp-buffer
+    (use-local-map (kaizen-test-meow-insert-map))
+    (kaizen-test-delete-word-keys))
   (let* ((form (kaizen-test-form "dotfiles/dot_emacs.d/bindings/meow.el"
                                 "(use-package meow\n"))
          (cursor (assq 'meow-cursor-type-insert (cdr (memq :custom form)))))
     (should (eq (eval (cadr cursor)) 'bar))))
+
+(defun kaizen-test-ghostel-word-keys ()
+  (dolist (key '("C-w" "M-DEL" "M-<backspace>"))
+    (ert-info ((format "native Ghostel binding: %s" key))
+      (should (eq (key-binding (kbd key)) #'ghostel--send-event)))))
+
+(ert-deftest helixel-insert-keeps-native-ghostel-word-keys ()
+  (skip-unless (and (require 'ghostel nil t) (require 'helixel nil t)))
+  (eval (kaizen-test-form "dotfiles/dot_emacs.d/bindings/helixel.el"
+                          "(dolist (key '(\"C-w\""))
+  (let ((was-enabled (bound-and-true-p helixel-global-mode)))
+    (unwind-protect
+        (progn
+          (unless was-enabled (helixel-mode))
+          (with-temp-buffer
+            (ghostel-mode)
+            (helixel-insert)
+            (kaizen-test-ghostel-word-keys)))
+      (unless was-enabled
+        (when (bound-and-true-p helixel-global-mode) (helixel-mode))))))
+
+(ert-deftest hel-insert-keeps-native-ghostel-word-keys ()
+  (skip-unless (and (require 'ghostel nil t) (require 'hel nil t)))
+  (eval (kaizen-test-form "dotfiles/dot_emacs.d/bindings/hel.el"
+                          "(hel-keymap-global-set :state 'insert"))
+  (with-temp-buffer
+    (ghostel-mode)
+    (hel-local-mode 1)
+    (hel-insert-state)
+    (kaizen-test-ghostel-word-keys)))
+
+(ert-deftest meow-insert-keymap-keeps-native-ghostel-word-keys ()
+  (skip-unless (require 'ghostel nil t))
+  (with-temp-buffer
+    (ghostel-mode)
+    (let ((minor-mode-map-alist
+           (cons (cons t (kaizen-test-meow-insert-map)) minor-mode-map-alist)))
+      (kaizen-test-ghostel-word-keys))))

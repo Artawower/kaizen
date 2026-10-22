@@ -350,9 +350,9 @@
   :config
   (kaizen/meow-setup)
   (meow-insert-define-key
-   '("C-w" . my/delete-backward-word)
-   '("M-DEL" . my/delete-backward-word)
-   '("M-<backspace>" . my/delete-backward-word))
+   (cons "C-w" my/delete-backward-word-binding)
+   (cons "M-DEL" my/delete-backward-word-binding)
+   (cons "M-<backspace>" my/delete-backward-word-binding))
   (define-key mode-specific-map (kbd "j") nil)
   (define-key mode-specific-map (kbd "e") nil)
   (my/meow-thing-register)

@@ -13,9 +13,9 @@
   (hel-motion-state-cursor-type 'hollow)
   :config
   (hel-keymap-global-set :state 'insert
-    "C-w" #'my/delete-backward-word
-    "M-DEL" #'my/delete-backward-word
-    "M-<backspace>" #'my/delete-backward-word)
+    "C-w" my/delete-backward-word-binding
+    "M-DEL" my/delete-backward-word-binding
+    "M-<backspace>" my/delete-backward-word-binding)
   ;; Disable hel in minibuffer — hard disable via hook (higher priority than hel's own)
   (setopt hel-want-minibuffer nil)
   (remove-hook 'minibuffer-setup-hook 'hel-local-mode)

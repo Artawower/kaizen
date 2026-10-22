@@ -56,7 +56,7 @@
 
   (helixel-define-key 'insert (kbd "TAB") #'indent-for-tab-command)
   (dolist (key '("C-w" "M-DEL" "M-<backspace>"))
-    (helixel-define-key 'insert (kbd key) #'my/delete-backward-word)))
+    (helixel-define-key 'insert (kbd key) my/delete-backward-word-binding)))
 
 (dolist (map (list minibuffer-local-map
                    minibuffer-local-ns-map

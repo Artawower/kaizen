@@ -65,6 +65,7 @@ shortcut_keys = "logical_characters"
 adaptation = "Preserve shortcut characters in the configured Latin layout. Translate physical key codes where necessary, including Karabiner; do not substitute QWERTY key positions."
 bindings = "Maintain bindings directly in application configs, without shortcut-generation templates or a runtime shortcut registry."
 alias_policy = "Use Russian aliases for command bindings and navigation, preserving sequences, modifiers and Shift; never transliterate inserted text."
+word_deletion = "In Emacs insert states, Ctrl+W and Alt+Backspace delete the previous word without changing the kill ring or system clipboard; embedded terminals retain their native input bindings."
 
 [keyboard.aliases.ru]
 "`" = "ё"
