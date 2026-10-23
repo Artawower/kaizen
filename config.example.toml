@@ -30,6 +30,8 @@ shortcuts = [
   { keys = [["0"]], description = "Move the cursor to the beginning of the current line." },
   { keys = [["f", "f"]], description = "Find and open a file in the current project." },
   { keys = [["f", "s"]], description = "Search snippets available to the current filetype, preview their bodies, and insert a selected snippet." },
+  { keys = [["Super", "e"]], description = "Expand an Emmet abbreviation or wrap the selected text." },
+  { keys = [["Super", "w"]], description = "Close the current split window, not its buffer or the whole editor, without forcing away unsaved changes." },
   { keys = [["z", "M"]], description = "Close all folds in the current document." },
   { keys = [["z", "j"]], description = "Move to the next fold." },
   { keys = [["z", "r"]], description = "Open the fold at the current location." },
@@ -105,6 +107,7 @@ m = "ь"
 "." = "ю"
 
 [editor]
+emmet = "Expand HTML, JSX, TSX, and CSS abbreviations with Super+E in normal and insert modes; wrap selected text in visual mode."
 tag_pairs = "Automatically close tags and synchronize paired tag names when editing HTML, JSX, and TSX."
 tailwind_css = "Provide Tailwind CSS class completion, hover documentation, and diagnostics in supported project files."
 

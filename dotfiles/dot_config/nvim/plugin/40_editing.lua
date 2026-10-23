@@ -38,7 +38,10 @@ local treesitter_filetypes = {
   zsh = true,
 }
 
+vim.g.emmet_install_only_plug = 1
+
 vim.pack.add({
+  "https://github.com/mattn/emmet-vim",
   "https://github.com/nvim-mini/mini.surround",
   "https://github.com/windwp/nvim-ts-autotag",
   {
@@ -154,11 +157,14 @@ vim.pack.add({
     },
   },
   {
-    src = "https://github.com/chrisgrieser/nvim-chainsaw",
+    src = "https://github.com/Goose97/timber.nvim",
     data = {
-      cmd = "Chainsaw",
       after = function()
-        require("chainsaw").setup()
+        require("timber").setup({
+          keymaps = {
+            insert_log_below = "<C-D-i>",
+          },
+        })
       end,
     },
   },
@@ -168,9 +174,12 @@ vim.pack.add({
       cmd = "Repl",
     },
   },
-}, { load = require("lz.n").load })
+}, { load = require("lz.n").load, confirm = false })
 
 require("nvim-ts-autotag").setup()
+
+map({ "n", "i", "x" }, "<D-e>", "<Plug>(emmet-expand-abbr)", { remap = true, desc = "Expand Emmet abbreviation" })
+map({ "n", "i", "x" }, "<D-л>", "<Plug>(emmet-expand-abbr)", { remap = true, desc = "Expand Emmet abbreviation" })
 
 require("mini.surround").setup({
   mappings = {

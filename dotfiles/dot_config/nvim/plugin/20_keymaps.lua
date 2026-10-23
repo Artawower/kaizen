@@ -182,6 +182,9 @@ map("n", "<leader>]", "<cmd>bnext<CR>", {
   desc = "Next buffer",
 })
 
+map({ "n", "i", "x" }, "<D-w>", "<cmd>close<CR>", { desc = "Close pane" })
+map({ "n", "i", "x" }, "<D-ц>", "<cmd>close<CR>", { desc = "Close pane" })
+
 map("n", "<leader>wq", "<cmd>close<CR>", {
   desc = "Close pane",
 })
