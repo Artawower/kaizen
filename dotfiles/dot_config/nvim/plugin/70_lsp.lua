@@ -176,6 +176,7 @@ local servers = {
   "eslint",
   "html",
   "cssls",
+  "tailwindcss",
   "jsonls",
   "yamlls",
   "gopls",

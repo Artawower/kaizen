@@ -106,6 +106,7 @@ m = "ь"
 
 [editor]
 tag_pairs = "Automatically close tags and synchronize paired tag names when editing HTML, JSX, and TSX."
+tailwind_css = "Provide Tailwind CSS class completion, hover documentation, and diagnostics in supported project files."
 
 [terminal]
 shell = "nu"
