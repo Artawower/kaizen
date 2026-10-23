@@ -40,6 +40,7 @@ local treesitter_filetypes = {
 
 vim.pack.add({
   "https://github.com/nvim-mini/mini.surround",
+  "https://github.com/windwp/nvim-ts-autotag",
   {
     src = "https://github.com/serhez/bento.nvim",
     version = "feat/v2",
@@ -168,6 +169,8 @@ vim.pack.add({
     },
   },
 }, { load = require("lz.n").load })
+
+require("nvim-ts-autotag").setup()
 
 require("mini.surround").setup({
   mappings = {

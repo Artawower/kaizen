@@ -104,6 +104,9 @@ m = "ь"
 "," = "б"
 "." = "ю"
 
+[editor]
+tag_pairs = "Automatically close tags and synchronize paired tag names when editing HTML, JSX, and TSX."
+
 [terminal]
 shell = "nu"
 multiplexer = "tuios"
