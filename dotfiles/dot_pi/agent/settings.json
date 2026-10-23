@@ -33,7 +33,8 @@
     "npm:pi-context-view",
     "npm:pi-trace-extension",
     "npm:pi-open-agents",
-    "npm:@soleone/pi-tasks"
+    "npm:@soleone/pi-tasks",
+    "npm:pi-md-export"
   ],
   "defaultProvider": "openai-codex",
   "defaultModel": "gpt-6.1-sol",

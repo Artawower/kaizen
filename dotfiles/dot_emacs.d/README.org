@@ -720,9 +720,7 @@ Modeline inactive color
 #+BEGIN_SRC emacs-lisp
 (use-package auto-dark
   :init
-  ;; Neomacs doesn't provide the native macOS appearance hook,
-  ;; so let auto-dark detect appearance via osascript.
-  (when (eq window-system 'neo)
+  (when (eq system-type 'darwin)
     (setq auto-dark-allow-osascript t))
 
   (setq auto-dark-polling-interval-seconds 5)
@@ -731,6 +729,13 @@ Modeline inactive color
   (setq auto-dark-themes
         '((modern-tokyo)
           (modern-catppuccin-latte)))
+
+  (add-hook 'auto-dark-mode-hook
+            (lambda ()
+              (when (eq auto-dark-detection-method 'osascript)
+                (if auto-dark-mode
+                    (auto-dark-start-timer)
+                  (auto-dark-stop-timer)))))
 
   (auto-dark-mode 1)
 
