@@ -11,6 +11,10 @@ brew = ["just", "mise", "mole", "dtach", "scc"]
 dnf = ["just"]
 tools = {node = "26.12.0", pnpm = "12.14.0", bun = "latest", "cargo:tree-sitter-cli" = "latest"}
 
+[monitoring]
+description = "Tools for self reflection and system debug"
+brew = ["HERE?"]
+
 [fonts]
 description = "Fonts and Nerd Fonts"
 cask = ["font-jetbrains-mono-nerd-font", "font-fira-code-nerd-font", "font-caskaydia-cove-nerd-font", "font-liga-comic-mono", "font-monaspace-nerd-font"]

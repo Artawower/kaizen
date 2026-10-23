@@ -22,7 +22,12 @@ def "nu-complete trun tasks" [] {
     }
 }
 
-def trun [task?: string@"nu-complete trun tasks"] {
+def --wrapped trun [task?: string@"nu-complete trun tasks", ...args: string] {
+    if $task in ["--help" "-h"] {
+        print (help trun)
+        return
+    }
+
     let tasks = (trun-tasks)
     if ($tasks | is-empty) {
         print "No tasks found."
@@ -31,7 +36,7 @@ def trun [task?: string@"nu-complete trun tasks"] {
 
     if $task != null {
         if ($task | str contains ":") {
-            ^run $task
+            ^run $task ...$args
             return
         }
 
@@ -45,7 +50,7 @@ def trun [task?: string@"nu-complete trun tasks"] {
             print $"Task '($task)' is ambiguous: ($sources); use source:name"
             return
         }
-        ^run $task
+        ^run $task ...$args
         return
     }
 
@@ -65,5 +70,5 @@ def trun [task?: string@"nu-complete trun tasks"] {
 
     let index = ($selection.stdout | split row "\t" | first | into int)
     let selected = ($tasks | get $index)
-    ^run $"($selected.source):($selected.name)"
+    ^run $"($selected.source):($selected.name)" ...$args
 }
