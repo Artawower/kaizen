@@ -7,10 +7,8 @@ skills = [
   "mattpocock/skills@grill-with-docs",
   "microsoft/playwright-cli@playwright-cli",
 ]
-brew = ["podman"]
+packages = ["podman"]
 cask = ["claude-code"]
-dnf = ["podman"]
-apt = ["podman"]
 tools = {"go:github.com/MichaelKinsy/PiG/cmd/pig" = "latest", "npm:@earendil-works/pi-coding-agent" = "latest", "npm:@playwright/cli" = "0.1.22", "npm:skills" = "latest"}
 
 [api]
@@ -38,10 +36,9 @@ archive = true
 [terminal]
 description = "Terminal, TUI tools, and shell"
 taps = ["muxy-app/tap"]
-brew = ["ghostty", "herdr", "yazi", "starship", "zoxide", "eza", "fastfetch", "direnv", "nushell"]
+packages = ["herdr", "yazi", "starship", "zoxide", "eza", "fastfetch", "direnv", "nushell"]
+brew = ["ghostty"]
 cask = ["ghostty"]
-dnf = ["herdr", "yazi", "starship", "zoxide", "eza", "fastfetch", "direnv", "nushell"]
-apt = ["herdr", "yazi", "starship", "zoxide", "eza", "fastfetch", "direnv", "nushell"]
 flatpak = ["com.mitchellh.ghostty"]
 tools = {carapace = "latest", "npm:typescript-language-server" = "latest", "npm:vscode-langservers-extracted" = "4.10.0", "npm:yaml-language-server" = "latest", "npm:@github/copilot-language-server" = "1.554.0", "cargo:kdlfmt" = "latest", "cargo:codebook-lsp" = "latest", "npm:lua-fmt" = "2.6.0", "cargo:runner-run" = "latest"}
 post_install = "features/hooks/terminal/post_install.py"
@@ -64,15 +61,14 @@ archive = true
 [xonsh]
 description = "Xonsh Python-powered shell"
 dotfiles = ["dotfiles/dot_config/xonsh"]
-brew = ["xonsh"]
-dnf = ["xonsh", "python3-pip"]
-apt = ["xonsh", "python3-pip"]
+packages = ["xonsh"]
+dnf = ["python3-pip"]
+apt = ["python3-pip"]
 post_install = "features/hooks/xonsh/post_install.py"
 archive = true
 
 [vcs]
 description = "Version control tooling"
-brew = ["git", "gh", "jj", "git-delta", "gnupg", "pinentry-mac"]
-dnf = ["git", "gh", "jj", "git-delta", "gnupg2", "pinentry"]
-apt = ["git", "gh", "jj", "git-delta", "gnupg2", "pinentry-gnome3"]
+packages = ["git", "gh", "jj", "git-delta", "gnupg", "pinentry"]
+package_names = {gnupg = {dnf = "gnupg2", apt = "gnupg2"}, pinentry = {brew = "pinentry-mac", apt = "pinentry-gnome3"}}
 tools = {"cargo:gitu" = "latest", "github:idursun/jjui" = "latest", "npm:git-trim" = "0.3.1", "github:agavra/tuicr" = "latest"}

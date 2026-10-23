@@ -1,24 +1,24 @@
 [emacs]
 description = "Emacs editor"
 taps = ["d12frosted/emacs-plus"]
-brew = ["emacs-plus@32", "imagemagick", "tree-sitter"]
+packages = ["emacs", "imagemagick"]
+package_names = {emacs = {brew = "emacs-plus@32"}}
+brew = ["tree-sitter"]
 brew_args = {"emacs-plus@32" = ["--with-xwidgets", "--with-dbus", "--build-from-source"]}
-dnf = ["emacs", "enchant2-devel", "pkg-config", "isync", "msmtp", "ca-certificates", "imagemagick", "libtree-sitter-devel", "wl-clipboard"]
-apt = ["emacs", "libenchant-2-dev", "pkg-config", "isync", "msmtp", "ca-certificates", "imagemagick", "wl-clipboard"]
+dnf = ["enchant2-devel", "pkg-config", "isync", "msmtp", "ca-certificates", "libtree-sitter-devel", "wl-clipboard"]
+apt = ["libenchant-2-dev", "pkg-config", "isync", "msmtp", "ca-certificates", "wl-clipboard"]
 tools = {"npm:orgnote-cli" = "0.64.0", "npm:@mermaid-js/mermaid-cli" = "12.0.0", "pipx:black" = "latest"}
 post_install = "features/hooks/emacs/post_install.py"
 
 [helix]
 description = "Official Helix editor"
-brew = ["git", "marksman", "helix"]
-dnf = ["git", "marksman", "helix", "nvim"]
-apt = ["git", "marksman", "hx"]
+packages = ["git", "marksman", "helix"]
+package_names = {helix = {apt = "hx"}}
+dnf = ["nvim"]
 
 [helix-steel]
 description = "Helix Steel editor built from the plugin-enabled fork"
-brew = ["git", "marksman"]
-dnf = ["git", "marksman"]
-apt = ["git", "marksman"]
+packages = ["git", "marksman"]
 tools = {rust = "latest", "cargo:schemat" = "latest"}
 post_install = "features/hooks/helix-steel/post_install.py"
 
@@ -30,9 +30,7 @@ archive = true
 
 [neovim]
 description = "Neovim editor"
-brew = ["neovim"]
-dnf = ["neovim"]
-apt = ["neovim"]
+packages = ["neovim"]
 
 [vscodium]
 description = "VSCodium text editor"

@@ -18,8 +18,9 @@ direct chezmoi commands see the last snapshot, not subsequent user edits.
 ## Features
 
 Kaizen reads `features/*.toml` category catalogs, ordered by filename and
-then feature name. Each named section contains flat native-manager lists,
-inline mise `tools`, optional metadata, and an explicit `post_install` path.
+then feature name. Each named section contains shared native `packages`, optional
+`package_names` exceptions, flat manager-specific additions, inline mise `tools`,
+optional metadata, and an explicit `post_install` path.
 Only hooks and their assets live in `features/hooks/<name>/`. Feature names
 are unique across catalogs; categories provide no inheritance or defaults.
 
@@ -44,8 +45,14 @@ config directory; one shared `skhd/skhdrc` selects a profile through native
 resolve references to the selected profile before moving it; unarchive does
 not change this selector automatically.
 
-Package declarations are additive. Mise tools merge in discovery order, then
-user dependencies. Bump updates each applicable section's inline `tools` table,
+Package declarations are additive. Before native installation, Kaizen resolves
+explicit name aliases across active, eligible features and combines feature and
+user packages into one ordered, deduplicated plan. Contradictory name mappings,
+ambiguous aliases, wrong-manager aliases, or differing Homebrew flags reject the
+plan before native commands run. This validates declarations, not repository
+availability or arbitrary system package conflicts. See
+[`feature-format.org`](feature-format.org) for the schema and alias rules.
+Mise tools merge in discovery order, then user dependencies. Bump updates each applicable section's inline `tools` table,
 preserving sibling sections, archived entries, and user-owned overrides. The resulting `~/.config/mise.toml` is generated and should
 not be edited as a source of truth.
 

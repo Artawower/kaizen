@@ -183,10 +183,10 @@ apt = ["jq", "shellcheck"]
 flatpak = ["dev.zed.Zed"]
 #+END_SRC
 
-The file is optional. Kaizen validates it before making changes, installs its
-native packages after applicable feature packages, and gives its =[tools]= entries
-precedence over feature mise versions. Kaizen does not modify this user-owned
-file during =bump=.
+The file is optional. Kaizen validates it before making changes, merges its
+native packages with applicable feature packages into a deduplicated installation
+plan, and gives its =[tools]= entries precedence over feature mise versions.
+Kaizen does not modify this user-owned file during =bump=.
 
 Before applying dotfiles, Kaizen writes the ignored
 =dotfiles/.chezmoidata/99-user.toml= snapshot with normalized user settings.
@@ -203,9 +203,9 @@ Kaizen reads named sections from =features/*.toml=. For example:
 
 #+BEGIN_SRC toml
 [helix]
-brew = ["git", "marksman", "helix"]
-dnf = ["git", "marksman", "helix", "nvim"]
-apt = ["git", "marksman", "hx"]
+packages = ["git", "marksman", "helix"]
+package_names = {helix = {apt = "hx"}}
+dnf = ["nvim"]
 
 [helix-steel]
 archive = true
@@ -214,9 +214,14 @@ post_install = "features/hooks/helix-steel/post_install.py"
 #+END_SRC
 
 This shortened example shows an archived alternative; see =features/editor.toml=
-for the actual catalog. Native manager keys are flat, and =tools= contains mise
-versions. =platforms= defaults to macOS and Linux; =platforms = ["macos"]= or
-=["linux"]= restricts the whole recipe. Optional =distributions= narrows Linux
+for the actual catalog. =packages= declares shared native names; =package_names=
+records naming exceptions. Flat manager lists add platform-specific packages.
+Known aliases resolve consistently across active features, repeated packages are
+installed once, and conflicting mappings or Homebrew flags stop installation.
+See [[file:docs/feature-format.org][the feature format]] for the full rules.
+
+=tools= contains mise versions. =platforms= defaults to macOS and Linux;
+=platforms = ["macos"]= or =["linux"]= restricts the whole recipe. Optional =distributions= narrows Linux
 eligibility to IDs such as =fedora= and =fedora-asahi-remix=. Discovery is ordered
 by catalog filename, then feature name; user tool versions take precedence.
 The filter covers packages, mise tools, and hooks. Dotfiles are managed separately: chezmoi applies files present in

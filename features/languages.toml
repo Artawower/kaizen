@@ -13,7 +13,7 @@ tools = {python = "latest", "pipx:basedpyright" = "latest", "pipx:ruff" = "lates
 
 [rust]
 description = "Rust toolchain"
-brew = ["gcc", "cmake"]
-dnf = ["gcc", "cmake", "clang"]
-apt = ["gcc", "cmake", "clang"]
+packages = ["gcc", "cmake"]
+dnf = ["clang"]
+apt = ["clang"]
 tools = {rust = "latest", cargo-binstall = "latest"}

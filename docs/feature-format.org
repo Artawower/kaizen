@@ -23,18 +23,43 @@ there is no user =[features]= enable list and no variant selection.
 #+BEGIN_SRC toml
 [example]
 description = "Example CLI tools"
-brew = ["jq"]
-dnf = ["jq"]
-apt = ["jq"]
+packages = ["jq", "fd"]
+package_names = {fd = {dnf = "fd-find", apt = "fd-find"}}
 brew_args = { jq = ["--HEAD"] }
 tools = { go = "latest" }
 dotfiles = ["dotfiles/dot_config/example"]
 #+END_SRC
 
-Native manager keys are flat: =taps=, =brew=, =cask=, =dnf=, =apt=, and =flatpak=.
-Use real package names for their manager. Optional =brew_args= maps package
-names to flag lists. =tools= is an inline table of mise tool names and versions;
-there are no separate package or mise manifests for individual features.
+=packages= lists shared native dependencies. Native manager keys remain flat:
+=taps=, =brew=, =cask=, =dnf=, =apt=, and =flatpak=. They add manager-specific
+packages rather than replacing the shared list. Optional =brew_args= maps native
+Homebrew names to flag lists. =tools= is an inline table of mise tool names and
+versions; there are no separate package or mise manifests for individual features.
+
+=package_names= maps a dependency name to =brew=, =dnf=, and/or =apt= exceptions.
+An omitted manager uses the dependency name unchanged. In the example, =fd=
+installs as =fd= through Homebrew and =fd-find= through dnf or apt. Declare an
+exception once; it applies to shared dependencies in every active, eligible
+feature. Canonical names and explicitly declared aliases, such as =fd-find=,
+identify the same dependency in =packages=. Archived and unsupported features
+contribute neither packages nor name exceptions.
+
+Use =packages= only when the dependency should exist on every platform supported
+by its feature. Keep platform-specific software in manager lists, and use real
+native names there: =dnf = ["fd-find"]= is valid, while =dnf = ["fd"]= is rejected
+when the known mapping requires =fd-find=. Packages with different names need an
+explicit =package_names= declaration; Kaizen does not guess aliases or query
+repositories to verify package availability.
+
+Before installing, Kaizen combines feature packages and user native dependencies
+into one ordered plan. Repeated native packages, taps, casks, and Flatpaks are
+installed once per manager. Conflicting name exceptions, ambiguous aliases shared
+by different dependencies, and differing =brew_args= for the same formula stop
+installation before native commands run. Errors identify the declarations
+involved. Default flags are an empty list, so a default installation and a
+=--HEAD= installation conflict rather than silently choosing one. Flags must
+match in order as well as value. These checks cover declarations, not arbitrary
+runtime conflicts between unrelated system packages.
 
 Kaizen merges applicable =tools= in discovery order into =~/.config/mise.toml=.
 User =[tools]= in =~/.config/kaizen/dependencies.toml= overrides feature versions.

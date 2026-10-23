@@ -26,13 +26,11 @@ Add a named section to a category file such as `features/editor.toml`:
 ```toml
 [example]
 description = "Example CLI tools"
-brew = ["jq"]
-dnf = ["jq"]
-apt = ["jq"]
+packages = ["jq"]
 tools = { go = "latest" }
 ```
 
-Use flat manager keys and an inline `tools` table. Optional `brew_args` is a package-to-flags table. A `post_install` path is repository-relative, such as `features/hooks/emacs/post_install.py`; colocate its assets with the script. There are no per-feature package or mise files. See `docs/feature-format.org` when changing the schema.
+Use `packages` for shared native dependencies, flat manager keys for additions, and inline `package_names` for naming exceptions. Kaizen resolves known aliases and deduplicates active declarations before installation. Use an inline `tools` table for mise versions. Optional `brew_args` is a native-package-to-flags table. A `post_install` path is repository-relative, such as `features/hooks/emacs/post_install.py`; colocate its assets with the script. There are no per-feature package or mise files. See `docs/feature-format.org` when changing the schema.
 
 Omitted `platforms` means macOS and Linux; restrict a whole recipe with `platforms = ["macos"]` or `["linux"]`. Optional `distributions` restricts Linux distro IDs. The same filter applies to native packages, mise, and hooks. `kaizen sync` generates `~/.config/mise.toml` from applicable `tools` entries. Feature names are unique across category files; there is no inheritance or variant selection. Dotfiles are independent: chezmoi applies source files with general platform exclusions; archive owned files physically to stop managing them.
 

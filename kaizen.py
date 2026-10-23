@@ -532,6 +532,7 @@ class Feature:
     @property
     def packages(self) -> dict[str, object]:
         return {
+            "packages": self.data.get("packages", []),
             "macos": {
                 key: self.data[key]
                 for key in (*_USER_MACOS_DEPENDENCY_LISTS, "brew_args")
@@ -566,11 +567,11 @@ class Feature:
             return False
         list_keys = (
             *_USER_MACOS_DEPENDENCY_LISTS, *_USER_LINUX_DEPENDENCY_LISTS,
-            "platforms", "distributions", "dotfiles", "skills",
+            "platforms", "distributions", "dotfiles", "skills", "packages",
         )
         _validate_keys(
             self.data,
-            {*list_keys, "archive", "description", "tools", "brew_args", "post_install"},
+            {*list_keys, "archive", "description", "tools", "brew_args", "package_names", "post_install"},
             label,
         )
         for key in list_keys:
@@ -583,6 +584,13 @@ class Feature:
         brew_args = _dependency_table(self.data, "brew_args", self.manifest)
         for package in brew_args:
             _validate_string_list(brew_args, package, f"{label}: brew_args")
+        package_names = _dependency_table(self.data, "package_names", self.manifest)
+        for name in package_names:
+            if not name:
+                raise ValueError(f"{label}: package_names keys must be non-empty")
+            overrides = _dependency_table(package_names, name, self.manifest)
+            _validate_keys(overrides, {"brew", "dnf", "apt"}, f"{label}: package_names.{name}")
+            _validate_string_map(overrides, f"{label}: package_names.{name}")
         hook = self.data.get("post_install")
         if hook is not None:
             if not isinstance(hook, str) or not hook:
@@ -618,6 +626,83 @@ def discover_features(os_name: str) -> list[Feature]:
                 if hook is not None and not hook.is_file():
                     raise FileNotFoundError(f"{feature.label}: hook not found: {hook}")
                 result.append(feature)
+    return result
+
+
+def _resolve_packages(
+    features: list[Feature], user_dependencies: dict[str, object]
+) -> dict[str, object]:
+    names: dict[str, dict[str, str]] = {}
+    origins: dict[tuple[str, str], str] = {}
+    aliases: dict[str, tuple[str, str]] = {}
+    for feature in features:
+        for name, value in _table(feature.data.get("package_names")).items():
+            overrides = _string_map(value)
+            for alias in (name, *overrides.values()):
+                previous, source = aliases.get(alias, (name, feature.label))
+                if previous != name:
+                    raise ValueError(
+                        f"ambiguous package alias {alias!r}: "
+                        f"{previous!r} in {source} and {name!r} in {feature.label}"
+                    )
+                aliases.setdefault(alias, (name, feature.label))
+            for manager, package in overrides.items():
+                existing = names.setdefault(name, {}).get(manager)
+                if existing is not None and existing != package:
+                    raise ValueError(
+                        f"conflicting package_names for {name!r} ({manager}): "
+                        f"{existing!r} in {origins[name, manager]} and "
+                        f"{package!r} in {feature.label}"
+                    )
+                names[name][manager] = package
+                origins[name, manager] = feature.label
+
+    result: dict[str, object] = {"macos": {}, "linux": {}}
+    brew_args: dict[str, tuple[list[str], str]] = {}
+    declarations = [
+        *((feature.label, feature.packages) for feature in features),
+        ("user dependencies", user_dependencies),
+    ]
+    for label, dependencies in declarations:
+        common = _string_list(dependencies.get("packages"))
+        for platform_key, managers in (
+            ("macos", _USER_MACOS_DEPENDENCY_LISTS),
+            ("linux", _USER_LINUX_DEPENDENCY_LISTS),
+        ):
+            section = _table(dependencies.get(platform_key))
+            target = _table(result[platform_key])
+            for manager in managers:
+                requested = _string_list(section.get(manager))
+                if manager in {"brew", "dnf", "apt"}:
+                    shared = []
+                    for name in common:
+                        canonical = aliases.get(name, (name, ""))[0]
+                        shared.append(names.get(canonical, {}).get(manager, canonical))
+                    requested = [*shared, *requested]
+                    for package in requested:
+                        canonical = aliases.get(package, (package, ""))[0]
+                        expected = names.get(canonical, {}).get(manager, canonical)
+                        if package != expected:
+                            raise ValueError(
+                                f"{label}: {manager} package {package!r} must be "
+                                f"{expected!r}; use packages for shared aliases"
+                            )
+                if manager == "brew":
+                    for package in requested:
+                        flags = _string_list(_table(section.get("brew_args")).get(package))
+                        previous_flags, source = brew_args.get(package, (flags, label))
+                        if previous_flags != flags:
+                            raise ValueError(
+                                f"conflicting brew_args for {package!r}: "
+                                f"{previous_flags!r} in {source} and {flags!r} in {label}"
+                            )
+                        brew_args[package] = (flags, label)
+                        if flags:
+                            _table(target.setdefault("brew_args", {}))[package] = flags
+                if requested:
+                    target[manager] = list(dict.fromkeys([
+                        *_string_list(target.get(manager)), *requested,
+                    ]))
     return result
 
 
@@ -802,10 +887,10 @@ class Kaizen:
     def _install_dependencies(
         self, features: list[Feature], user_dependencies: dict[str, object]
     ) -> None:
-        print(f"OS: {self._os}\n")
-        for feature in features:
-            self._install_packages(feature)
-        self._install_user_packages(user_dependencies)
+        packages = _resolve_packages(features, user_dependencies)
+        print(f"OS: {self._os}\n\n[packages]")
+        self._adapter.install(packages)
+        print()
         self._generate_mise_config(features, user_dependencies)
         if MISE_CONFIG.exists() and not shutil.which("mise"):
             raise DependencyNotFoundError("mise", "install", "https://mise.jdx.dev/")
@@ -858,19 +943,6 @@ class Kaizen:
             _ = subprocess.run(
                 [*command, "add", package, "-g", "-y"], cwd=Path.home(), check=True,
             )
-        print()
-
-    def _install_packages(self, feature: Feature) -> None:
-        print(f"[{feature.label}]")
-        self._adapter.install(feature.packages)
-        print()
-
-    def _install_user_packages(self, dependencies: dict[str, object]) -> None:
-        platform_key = "macos" if self._os == "macos" else "linux"
-        if not _table(dependencies.get(platform_key)):
-            return
-        print("[user dependencies]")
-        self._adapter.install(dependencies)
         print()
 
     def _run_post_install(self, feature: Feature, action: str) -> None:

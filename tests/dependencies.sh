@@ -69,20 +69,133 @@ flatpak = ["dev.zed.Zed"]
 
 
 def test_package_adapter_reuse() -> None:
-    class RecordingAdapter:
-        def __init__(self) -> None:
-            self.calls: list[dict[str, object]] = []
+    from unittest.mock import call, patch
 
-        def install(self, dependencies: dict[str, object]) -> None:
-            self.calls.append(dependencies)
+    feature = kaizen.Feature(Path("tools.toml"), "sample", {
+        "packages": ["fd"],
+        "package_names": {"fd": {"dnf": "fd-find", "apt": "fd-find"}},
+    })
+    dependencies = {"macos": {"brew": ["jq"], "brew_args": {"jq": ["--HEAD"]}}}
+    packages = kaizen._resolve_packages([feature], dependencies)
+    for adapter, expected in (
+        (kaizen.Brew(), [call(["brew", "install", "--yes", "fd"]), call(["brew", "install", "--yes", "jq", "--HEAD"])]),
+        (kaizen.Dnf(), [call(["sudo", "dnf", "install", "-y", "fd-find"])]),
+        (kaizen.Apt(), [call(["sudo", "apt", "install", "-y", "fd-find"])]),
+    ):
+        with patch.object(kaizen.Brew, "_require", return_value="brew"), patch.object(adapter, "_run") as run:
+            adapter.install(packages)
+            assert run.call_args_list == expected, run.call_args_list
 
-    instance = object.__new__(kaizen.Kaizen)
-    instance._os = "macos"
-    instance._adapter = RecordingAdapter()
-    dependencies = {"macos": {"brew": ["jq"]}, "tools": {"node": "22"}}
-    instance._install_user_packages(dependencies)
-    instance._install_user_packages({"tools": {"node": "22"}})
-    assert instance._adapter.calls == [dependencies]
+
+def test_shared_packages_and_aliases() -> None:
+    features = [
+        kaizen.Feature(Path("system.toml"), "core", {
+            "packages": ["ripgrep", "fd", "fd"],
+            "package_names": {"fd": {"dnf": "fd-find", "apt": "fd-find"}},
+            "brew": ["mole"], "dnf": ["just"], "taps": ["tools/tap"],
+        }),
+        kaizen.Feature(Path("tools.toml"), "extra", {
+            "packages": ["fd-find", "jq"], "brew": ["jq"],
+            "package_names": {"fd": {"dnf": "fd-find"}},
+            "flatpak": ["dev.zed.Zed"],
+        }),
+    ]
+    user = {
+        "macos": {"brew": ["fd", "jq"], "taps": ["tools/tap"], "cask": ["zed", "zed"]},
+        "linux": {"dnf": ["fd-find"], "apt": ["fd-find"], "flatpak": ["dev.zed.Zed"]},
+    }
+    resolved = kaizen._resolve_packages(features, user)
+    assert resolved == {
+        "macos": {"brew": ["ripgrep", "fd", "mole", "jq"], "taps": ["tools/tap"], "cask": ["zed"]},
+        "linux": {"dnf": ["ripgrep", "fd-find", "just", "jq"], "apt": ["ripgrep", "fd-find", "jq"], "flatpak": ["dev.zed.Zed"]},
+    }, resolved
+    reversed_plan = kaizen._resolve_packages(list(reversed(features)), user)
+    for platform_key in ("macos", "linux"):
+        for manager, packages in resolved[platform_key].items():
+            assert set(reversed_plan[platform_key][manager]) == set(packages)
+            assert len(reversed_plan[platform_key][manager]) == len(packages)
+    assert features[0].data["packages"] == ["ripgrep", "fd", "fd"]
+    assert user["macos"]["brew"] == ["fd", "jq"]
+    assert kaizen._resolve_packages([], {}) == {"macos": {}, "linux": {}}
+
+
+def test_package_conflicts_fail_before_installation() -> None:
+    from unittest.mock import Mock, patch
+
+    first = kaizen.Feature(Path("system.toml"), "core", {
+        "packages": ["fd"], "package_names": {"fd": {"dnf": "fd-find", "apt": "fd-find"}},
+    })
+    cases = [
+        ([first, kaizen.Feature(Path("tools.toml"), "extra", {"package_names": {"fd": {"dnf": "other-fd"}}})], {}, ("system/core", "tools/extra", "dnf")),
+        ([first, kaizen.Feature(Path("tools.toml"), "extra", {"package_names": {"other": {"brew": "fd-find"}}})], {}, ("ambiguous", "fd-find", "system/core", "tools/extra")),
+        ([first, kaizen.Feature(Path("tools.toml"), "extra", {"package_names": {"fd-find": {"brew": "other"}}})], {}, ("ambiguous", "fd-find")),
+        ([first, kaizen.Feature(Path("tools.toml"), "extra", {"brew": ["fd-find"]})], {}, ("brew", "fd-find", "tools/extra")),
+        ([first], {"linux": {"dnf": ["fd"]}}, ("dnf", "fd-find", "user dependencies")),
+        ([first], {"macos": {"brew": ["fd"], "brew_args": {"fd": ["--HEAD"]}}}, ("brew_args", "system/core", "user dependencies")),
+    ]
+    for features, dependencies, messages in cases:
+        instance = object.__new__(kaizen.Kaizen)
+        instance._os = "macos"
+        instance._adapter = Mock()
+        with patch.object(kaizen.subprocess, "run") as run:
+            try:
+                instance._install_dependencies(features, dependencies)
+            except ValueError as error:
+                assert all(message in str(error) for message in messages), str(error)
+            else:
+                raise AssertionError(f"package conflict accepted: {messages}")
+            instance._adapter.install.assert_not_called()
+            run.assert_not_called()
+    flags = {"fd": ["--HEAD"]}
+    first.data["brew_args"] = flags
+    resolved = kaizen._resolve_packages([first], {"macos": {"brew": ["fd", "fd"], "brew_args": flags}})
+    assert resolved["macos"]["brew"] == ["fd"]
+    assert resolved["macos"]["brew_args"] == flags
+
+
+def test_shared_package_validation_and_filters() -> None:
+    from unittest.mock import patch
+
+    cases = [
+        ({"packages": "jq"}, TypeError, "packages"),
+        ({"packages": [""]}, TypeError, "packages"),
+        ({"packages": [False]}, TypeError, "packages"),
+        ({"package_names": []}, TypeError, "package_names"),
+        ({"package_names": {"": {"brew": "fd"}}}, ValueError, "package_names"),
+        ({"package_names": {"fd": "fd-find"}}, TypeError, "fd"),
+        ({"package_names": {"fd": {"pacman": "fd"}}}, ValueError, "pacman"),
+        ({"package_names": {"fd": {"apt": ""}}}, TypeError, "package_names.fd"),
+        ({"package_names": {"fd": {"brew": ["fd"]}}}, TypeError, "package_names.fd"),
+    ]
+    for data, error_type, message in cases:
+        try:
+            kaizen.Feature(Path("system.toml"), "sample", data).active_on("macos")
+        except error_type as error:
+            assert message in str(error), str(error)
+        else:
+            raise AssertionError(f"invalid package declaration accepted: {data}")
+    with tempfile.TemporaryDirectory() as directory:
+        root = Path(directory)
+        catalog = root / "system.toml"
+        write(catalog, '''[common]
+packages = ["fd"]
+package_names = {fd = {dnf = "fd-find", apt = "fd-find"}}
+[archived]
+archive = true
+package_names = {fd = {dnf = "archived-fd"}}
+[maconly]
+platforms = ["macos"]
+packages = ["mole"]
+[linuxonly]
+platforms = ["linux"]
+distributions = ["fedora"]
+packages = ["linux-tool"]
+''')
+        with patch.object(kaizen, "FEATURES_DIR", root):
+            for os_name, expected in (("macos", ["fd", "mole"]), ("fedora", ["fd-find", "linux-tool"]), ("ubuntu", ["fd-find"])):
+                packages = kaizen._resolve_packages(kaizen.discover_features(os_name), {})
+                platform_key, manager = ("macos", "brew") if os_name == "macos" else ("linux", "dnf" if os_name == "fedora" else "apt")
+                assert packages[platform_key][manager] == expected
 
 
 def test_user_tools_override_features() -> None:
@@ -124,17 +237,20 @@ def test_bump_preserves_user_overrides() -> None:
         kaizen.FEATURES_DIR = root / "features"
         kaizen.MISE_CONFIG = root / "mise.toml"
         feature_file = kaizen.FEATURES_DIR / "editor.toml"
-        write(feature_file, '[sample]\nbrew = ["jq"]\nskills = ["dietrichgebert/ponytail@ponytail"]\ntools = { node = "20", python = "3.11" }\n\n[second]\ntools = { go = "1.21" }\n\n[archived]\narchive = true\ntools = { rust = "1.80" }\n')
+        write(feature_file, '[sample]\npackages = ["jq", "fd"]\npackage_names = {fd = {dnf = "fd-find", apt = "fd-find"}}\nbrew = ["mise"]\nskills = ["dietrichgebert/ponytail@ponytail"]\ntools = { node = "20", python = "3.11" }\n\n[second]\ntools = { go = "1.21" }\n\n[archived]\narchive = true\ntools = { rust = "1.80" }\n')
         write(kaizen.MISE_CONFIG, '[tools]\nnode = "22"\npython = "3.12"\ngo = "1.22"\nrust = "1.81"\n')
         instance = object.__new__(kaizen.Kaizen)
         instance._capture_mise_versions(kaizen.discover_features("macos"), {"node"})
         catalog = kaizen.read_toml(feature_file)
         assert catalog["sample"]["tools"] == {"node": "20", "python": "3.12"}
-        assert catalog["sample"]["brew"] == ["jq"]
+        assert catalog["sample"]["brew"] == ["mise"]
+        assert catalog["sample"]["packages"] == ["jq", "fd"]
+        assert catalog["sample"]["package_names"] == {"fd": {"dnf": "fd-find", "apt": "fd-find"}}
         assert catalog["sample"]["skills"] == ["dietrichgebert/ponytail@ponytail"]
         assert catalog["second"]["tools"] == {"go": "1.22"}
         assert catalog["archived"] == {"archive": True, "tools": {"rust": "1.80"}}
         assert "[sample.tools]" not in feature_file.read_text()
+        assert "[sample.package_names]" not in feature_file.read_text()
 
 
 def test_install_does_not_apply_dotfiles() -> None:
@@ -175,8 +291,9 @@ def test_dependency_workflow_runs_integrations() -> None:
     original_run = kaizen.subprocess.run
     kaizen.shutil.which = lambda _: "/tmp/mise"
     kaizen.subprocess.run = lambda command, **_: events.append(command)
-    instance._install_packages = lambda item: events.append(("packages", item))
-    instance._install_user_packages = lambda _: events.append("user packages")
+    from unittest.mock import Mock
+    instance._adapter = Mock()
+    instance._adapter.install.side_effect = lambda packages: events.append(("packages", packages))
     instance._generate_mise_config = lambda *_: events.append("mise config")
     instance._install_skills = lambda _: events.append("skills")
     instance._run_post_install = lambda item, action: events.append((item, action))
@@ -186,8 +303,7 @@ def test_dependency_workflow_runs_integrations() -> None:
         kaizen.shutil.which = original_which
         kaizen.subprocess.run = original_run
     assert events == [
-        ("packages", feature),
-        "user packages",
+        ("packages", {"macos": {}, "linux": {}}),
         "mise config",
         ["mise", "install", "--jobs=1"],
         "skills",
@@ -234,8 +350,8 @@ def test_failures_stop_workflow() -> None:
         kaizen.MISE_CONFIG = Path(directory) / "mise.toml"
         write(kaizen.MISE_CONFIG, '[tools]\nnode = "latest"\n')
         instance._os = "linux"
-        instance._install_user_packages = lambda _: None
         instance._generate_mise_config = lambda *_: None
+        instance._adapter = kaizen.Dnf()
         with patch.object(kaizen.shutil, "which", return_value=None):
             with patch.object(instance, "_run_post_install") as hook:
                 try:
@@ -299,7 +415,7 @@ def test_feature_discovery_filters_whole_recipe() -> None:
             assert kaizen.read_toml(overlay) == user_data
             assert original_config.read_text() == "unchanged\n"
             instance._install_dependencies(selected, {})
-            assert instance._adapter.install.call_count == len(selected)
+            instance._adapter.install.assert_called_once_with({"macos": {}, "linux": {"dnf": ["first", "second"]}})
             assert set(kaizen.read_toml(kaizen.MISE_CONFIG)["tools"]) == names
             instance.update()
             hooks = [
@@ -326,6 +442,9 @@ def test_feature_discovery_filters_whole_recipe() -> None:
 
 
 
+test_shared_packages_and_aliases()
+test_package_conflicts_fail_before_installation()
+test_shared_package_validation_and_filters()
 test_feature_discovery_filters_whole_recipe()
 test_failures_stop_workflow()
 test_manifest_validation()
