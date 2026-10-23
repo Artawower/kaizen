@@ -178,8 +178,27 @@ vim.pack.add({
 
 require("nvim-ts-autotag").setup()
 
-map({ "n", "i", "x" }, "<D-e>", "<Plug>(emmet-expand-abbr)", { remap = true, desc = "Expand Emmet abbreviation" })
-map({ "n", "i", "x" }, "<D-л>", "<Plug>(emmet-expand-abbr)", { remap = true, desc = "Expand Emmet abbreviation" })
+map({ "n", "i" }, "<D-e>", "<Plug>(emmet-expand-abbr)", {
+  remap = true,
+  desc = "Emmet expand",
+})
+
+map("x", "<D-e>", function()
+  vim.fn["emmet#expandAbbr"](2, "")
+end, {
+  desc = "Emmet wrap",
+})
+
+map({ "n", "i" }, "<D-л>", "<Plug>(emmet-expand-abbr)", {
+  remap = true,
+  desc = "Emmet expand",
+})
+
+map("x", "<D-л>", function()
+  vim.fn["emmet#expandAbbr"](2, "")
+end, {
+  desc = "Emmet wrap",
+})
 
 require("mini.surround").setup({
   mappings = {
