@@ -66,6 +66,7 @@ adaptation = "Preserve shortcut characters in the configured Latin layout. Trans
 bindings = "Maintain bindings directly in application configs, without shortcut-generation templates or a runtime shortcut registry."
 alias_policy = "Use Russian aliases for command bindings and navigation, preserving sequences, modifiers and Shift; never transliterate inserted text."
 word_deletion = "In Emacs insert states, Ctrl+W and Alt+Backspace delete the previous word without changing the kill ring or system clipboard; embedded terminals retain their native input bindings."
+emacs_search = "In Helixel, / starts a forward search and ? a backward search. n repeats the active search in its original direction, preserving its pattern even with a selected match. N repeats in the opposite direction without changing the original direction. Without an active search, n searches the selection or word at point forward."
 
 [keyboard.aliases.ru]
 "`" = "ё"

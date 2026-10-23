@@ -14,7 +14,8 @@
   (with-temp-buffer
     (insert-file-contents (expand-file-name file kaizen-test-root))
     (goto-char (point-min))
-    (search-forward marker)
+    (let ((case-fold-search nil))
+      (search-forward marker))
     (goto-char (match-beginning 0))
     (read (current-buffer))))
 
@@ -187,6 +188,90 @@
     (should (equal (buffer-string) "env"))
     (should (eq helixel--current-state 'insert))
     (should (eq (key-binding [escape]) #'helixel-insert-exit))))
+
+(defun kaizen-test-helixel-search-bindings ()
+  (dolist (name '(kaizen/helixel-search-or-next kaizen/helixel-search-reverse))
+    (eval (kaizen-test-form "dotfiles/dot_emacs.d/bindings/helixel.el"
+                            (format "(defun %s " name))))
+  (dolist (key '("n" "N"))
+    (eval (kaizen-test-form "dotfiles/dot_emacs.d/bindings/helixel.el"
+                            (format "(helixel-define-key 'normal \"%s\"" key)))))
+
+(ert-deftest helixel-search-repeat-keeps-base-direction ()
+  (skip-unless (require 'helixel nil t))
+  (kaizen-test-helixel-search-bindings)
+  (dolist (case '(("/" forward 1 (5 1 5 9 5 1 9 1 5 1 13 1))
+                  ("?" backward 16 (9 13 9 5 9 13 5 13 9 13 1 13))))
+    (save-window-excursion
+      (with-temp-buffer
+        (switch-to-buffer (current-buffer))
+        (insert "foo foo foo foo")
+        (goto-char (nth 2 case))
+        (helixel-normal-state 1)
+        (execute-kbd-macro (kbd (concat (car case) " f o o RET")))
+        (dolist (step (cl-mapcar #'cons
+                                '("n" "N" "n" "n" "N" "N" "2 n" "2 N" "n" "N" "N" "n")
+                                (nth 3 case)))
+          (ert-info ((format "%s search, key %s" (car case) (car step)))
+            (execute-kbd-macro (kbd (car step)))
+            (should (= (region-beginning) (cdr step)))
+            (should (eq (helixel-search--current-dir) (nth 1 case)))
+            (should (equal (helixel-search--safe-pattern) "foo"))))))))
+
+(ert-deftest helixel-search-repeat-preserves-regexp ()
+  (skip-unless (require 'helixel nil t))
+  (kaizen-test-helixel-search-bindings)
+  (save-window-excursion
+    (with-temp-buffer
+      (switch-to-buffer (current-buffer))
+      (insert "foo fxo fyo fzo")
+      (goto-char (point-min))
+      (helixel-normal-state 1)
+      (execute-kbd-macro (kbd "/ f . o RET n N n"))
+      (should (= (region-beginning) 5))
+      (should (equal (helixel-search--safe-pattern) "f.o"))
+      (should (helixel--last-motion-regexp helixel--active-search)))))
+
+(ert-deftest helixel-search-without-active-search-uses-selection-or-word ()
+  (skip-unless (require 'helixel nil t))
+  (kaizen-test-helixel-search-bindings)
+  (dolist (selection '(nil t))
+    (save-window-excursion
+      (with-temp-buffer
+        (switch-to-buffer (current-buffer))
+        (insert "foo foo foo")
+        (goto-char (point-min))
+        (helixel-normal-state 1)
+        (when selection
+          (push-mark 4 t t)
+          (setq transient-mark-mode t))
+        (execute-kbd-macro (kbd "n n"))
+        (should (= (region-beginning) 9))
+        (should (eq (helixel-search--current-dir) 'forward))))))
+
+(ert-deftest helixel-search-russian-aliases-preserve-command-and-insert-input ()
+  (skip-unless (and (require 'helixel nil t) (require 'reverse-im nil t)))
+  (require 'quail)
+  (eval (kaizen-test-form "dotfiles/dot_emacs.d/README.org" "(quail-define-package\n \"cyrillic-colemak\""))
+  (eval (kaizen-test-form "dotfiles/dot_emacs.d/README.org" "(quail-define-rules"))
+  (kaizen-test-helixel-search-bindings)
+  (let ((function-key-map (copy-keymap function-key-map))
+        (local-function-key-map (make-sparse-keymap))
+        (reverse-im-cache-file nil)
+        (reverse-im--keymaps-alist nil))
+    (set-keymap-parent local-function-key-map function-key-map)
+    (reverse-im-activate "cyrillic-colemak")
+    (save-window-excursion
+      (with-temp-buffer
+        (switch-to-buffer (current-buffer))
+        (insert "foo foo foo")
+        (goto-char (point-min))
+        (helixel-normal-state 1)
+        (execute-kbd-macro (kbd "/ f o o RET о О о"))
+        (should (= (region-beginning) 5))
+        (should (eq (helixel-search--current-dir) 'forward))
+        (execute-kbd-macro (kbd "i о О <escape>"))
+        (should (string-match-p "оО" (buffer-string)))))))
 
 (ert-deftest helixel-insert-deletes-previous-word ()
   (skip-unless (require 'helixel nil t))

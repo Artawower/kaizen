@@ -111,15 +111,26 @@
   (helixel-mark-inner-word 1))
 
 (defun kaizen/helixel-search-or-next ()
-  "Search active selection first, otherwise repeat or search word at point."
+  "Repeat active search, otherwise search selection or word at point."
   (interactive)
   (cond
-   ((use-region-p)
-    (helixel-search--from-region 'forward))
    ((bound-and-true-p helixel--active-search)
     (call-interactively #'helixel-search-repeat-next))
+   ((use-region-p)
+    (helixel-search--from-region 'forward))
    (t
     (call-interactively #'helixel-search-at-point-next))))
+
+(defun kaizen/helixel-search-reverse ()
+  "Repeat in the opposite direction without changing the active search."
+  (interactive)
+  (let ((helixel--active-search
+         (and helixel--active-search
+              (copy-sequence helixel--active-search))))
+    (call-interactively #'helixel-search-repeat-reverse)
+    (when (and (eq (helixel-search--safe-category) 'search)
+               (use-region-p))
+      (exchange-point-and-mark))))
 
 (defvar-keymap kaizen/helixel-vcs-map
   "l" #'kaizen/open-vcs-ui
@@ -243,7 +254,7 @@
   (helixel-define-key 'normal (kbd "SPC Q")      #'save-buffers-kill-terminal)
 
   (helixel-define-key 'normal "n" #'kaizen/helixel-search-or-next)
-  (helixel-define-key 'normal "N" #'helixel-search-repeat-reverse)
+  (helixel-define-key 'normal "N" #'kaizen/helixel-search-reverse)
   (helixel-define-key 'normal "w" #'helixel-forward-word-start)
   (helixel-define-key 'normal "W" #'helixel-forward-WORD-start)
   (define-key helixel-normal-map (kbd "C-j") #'flymake-goto-next-error)
