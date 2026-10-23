@@ -196,6 +196,50 @@ end, {
   desc = "Switch buffer",
 })
 
+local function find_snippets()
+  local context = require("blink.cmp.completion.trigger.context").new({
+    id = vim.uv.hrtime(),
+    providers = { "snippets" },
+    initial_trigger_kind = vim.lsp.protocol.CompletionTriggerKind.Invoked,
+    trigger_kind = vim.lsp.protocol.CompletionTriggerKind.Invoked,
+  })
+  local source = require("blink.cmp.sources.lib").get_provider_by_id("snippets")
+  local filetype = vim.bo.filetype
+
+  source.module:get_completions(context, function(result)
+    local items = {}
+    for _, snippet in ipairs(result.items) do
+      items[#items + 1] = {
+        text = snippet.label .. "  " .. (snippet.description or ""):gsub("%s+", " "),
+        snippet = snippet.insertText,
+        preview = { text = snippet.insertText, ft = filetype, loc = false },
+      }
+    end
+
+    Snacks.picker.pick({
+      title = "Snippets",
+      items = items,
+      format = "text",
+      preview = "preview",
+      layout = { hidden = {} },
+      confirm = function(picker, item)
+        picker:close()
+        if item then
+          vim.schedule(function()
+            if vim.api.nvim_win_is_valid(picker.main) then
+              vim.api.nvim_set_current_win(picker.main)
+              require("blink.cmp.config").snippets.expand(item.snippet)
+            end
+          end)
+        end
+      end,
+    })
+  end)
+end
+
+map("n", "<leader>fs", find_snippets, { desc = "Find snippets" })
+map("n", "<leader>ув", find_snippets, { desc = "Find snippets" })
+
 -- Recent project files
 map("n", "<leader>fr", function()
   Snacks.picker.recent({

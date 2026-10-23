@@ -29,6 +29,7 @@ shortcuts = [
   { keys = [["$"]], description = "Move the cursor to the end of the current line." },
   { keys = [["0"]], description = "Move the cursor to the beginning of the current line." },
   { keys = [["f", "f"]], description = "Find and open a file in the current project." },
+  { keys = [["f", "s"]], description = "Search snippets available to the current filetype, preview their bodies, and insert a selected snippet." },
   { keys = [["z", "M"]], description = "Close all folds in the current document." },
   { keys = [["z", "j"]], description = "Move to the next fold." },
   { keys = [["z", "r"]], description = "Open the fold at the current location." },
