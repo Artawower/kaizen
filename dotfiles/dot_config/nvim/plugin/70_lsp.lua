@@ -71,6 +71,16 @@ vim.lsp.config("eslint", {
   },
 })
 
+vim.lsp.config("ts_ls", {
+  init_options = {
+    tsserver = {
+      fallbackPath = vim.fn.expand(
+        "~/.local/share/mise/installs/npm-typescript/6.0.3/node_modules/typescript/lib/tsserver.js"
+      ),
+    },
+  },
+})
+
 -- Vue
 local function get_vue_language_server_path()
   local executable = vim.fn.exepath("vue-language-server")
