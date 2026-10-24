@@ -36,7 +36,24 @@ Omitted `platforms` means macOS and Linux; restrict a whole recipe with `platfor
 
 ## Configuration authority
 
-Before adding, changing, or adapting any application configuration, agents MUST read `config.example.toml` in full. It is the single source of truth for explicit user intent, preferences, and requirements to preserve when adapting or replacing applications, not an inventory of installed software or every native configuration option. Update that intent there first, then keep native configs and runtime defaults consistent. Software, versions, platforms, and installation hooks belong in `features/*.toml`; application-specific implementation belongs in native configs. Report unsupported requirements or conflicts instead of silently substituting preferences.
+Before changing application configuration, read `config.example.toml` in full
+and preserve its existing requirements.
+
+Treat `config.example.toml` as read-only unless the user explicitly asks to
+edit it or record a requirement there. Requests to fix bugs, change application
+behavior, add shortcuts, or install software do not grant this permission.
+
+When editing is authorized, change only the requested entries. Add explanatory
+comments, descriptive keys, or implementation notes only when explicitly requested.
+
+Application-specific changes belong in native configs. Software, versions,
+platforms, and installation hooks belong in `features/*.toml`.
+
+If a request conflicts with an existing requirement, report the conflict and
+ask which should take precedence.
+
+Before finishing, verify that `config.example.toml` is unchanged unless its
+modification was explicitly authorized.
 
 For keybinding additions, changes, or restored configs, agents MUST follow `[keyboard]` and `[keyboard.aliases.ru]` in `config.example.toml`. Determine whether the application consumes characters or physical key codes; compensate physical inputs and outputs for `layout`. Use native language-mapping facilities or explicit command aliases, preserving sequences, modifiers, and Shift without altering text insertion. Verify Latin/Russian command equivalence and report unsupported mappings or collisions instead of silently skipping them.
 
