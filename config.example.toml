@@ -107,18 +107,11 @@ m = "ь"
 "," = "б"
 "." = "ю"
 
-[editor]
-emmet = "Expand HTML, JSX, TSX, and CSS abbreviations with Super+E in normal and insert modes; wrap selected text in visual mode."
-tag_pairs = "Automatically close tags and synchronize paired tag names when editing HTML, JSX, and TSX."
-tailwind_css = "Provide Tailwind CSS class completion, hover documentation, and diagnostics in supported project files."
-angular_formatting = "Format Angular HTML templates with the Angular parser, preserving control-flow block indentation and project Prettier settings."
-review_shortcuts = "In Neovim, keep Postilla review actions under SPC r: s starts a session, c adds a comment, and d finishes it; preserve existing roam shortcuts."
 
 [terminal]
 shell = "nu"
 multiplexer = "tuios"
 completion = { provider = "carapace", required = true, source = "https://github.com/carapace-sh/carapace" }
-file_completion = "Fall back to native file and directory completion when the external completion provider returns no suggestions."
 
 [ui]
 font_size = 14

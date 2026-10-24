@@ -33,12 +33,20 @@ vim.pack.add({
           filter_rules = {
             include_current_win = false,
             autoselect_one = true,
-            include_unfocusable_windows = true,
-            bo = {
-              filetype = { "notify" },
-              buftype = { "terminal" },
-            },
           },
+          filter_func = function(windows, rules)
+            local current = vim.api.nvim_get_current_win()
+            return vim.tbl_filter(function(win)
+              local config = vim.api.nvim_win_get_config(win)
+              local buf = vim.api.nvim_win_get_buf(win)
+              return (rules.include_current_win or win ~= current)
+                and config.relative == ""
+                and not config.external
+                and config.focusable
+                and not vim.wo[win].previewwindow
+                and vim.bo[buf].buftype == ""
+            end, windows)
+          end,
         })
       end,
     },
@@ -293,7 +301,7 @@ local function pick_window()
   end
 end
 
-map({ "n", "i" }, "<D-.>", pick_window, {
+map({ "n", "i" }, { "<D-.>", "<D-ю>" }, pick_window, {
   desc = "Pick window",
 })
 
