@@ -1,4 +1,4 @@
-local map = vim.keymap.set
+local map = require("helpers").map
 
 vim.pack.add({
   {
@@ -124,10 +124,10 @@ local function roam_insert()
   end)
 end
 
-map("n", "<leader>rf", roam_find, {
+map("n", { "<leader>rf", "<leader>ыу" }, roam_find, {
   desc = "Find roam node",
 })
 
-map("n", "<leader>ri", roam_insert, {
+map("n", { "<leader>ri", "<leader>ыд" }, roam_insert, {
   desc = "Insert roam node",
 })

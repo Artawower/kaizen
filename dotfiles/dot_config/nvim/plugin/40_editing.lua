@@ -1,4 +1,4 @@
-local map = vim.keymap.set
+local map = require("helpers").map
 
 local treesitter_parsers = {
   "lua",
@@ -95,8 +95,16 @@ vim.pack.add({
             typescript = { "prettierd", "prettier", stop_after_first = true },
             javascriptreact = { "prettierd", "prettier", stop_after_first = true },
             typescriptreact = { "prettierd", "prettier", stop_after_first = true },
+            html = { "prettierd", "prettier", stop_after_first = true },
+            htmlangular = { "prettier_angular" },
             go = { "gofmt" },
             rust = { "rustfmt" },
+          },
+          formatters = {
+            prettier_angular = {
+              inherit = "prettier",
+              prepend_args = { "--parser", "angular" },
+            },
           },
           format_on_save = {
             timeout_ms = 1000,
@@ -120,6 +128,18 @@ vim.pack.add({
               desc = "Sort by mtime",
               callback = function()
                 require("oil").set_sort({ { "mtime", "desc" }, { "name", "asc" } })
+              end,
+            },
+            ["<leader>вп"] = {
+              desc = "Sort by mtime",
+              callback = function()
+                require("oil").set_sort({ { "mtime", "desc" }, { "name", "asc" } })
+              end,
+            },
+            ["<leader>во"] = {
+              desc = "Sort by name",
+              callback = function()
+                require("oil").set_sort({ { "type", "asc" }, { "name", "asc" } })
               end,
             },
             ["<leader>sn"] = {
@@ -289,11 +309,11 @@ bento_api.register_action("lock", {
 })
 bento_api.set_default_action("open")
 
-map("n", "<leader>.", "<cmd>Oil<CR>", {
+map("n", { "<leader>.", "<leader>ю" }, "<cmd>Oil<CR>", {
   desc = "Open parent directory",
 })
 
-map("n", "<leader>>", function()
+map("n", { "<leader>>", "<leader>Ю" }, function()
   local win = require("helpers").right_split()
   vim.api.nvim_set_current_win(win)
   vim.cmd.Oil()
@@ -301,7 +321,7 @@ end, {
   desc = "Oil in right split",
 })
 
-map("n", "<leader>op", function()
+map("n", { "<leader>op", "<leader>жк" }, function()
   require("lz.n").trigger_load("plugin-view.nvim")
   require("plugin-view").open()
 end, {

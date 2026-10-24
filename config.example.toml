@@ -30,6 +30,7 @@ shortcuts = [
   { keys = [["0"]], description = "Move the cursor to the beginning of the current line." },
   { keys = [["f", "f"]], description = "Find and open a file in the current project." },
   { keys = [["f", "s"]], description = "Search snippets available to the current filetype, preview their bodies, and insert a selected snippet." },
+  { keys = [["a", "c"]], description = "Copy selected code with its project-relative path and line range for AI context; in Neovim normal mode, copy the current line." },
   { keys = [["Super", "e"]], description = "Expand an Emmet abbreviation or wrap the selected text." },
   { keys = [["Super", "w"]], description = "Close the current split window, not its buffer or the whole editor, without forcing away unsaved changes." },
   { keys = [["z", "M"]], description = "Close all folds in the current document." },
@@ -110,6 +111,8 @@ m = "ь"
 emmet = "Expand HTML, JSX, TSX, and CSS abbreviations with Super+E in normal and insert modes; wrap selected text in visual mode."
 tag_pairs = "Automatically close tags and synchronize paired tag names when editing HTML, JSX, and TSX."
 tailwind_css = "Provide Tailwind CSS class completion, hover documentation, and diagnostics in supported project files."
+angular_formatting = "Format Angular HTML templates with the Angular parser, preserving control-flow block indentation and project Prettier settings."
+review_shortcuts = "In Neovim, keep Postilla review actions under SPC r: s starts a session, c adds a comment, and d finishes it; preserve existing roam shortcuts."
 
 [terminal]
 shell = "nu"

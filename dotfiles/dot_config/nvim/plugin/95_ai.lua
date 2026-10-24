@@ -1,4 +1,4 @@
-local map = vim.keymap.set
+local map = require("helpers").map
 
 vim.pack.add({
   {
@@ -76,17 +76,17 @@ vim.pack.add({
 }, { load = require("lz.n").load })
 
 
-map({ "x", "n" }, "<leader>as", function()
+map({ "x", "n" }, { "<leader>rs", "<leader>ыв" }, function()
   require("lz.n").trigger_load("postilla.nvim")
   vim.cmd.PostillaStart()
 end, { desc = "Start AI review session" })
 
-map({ "x", "n" }, "<leader>ac", function()
+map({ "x", "n" }, { "<leader>rc", "<leader>ыс" }, function()
   require("lz.n").trigger_load("postilla.nvim")
   vim.cmd.PostillaComment()
 end, { desc = "Comment to AI" })
 
-map({ "x", "n" }, "<leader>af", function()
+map({ "x", "n" }, { "<leader>rd", "<leader>ып" }, function()
   require("lz.n").trigger_load("postilla.nvim")
   vim.cmd.PostillaDone()
 end, { desc = "Finish AI review" })

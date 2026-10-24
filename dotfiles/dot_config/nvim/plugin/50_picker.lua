@@ -22,7 +22,7 @@ vim.pack.add({
 }, { load = require("lz.n").load })
 
 local Snacks = require("snacks")
-local map = vim.keymap.set
+local map = require("helpers").map
 
 local function split_grep_query(str)
   local function find_unescaped(s, start)
@@ -161,7 +161,7 @@ local function project_root()
 end
 
 -- Files
-map("n", "<leader>ff", function()
+map("n", { "<leader>ff", "<leader>уу" }, function()
   local root = project_root()
 
   Snacks.picker.smart({
@@ -190,7 +190,7 @@ end, {
 })
 
 -- Buffers
-map({ "n", "x" }, "<leader>bb", function()
+map({ "n", "x" }, { "<leader>bb", "<leader>ии" }, function()
   Snacks.picker.buffers()
 end, {
   desc = "Switch buffer",
@@ -237,11 +237,10 @@ local function find_snippets()
   end)
 end
 
-map("n", "<leader>fs", find_snippets, { desc = "Find snippets" })
-map("n", "<leader>ув", find_snippets, { desc = "Find snippets" })
+map("n", { "<leader>fs", "<leader>ув" }, find_snippets, { desc = "Find snippets" })
 
 -- Recent project files
-map("n", "<leader>fr", function()
+map("n", { "<leader>fr", "<leader>уы" }, function()
   Snacks.picker.recent({
     filter = {
       cwd = project_root(),
@@ -252,14 +251,14 @@ end, {
 })
 
 -- Recent files
-map("n", "<leader>fR", function()
+map("n", { "<leader>fR", "<leader>уЫ" }, function()
   Snacks.picker.recent()
 end, {
   desc = "Recent files",
 })
 
 -- Resume
-map("n", "<leader>''", function()
+map("n", { "<leader>''", "<leader>ээ" }, function()
   Snacks.picker.resume()
 end, {
   desc = "Resume latest search",
@@ -311,19 +310,19 @@ end, {
   desc = "Go to type definition",
 })
 
-map("n", "<leader>ls", function()
+map("n", { "<leader>ls", "<leader>гв" }, function()
   Snacks.picker.lsp_symbols()
 end, {
   desc = "Document symbols",
 })
 
-map("n", "<leader>lS", function()
+map("n", { "<leader>lS", "<leader>гВ" }, function()
   Snacks.picker.lsp_workspace_symbols()
 end, {
   desc = "Workspace symbols",
 })
 
-map("n", "<leader>ld", function()
+map("n", { "<leader>ld", "<leader>гп" }, function()
   Snacks.picker.diagnostics_buffer()
 end, {
   desc = "Diagnostics",
@@ -503,7 +502,7 @@ local function file_info()
   end)
 end
 
-map("n", "<leader>fi", file_info, {
+map("n", { "<leader>fi", "<leader>уд" }, file_info, {
   desc = "File info",
 })
 
@@ -542,10 +541,10 @@ local function toggle_bookmark()
   end)
 end
 
-map({ "n", "x" }, "<leader>bm", toggle_bookmark, {
+map({ "n", "x" }, { "<leader>bm", "<leader>иь" }, toggle_bookmark, {
   desc = "Toggle bookmark",
 })
-map({ "n", "x" }, "<leader>ma", toggle_bookmark, {
+map({ "n", "x" }, { "<leader>ma", "<leader>ьф" }, toggle_bookmark, {
   desc = "Toggle bookmark",
 })
 
@@ -554,10 +553,10 @@ local function toggle_bookmarks_panel()
   require("grapple").toggle_tags()
 end
 
-map({ "n", "x" }, "<leader>bl", toggle_bookmarks_panel, {
+map({ "n", "x" }, { "<leader>bl", "<leader>иг" }, toggle_bookmarks_panel, {
   desc = "Bookmarks",
 })
-map({ "n", "x" }, "<leader>mm", toggle_bookmarks_panel, {
+map({ "n", "x" }, { "<leader>mm", "<leader>ьь" }, toggle_bookmarks_panel, {
   desc = "Bookmarks",
 })
 
@@ -575,13 +574,13 @@ end, {
   desc = "Previous bookmark",
 })
 
-map("n", "<leader>pp", function()
+map("n", { "<leader>pp", "<leader>кк" }, function()
   Snacks.picker.projects()
 end, {
   desc = "Projects",
 })
 
-map("n", "<leader>of", function()
+map("n", { "<leader>of", "<leader>жу" }, function()
   Snacks.explorer()
 end, {
   desc = "Explorer",
@@ -594,7 +593,7 @@ end, {
 --   })
 -- end, { desc = "Scratch note" })
 
-map("n", "<leader>n", function()
+map("n", { "<leader>n", "<leader>о" }, function()
   vim.ui.input({ prompt = "Note name: " }, function(name)
     if not name or name == "" then
       return
@@ -607,18 +606,18 @@ map("n", "<leader>n", function()
   end)
 end, { desc = "New note" })
 
-vim.keymap.set({ "n", "x" }, "<leader>N", function()
+map({ "n", "x" }, { "<leader>N", "<leader>О" }, function()
   Snacks.scratch.select()
 end, { desc = "Scratch notes" })
 
 -- Help
-map("n", "<leader>hc", function()
+map("n", { "<leader>hc", "<leader>рс" }, function()
   Snacks.picker.commands()
 end, {
   desc = "Commands",
 })
 
-map("n", "<leader>hh", function()
+map("n", { "<leader>hh", "<leader>рр" }, function()
   Snacks.picker.help()
 end, {
   desc = "Commands",

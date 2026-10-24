@@ -1,4 +1,4 @@
-local map = vim.keymap.set
+local map = require("helpers").map
 
 local function configure_servers()
 vim.lsp.config("lua_ls", {
@@ -329,17 +329,17 @@ map({ "n", "x" }, "gd", without_selection(vim.lsp.buf.definition), {
   desc = "Go to definition",
 })
 
-map({ "n", "x" }, "<leader>la", without_selection(vim.lsp.buf.code_action), {
+map({ "n", "x" }, { "<leader>la", "<leader>гф" }, without_selection(vim.lsp.buf.code_action), {
   desc = "Code action",
 })
 
 
-map({ "n", "x" }, "<leader>lr", without_selection(vim.lsp.buf.rename), {
+map({ "n", "x" }, { "<leader>lr", "<leader>гы" }, without_selection(vim.lsp.buf.rename), {
   desc = "Rename symbol",
 })
 
 
-map({ "n", "x" }, "<leader>lh", without_selection(vim.lsp.buf.hover), {
+map({ "n", "x" }, { "<leader>lh", "<leader>гр" }, without_selection(vim.lsp.buf.hover), {
   desc = "Hover",
 })
 
@@ -519,11 +519,11 @@ local function copy_all_diagnostics()
   )
 end
 
-map("n", "<leader>ec", copy_current_diagnostic, {
+map("n", { "<leader>ec", "<leader>лс" }, copy_current_diagnostic, {
   desc = "Copy diagnostic",
 })
 
-map("n", "<leader>eC", copy_all_diagnostics, {
+map("n", { "<leader>eC", "<leader>лС" }, copy_all_diagnostics, {
   desc = "Copy all diagnostics",
 })
 
@@ -548,7 +548,7 @@ vim.api.nvim_create_autocmd("FileType", {
   end,
 })
 
-map("n", "<leader>qq", function()
+map("n", { "<leader>qq", "<leader>йй" }, function()
   require("lz.n").trigger_load("quicker.nvim")
   require("quicker").toggle()
 end, {
@@ -557,30 +557,24 @@ end, {
 
 -- Copy context
 
-local function get_visual_selection()
-  local start_pos = vim.fn.getpos("v")
-  local end_pos = vim.fn.getpos(".")
-
-  local start_line = start_pos[2]
-  local start_col = start_pos[3]
-  local end_line = end_pos[2]
-  local end_col = end_pos[3]
-
-  if start_line > end_line or (start_line == end_line and start_col > end_col) then
-    start_line, end_line = end_line, start_line
-    start_col, end_col = end_col, start_col
+local function get_context_selection()
+  local mode = vim.fn.mode()
+  if not mode:match("[vV\22]") then
+    local line = vim.api.nvim_win_get_cursor(0)[1]
+    local text = vim.api.nvim_get_current_line()
+    return { text }, line, 1, line, #text
   end
 
-  local lines = vim.api.nvim_buf_get_text(
-    0,
-    start_line - 1,
-    start_col - 1,
-    end_line - 1,
-    end_col,
-    {}
-  )
+  local start_pos = vim.fn.getpos("v")
+  local end_pos = vim.fn.getpos(".")
+  local opts = { type = mode, exclusive = vim.o.selection == "exclusive" }
+  local lines = vim.fn.getregion(start_pos, end_pos, opts)
+  local positions = vim.fn.getregionpos(start_pos, end_pos, opts)
+  local first = positions[1][1]
+  local last = positions[#positions][2]
+  local last_line = vim.api.nvim_buf_get_lines(0, last[2] - 1, last[2], false)[1]
 
-  return lines, start_line, start_col, end_line, end_col
+  return lines, first[2], math.max(first[3], 1), last[2], math.min(#last_line, last[3] + last[4])
 end
 
 local function position_before(line1, col1, line2, col2)
@@ -632,12 +626,11 @@ end
 
 local function copy_selection_context()
   local lines, start_line, start_col, end_line, end_col =
-      get_visual_selection()
+      get_context_selection()
 
-  local path = vim.fn.fnamemodify(
-    vim.api.nvim_buf_get_name(0),
-    ":."
-  )
+  local name = vim.api.nvim_buf_get_name(0)
+  local root = vim.fs.root(name, { ".jj", ".git" }) or vim.fn.getcwd()
+  local path = name ~= "" and (vim.fs.relpath(root, name) or name) or "[No Name]"
 
   local result = string.format(
     "%s, line numbers %d:%d\n\n%s",
@@ -686,6 +679,10 @@ local function copy_selection_context()
     )
   )
 end
+
+map({ "n", "x" }, { "<leader>ac", "<leader>фс" }, copy_selection_context, {
+  desc = "Copy code with context",
+})
 
 map("x", "N", copy_selection_context, {
   desc = "Copy selection with context",

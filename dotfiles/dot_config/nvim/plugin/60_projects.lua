@@ -66,7 +66,7 @@ require("project").setup({
   },
 })
 
-vim.keymap.set("n", "<leader>pp", function()
+require("helpers").map("n", { "<leader>pp", "<leader>кк" }, function()
   require("project.extensions.snacks").pick()
 end, {
   desc = "Projects",

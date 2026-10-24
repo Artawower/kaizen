@@ -1,4 +1,4 @@
-local map = vim.keymap.set
+local map = require("helpers").map
 
 vim.pack.add({
   {
@@ -51,56 +51,56 @@ local function dap()
   return require("dap")
 end
 
-map({ "n", "x" }, "<leader>dc", function()
+map({ "n", "x" }, { "<leader>dc", "<leader>пс" }, function()
   dap().continue()
 end, {
   desc = "Debug continue",
 })
 
-map({ "n", "x" }, "<leader>db", function()
+map({ "n", "x" }, { "<leader>db", "<leader>пи" }, function()
   dap().toggle_breakpoint()
 end, {
   desc = "Toggle breakpoint",
 })
 
-map("n", "<leader>dB", function()
+map("n", { "<leader>dB", "<leader>пИ" }, function()
   dap().set_breakpoint(vim.fn.input("Breakpoint condition: "))
 end, {
   desc = "Conditional breakpoint",
 })
 
-map({ "n", "x" }, "<leader>dn", function()
+map({ "n", "x" }, { "<leader>dn", "<leader>по" }, function()
   dap().step_over()
 end, {
   desc = "Step over",
 })
 
-map({ "n", "x" }, "<leader>di", function()
+map({ "n", "x" }, { "<leader>di", "<leader>пд" }, function()
   dap().step_into()
 end, {
   desc = "Step into",
 })
 
-map({ "n", "x" }, "<leader>do", function()
+map({ "n", "x" }, { "<leader>do", "<leader>пж" }, function()
   dap().step_out()
 end, {
   desc = "Step out",
 })
 
-map({ "n", "x" }, "<leader>dq", function()
+map({ "n", "x" }, { "<leader>dq", "<leader>пй" }, function()
   dap().terminate()
 end, {
   desc = "Terminate debug session",
 })
 
-map({ "n", "x" }, "<leader>dv", function()
+map({ "n", "x" }, { "<leader>dv", "<leader>пм" }, function()
   dap()
   vim.cmd.DapViewToggle()
 end, {
   desc = "Toggle debug view",
 })
 
-map({ "n", "x" }, "<leader>dr", function()
+map({ "n", "x" }, { "<leader>dr", "<leader>пы" }, function()
   dap().repl.toggle()
 end, {
   desc = "Toggle debug REPL",

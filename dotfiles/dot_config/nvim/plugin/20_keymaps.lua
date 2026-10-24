@@ -1,4 +1,4 @@
-local map = vim.keymap.set
+local map = require("helpers").map
 
 vim.pack.add({
   {
@@ -174,38 +174,38 @@ map("n", "<M-]>", "<cmd>bnext<CR>", {
   desc = "Next buffer",
 })
 
-map("n", "<leader>[", "<cmd>bprevious<CR>", {
+map("n", { "<leader>[", "<leader>х" }, "<cmd>bprevious<CR>", {
   desc = "Previous buffer",
 })
 
-map("n", "<leader>]", "<cmd>bnext<CR>", {
+map("n", { "<leader>]", "<leader>ъ" }, "<cmd>bnext<CR>", {
   desc = "Next buffer",
 })
 
 map({ "n", "i", "x" }, "<D-w>", "<cmd>close<CR>", { desc = "Close pane" })
 map({ "n", "i", "x" }, "<D-ц>", "<cmd>close<CR>", { desc = "Close pane" })
 
-map("n", "<leader>wq", "<cmd>close<CR>", {
+map("n", { "<leader>wq", "<leader>цй" }, "<cmd>close<CR>", {
   desc = "Close pane",
 })
 
-map("n", "<leader>q", "<cmd>bdelete<CR>", {
+map("n", { "<leader>q", "<leader>й" }, "<cmd>bdelete<CR>", {
   desc = "Close buffer",
 })
 
-map("n", "<leader>x", "<cmd>bdelete<CR>", {
+map("n", { "<leader>x", "<leader>ч" }, "<cmd>bdelete<CR>", {
   desc = "Close buffer",
 })
 
-map("n", "<leader>Q", "<cmd>qa<CR>", {
+map("n", { "<leader>Q", "<leader>Й" }, "<cmd>qa<CR>", {
   desc = "Quit all",
 })
 
-map("n", "<leader>wv", "<cmd>vsplit<CR>", {
+map("n", { "<leader>wv", "<leader>цм" }, "<cmd>vsplit<CR>", {
   desc = "Vertical split",
 })
 
-map("n", "<leader>wh", "<cmd>split<CR>", {
+map("n", { "<leader>wh", "<leader>цр" }, "<cmd>split<CR>", {
   desc = "Horizontal split",
 })
 
@@ -225,7 +225,7 @@ map("n", "<C-w>l", "<C-w>l", {
   desc = "Window right",
 })
 
-map("n", "<leader>wr", "<C-w>r", {
+map("n", { "<leader>wr", "<leader>цы" }, "<C-w>r", {
   desc = "Rotate windows",
 })
 
@@ -242,7 +242,7 @@ local function toggle_maximize()
   vim.cmd("wincmd |")
 end
 
-map("n", "<leader>wf", toggle_maximize, {
+map("n", { "<leader>wf", "<leader>цу" }, toggle_maximize, {
   desc = "Toggle window maximize",
 })
 

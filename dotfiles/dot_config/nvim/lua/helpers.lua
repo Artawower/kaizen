@@ -1,5 +1,11 @@
 local M = {}
 
+function M.map(mode, keys, action, opts)
+  for _, key in ipairs(type(keys) == "table" and keys or { keys }) do
+    vim.keymap.set(mode, key, action, opts)
+  end
+end
+
 function M.right_split()
   local current = vim.api.nvim_get_current_win()
 

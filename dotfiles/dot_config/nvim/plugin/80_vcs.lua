@@ -1,4 +1,4 @@
-local map = vim.keymap.set
+local map = require("helpers").map
 
 vim.g.blamer_enabled = true
 
@@ -155,7 +155,7 @@ vim.pack.add({
   },
 }, { load = require("lz.n").load })
 
-map("n", "<leader>vB", function()
+map("n", { "<leader>vB", "<leader>мИ" }, function()
   local initialized = vim.g.blamer_is_initialized == 1
   require("lz.n").trigger_load("blamer.nvim")
   if initialized then
@@ -170,37 +170,37 @@ local function jj()
   return require("jujutsu")
 end
 
-map("n", "<leader>vl", function()
+map("n", { "<leader>vl", "<leader>мг" }, function()
   jj().open()
 end, { desc = "Open version control log" })
 
 
-map("n", "<leader>vh", function()
+map("n", { "<leader>vh", "<leader>мр" }, function()
   jj().open()
 end, { desc = "Open version control history" })
 
-map("n", "<leader>vm", function()
+map("n", { "<leader>vm", "<leader>мь" }, function()
   jj().action("change", "commit")()
 end, { desc = "JJ commit" })
 
-map("n", "<leader>vc", function()
+map("n", { "<leader>vc", "<leader>мс" }, function()
   jj()
   require("jj.picker").status()
 end, { desc = "JJ changed files" })
 
-map("n", "<leader>vb", function()
+map("n", { "<leader>vb", "<leader>ми" }, function()
   jj().annotate()
 end, { desc = "JJ annotate" })
 
-map("n", "<leader>vr", function()
+map("n", { "<leader>vr", "<leader>мы" }, function()
   jj().review()
 end, { desc = "JJ review" })
 
-map("n", "<leader>vg", function()
+map("n", { "<leader>vg", "<leader>ме" }, function()
   jj().forge_popup()
 end, { desc = "JJ forge" })
 
-map("n", "<leader>vi", function()
+map("n", { "<leader>vi", "<leader>мд" }, function()
   jj().issue_panel()
 end, { desc = "JJ issues" })
 
@@ -227,13 +227,13 @@ end, {
   desc = "Previous git hunk",
 })
 
-map("n", "<leader>gp", function()
+map("n", { "<leader>gp", "<leader>ек" }, function()
   diff().toggle_overlay()
 end, {
   desc = "Toggle git diff",
 })
 
-map("n", "<leader>gr", function()
+map("n", { "<leader>gr", "<leader>еы" }, function()
   local d = diff()
   local bufnr = vim.api.nvim_get_current_buf()
   local line = vim.api.nvim_win_get_cursor(0)[1]
