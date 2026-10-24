@@ -430,9 +430,12 @@ vim.diagnostic.config({
   severity_sort = true,
 })
 
-local function has_open_float()
-  for _, win in ipairs(vim.api.nvim_list_wins()) do
-    if vim.api.nvim_win_get_config(win).relative ~= "" then
+local function has_open_documentation()
+  local bufnr = vim.api.nvim_get_current_buf()
+
+  for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+    if vim.w[win]["textDocument/hover"] == bufnr
+        or vim.w[win]["textDocument/signatureHelp"] == bufnr then
       return true
     end
   end
@@ -442,12 +445,12 @@ end
 
 vim.api.nvim_create_autocmd("CursorHold", {
   callback = function()
-    if has_open_float() then
+    if has_open_documentation() then
       return
     end
 
     vim.diagnostic.open_float(nil, {
-      scope = "cursor",
+      scope = "line",
       focus = false,
     })
   end,
