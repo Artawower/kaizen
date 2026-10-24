@@ -188,7 +188,16 @@ local servers = {
   "copilot",
 }
 
+vim.g.dispatch_no_maps = 1
+vim.g.dispatch_no_tmux_make = 1
+
 vim.pack.add({
+  {
+    src = "https://github.com/tpope/vim-dispatch",
+    data = {
+      cmd = { "Dispatch", "Make", "Copen", "FocusDispatch", "AbortDispatch", "Start", "Spawn" },
+    },
+  },
   {
     src = "https://github.com/neovim/nvim-lspconfig",
     data = {
