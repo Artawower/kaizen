@@ -82,4 +82,33 @@ assert(vim.api.nvim_get_current_win() == current, "No-candidate selection change
 assert(notification == "No windows left to pick after filtering", "No-candidate selection did not exit cleanly")
 assert(vim.api.nvim_win_is_valid(preview), "Picker closed a utility window")
 print("PASS: real picker excludes floating, terminal, help, quickfix, prompt, scratch and preview windows; unnamed/readonly editors remain; normal/insert Russian aliases; zero/one/multiple candidates")
+
+vim.opt.runtimepath:append(vim.fn.stdpath("data") .. "/site/pack/core/opt/snacks.nvim")
+local snacks = require("snacks")
+snacks.setup({ picker = { enabled = true } })
+local sidebar = snacks.picker.pick({
+  title = "JJ Status",
+  items = { { text = "modified.ts" }, { text = "added.ts" } },
+  format = "text",
+  preview = function() end,
+  auto_close = false,
+  jump = { close = false },
+  layout = { preset = "sidebar", preview = "main", layout = { position = "left", width = 35 } },
+})
+assert(vim.wait(1000, function() return sidebar.list.win:valid() and sidebar.input.win:valid() end), "Sidebar did not open")
+local list = sidebar.list.win.win
+local input = sidebar.input.win.win
+assert(vim.bo[sidebar.list.win.buf].filetype == "snacks_picker_list")
+assert(vim.bo[sidebar.input.win.buf].filetype == "snacks_picker_input")
+vim.cmd("stopinsert")
+vim.api.nvim_set_current_win(current)
+candidates = nil
+local selected = picker.pick_window({ filter_rules = { autoselect_one = false } })
+assert(selected == list, "Sidebar list cannot be selected: " .. tostring(selected))
+assert(vim.deep_equal(candidates, { list }), "Sidebar list is missing or input was included: " .. vim.inspect(candidates))
+mapping.callback()
+assert(vim.api.nvim_get_current_win() == list, "Window jump did not focus the sidebar list")
+assert(vim.api.nvim_get_current_win() ~= input, "Window jump focused the input")
+sidebar:close()
+print("PASS: actual Snacks sidebar list is selectable; input and layout containers are excluded")
 vim.cmd("qa!")

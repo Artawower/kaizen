@@ -40,11 +40,14 @@ vim.pack.add({
               local config = vim.api.nvim_win_get_config(win)
               local buf = vim.api.nvim_win_get_buf(win)
               return (rules.include_current_win or win ~= current)
-                and config.relative == ""
                 and not config.external
                 and config.focusable
                 and not vim.wo[win].previewwindow
-                and vim.bo[buf].buftype == ""
+                and vim.bo[buf].filetype ~= "snacks_picker_input"
+                and (
+                  vim.bo[buf].filetype == "snacks_picker_list"
+                  or (config.relative == "" and vim.bo[buf].buftype == "")
+                )
             end, windows)
           end,
         })
