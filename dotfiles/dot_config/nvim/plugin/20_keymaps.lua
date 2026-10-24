@@ -46,7 +46,10 @@ vim.pack.add({
                 and vim.bo[buf].filetype ~= "snacks_picker_input"
                 and (
                   vim.bo[buf].filetype == "snacks_picker_list"
-                  or (config.relative == "" and vim.bo[buf].buftype == "")
+                  or (
+                    config.relative == ""
+                    and (vim.bo[buf].buftype == "" or vim.bo[buf].filetype == "oil")
+                  )
                 )
             end, windows)
           end,

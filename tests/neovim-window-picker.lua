@@ -111,4 +111,36 @@ assert(vim.api.nvim_get_current_win() == list, "Window jump did not focus the si
 assert(vim.api.nvim_get_current_win() ~= input, "Window jump focused the input")
 sidebar:close()
 print("PASS: actual Snacks sidebar list is selectable; input and layout containers are excluded")
+
+vim.opt.runtimepath:append(vim.fn.stdpath("data") .. "/site/pack/core/opt/oil.nvim")
+local oil = require("oil")
+oil.setup({ default_file_explorer = false })
+vim.api.nvim_set_current_win(current)
+local oil_window = split()
+local ready = false
+oil.open(root .. "/tests", {}, function() ready = true end)
+assert(vim.wait(2000, function() return ready end), "Oil directory did not load")
+local oil_buffer = vim.api.nvim_win_get_buf(oil_window)
+assert(vim.bo[oil_buffer].filetype == "oil" and vim.bo[oil_buffer].buftype == "acwrite")
+local oil_float = vim.api.nvim_open_win(oil_buffer, false, {
+  relative = "editor", row = 1, col = 1, width = 20, height = 2,
+})
+vim.api.nvim_win_set_buf(preview, oil_buffer)
+vim.api.nvim_set_current_win(current)
+candidates = nil
+local oil_selected = picker.pick_window({ filter_rules = { autoselect_one = false } })
+assert(oil_selected == oil_window, "Actual Oil split cannot be selected: " .. tostring(oil_selected))
+assert(vim.deep_equal(candidates, { oil_window }), "Oil float or preview was included: " .. vim.inspect(candidates))
+picker.setup({ filter_rules = { autoselect_one = true } })
+for _, mode in ipairs({ "n", "i" }) do
+  for _, keys in ipairs({ "<D-.>", "<D-ю>" }) do
+    vim.api.nvim_set_current_win(current)
+    vim.fn.maparg(keys, mode, false, true).callback()
+    assert(vim.api.nvim_get_current_win() == oil_window, "Shortcut did not focus Oil: " .. mode .. " " .. keys)
+    vim.fn.maparg(keys, mode, false, true).callback()
+    assert(vim.api.nvim_get_current_win() == current, "Shortcut did not return from Oil to the editor")
+  end
+end
+vim.api.nvim_win_close(oil_float, true)
+print("PASS: actual Oil split is selectable in both directions with Latin/Russian shortcuts; Oil floats and previews remain excluded")
 vim.cmd("qa!")
