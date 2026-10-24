@@ -1,7 +1,7 @@
 use scripts/project.nu * 
 
 $env.config = ($env.config | merge {
-    edit_mode: helix
+    edit_mode: vi
     buffer_editor: ["emacsclient", "-nw"]
     history: {file_format: sqlite}
     completions: {algorithm: fuzzy, sort: smart, case_sensitive: false}
