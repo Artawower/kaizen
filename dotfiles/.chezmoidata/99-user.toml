@@ -1,0 +1,7 @@
+layout = "colemak-regular"
+
+[ui]
+font_size = 16
+
+[extra]
+brew_casks = ["arc", "zed"]

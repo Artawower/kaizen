@@ -1,0 +1,10 @@
+from abc import ABC, abstractproperty
+
+class Dependency(ABC):
+    @abstractproperty
+    def name(self): ...
+
+    @abstractproperty
+    def disabled
+        
+

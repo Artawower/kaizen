@@ -13,7 +13,9 @@ tools = {node = "26.12.0", pnpm = "12.14.0", bun = "latest", "cargo:tree-sitter-
 
 [monitoring]
 description = "Tools for self reflection and system debug"
-brew = ["HERE?"]
+platforms = ["macos"]
+taps = ["k06a/tap"]
+brew = ["macpow"]
 
 [fonts]
 description = "Fonts and Nerd Fonts"

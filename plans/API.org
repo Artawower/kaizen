@@ -1,0 +1,46 @@
+:PROPERTIES:
+:ID: 76C23D30-690F-4526-AACA-3333D37480EB
+:END:
+
+#+TITLE: API
+#+FILETAGS: :plans:
+
+
+
+* Kaizen.
+The system for manage you dotefiles, package installation and so on..
+
+
+
+* Dependency declaration..
+
+#+BEGIN_SRC toml :results output
+[package]
+name = "nvim"
+disabled = false # Optional
+
+[[package.sources]] # Optional source if the name or command are different
+source = "dnf"
+prehook = "dnf update"   # Optional
+command = "dfn install"  
+
+
+[[package.dependencies]]
+source = "dnf"
+prehook = "dnf update"   # Optional
+command = "dfn install"  
+#+END_SRC
+
+
+#+BEGIN_SRC python
+from abc import ABC, abstractproperty
+
+class Dependency(ABC):
+    @abstractproperty
+    def name(self): ...
+
+    @abstractproperty
+    def disabled
+        
+
+#+END_SRC

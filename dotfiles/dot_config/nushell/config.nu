@@ -1,3 +1,5 @@
+use scripts/project.nu * 
+
 $env.config = ($env.config | merge {
     edit_mode: helix
     buffer_editor: ["emacsclient", "-nw"]
