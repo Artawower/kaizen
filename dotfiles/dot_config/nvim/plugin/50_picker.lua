@@ -92,6 +92,11 @@ Snacks.setup({
     enabled = true,
     limit = 2000,
     limit_live = 2000,
+    actions = {
+      refresh = function(picker)
+        picker:refresh()
+      end,
+    },
     sources = {
       grep = {
         filter = {
@@ -133,6 +138,7 @@ Snacks.setup({
           ["<C-f>"] = { "toggle_live", mode = { "i", "n" } },
           ["<M-l>"] = { "toggle_live", mode = { "i", "n" } },
           ["<Tab>"] = { "toggle_preview", mode = { "i", "n" } },
+          ["<F5>"] = { "refresh", mode = { "i", "n" } },
         },
       },
       list = {
@@ -143,6 +149,7 @@ Snacks.setup({
           ["<C-f>"] = "toggle_live",
           ["<M-l>"] = "toggle_live",
           ["<Tab>"] = "toggle_preview",
+          ["<F5>"] = "refresh",
         },
       },
     },
@@ -169,6 +176,9 @@ map("n", { "<leader>ff", "<leader>уу" }, function()
 
     filter = {
       cwd = root,
+      filter = function(item)
+        return not item.buf or vim.bo[item.buf].modified or vim.uv.fs_stat(item.file) ~= nil
+      end,
     },
   })
 end, {
