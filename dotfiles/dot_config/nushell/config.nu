@@ -9,6 +9,16 @@ $env.config = ($env.config | merge {
 })
 
 source $"($nu.cache-dir)/carapace.nu"
+let external_completer = $env.config.completions.external.completer
+$env.config.completions.external.completer = {|place|
+    let result = (do $external_completer $place)
+    if ($result | is-empty) {
+        null
+    } else {
+        $result
+    }
+}
+
 source ~/.atuin/init.nu
 source ~/.config/nushell/aliases.nu
 source ~/.config/nushell/task-runner.nu
