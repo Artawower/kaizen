@@ -219,6 +219,20 @@
       (should (equal (buffer-string) "private"))
       (should-not completion-in-region-mode))))
 
+(ert-deftest embark-collect-uses-native-consult-preview ()
+  (skip-unless (and (require 'use-package nil t)
+                    (require 'embark nil t)
+                    (require 'consult nil t)))
+  (eval (kaizen-test-form "dotfiles/dot_emacs.d/README.org"
+                          "(use-package embark-consult"))
+  (with-temp-buffer
+    (embark-collect-mode)
+    (should (derived-mode-p 'embark-collect-mode))
+    (should-not (memq 'consult-preview-at-point-mode embark-collect-mode-hook))
+    (should (memq #'consult--default-completion-list-preview post-command-hook))
+    (should (memq #'embark-consult--collect-candidate
+                  consult--completion-candidate-hook))))
+
 (ert-deftest html-lsp-corfu-preserves-member-access-and-surrounding-text ()
   (skip-unless (and (require 'corfu nil t)
                     (require 'cape nil t)

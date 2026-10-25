@@ -711,6 +711,7 @@ map("x", "N", copy_selection_context, {
 
 
 -- Compile
+
 local run_errorformat = table.concat({
   "%f:%l:%c: %m",
   "%f:%l: %m",
@@ -722,38 +723,95 @@ local run_errorformat = table.concat({
   "%-G%.%#",
 }, ",")
 
-vim.api.nvim_create_user_command("Run", function(opts)
-  local efm = run_errorformat .. "," .. vim.bo.errorformat
-
-  vim.system({ vim.o.shell, vim.o.shellcmdflag, opts.args }, {
+local function run_command(command, title, cwd, efm)
+  vim.system(command, {
+    cwd = cwd,
     text = true,
-    cwd = vim.fn.getcwd(),
     env = { NO_COLOR = "1", FORCE_COLOR = "0" },
   }, vim.schedule_wrap(function(result)
     local output = (result.stdout or "") .. "\n" .. (result.stderr or "")
     output = output:gsub("\27%[[0-9;]*[ -/]*[@-~]", "")
+    output = output:gsub("\r\n", "\n"):gsub("\r", "\n")
 
-    local items = vim.fn.getqflist({
-      lines = vim.split(output:gsub("\r", "\n"), "\n"),
+    local parsed = vim.fn.getqflist({
+      lines = vim.split(output, "\n"),
       efm = efm,
     }).items
 
-    items = vim.tbl_filter(function(item)
+    local items = vim.tbl_filter(function(item)
       return item.valid == 1 and item.bufnr > 0 and item.lnum > 0
-    end, items)
+    end, parsed)
 
     vim.fn.setqflist({}, "r", {
-      title = opts.args,
+      title = title,
       items = items,
     })
 
-    if #items > 0 then
-      vim.cmd("Trouble qflist open")
-    else
-      vim.notify("No parsed errors (exit " .. result.code .. ")")
+    if #items == 0 then
+      vim.cmd("Trouble qflist close")
+      vim.notify(
+        result.code == 0 and "Command completed without errors"
+        or "Command failed (exit " .. result.code .. "), no recognized errors"
+      )
+      return
     end
+
+    vim.cmd("Trouble qflist open")
   end))
+end
+
+vim.api.nvim_create_user_command("Run", function(opts)
+  local cwd = vim.fn.getcwd()
+  local efm = run_errorformat .. "," .. vim.bo.errorformat
+
+  run_command(
+    { vim.o.shell, vim.o.shellcmdflag, opts.args },
+    opts.args,
+    cwd,
+    efm
+  )
 end, {
   nargs = "+",
   complete = "shellcmd",
 })
+
+vim.api.nvim_create_user_command("Tasks", function()
+  local cwd = vim.fn.getcwd()
+  local efm = run_errorformat .. "," .. vim.bo.errorformat
+
+  vim.system({ "runner", "list", "--raw" }, {
+    cwd = cwd,
+    text = true,
+  }, vim.schedule_wrap(function(result)
+    if result.code ~= 0 then
+      vim.notify(result.stderr or "Task discovery failed", vim.log.levels.ERROR)
+      return
+    end
+
+    local tasks = vim.split(vim.trim(result.stdout or ""), "\n", {
+      trimempty = true,
+    })
+
+    if #tasks == 0 then
+      vim.notify("No project tasks found")
+      return
+    end
+
+    require("snacks").picker.pick({
+      title = "Project tasks",
+      format = "text",
+      items = vim.tbl_map(function(task)
+        return { text = task }
+      end, tasks),
+      confirm = function(picker, item)
+        picker:close()
+
+        if not item then
+          return
+        end
+
+        run_command({ "run", "-q", item.text }, "run " .. item.text, cwd, efm)
+      end,
+    })
+  end))
+end, {})
