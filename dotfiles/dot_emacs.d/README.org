@@ -3344,7 +3344,11 @@ Function for search in buffer depends or visual or normal line
   :config
   (require 'cape)
   (defun my/lsp-proxy-completion-with-dabbrev (capf)
-    (let ((result (funcall capf)))
+    (let ((result (if (derived-mode-p 'html-mode 'html-ts-mode)
+                      (with-syntax-table (copy-syntax-table)
+                        (modify-syntax-entry ?. ".")
+                        (funcall capf))
+                    (funcall capf))))
       (if (and result
                (completion-all-completions
                 (buffer-substring-no-properties (nth 0 result) (nth 1 result))

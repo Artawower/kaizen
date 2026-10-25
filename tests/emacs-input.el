@@ -219,6 +219,87 @@
       (should (equal (buffer-string) "private"))
       (should-not completion-in-region-mode))))
 
+(ert-deftest html-lsp-corfu-preserves-member-access-and-surrounding-text ()
+  (skip-unless (and (require 'corfu nil t)
+                    (require 'cape nil t)
+                    (require 'lsp-proxy nil t)))
+  (eval (kaizen-test-form "dotfiles/dot_emacs.d/README.org"
+                          "(defun my/lsp-proxy-completion-with-dabbrev"))
+  (kaizen-test-corfu-bindings)
+  (dolist (mode '(html-mode html-ts-mode))
+    (dolist (prefix '("" "me"))
+      (with-temp-buffer
+        (funcall mode)
+        (buffer-enable-undo)
+        (insert "        {{ deposit." prefix " }}\n      </div>")
+        (goto-char (point-min))
+        (search-forward "deposit.")
+        (let* ((member-start (point))
+               (edit-start (eglot--pos-to-lsp-position))
+               (edit-end (progn (forward-char (length prefix))
+                                (eglot--pos-to-lsp-position)))
+               (original-syntax (syntax-table))
+               (requested-prefix nil))
+          (setq-local buffer-file-name "/tmp/kaizen-completion.html"
+                      lsp-proxy-mode t
+                      lsp-proxy--buffer-opened t
+                      lsp-proxy--has-any-servers t
+                      completion-in-region-mode-predicate (lambda () t))
+          (lsp-proxy--completion-setup)
+          (cl-letf (((symbol-function 'lsp-proxy--ensure-connection) #'ignore)
+                    ((symbol-function 'lsp-proxy--send-did-change) #'ignore)
+                    ((symbol-function 'lsp-proxy--async-resolve) #'ignore)
+                    ((symbol-function 'jsonrpc-request)
+                     (lambda (_connection method params &rest _args)
+                       (should (eq method 'textDocument/completion))
+                       (let ((context (plist-get params :context)))
+                         (setq requested-prefix (plist-get context :prefix))
+                         (list (list :language_server_name "angular"
+                                     :start (+ member-start (length prefix))
+                                     :end (+ (plist-get context :boundsStart) 6)
+                                     :item (list :label "method"
+                                                 :textEdit (list :newText "method"
+                                                                 :range (list :start edit-start
+                                                                              :end edit-end)))))))))
+            (let* ((result (my/lsp-proxy-completion-with-dabbrev
+                            #'lsp-proxy-completion-at-point))
+                   (completion-extra-properties (nthcdr 3 result)))
+              (corfu--setup (car result) (cadr result) (nth 2 result) nil)
+              (setq corfu--candidates
+                    (all-completions prefix (nth 2 result))
+                    corfu--base ""
+                    corfu--index 0)
+              (call-interactively (lookup-key corfu-map (kbd "RET")))))
+          (should (equal (buffer-string)
+                         "        {{ deposit.method }}\n      </div>"))
+          (should (equal requested-prefix prefix))
+          (should (eq (syntax-table) original-syntax))
+          (should (eq (char-syntax ?.) ?_))
+          (should-not completion-in-region-mode))))))
+
+(ert-deftest html-lsp-bounds-do-not-change-other-modes-or-dabbrev-syntax ()
+  (skip-unless (require 'cape nil t))
+  (eval (kaizen-test-form "dotfiles/dot_emacs.d/README.org"
+                          "(defun my/lsp-proxy-completion-with-dabbrev"))
+  (dolist (mode '(html-mode html-ts-mode emacs-lisp-mode typescript-ts-mode))
+    (with-temp-buffer
+      (funcall mode)
+      (let ((original-syntax (syntax-table))
+            (original-dot (char-syntax ?.))
+            (html (derived-mode-p 'html-mode 'html-ts-mode)))
+        (cl-letf (((symbol-function 'cape-dabbrev)
+                   (lambda ()
+                     (should (eq (syntax-table) original-syntax))
+                     (should (eq (char-syntax ?.) original-dot))
+                     'dabbrev)))
+          (should (eq (my/lsp-proxy-completion-with-dabbrev
+                       (lambda ()
+                         (should (eq (char-syntax ?.)
+                                     (if html ?. original-dot)))
+                         nil))
+                      'dabbrev)))
+        (should (eq (syntax-table) original-syntax))))))
+
 (ert-deftest corfu-escape-dismisses-completion-without-leaving-insert ()
   (skip-unless (and (require 'corfu nil t) (require 'helixel nil t)))
   (kaizen-test-corfu-bindings)
