@@ -85,4 +85,3 @@ vim.pack.add({
 vim.opt.fillchars:append({
   eob = " ",
 })
-

@@ -1,103 +1,62 @@
 local map = require("helpers").map
 
 local function configure_servers()
-vim.lsp.config("lua_ls", {
-  settings = {
-    Lua = {
-      runtime = {
-        version = "LuaJIT",
-      },
-      diagnostics = {
-        globals = { "vim" },
-      },
-      workspace = {
-        checkThirdParty = false,
-        library = {
-          vim.env.VIMRUNTIME,
+  vim.lsp.config("lua_ls", {
+    settings = {
+      Lua = {
+        runtime = {
+          version = "LuaJIT",
+        },
+        diagnostics = {
+          globals = { "vim" },
+        },
+        workspace = {
+          checkThirdParty = false,
+          library = {
+            vim.env.VIMRUNTIME,
+          },
         },
       },
     },
-  },
-})
+  })
 
--- Python
-vim.lsp.config("ty", {
-  root_markers = {
-    "ty.toml",
-    "pyproject.toml",
-    "uv.lock",
-    "requirements.txt",
-    "setup.py",
-    "setup.cfg",
-    ".git",
-  },
-})
-
-vim.lsp.config("ruff", {
-  root_markers = {
-    "pyproject.toml",
-    "ruff.toml",
-    ".ruff.toml",
-    "uv.lock",
-    "requirements.txt",
-    "setup.py",
-    "setup.cfg",
-    ".git",
-  },
-})
-
--- Go
-vim.lsp.config("gopls", {
-  settings = {
-    gopls = {
-      usePlaceholders = true,
+  -- Python
+  vim.lsp.config("ty", {
+    root_markers = {
+      "ty.toml",
+      "pyproject.toml",
+      "uv.lock",
+      "requirements.txt",
+      "setup.py",
+      "setup.cfg",
+      ".git",
     },
-  },
-})
+  })
 
--- ESLint
-vim.lsp.config("eslint", {
-  filetypes = {
-    "javascript",
-    "javascriptreact",
-    "typescript",
-    "typescriptreact",
-    "vue",
-  },
-  settings = {
-    validate = "on",
-    run = "onType",
-    format = false,
-  },
-})
-
-vim.lsp.config("ts_ls", {
-  init_options = {
-    tsserver = {
-      fallbackPath = vim.fn.expand(
-        "~/.local/share/mise/installs/npm-typescript/6.0.3/node_modules/typescript/lib/tsserver.js"
-      ),
+  vim.lsp.config("ruff", {
+    root_markers = {
+      "pyproject.toml",
+      "ruff.toml",
+      ".ruff.toml",
+      "uv.lock",
+      "requirements.txt",
+      "setup.py",
+      "setup.cfg",
+      ".git",
     },
-  },
-})
+  })
 
--- Vue
-local function get_vue_language_server_path()
-  local executable = vim.fn.exepath("vue-language-server")
+  -- Go
+  vim.lsp.config("gopls", {
+    settings = {
+      gopls = {
+        usePlaceholders = true,
+      },
+    },
+  })
 
-  if executable == "" then
-    return nil
-  end
-
-  local realpath = vim.uv.fs_realpath(executable) or executable
-
-  return vim.fs.dirname(vim.fs.dirname(realpath))
-end
-
-local vue_language_server_path = get_vue_language_server_path()
-
-if vue_language_server_path then
-  vim.lsp.config("ts_ls", {
+  -- ESLint
+  vim.lsp.config("eslint", {
     filetypes = {
       "javascript",
       "javascriptreact",
@@ -105,64 +64,105 @@ if vue_language_server_path then
       "typescriptreact",
       "vue",
     },
+    settings = {
+      validate = "on",
+      run = "onType",
+      format = false,
+    },
+  })
+
+  vim.lsp.config("ts_ls", {
     init_options = {
-      plugins = {
-        {
-          name = "@vue/typescript-plugin",
-          location = vue_language_server_path,
-          languages = { "vue" },
-          configNamespace = "typescript",
+      tsserver = {
+        fallbackPath = vim.fn.expand(
+          "~/.local/share/mise/installs/npm-typescript/6.0.3/node_modules/typescript/lib/tsserver.js"
+        ),
+      },
+    },
+  })
+
+  -- Vue
+  local function get_vue_language_server_path()
+    local executable = vim.fn.exepath("vue-language-server")
+
+    if executable == "" then
+      return nil
+    end
+
+    local realpath = vim.uv.fs_realpath(executable) or executable
+
+    return vim.fs.dirname(vim.fs.dirname(realpath))
+  end
+
+  local vue_language_server_path = get_vue_language_server_path()
+
+  if vue_language_server_path then
+    vim.lsp.config("ts_ls", {
+      filetypes = {
+        "javascript",
+        "javascriptreact",
+        "typescript",
+        "typescriptreact",
+        "vue",
+      },
+      init_options = {
+        plugins = {
+          {
+            name = "@vue/typescript-plugin",
+            location = vue_language_server_path,
+            languages = { "vue" },
+            configNamespace = "typescript",
+          },
+        },
+      },
+    })
+  end
+
+  -- YAML
+  vim.lsp.config("yamlls", {
+    settings = {
+      yaml = {
+        schemas = {
+          ["https://json.schemastore.org/github-workflow"] = ".github/workflows/*",
+          ["https://json.schemastore.org/kustomization"] = "kustomization.{yml,yaml}",
+          ["https://raw.githubusercontent.com/kubernetes/kubernetes/master/api/openapi-spec/swagger.json"] =
+          "*.k8s.{yml,yaml}",
         },
       },
     },
   })
-end
 
--- YAML
-vim.lsp.config("yamlls", {
-  settings = {
-    yaml = {
-      schemas = {
-        ["https://json.schemastore.org/github-workflow"] = ".github/workflows/*",
-        ["https://json.schemastore.org/kustomization"] = "kustomization.{yml,yaml}",
-        ["https://raw.githubusercontent.com/kubernetes/kubernetes/master/api/openapi-spec/swagger.json"] =
-        "*.k8s.{yml,yaml}",
-      },
+  -- Codebook
+  vim.lsp.config("codebook", {
+    filetypes = {
+      "python",
+      "javascript",
+      "javascriptreact",
+      "typescript",
+      "typescriptreact",
+      "vue",
+      "html",
+      "htmlangular",
+      "lua",
+      "css",
+      "scss",
+      "cs",
+      "toml",
     },
-  },
-})
+  })
 
--- Codebook
-vim.lsp.config("codebook", {
-  filetypes = {
-    "python",
-    "javascript",
-    "javascriptreact",
-    "typescript",
-    "typescriptreact",
-    "vue",
-    "html",
-    "htmlangular",
-    "lua",
-    "css",
-    "scss",
-    "cs",
-    "toml",
-  },
-})
-
--- Copilot
-vim.lsp.config("copilot", {
-  filetypes = {
-    "python",
-    "javascript",
-    "javascriptreact",
-    "typescript",
-    "typescriptreact",
-    "vue",
-    "toml",
-  },
-})
+  -- Copilot
+  vim.lsp.config("copilot", {
+    filetypes = {
+      "python",
+      "javascript",
+      "javascriptreact",
+      "typescript",
+      "typescriptreact",
+      "vue",
+      "toml",
+    },
+  })
 end
 
 -- LSP attach
@@ -193,9 +193,18 @@ vim.g.dispatch_no_tmux_make = 1
 
 vim.pack.add({
   {
-    src = "https://github.com/tpope/vim-dispatch",
+    src = "https://github.com/ej-shafran/compile-mode.nvim",
     data = {
-      cmd = { "Dispatch", "Make", "Copen", "FocusDispatch", "AbortDispatch", "Start", "Spawn" },
+      cmd = { "Compile", "Recompile", "NextError", "PrevError", "QuickfixErrors" },
+    },
+  },
+  {
+    src = "https://github.com/folke/trouble.nvim",
+    data = {
+      cmd = "Trouble",
+      after = function()
+        require("trouble").setup()
+      end,
     },
   },
   {
@@ -698,4 +707,53 @@ map({ "n", "x" }, { "<leader>ac", "<leader>фс" }, copy_selection_context, {
 
 map("x", "N", copy_selection_context, {
   desc = "Copy selection with context",
+})
+
+
+-- Compile
+local run_errorformat = table.concat({
+  "%f:%l:%c: %m",
+  "%f:%l: %m",
+  "%f(%l\\,%c): %m",
+  "%E✘ [ERROR] %m",
+  "%W▲ [WARNING] %m",
+  "%C%*\\s%f:%l:%c:",
+  "%-C%.%#",
+  "%-G%.%#",
+}, ",")
+
+vim.api.nvim_create_user_command("Run", function(opts)
+  local efm = run_errorformat .. "," .. vim.bo.errorformat
+
+  vim.system({ vim.o.shell, vim.o.shellcmdflag, opts.args }, {
+    text = true,
+    cwd = vim.fn.getcwd(),
+    env = { NO_COLOR = "1", FORCE_COLOR = "0" },
+  }, vim.schedule_wrap(function(result)
+    local output = (result.stdout or "") .. "\n" .. (result.stderr or "")
+    output = output:gsub("\27%[[0-9;]*[ -/]*[@-~]", "")
+
+    local items = vim.fn.getqflist({
+      lines = vim.split(output:gsub("\r", "\n"), "\n"),
+      efm = efm,
+    }).items
+
+    items = vim.tbl_filter(function(item)
+      return item.valid == 1 and item.bufnr > 0 and item.lnum > 0
+    end, items)
+
+    vim.fn.setqflist({}, "r", {
+      title = opts.args,
+      items = items,
+    })
+
+    if #items > 0 then
+      vim.cmd("Trouble qflist open")
+    else
+      vim.notify("No parsed errors (exit " .. result.code .. ")")
+    end
+  end))
+end, {
+  nargs = "+",
+  complete = "shellcmd",
 })
