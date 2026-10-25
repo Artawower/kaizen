@@ -289,30 +289,81 @@ end, {
 -- Github review
 --
 vim.pack.add({
-  "https://github.com/nvim-lua/plenary.nvim",
-  "https://github.com/pwntester/octo.nvim",
+  "https://github.com/zion-off/diff"
 })
 
-require("octo").setup({
-  picker = "snacks",
 
-  file_panel = {
-    size = 14,
-    icons = true,
+require("diff").setup({
+  -- Sidebar position: "left" (default) or "right"
+  sidebar_position = "left",
+
+  -- Sidebar width in columns (default: 40)
+  sidebar_width = 40,
+
+  -- Notes panel width in columns (default: 40)
+  notes_width = 40,
+
+  -- Auto-refresh panels on FocusGained / BufWritePost (default: true)
+  -- Also watches .git/index via libuv fs_event for immediate refresh.
+  auto_refresh = true,
+
+  -- Branch mode compares the branch against this branch (default: nil, which
+  -- uses the remote's default branch origin/HEAD, else a local main or master).
+  base_branch = nil,
+
+  -- Mouse interactivity in the sidebar (default: true). Clicking a file opens
+  -- its diff; clicking a commit expands/collapses it; clicking a section header
+  -- toggles it. Hovering tints whatever a click would act on (rows, "hidden
+  -- lines" separators) and highlights the window edge you can drag to resize
+  -- (edges need Neovim 0.11+).
+  -- Only enables Neovim's 'mouse' option while the interface is open, and
+  -- 'mousemoveevent' only while its tab is the current one, restoring both.
+  -- With 'mousemoveevent' on, moving the mouse in the middle of a key
+  -- sequence (after <leader>, say) cancels it.
+  mouse = true,
+
+  -- Lines of context around each change (nil shows whole files).
+  context_lines = 3,
+
+  -- Soft-wrap long lines in the diff panes (default: true). In the split view
+  -- the shorter side of each row is padded to the taller side's height, so the
+  -- panes stay aligned while scrolling. Split panes narrower than 20 text
+  -- columns scroll horizontally instead. Needs Neovim 0.10+ in the split view;
+  -- on 0.9 split panes stay unwrapped.
+  wrap = true,
+
+  -- Log verbosity: "trace" | "debug" | "info" | "warn" (default) | "error" | "off".
+  -- The log lives at stdpath("log")/diff.nvim.log; open it with :DiffNvimLog.
+  log_level = "warn",
+
+  -- Keybinding overrides (set any to false/"" to disable)
+  keymaps = {
+    toggle_sidebar       = "<leader>gs",
+    toggle_sidebar_panel = "<leader>gS",
+    copy_notes_path      = "<leader>gy",
+    open_diff            = "<CR>",
+    stage_file           = "s",
+    unstage_file         = "u",
+    collapse             = "z",
+    next_hunk            = "]c",
+    prev_hunk            = "[c",
+    next_file            = "]f",
+    prev_file            = "[f",
+    goto_file            = "gf",
+    stage_hunk           = "s",
+    unstage_hunk         = "u",
+    leave_note           = "<leader>n",
+    toggle_notes         = "<leader>N",
+    preview_branch       = "<leader>gb",
+    branch_changes       = "<leader>gB",
+    expand_context       = "zo",
+    expand_all           = "zR",
+    collapse_all         = "zM",
+    commit_tooltip       = "K",
   },
 
-  reviews = {
-    auto_show_threads = true,
-    focus = "right",
-    show_virtual_text = true,
-  },
-
-  mappings = {
-    file_panel = {
-      toggle_viewed = {
-        lhs = "<Tab>",
-        desc = "toggle viewed",
-      },
-    },
+  -- Highlight colour overrides — any valid :hi attribute table
+  highlights = {
+    -- e.g. { bg = "#0d1f0d" }
   },
 })
