@@ -15,19 +15,21 @@ one feature configuration.
 
 Its components are deliberately small:
 
-- Python 3.11+ orchestrates the workflow;
-- Homebrew, dnf, or apt installs system packages;
-- mise installs runtimes and global development tools;
-- chezmoi renders and applies dotfiles.
+- Python 3.11+ selects and validates feature recipes, then generates mise configuration;
+- mise bootstrap installs packages and tools, applies declarative settings, and runs integrations;
+- real Homebrew runs through mise hooks to preserve custom formula options;
+- chezmoi renders and applies dotfiles as the final mise task.
 
 * Install
 
 Requires Git and curl. The installer reuses Python 3.11+ when available or
 installs an isolated Python 3.12 runtime through standalone uv.
 
-Before =kaizen sync=, install [[https://www.chezmoi.io/install/][chezmoi]]. On Linux, also install
-[[https://mise.jdx.dev/getting-started.html][mise]] before installing runtime tools. Missing prerequisites stop the
-workflow rather than silently skipping dependencies.
+Before installing features, install [[https://mise.jdx.dev/getting-started.html][mise]] with bootstrap and =--upgrade= support
+(tested with 2026.10.17). Install [[https://www.chezmoi.io/install/][chezmoi]] before applying dotfiles. Missing
+prerequisites stop the workflow rather than silently skipping dependencies.
+Linux requires the selected native package manager; Flatpak features also require
+Flatpak and an existing system-wide Flathub remote.
 
 #+BEGIN_SRC shell
 curl -fsSL https://raw.githubusercontent.com/artawower/kaizen/master/install.sh | sh
@@ -76,7 +78,8 @@ Each =features/*.toml= file groups named feature sections. Packages and mise
 versions live together in each section; only real hooks and their assets need
 separate files. Category files have no inheritance or shared defaults. Every
 feature is active on its supported OS unless its section declares
-=archive = true=. There is no user-maintained feature enable list.
+=archive = true=. Repeat =--feature NAME= to select a subset for one command;
+there are no presets, tags, or user-maintained feature enable lists.
 
 * Configuration source of truth
 
@@ -97,6 +100,9 @@ kaizen self-update  # fast-forward a managed installation from its remote branch
 kaizen bump         # developer: update tools entries in feature catalogs
 kaizen capture      # developer: re-add known mutable dotfiles to the source
 kaizen status       # show installation mode, source, features, and tools
+kaizen sync --feature core --feature terminal --feature vcs --dry-run
+kaizen sync --feature core --feature terminal --feature vcs
+kaizen update --feature core --feature terminal --feature vcs
 #+END_SRC
 
 Running ~kaizen~ without arguments is safe: it prints help instead of changing the
@@ -108,23 +114,42 @@ colors. Colors are disabled for pipes, redirects, =TERM=dumb=, and =NO_COLOR=.
 It refuses development checkouts, detached branches, and installations with
 local changes. Run ~kaizen sync~ separately after an update.
 
-~kaizen install~ performs these steps:
+~kaizen install~ selects and validates recipes and user dependencies, writes
+=~/.config/kaizen/bootstrap.toml=, and delegates execution to =mise bootstrap=.
+Linux packages become =[bootstrap.packages]= entries; real Homebrew runs in a
+pre-packages hook. Tools install before the sequential bootstrap task runs skills
+and feature hooks. Feature =bootstrap= tables supply native mise declarations,
+such as macOS defaults. The generated =~/.config/mise.toml= contains only tools
+for normal interactive-shell activation; unrelated mise configs are excluded
+from the Kaizen execution, not overwritten.
 
-1. Discover non-archived features for the current OS and validate user dependencies.
-2. Install feature and user packages with the native package manager.
-3. Merge feature and user tools into the generated mise config and install them.
-4. Install missing feature integrations without refreshing existing ones.
+~kaizen sync~ also generates the chezmoi data overlay and applies dotfiles as the
+last task, without =--force=. Without =--feature=, it retains the existing full
+chezmoi apply. With explicit features, only their declared =dotfiles= source paths
+are applied, respecting platform exclusions. Features with no =dotfiles= apply
+no configs. Shared declared paths are deduplicated. =just apply= remains a full
+chezmoi apply with normal conflict protection.
 
-It does not generate the chezmoi data overlay or apply dotfiles. ~kaizen sync~
-validates the same inputs, generates the overlay, runs the dependency workflow,
-and then runs =chezmoi apply= without =--force=, preserving its normal
-confirmation when destination files were changed locally. =just apply= also
-keeps this protection.
+~kaizen update~ delegates to =mise bootstrap --update --upgrade=, installing missing
+selected dependencies and upgrading declared packages and tools before refreshing
+integrations. It no longer requests a manager-wide native upgrade. Package managers
+may still update dependencies of selected packages. Helix Steel rebuilds only when
+its source revision changes; Forge packages reinstall only when their revision changes.
 
-~kaizen update~ upgrades native packages and mise tools, then refreshes applicable
-feature integrations. Helix Steel fetches and rebuilds only when its source
-revision changes; Forge packages are reinstalled only when their remote revision
-changes.
+=--feature= is repeatable for =install=, =sync=, =update=, =status=, and =bump=.
+Unknown, archived, or unsupported selections fail before applying anything.
+Selections are not saved: omitting the flags on the next command selects all
+active recipes again. Machine-local =dependencies.toml= always contributes its
+explicit packages and tool overrides. The generated global tool config reflects
+the latest selection; previously installed tools are not uninstalled, but omitted
+tools are no longer activated by that generated file. Narrowing a selection does
+not delete previously deployed files or stop services.
+
+=--dry-run= previews =install=, =sync=, or =update= through a temporary mise config,
+without replacing the generated configs or chezmoi overlay. Hooks and final tasks
+are printed, not run; task-managed resources do not receive a detailed state diff.
+Native mise file templates can execute commands during preview, so review any
+=exec()= expressions in feature bootstrap declarations.
 
 * Configuration
 
@@ -224,10 +249,10 @@ See [[file:docs/feature-format.org][the feature format]] for the full rules.
 =platforms = ["macos"]= or =["linux"]= restricts the whole recipe. Optional =distributions= narrows Linux
 eligibility to IDs such as =fedora= and =fedora-asahi-remix=. Discovery is ordered
 by catalog filename, then feature name; user tool versions take precedence.
-The filter covers packages, mise tools, and hooks. Dotfiles are managed separately: chezmoi applies files present in
-its source tree, with general platform and generated-file exclusions. A Linux
-machine can therefore receive an unused Mango config even when its distro is
-not eligible for installing Mango.
+The filter covers packages, mise tools, native bootstrap declarations, skills,
+and hooks. Explicit =--feature= selection also limits dotfiles to those declared
+by selected recipes. Without the flag, chezmoi still applies its entire source
+with platform and generated-file exclusions.
 
 For example, =[rift]= in =features/tiling.toml= applies only to macOS; =niri= applies to
 Linux, and the MangoWM hook is restricted to its supported Fedora systems.
@@ -264,8 +289,8 @@ Project skills =archive= and =unarchive= move experiments to and from
 dependencies and integrations. The named section stays in its category catalog
 with =archive = true=; packages, tools, and hook paths remain declared but
 inactive. An optional =dotfiles= list in that section contains
-repository-relative source paths and helps discovery; the agent also searches
-for related files. Installed tools and live configs are left unchanged.
+repository-relative source paths. It controls selective dotfile application
+and helps ownership discovery; the agent also searches for related files. Installed tools and live configs are left unchanged.
 
 =archive = true= excludes packages, mise tools, and feature hooks. It does not
 hide dotfiles: move owned files out of the chezmoi source to stop managing them.
@@ -273,8 +298,8 @@ Keep shared selectors active and resolve references before archiving a selected
 profile. Unarchive restores files without selecting that profile; conflicting
 destinations require an explicit decision, not a silent overwrite.
 
-Existing global package and mise upgrades can still affect previously installed
-tools; archive status is not an uninstall or version freeze.
+Updates target selected declarations, but native dependencies may also change;
+archive status is not an uninstall or version freeze.
 
 In Pi, run =/reload=, then =/skill:archive yabai= or =/skill:unarchive yabai=.
 

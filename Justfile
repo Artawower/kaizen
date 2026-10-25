@@ -6,6 +6,7 @@ default:
 test:
     bash tests/install.sh
     bash tests/dependencies.sh
+    bash tests/skills.sh
     bash tests/ai-config.sh
     bash tests/terminal-post-install.sh
     bash tests/helix-steel-post-install.sh
@@ -22,16 +23,16 @@ apply:
     chezmoi apply --source "{{kaizen_dir}}/dotfiles"
 
 # Install packages and apply dotfiles
-sync:
-    python3 kaizen.py sync
+sync *args:
+    python3 kaizen.py sync {{args}}
 
-# Upgrade all packages and runtime tools
-update:
-    python3 kaizen.py update
+# Upgrade declared packages and runtime tools
+update *args:
+    python3 kaizen.py update {{args}}
 
 # Interactively bump tool versions in feature manifests
-bump:
-    python3 kaizen.py bump
+bump *args:
+    python3 kaizen.py bump {{args}}
 
 # Pull deployed dotfile changes back into the source tree
 capture:
@@ -42,8 +43,8 @@ cleanup:
     python3 kaizen.py cleanup
 
 # Show environment status
-status:
-    python3 kaizen.py status
+status *args:
+    python3 kaizen.py status {{args}}
 
 # Bootstrap from the current checkout and run a full sync
 install:

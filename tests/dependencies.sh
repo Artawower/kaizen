@@ -5,453 +5,339 @@ PROJECT_DIR=$(cd "$(dirname "$0")/.." && pwd)
 KAIZEN_PATH="$PROJECT_DIR/kaizen.py" python3 <<'PY'
 import importlib.util
 import os
+import shlex
+import shutil
+import subprocess
 import sys
 import tempfile
+import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 path = Path(os.environ["KAIZEN_PATH"])
 spec = importlib.util.spec_from_file_location("kaizen_dependencies_test", path)
-assert spec and spec.loader
 kaizen = importlib.util.module_from_spec(spec)
 sys.modules[spec.name] = kaizen
 spec.loader.exec_module(kaizen)
 
 
-def write(path: Path, content: str) -> None:
+def write(path, content):
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content)
 
 
-def expect_error(
-    path: Path, content: str, error_type: type[Exception], message: str
-) -> None:
-    write(path, content)
-    try:
-        kaizen.load_user_dependencies(path)
-    except error_type as error:
-        assert message in str(error), str(error)
-        return
-    raise AssertionError(f"expected {error_type.__name__}: {message}")
+def feature(name="sample", **data):
+    return kaizen.Feature(kaizen.FEATURES_DIR / "tools.toml", name, data)
 
 
-def test_manifest_validation() -> None:
-    with tempfile.TemporaryDirectory() as directory:
-        dependencies = Path(directory) / "dependencies.toml"
-        assert kaizen.load_user_dependencies(dependencies) == {}
-        write(
-            dependencies,
-            """[tools]
-node = "22"
-
-[macos]
-brew = ["jq"]
-cask = ["zed"]
-
-[macos.brew_args]
-jq = ["--HEAD"]
-
-[linux]
-dnf = ["jq"]
-apt = ["jq"]
-flatpak = ["dev.zed.Zed"]
-""",
-        )
-        loaded = kaizen.load_user_dependencies(dependencies)
-        assert loaded["tools"] == {"node": "22"}
-        assert loaded["macos"]["brew"] == ["jq"]
-        assert loaded["linux"]["apt"] == ["jq"]
-        expect_error(dependencies, "script = true\n", ValueError, "unknown keys")
-        expect_error(dependencies, "[tools]\nnode = 22\n", TypeError, "tools values")
-        expect_error(dependencies, '[tools]\n"" = "22"\n', TypeError, "tools values")
-        expect_error(dependencies, "[macos]\nbrew = \"jq\"\n", TypeError, "macos.brew")
-        expect_error(dependencies, "[linux]\npacman = [\"jq\"]\n", ValueError, "pacman")
-        expect_error(dependencies, "[tools\n", ValueError, str(dependencies))
-
-
-def test_package_adapter_reuse() -> None:
-    from unittest.mock import call, patch
-
-    feature = kaizen.Feature(Path("tools.toml"), "sample", {
-        "packages": ["fd"],
-        "package_names": {"fd": {"dnf": "fd-find", "apt": "fd-find"}},
-    })
-    dependencies = {"macos": {"brew": ["jq"], "brew_args": {"jq": ["--HEAD"]}}}
-    packages = kaizen._resolve_packages([feature], dependencies)
-    for adapter, expected in (
-        (kaizen.Brew(), [call(["brew", "install", "--yes", "fd"]), call(["brew", "install", "--yes", "jq", "--HEAD"])]),
-        (kaizen.Dnf(), [call(["sudo", "dnf", "install", "-y", "fd-find"])]),
-        (kaizen.Apt(), [call(["sudo", "apt", "install", "-y", "fd-find"])]),
-    ):
-        with patch.object(kaizen.Brew, "_require", return_value="brew"), patch.object(adapter, "_run") as run:
-            adapter.install(packages)
-            assert run.call_args_list == expected, run.call_args_list
-
-
-def test_shared_packages_and_aliases() -> None:
-    features = [
-        kaizen.Feature(Path("system.toml"), "core", {
-            "packages": ["ripgrep", "fd", "fd"],
-            "package_names": {"fd": {"dnf": "fd-find", "apt": "fd-find"}},
-            "brew": ["mole"], "dnf": ["just"], "taps": ["tools/tap"],
-        }),
-        kaizen.Feature(Path("tools.toml"), "extra", {
-            "packages": ["fd-find", "jq"], "brew": ["jq"],
-            "package_names": {"fd": {"dnf": "fd-find"}},
-            "flatpak": ["dev.zed.Zed"],
-        }),
-    ]
-    user = {
-        "macos": {"brew": ["fd", "jq"], "taps": ["tools/tap"], "cask": ["zed", "zed"]},
-        "linux": {"dnf": ["fd-find"], "apt": ["fd-find"], "flatpak": ["dev.zed.Zed"]},
-    }
-    resolved = kaizen._resolve_packages(features, user)
-    assert resolved == {
-        "macos": {"brew": ["ripgrep", "fd", "mole", "jq"], "taps": ["tools/tap"], "cask": ["zed"]},
-        "linux": {"dnf": ["ripgrep", "fd-find", "just", "jq"], "apt": ["ripgrep", "fd-find", "jq"], "flatpak": ["dev.zed.Zed"]},
-    }, resolved
-    reversed_plan = kaizen._resolve_packages(list(reversed(features)), user)
-    for platform_key in ("macos", "linux"):
-        for manager, packages in resolved[platform_key].items():
-            assert set(reversed_plan[platform_key][manager]) == set(packages)
-            assert len(reversed_plan[platform_key][manager]) == len(packages)
-    assert features[0].data["packages"] == ["ripgrep", "fd", "fd"]
-    assert user["macos"]["brew"] == ["fd", "jq"]
-    assert kaizen._resolve_packages([], {}) == {"macos": {}, "linux": {}}
-
-
-def test_package_conflicts_fail_before_installation() -> None:
-    from unittest.mock import Mock, patch
-
-    first = kaizen.Feature(Path("system.toml"), "core", {
-        "packages": ["fd"], "package_names": {"fd": {"dnf": "fd-find", "apt": "fd-find"}},
-    })
-    cases = [
-        ([first, kaizen.Feature(Path("tools.toml"), "extra", {"package_names": {"fd": {"dnf": "other-fd"}}})], {}, ("system/core", "tools/extra", "dnf")),
-        ([first, kaizen.Feature(Path("tools.toml"), "extra", {"package_names": {"other": {"brew": "fd-find"}}})], {}, ("ambiguous", "fd-find", "system/core", "tools/extra")),
-        ([first, kaizen.Feature(Path("tools.toml"), "extra", {"package_names": {"fd-find": {"brew": "other"}}})], {}, ("ambiguous", "fd-find")),
-        ([first, kaizen.Feature(Path("tools.toml"), "extra", {"brew": ["fd-find"]})], {}, ("brew", "fd-find", "tools/extra")),
-        ([first], {"linux": {"dnf": ["fd"]}}, ("dnf", "fd-find", "user dependencies")),
-        ([first], {"macos": {"brew": ["fd"], "brew_args": {"fd": ["--HEAD"]}}}, ("brew_args", "system/core", "user dependencies")),
-    ]
-    for features, dependencies, messages in cases:
-        instance = object.__new__(kaizen.Kaizen)
-        instance._os = "macos"
-        instance._adapter = Mock()
-        with patch.object(kaizen.subprocess, "run") as run:
-            try:
-                instance._install_dependencies(features, dependencies)
-            except ValueError as error:
-                assert all(message in str(error) for message in messages), str(error)
-            else:
-                raise AssertionError(f"package conflict accepted: {messages}")
-            instance._adapter.install.assert_not_called()
-            run.assert_not_called()
-    flags = {"fd": ["--HEAD"]}
-    first.data["brew_args"] = flags
-    resolved = kaizen._resolve_packages([first], {"macos": {"brew": ["fd", "fd"], "brew_args": flags}})
-    assert resolved["macos"]["brew"] == ["fd"]
-    assert resolved["macos"]["brew_args"] == flags
-
-
-def test_shared_package_validation_and_filters() -> None:
-    from unittest.mock import patch
-
-    cases = [
-        ({"packages": "jq"}, TypeError, "packages"),
-        ({"packages": [""]}, TypeError, "packages"),
-        ({"packages": [False]}, TypeError, "packages"),
-        ({"package_names": []}, TypeError, "package_names"),
-        ({"package_names": {"": {"brew": "fd"}}}, ValueError, "package_names"),
-        ({"package_names": {"fd": "fd-find"}}, TypeError, "fd"),
-        ({"package_names": {"fd": {"pacman": "fd"}}}, ValueError, "pacman"),
-        ({"package_names": {"fd": {"apt": ""}}}, TypeError, "package_names.fd"),
-        ({"package_names": {"fd": {"brew": ["fd"]}}}, TypeError, "package_names.fd"),
-    ]
-    for data, error_type, message in cases:
-        try:
-            kaizen.Feature(Path("system.toml"), "sample", data).active_on("macos")
-        except error_type as error:
-            assert message in str(error), str(error)
-        else:
-            raise AssertionError(f"invalid package declaration accepted: {data}")
-    with tempfile.TemporaryDirectory() as directory:
-        root = Path(directory)
-        catalog = root / "system.toml"
-        write(catalog, '''[common]
-packages = ["fd"]
-package_names = {fd = {dnf = "fd-find", apt = "fd-find"}}
-[archived]
-archive = true
-package_names = {fd = {dnf = "archived-fd"}}
-[maconly]
-platforms = ["macos"]
-packages = ["mole"]
-[linuxonly]
-platforms = ["linux"]
-distributions = ["fedora"]
-packages = ["linux-tool"]
-''')
-        with patch.object(kaizen, "FEATURES_DIR", root):
-            for os_name, expected in (("macos", ["fd", "mole"]), ("fedora", ["fd-find", "linux-tool"]), ("ubuntu", ["fd-find"])):
-                packages = kaizen._resolve_packages(kaizen.discover_features(os_name), {})
-                platform_key, manager = ("macos", "brew") if os_name == "macos" else ("linux", "dnf" if os_name == "fedora" else "apt")
-                assert packages[platform_key][manager] == expected
-
-
-def test_user_tools_override_features() -> None:
-    with tempfile.TemporaryDirectory() as directory:
-        root = Path(directory)
-        kaizen.KAIZEN_DIR = root
-        kaizen.FEATURES_DIR = root / "features"
-        kaizen.MISE_CONFIG = root / "mise.toml"
-        write(
-            kaizen.FEATURES_DIR / "editor.toml",
-            '[sample]\ntools = { node = "20", python = "3.11" }\n',
-        )
-        instance = object.__new__(kaizen.Kaizen)
-        instance._generate_mise_config(
-            kaizen.discover_features("macos"),
-            {
-                "tools": {
-                    "node": "22",
-                    "go": "latest",
-                    "tool name": 'v"quoted',
-                }
-            },
-        )
-        tools = kaizen.read_toml(kaizen.MISE_CONFIG)["tools"]
-        assert tools == {
-            "node": "22",
-            "python": "3.11",
-            "go": "latest",
-            "tool name": 'v"quoted',
+class DependenciesTests(unittest.TestCase):
+    def setUp(self):
+        self.directory = tempfile.TemporaryDirectory()
+        self.addCleanup(self.directory.cleanup)
+        self.root = Path(self.directory.name)
+        values = {
+            "KAIZEN_DIR": self.root,
+            "FEATURES_DIR": self.root / "features",
+            "DOTFILES_DIR": self.root / "dotfiles",
+            "CONFIG_FILE": self.root / "config.toml",
+            "USER_DEPENDENCIES_FILE": self.root / "dependencies.toml",
+            "USER_DATA_FILE": self.root / "dotfiles/.chezmoidata/99-user.toml",
+            "MISE_CONFIG": self.root / "global-mise.toml",
+            "BOOTSTRAP_CONFIG": self.root / "bootstrap.toml",
         }
-        instance._generate_mise_config([], {})
-        assert not kaizen.MISE_CONFIG.exists()
+        for name, value in values.items():
+            patcher = patch.object(kaizen, name, value)
+            patcher.start()
+            self.addCleanup(patcher.stop)
+        self.instance = kaizen.Kaizen({})
+        self.instance._os = "fedora"
+
+    def test_user_dependency_validation(self):
+        self.assertEqual(kaizen.load_user_dependencies(), {})
+        for content, error in [
+            ("script = true", ValueError),
+            ('[tools]\nnode = 22', TypeError),
+            ('[tools]\n"" = "22"', TypeError),
+            ('[macos]\nbrew = "jq"', TypeError),
+            ('[linux]\npacman = ["jq"]', ValueError),
+            ('[tools', ValueError),
+        ]:
+            with self.subTest(content=content):
+                write(kaizen.USER_DEPENDENCIES_FILE, content)
+                with self.assertRaises(error):
+                    kaizen.load_user_dependencies()
+        write(kaizen.USER_DEPENDENCIES_FILE, '[tools]\nnode = "22"\n[macos]\nbrew = ["jq"]\n[macos.brew_args]\njq = ["--HEAD"]\n[linux]\napt = ["jq"]')
+        self.assertEqual(kaizen.load_user_dependencies()["macos"]["brew_args"], {"jq": ["--HEAD"]})
+
+    def test_shared_packages_resolve_aliases_and_deduplicate(self):
+        features = [
+            feature("core", packages=["fd", "fd"], package_names={"fd": {"dnf": "fd-find", "apt": "fd-find"}}, brew=["mole"]),
+            feature("extra", packages=["fd-find", "jq"], brew=["jq"], flatpak=["dev.zed.Zed"]),
+        ]
+        dependencies = {"macos": {"brew": ["fd", "jq"], "cask": ["zed", "zed"]}, "linux": {"dnf": ["fd-find"]}}
+        resolved = kaizen._resolve_packages(features, dependencies)
+        self.assertEqual(resolved["macos"], {"brew": ["fd", "mole", "jq"], "cask": ["zed"]})
+        self.assertEqual(resolved["linux"], {"dnf": ["fd-find", "jq"], "apt": ["fd-find", "jq"], "flatpak": ["dev.zed.Zed"]})
+        self.assertEqual(features[0].data["packages"], ["fd", "fd"])
+
+    def test_package_conflicts_fail_before_commands_or_writes(self):
+        first = feature("first", packages=["fd"], package_names={"fd": {"dnf": "fd-find"}})
+        cases = [
+            ([first, feature("second", package_names={"fd": {"dnf": "other-fd"}})], {}),
+            ([first, feature("second", package_names={"other": {"brew": "fd-find"}})], {}),
+            ([first], {"linux": {"dnf": ["fd"]}}),
+            ([first], {"macos": {"brew": ["fd"], "brew_args": {"fd": ["--HEAD"]}}}),
+        ]
+        for features, dependencies in cases:
+            with self.subTest(features=features, dependencies=dependencies), patch.object(
+                self.instance, "_features", return_value=features
+            ), patch.object(kaizen, "load_user_dependencies", return_value=dependencies), patch.object(kaizen.subprocess, "run") as run:
+                with self.assertRaises(ValueError):
+                    self.instance.install()
+                run.assert_not_called()
+                self.assertFalse(kaizen.BOOTSTRAP_CONFIG.exists())
+                self.assertFalse(kaizen.MISE_CONFIG.exists())
+
+    def test_feature_schema_validation(self):
+        for data in [
+            {"packages": "jq"}, {"packages": [False]}, {"packages": [""]},
+            {"package_names": []}, {"package_names": {"fd": "fd-find"}},
+            {"package_names": {"fd": {"apt": ""}}},
+            {"package_names": {"fd": {"pacman": "fd"}}},
+            {"archive": "true"}, {"platforms": []}, {"post_install": "../hook"},
+            {"dotfiles": ["/tmp/config"]}, {"dotfiles": ["dotfiles/../secret"]},
+            {"dotfiles": ["dotfiles"]}, {"bootstrap": []},
+        ]:
+            with self.subTest(data=data), self.assertRaises((ValueError, TypeError)):
+                feature(**data).active_on("macos")
+
+    def test_discovery_and_explicit_selection(self):
+        write(kaizen.FEATURES_DIR / "tools.toml", '[core]\npackages = ["jq"]\n[shell]\ntools = {carapace = "latest"}\n[archived]\narchive = true\n[maconly]\nplatforms = ["macos"]\n[fedora]\nplatforms = ["linux"]\ndistributions = ["fedora"]\n')
+        self.assertEqual([f.name for f in kaizen.discover_features("fedora")], ["core", "fedora", "shell"])
+        self.assertEqual([f.name for f in kaizen.discover_features("ubuntu", ["shell", "core", "core"])], ["core", "shell"])
+        for names in [["missing"], ["archived"], ["maconly"]]:
+            with self.subTest(names=names), self.assertRaises(ValueError):
+                kaizen.discover_features("fedora", names)
+        write(kaizen.FEATURES_DIR / "editor.toml", '[broken]\npost_install = "features/hooks/missing.py"')
+        self.assertEqual([f.name for f in kaizen.discover_features("fedora", ["core"])], ["core"])
+        with self.assertRaises(FileNotFoundError):
+            kaizen.discover_features("fedora")
+        write(kaizen.FEATURES_DIR / "editor.toml", '[core]')
+        with self.assertRaisesRegex(ValueError, "duplicate feature"):
+            kaizen.discover_features("fedora", ["core"])
+
+    def test_cli_repeated_features_help_and_invalid_selections(self):
+        home = self.root / "home"
+        write(home / ".config/kaizen/config.toml", "")
+        script = self.root / "kaizen.py"
+        write(script, path.read_text())
+        write(kaizen.FEATURES_DIR / "tools.toml", '[first]\n[second]\n[archived]\narchive = true')
+        environment = {**os.environ, "HOME": str(home), "XDG_CONFIG_HOME": str(home / ".config")}
+        command = [sys.executable, str(script)]
+        result = subprocess.run([*command, "status", "--feature", "first", "--feature", "second", "--feature", "first"], env=environment, capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout.count("tools/first"), 1)
+        self.assertIn("tools/second", result.stdout)
+        self.assertNotIn("tools/archived", result.stdout)
+        for name in ["unknown", "archived"]:
+            result = subprocess.run([*command, "sync", "--feature", name, "--dry-run"], env=environment, capture_output=True, text=True)
+            self.assertEqual(result.returncode, 1)
+            self.assertIn(name, result.stderr)
+        result = subprocess.run([*command, "capture", "--feature", "first"], env=environment, capture_output=True, text=True)
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("not supported", result.stderr)
+        result = subprocess.run([*command, "--help"], env=environment, capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0)
+        self.assertIn("--feature", result.stdout)
+        self.assertFalse((home / ".config/kaizen/bootstrap.toml").exists())
+
+    def test_linux_only_declares_one_native_manager(self):
+        sample = feature(packages=["fd"], package_names={"fd": {"dnf": "fd-find", "apt": "fd-find"}}, flatpak=["dev.zed.Zed"])
+        for os_name, manager in [("ubuntu", "apt"), ("fedora", "dnf"), ("fedora-asahi-remix", "dnf")]:
+            self.instance._os = os_name
+            config = self.instance._bootstrap_config([sample], {}, "sync", dotfiles=False)
+            self.assertEqual(config["bootstrap"]["packages"], {f"{manager}:fd-find": "latest", "flatpak:dev.zed.Zed": "latest"})
+        self.instance._os = "unknown"
+        with self.assertRaisesRegex(ValueError, "unsupported native"):
+            self.instance._bootstrap_config([sample], {}, "sync", dotfiles=False)
+
+    def test_homebrew_flags_taps_casks_and_scoped_upgrade(self):
+        self.instance._os = "macos"
+        sample = feature(taps=["tools/tap"], brew=["emacs-plus@32"], brew_args={"emacs-plus@32": ["--with-xwidgets", "--build-from-source"]}, cask=["ghostty"])
+        with patch.object(kaizen, "_find_homebrew", return_value="/fake path/brew"):
+            config = self.instance._bootstrap_config([sample], {}, "update", dotfiles=False)
+        commands = [shlex.split(c) for c in config["bootstrap"]["hooks"]["pre-packages"]]
+        self.assertEqual(commands[0], ["/fake path/brew", "tap", "tools/tap"])
+        self.assertIn(["/fake path/brew", "install", "--yes", "emacs-plus@32", "--with-xwidgets", "--build-from-source"], commands)
+        self.assertIn(["/fake path/brew", "upgrade", "--yes", "emacs-plus@32", "--with-xwidgets", "--build-from-source"], commands)
+        self.assertIn(["/fake path/brew", "upgrade", "--yes", "--cask", "ghostty"], commands)
+        self.assertNotIn(["/fake path/brew", "upgrade", "--yes"], commands)
+
+    def test_tools_overrides_roundtrip_and_empty_global_config(self):
+        sample = feature(tools={"node": "20", "python": "3.11"})
+        dependencies = {"tools": {"node": "22", "tool name": 'v"quoted'}}
+        config = self.instance._bootstrap_config([sample], dependencies, "sync", dotfiles=False)
+        kaizen.write_toml(config, kaizen.BOOTSTRAP_CONFIG)
+        self.assertEqual(kaizen.read_toml(kaizen.BOOTSTRAP_CONFIG), config)
+        self.instance._generate_mise_config([sample], dependencies)
+        self.assertEqual(kaizen.read_toml(kaizen.MISE_CONFIG)["tools"], config["tools"])
+        self.instance._generate_mise_config([], {})
+        self.assertFalse(kaizen.MISE_CONFIG.exists())
+
+    def test_bootstrap_merging_conflicts_and_reserved_fields(self):
+        first = feature("one", bootstrap={"macos": {"dock": {"tilesize": 32}}})
+        second = feature("two", bootstrap={"macos": {"dock": {"autohide": True}}})
+        config = self.instance._bootstrap_config([first, second], {}, "sync", dotfiles=False)
+        self.assertEqual(config["bootstrap"]["macos"]["dock"], {"tilesize": 32, "autohide": True})
+        second.data["bootstrap"]["macos"]["dock"]["tilesize"] = 48
+        with self.assertRaisesRegex(ValueError, "conflicting bootstrap"):
+            self.instance._bootstrap_config([first, second], {}, "sync", dotfiles=False)
+        for key in ["packages", "hooks"]:
+            with self.assertRaisesRegex(ValueError, "generated by Kaizen"):
+                self.instance._bootstrap_config([feature(bootstrap={key: {}})], {}, "sync", dotfiles=False)
+
+    def test_tasks_preserve_skills_hooks_dotfiles_order_and_action(self):
+        write(self.root / "features/hooks/sample.py", "")
+        write(self.root / "dotfiles/dot_config/editor/config", "")
+        sample = feature(skills=["owner/repo@skill"], post_install="features/hooks/sample.py", dotfiles=["dotfiles/dot_config/editor"])
+        self.instance._selected = ["sample"]
+        for action in ["sync", "update"]:
+            config = self.instance._bootstrap_config([sample], {}, action, dotfiles=True)
+            commands = [shlex.split(c) for c in config["tasks"]["bootstrap"]["run"]]
+            self.assertEqual(commands[0][2:5], ["_skills", "--feature", "sample"])
+            self.assertEqual("--refresh" in commands[0], action == "update")
+            self.assertEqual(commands[1][-2:], ["fedora", action])
+            self.assertEqual(commands[2][2:5], ["_dotfiles", "--feature", "sample"])
+            self.assertNotIn("--force", commands[2])
+        with self.assertRaisesRegex(ValueError, "different sources"):
+            self.instance._bootstrap_config([sample, feature("other", skills=["other/repo@skill"])], {}, "sync", dotfiles=False)
+
+    def test_selected_dotfiles_are_explicit_shared_and_fail_closed(self):
+        self.instance._selected = ["one", "two"]
+        write(self.root / "dotfiles/dot_config/shared/config", "")
+        selected = [feature("one", dotfiles=["dotfiles/dot_config/shared"]), feature("two", dotfiles=["dotfiles/dot_config/shared"])]
+        sources = self.instance._selected_dotfiles(selected)
+        self.assertEqual(sources.count(str(self.root / "dotfiles/dot_config/shared")), 1)
+        self.assertEqual(self.instance._dotfiles_command([feature()]), [])
+        with self.assertRaises(FileNotFoundError):
+            self.instance._dotfiles_command([feature(dotfiles=["dotfiles/missing"])])
+        (self.root / "dotfiles/escape").symlink_to(self.root)
+        with self.assertRaises(ValueError):
+            self.instance._dotfiles_command([feature(dotfiles=["dotfiles/escape"])])
+        self.instance._selected = None
+        self.assertEqual(self.instance._dotfiles_command([]), ["chezmoi", "apply", "--source", str(kaizen.DOTFILES_DIR)])
+
+    def test_install_and_update_never_apply_dotfiles(self):
+        with patch.object(self.instance, "_execute") as execute:
+            self.instance.install()
+            execute.assert_called_once_with("sync", dotfiles=False)
+            execute.reset_mock()
+            self.instance.update()
+            execute.assert_called_once_with("update", dotfiles=False)
+            execute.reset_mock()
+            self.instance.sync()
+            execute.assert_called_once_with("sync", dotfiles=True)
+
+    def test_dry_run_does_not_write_persistent_configuration_or_run_hooks(self):
+        self.instance._dry_run = True
+        self.instance._selected = ["sample"]
+        sample = feature(post_install="features/hooks/sample.py")
+        capability = subprocess.CompletedProcess([], 0, "--upgrade", "")
+        with patch.object(self.instance, "_features", return_value=[sample]), patch.object(kaizen.shutil, "which", return_value="/fake/mise"), patch.object(kaizen.subprocess, "run", return_value=capability), patch.object(kaizen, "_run_mise") as run:
+            self.instance.sync()
+            config, arguments = run.call_args.args
+            self.assertIn("--dry-run", arguments)
+            self.assertFalse(config.exists())
+        for path in [kaizen.MISE_CONFIG, kaizen.BOOTSTRAP_CONFIG, kaizen.USER_DATA_FILE]:
+            self.assertFalse(path.exists(), path)
+
+    def test_execution_writes_selected_configs_and_scopes_update(self):
+        sample = feature(tools={"node": "22"})
+        self.instance._selected = ["sample"]
+        capability = subprocess.CompletedProcess([], 0, "--upgrade", "")
+        with patch.object(self.instance, "_features", return_value=[sample]), patch.object(kaizen.shutil, "which", return_value="/fake/mise"), patch.object(kaizen.subprocess, "run", return_value=capability), patch.object(kaizen, "_run_mise") as run:
+            self.instance.update()
+            run.assert_called_once_with(kaizen.BOOTSTRAP_CONFIG, ["bootstrap", "--update", "--upgrade"])
+        self.assertEqual(kaizen.read_toml(kaizen.MISE_CONFIG)["tools"], {"node": "22"})
+        self.assertEqual(kaizen.read_toml(kaizen.BOOTSTRAP_CONFIG)["tools"], {"node": "22"})
+        self.assertFalse(kaizen.USER_DATA_FILE.exists())
+
+    def test_mise_and_native_prerequisites_fail_before_writes(self):
+        with patch.object(self.instance, "_features", return_value=[]), patch.object(kaizen.shutil, "which", return_value=None):
+            with self.assertRaises(kaizen.DependencyNotFoundError):
+                self.instance.install()
+        with patch.object(self.instance, "_features", return_value=[]), patch.object(kaizen.shutil, "which", return_value="/fake/mise"), patch.object(kaizen.subprocess, "run", return_value=subprocess.CompletedProcess([], 1, "", "")):
+            with self.assertRaisesRegex(kaizen.DependencyNotFoundError, "bootstrap"):
+                self.instance.install()
+        sample = feature(packages=["jq"])
+        with patch.object(self.instance, "_features", return_value=[sample]), patch.object(kaizen.shutil, "which", side_effect=lambda name: "/fake/mise" if name == "mise" else None), patch.object(kaizen.subprocess, "run", return_value=subprocess.CompletedProcess([], 0, "--upgrade", "")):
+            with self.assertRaisesRegex(kaizen.ExecutableNotFoundError, "dnf"):
+                self.instance.install()
+        self.assertFalse(kaizen.BOOTSTRAP_CONFIG.exists())
+
+    def test_flatpak_missing_remote_fails_without_writing_configs(self):
+        sample = feature(flatpak=["dev.zed.Zed"])
+        results = [subprocess.CompletedProcess([], 0, "--upgrade", ""), subprocess.CompletedProcess([], 0, "other-remote\n", "")]
+        with patch.object(self.instance, "_features", return_value=[sample]), patch.object(kaizen.shutil, "which", return_value="/fake/tool"), patch.object(kaizen.subprocess, "run", side_effect=results):
+            with self.assertRaisesRegex(ValueError, "system-wide flathub"):
+                self.instance.install()
+        self.assertFalse(kaizen.BOOTSTRAP_CONFIG.exists())
+        self.assertFalse(kaizen.MISE_CONFIG.exists())
+
+    def test_bump_preserves_user_versions_archived_features_and_other_metadata(self):
+        catalog = kaizen.FEATURES_DIR / "tools.toml"
+        write(catalog, '[sample]\npackages = ["jq"]\ndotfiles = ["dotfiles/config"]\ntools = {node = "20", python = "3.11"}\n[archived]\narchive = true\ntools = {rust = "1.80"}')
+        write(kaizen.MISE_CONFIG, '[tools]\nnode = "22"\npython = "3.12"\nrust = "1.81"')
+        self.instance._capture_mise_versions(kaizen.discover_features("fedora"), {"node"})
+        data = kaizen.read_toml(catalog)
+        self.assertEqual(data["sample"]["tools"], {"node": "20", "python": "3.12"})
+        self.assertEqual(data["sample"]["packages"], ["jq"])
+        self.assertEqual(data["archived"]["tools"], {"rust": "1.80"})
+
+    def test_user_overlay_does_not_follow_old_symlink(self):
+        original = self.root / "original.toml"
+        write(original, 'layout = "saved"')
+        kaizen.USER_DATA_FILE.parent.mkdir(parents=True)
+        kaizen.USER_DATA_FILE.symlink_to(original)
+        self.instance._user_data = {"layout": "colemak"}
+        self.instance._write_user_data()
+        self.assertFalse(kaizen.USER_DATA_FILE.is_symlink())
+        self.assertEqual(original.read_text(), 'layout = "saved"')
+        self.assertEqual(kaizen.read_toml(kaizen.USER_DATA_FILE), {"layout": "colemak"})
+
+    @unittest.skipUnless(shutil.which("mise") and shutil.which("chezmoi"), "requires mise and chezmoi")
+    def test_real_mise_applies_only_selected_dotfiles_after_hook_in_sandbox(self):
+        home = self.root / "home"
+        home.mkdir()
+        write(kaizen.DOTFILES_DIR / "dot_config/selected/config", "selected\n")
+        write(kaizen.DOTFILES_DIR / "dot_config/desktop/config", "desktop\n")
+        write(kaizen.DOTFILES_DIR / "private_Library/ignored/config", "ignored\n")
+        write(kaizen.DOTFILES_DIR / ".chezmoiignore", "Library/\n")
+        write(kaizen.DOTFILES_DIR / ".chezmoiremove", "obsolete\n")
+        write(home / "obsolete", "keep\n")
+        write(home / ".config/desktop/config", "user-owned\n")
+        write(self.root / "mise.toml", '[tools]\n"project-tool-must-not-install" = "latest"')
+        write(self.root / ".tool-versions", "project-tool-must-not-install latest\n")
+        write(self.root / "kaizen.py", path.read_text())
+        write(home / ".config/kaizen/config.toml", "")
+        hook = self.root / "features/hooks/sample.py"
+        marker = self.root / "order"
+        binary = self.root / "bin/skills"
+        write(binary, f'#!/bin/sh\nif [ "$1" = list ]; then printf "[]"; else printf "skill\\n" >> {shlex.quote(str(marker))}; fi\n')
+        binary.chmod(0o755)
+        write(hook, f'from pathlib import Path\np = Path({str(marker)!r})\nassert p.read_text() == "skill\\n"\np.write_text(p.read_text() + "hook\\n")\n')
+        write(kaizen.FEATURES_DIR / "tools.toml", '[sample]\nskills = ["owner/repo@skill"]\ndotfiles = ["dotfiles/dot_config/selected", "dotfiles/private_Library/ignored"]\npost_install = "features/hooks/sample.py"\n[desktop]\ndotfiles = ["dotfiles/dot_config/desktop"]\ntools = {"nonexistent-tool-must-not-install" = "latest"}\n')
+        write(home / ".config/mise/config.toml", '[tools]\n"unrelated-tool-must-not-install" = "latest"')
+        self.instance._selected = ["sample"]
+        with patch.dict(os.environ, {"PATH": str(binary.parent) + os.pathsep + os.environ["PATH"], "HOME": str(home), "XDG_CONFIG_HOME": str(home / ".config"), "XDG_DATA_HOME": str(home / ".local/share"), "XDG_CACHE_HOME": str(home / ".cache"), "XDG_STATE_HOME": str(home / ".local/state")}):
+            self.instance.sync()
+        self.assertEqual(marker.read_text(), "skill\nhook\n")
+        self.assertEqual((home / ".config/selected/config").read_text(), "selected\n")
+        self.assertEqual((home / ".config/desktop/config").read_text(), "user-owned\n")
+        self.assertEqual((home / "obsolete").read_text(), "keep\n")
+        self.assertFalse((home / "Library/ignored").exists())
+        self.assertIn("unrelated-tool", (home / ".config/mise/config.toml").read_text())
 
 
-def test_bump_preserves_user_overrides() -> None:
-    with tempfile.TemporaryDirectory() as directory:
-        root = Path(directory)
-        kaizen.KAIZEN_DIR = root
-        kaizen.FEATURES_DIR = root / "features"
-        kaizen.MISE_CONFIG = root / "mise.toml"
-        feature_file = kaizen.FEATURES_DIR / "editor.toml"
-        write(feature_file, '[sample]\npackages = ["jq", "fd"]\npackage_names = {fd = {dnf = "fd-find", apt = "fd-find"}}\nbrew = ["mise"]\nskills = ["dietrichgebert/ponytail@ponytail"]\ntools = { node = "20", python = "3.11" }\n\n[second]\ntools = { go = "1.21" }\n\n[archived]\narchive = true\ntools = { rust = "1.80" }\n')
-        write(kaizen.MISE_CONFIG, '[tools]\nnode = "22"\npython = "3.12"\ngo = "1.22"\nrust = "1.81"\n')
-        instance = object.__new__(kaizen.Kaizen)
-        instance._capture_mise_versions(kaizen.discover_features("macos"), {"node"})
-        catalog = kaizen.read_toml(feature_file)
-        assert catalog["sample"]["tools"] == {"node": "20", "python": "3.12"}
-        assert catalog["sample"]["brew"] == ["mise"]
-        assert catalog["sample"]["packages"] == ["jq", "fd"]
-        assert catalog["sample"]["package_names"] == {"fd": {"dnf": "fd-find", "apt": "fd-find"}}
-        assert catalog["sample"]["skills"] == ["dietrichgebert/ponytail@ponytail"]
-        assert catalog["second"]["tools"] == {"go": "1.22"}
-        assert catalog["archived"] == {"archive": True, "tools": {"rust": "1.80"}}
-        assert "[sample.tools]" not in feature_file.read_text()
-        assert "[sample.package_names]" not in feature_file.read_text()
-
-
-def test_install_does_not_apply_dotfiles() -> None:
-    events: list[object] = []
-    instance = object.__new__(kaizen.Kaizen)
-    instance._os = "macos"
-    original_parse = kaizen.discover_features
-    original_load = kaizen.load_user_dependencies
-    original_run = kaizen.subprocess.run
-    original_which = kaizen.shutil.which
-    kaizen.shutil.which = lambda _: "/tmp/chezmoi"
-    kaizen.discover_features = lambda _: events.append("features") or []
-    kaizen.load_user_dependencies = lambda: events.append("dependencies") or {}
-    kaizen.subprocess.run = lambda command, **_: events.append(command)
-    instance._write_user_data = lambda: events.append("write")
-    instance._install_dependencies = lambda *_: events.append("install")
-    try:
-        instance.install()
-        assert events == ["features", "dependencies", "install"]
-        events.clear()
-        instance.sync()
-    finally:
-        kaizen.discover_features = original_parse
-        kaizen.load_user_dependencies = original_load
-        kaizen.subprocess.run = original_run
-        kaizen.shutil.which = original_which
-    assert events[:4] == ["features", "dependencies", "write", "install"]
-    assert events[4][0:2] == ["chezmoi", "apply"]
-    assert "--force" not in events[4]
-
-
-def test_dependency_workflow_runs_integrations() -> None:
-    events: list[object] = []
-    instance = object.__new__(kaizen.Kaizen)
-    instance._os = "macos"
-    feature = kaizen.Feature(kaizen.FEATURES_DIR / "editor.toml", "sample", {})
-    original_which = kaizen.shutil.which
-    original_run = kaizen.subprocess.run
-    kaizen.shutil.which = lambda _: "/tmp/mise"
-    kaizen.subprocess.run = lambda command, **_: events.append(command)
-    from unittest.mock import Mock
-    instance._adapter = Mock()
-    instance._adapter.install.side_effect = lambda packages: events.append(("packages", packages))
-    instance._generate_mise_config = lambda *_: events.append("mise config")
-    instance._install_skills = lambda _: events.append("skills")
-    instance._run_post_install = lambda item, action: events.append((item, action))
-    try:
-        instance._install_dependencies([feature], {})
-    finally:
-        kaizen.shutil.which = original_which
-        kaizen.subprocess.run = original_run
-    assert events == [
-        ("packages", {"macos": {}, "linux": {}}),
-        "mise config",
-        ["mise", "install", "--jobs=1"],
-        "skills",
-        (feature, "sync"),
-    ]
-    assert "install" in kaizen._COMMANDS
-
-
-def test_failures_stop_workflow() -> None:
-    from unittest.mock import patch
-    import subprocess
-
-    with tempfile.TemporaryDirectory() as directory:
-        path = Path(directory) / "editor.toml"
-        write(path, "[sample\n")
-        try:
-            kaizen.load_toml(path)
-        except ValueError:
-            pass
-        else:
-            raise AssertionError("malformed feature manifest accepted")
-
-        with patch.object(kaizen.shutil, "which", return_value="/tmp/tool"):
-            with patch.object(kaizen.subprocess, "run", side_effect=subprocess.CalledProcessError(2, ["sample"])) as run:
-                try:
-                    kaizen.Brew()._run(["sample"])
-                except subprocess.CalledProcessError:
-                    pass
-                else:
-                    raise AssertionError("native command failure ignored")
-                assert run.call_args.kwargs["check"] is True
-
-        instance = object.__new__(kaizen.Kaizen)
-        with patch.object(kaizen.shutil, "which", return_value=None):
-            with patch.object(instance, "_write_user_data") as write_data:
-                try:
-                    instance.sync()
-                except kaizen.DependencyNotFoundError:
-                    pass
-                else:
-                    raise AssertionError("sync without chezmoi accepted")
-                write_data.assert_not_called()
-
-        kaizen.MISE_CONFIG = Path(directory) / "mise.toml"
-        write(kaizen.MISE_CONFIG, '[tools]\nnode = "latest"\n')
-        instance._os = "linux"
-        instance._generate_mise_config = lambda *_: None
-        instance._adapter = kaizen.Dnf()
-        with patch.object(kaizen.shutil, "which", return_value=None):
-            with patch.object(instance, "_run_post_install") as hook:
-                try:
-                    instance._install_dependencies([], {})
-                except kaizen.DependencyNotFoundError:
-                    pass
-                else:
-                    raise AssertionError("configured mise tools silently skipped")
-                hook.assert_not_called()
-
-
-def test_feature_discovery_filters_whole_recipe() -> None:
-    from unittest.mock import Mock, patch
-
-    with tempfile.TemporaryDirectory() as directory:
-        root = Path(directory)
-        features = root / "features"
-        catalogs = {
-            "tiling": {
-                "first": 'platforms = ["linux"]\ndistributions = ["fedora"]\ndnf = ["first"]\n',
-                "second": 'platforms = ["linux"]\ndnf = ["second"]\n',
-                "rift": 'platforms = ["macos"]\nbrew = ["rift"]\n',
-            },
-            "editor": {"archived": 'archive = true\n'},
-            "system": {"shared": 'description = "Shared tools"\n'},
-        }
-        for category, entries in catalogs.items():
-            sections = []
-            for name, settings in entries.items():
-                hook = f"features/hooks/{name}/post_install.py"
-                sections.append(f'[{name}]\n{settings}tools = {{ {name} = "latest" }}\npost_install = "{hook}"\n')
-                if name != "archived":
-                    write(root / hook, 'raise RuntimeError("must be mocked")\n')
-            write(features / f"{category}.toml", "\n".join(sections))
-        user_data = {
-            "shortcuts": [{"keys": [["h"], ["Left"]], "description": "Move left."}],
-        }
-        overlay = root / "dotfiles/.chezmoidata/99-user.toml"
-        overlay.parent.mkdir(parents=True)
-        original_config = root / "user.toml"
-        original_config.write_text("unchanged\n")
-        overlay.symlink_to(original_config)
-        with (
-            patch.object(kaizen, "KAIZEN_DIR", root),
-            patch.object(kaizen, "FEATURES_DIR", features),
-            patch.object(kaizen, "USER_DATA_FILE", overlay),
-            patch.object(kaizen, "MISE_CONFIG", root / "mise.toml"),
-            patch.object(kaizen, "detect_os", return_value="fedora"),
-            patch.object(kaizen.shutil, "which", return_value="/tmp/tool"),
-            patch.object(kaizen.subprocess, "run") as run,
-        ):
-            selected = kaizen.discover_features("fedora")
-            names = {item.name for item in selected}
-            assert names == {"first", "second", "shared"}
-            assert {item.name for item in kaizen.discover_features("macos")} == {"rift", "shared"}
-            assert {item.name for item in kaizen.discover_features("ubuntu")} == {"second", "shared"}
-            instance = kaizen.Kaizen(user_data)
-            instance._adapter = Mock()
-            instance._write_user_data()
-            assert not overlay.is_symlink()
-            assert kaizen.read_toml(overlay) == user_data
-            assert original_config.read_text() == "unchanged\n"
-            instance._install_dependencies(selected, {})
-            instance._adapter.install.assert_called_once_with({"macos": {}, "linux": {"dnf": ["first", "second"]}})
-            assert set(kaizen.read_toml(kaizen.MISE_CONFIG)["tools"]) == names
-            instance.update()
-            hooks = [
-                call.args[0] for call in run.call_args_list
-                if call.args[0][0] == sys.executable
-            ]
-            assert len(hooks) == 2 * len(selected)
-            assert all(Path(command[1]).parent.name in names for command in hooks)
-            assert all(command[2] == "fedora" for command in hooks)
-            write(features / "editor.toml", '[archived]\narchive = "true"\n')
-            try:
-                kaizen.discover_features("fedora")
-            except TypeError as error:
-                assert "archive must be true or false" in str(error)
-            else:
-                raise AssertionError("invalid archive flag accepted")
-            for config in ({"features": {"first": False}}, {"tiling": {"variant": "old"}}):
-                try:
-                    kaizen.normalize_config(config)
-                except ValueError as error:
-                    assert "no longer supported" in str(error)
-                else:
-                    raise AssertionError("obsolete feature selection silently ignored")
-
-
-
-test_shared_packages_and_aliases()
-test_package_conflicts_fail_before_installation()
-test_shared_package_validation_and_filters()
-test_feature_discovery_filters_whole_recipe()
-test_failures_stop_workflow()
-test_manifest_validation()
-test_package_adapter_reuse()
-test_user_tools_override_features()
-test_bump_preserves_user_overrides()
-test_install_does_not_apply_dotfiles()
-test_dependency_workflow_runs_integrations()
-print("dependency tests passed")
+unittest.main()
 PY

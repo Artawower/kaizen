@@ -17,6 +17,10 @@ Every top-level table in a category catalog is an independent feature. Names
 are unique across all catalogs. Kaizen discovers =features/*.toml= in filename
 order, then feature-name order. Categories provide no inheritance or defaults;
 there is no user =[features]= enable list and no variant selection.
+Repeat =--feature NAME= on =install=, =sync=, =update=, =status=, or =bump= to select
+recipes explicitly. The selection applies for one command only. Omission selects
+all applicable non-archived recipes. Unknown, archived, and unsupported names fail
+before application; repeated names are deduplicated. There are no presets or tags.
 
 * Feature section
 
@@ -66,6 +70,37 @@ User =[tools]= in =~/.config/kaizen/dependencies.toml= overrides feature version
 Developer =bump= captures live versions into applicable feature sections while
 preserving other sections and user-owned tool overrides.
 
+* Mise execution
+
+Kaizen generates =~/.config/kaizen/bootstrap.toml= and executes =mise bootstrap=
+in isolation from unrelated global, system, and project mise configs. Linux
+packages become manager-qualified =[bootstrap.packages]= entries. Exactly one
+native Linux manager is chosen; Flatpak stays system-wide and requires the
+executable and a configured Flathub remote. Real Homebrew commands run in a
+pre-packages hook, preserving taps, casks, and custom formula flags.
+
+An optional =bootstrap= table passes native mise bootstrap declarations through:
+
+#+BEGIN_SRC toml
+[example.bootstrap.macos.defaults."com.apple.dock"]
+autohide = true
+tilesize = 32
+#+END_SRC
+
+Different keys merge; conflicting values fail before execution. =packages= and
+=hooks= inside this table are reserved for Kaizen's generated installation plan.
+Mise validates and executes the remaining native sections. Use absolute or
+home-relative resource paths where the native section supports them; the
+configuration is generated outside the catalog directory.
+
+Tools install before one sequential bootstrap task installs skills, runs feature
+hooks, and, for =sync= only, applies chezmoi. =update= uses =--update --upgrade=
+and refreshes integrations without applying dotfiles. Updates target declared
+packages and tools rather than requesting manager-wide upgrades, though native
+package dependencies may also change. =--dry-run= previews using a temporary
+config without replacing generated configs or the chezmoi overlay. Mise prints
+tasks without running them; file-template =exec()= can still run during preview.
+
 * OS eligibility
 
 Omitted =platforms= means both macOS and Linux. Restrict a whole recipe with
@@ -83,9 +118,10 @@ post_install = "features/hooks/mangowm/post_install.py"
 #+END_SRC
 
 =distributions= applies only on Linux and matches =/etc/os-release= IDs.
-The eligibility filter covers packages, mise tools, and hooks. Dotfiles are
-independent: chezmoi uses general platform and generated-file exclusions, not
-per-feature gates. An unused app config may still be deployed on its platform.
+The eligibility filter covers packages, mise tools, bootstrap declarations,
+skills, and hooks. With explicit =--feature= selection, dotfiles are limited to
+selected declarations and chezmoi's platform/generated-file exclusions. Without
+selection, chezmoi retains its full-source behavior.
 Installation does not select a running WM or activate its service.
 
 * Archive status
@@ -119,17 +155,24 @@ is not yet on =PATH=. Installation and CLI-output errors stop the operation.
 
 * Dotfiles metadata
 
-Optional =dotfiles= lists repository-relative source paths. It guides AI
-ownership discovery, not runtime assembly or deployment. Shared files stay
-active when another feature needs them. Resolve selectors such as skhd =.load=
-before moving a selected profile; restoring files does not switch selection.
+Optional =dotfiles= lists repository-relative chezmoi source paths inside
+=dotfiles/=. With explicit =--feature= selection, only these files or directory
+trees are applied. Selective sync validates paths before installing dependencies;
+a feature without this list applies no dotfiles. Chezmoi resolves encoded source names and
+filters ignored paths. Shared paths are deduplicated. Unlisted files are excluded
+from selective sync, and existing destination files are never removed merely
+because their feature is no longer selected.
+
+Without =--feature=, =sync= retains full-source application. Resolve selectors
+such as skhd =.load= before moving a selected profile; restoring files does not
+switch selection.
 
 * Integrations
 
 Declare an optional repository-relative =post_install= path in the feature
 section. Only actual hooks and their assets need directories under
 =features/hooks/=. Archived or unsupported features do not require their hook
-to be present; applicable features must reference an existing file.
+to be present; selected applicable features must reference an existing file.
 
 Hooks run with Kaizen's Python interpreter and receive the OS and action:
 

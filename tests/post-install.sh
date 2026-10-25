@@ -8,6 +8,7 @@ import importlib.util
 import subprocess
 import sys
 import tempfile
+import tomllib
 from pathlib import Path
 from unittest.mock import patch
 
@@ -22,10 +23,40 @@ def load(name, relative):
     return module
 
 
+emacs = load("emacs_hook", "features/hooks/emacs/post_install.py")
 keyboard = load("keyboard_hook", "features/hooks/keyboard/post_install.py")
 anki = load("anki_hook", "features/hooks/language-learning/post_install.py")
 codium = load("codium_hook", "features/hooks/vscodium/post_install.py")
 services = load("services_hook", "dotfiles/dot_config/scripts/executable_setup-systemd-services")
+
+catalog = tomllib.loads((root / "features/editor.toml").read_text())
+assert emacs.emacs_formula() == catalog["emacs"]["package_names"]["emacs"]["brew"]
+
+with tempfile.TemporaryDirectory() as directory:
+    source = Path(directory) / "editor.toml"
+    cases = [
+        ('packages = ["emacs", "imagemagick"]\npackage_names = {emacs = {brew = "emacs-plus@32"}}\nbrew = ["tree-sitter"]', "emacs-plus@32"),
+        ('brew = ["emacs-plus@31", "tree-sitter"]', "emacs-plus@31"),
+        ('packages = ["emacs-plus"]', "emacs-plus"),
+        ('packages = ["emacs"]\npackage_names = {emacs = {brew = "d12frosted/emacs-plus/emacs-plus@32"}}', "d12frosted/emacs-plus/emacs-plus@32"),
+        ('packages = ["emacs"]\npackage_names = {emacs = {brew = "emacs-plus@32"}}\nbrew = ["emacs-plus@32"]', "emacs-plus@32"),
+    ]
+    with patch.object(emacs, "CATALOG_SOURCE", source):
+        for declaration, expected in cases:
+            source.write_text("[emacs]\n" + declaration)
+            assert emacs.emacs_formula() == expected, declaration
+        for declaration in ('brew = ["tree-sitter"]', 'packages = ["emacs"]\npackage_names = {emacs = {brew = "emacs-plus@32"}}\nbrew = ["emacs-plus@31"]'):
+            source.write_text("[emacs]\n" + declaration)
+            try:
+                emacs.emacs_formula()
+            except RuntimeError as error:
+                assert str(error) == "macOS packages must declare exactly one Emacs Plus formula"
+            else:
+                raise AssertionError(f"invalid Emacs formula declaration accepted: {declaration}")
+
+with patch.object(sys, "argv", ["post_install.py", "macos", "sync"]), patch.object(emacs, "install_terminal_colors"), patch.object(emacs, "install_application"), patch.object(emacs, "build_emacs_client"), patch.object(Path, "exists", return_value=True), patch.object(emacs.subprocess, "run", return_value=subprocess.CompletedProcess([], 0, stdout="/fake/emacs\n")) as run:
+    emacs.main()
+    assert run.call_args_list[0].args[0] == ["brew", "--prefix", emacs.emacs_formula()]
 
 for os_name in ("macos", "linux", "fedora", "fedora-asahi-remix", "ubuntu", "debian"):
     with patch.object(sys, "argv", ["post_install.py", os_name, "sync"]):

@@ -1,11 +1,12 @@
 # Kaizen — Agent Reference
 
 Kaizen is a dotfiles and developer environment manager. No Nix, no Rust.
-Stack: **Python 3.11+**, **chezmoi** (dotfiles), **mise** (runtimes), **brew/dnf/apt** (packages).
+Stack: **Python 3.11+** (feature selection and config generation), **mise bootstrap** (execution), **chezmoi** (dotfiles), **brew/dnf/apt** (packages).
 
 The installer reuses Python 3.11+ or bootstraps an isolated Python through uv.
-Native package managers are runtime dependencies of `sync`/`update`, not installer
-prerequisites. Missing Homebrew is offered interactively through its official installer.
+Mise with bootstrap and `--upgrade` support is required by feature installation.
+Native package managers are runtime dependencies, not installer prerequisites.
+Missing Homebrew is offered interactively through its official installer.
 
 ## Repository layout
 
@@ -32,7 +33,11 @@ tools = { go = "latest" }
 
 Use `packages` for shared native dependencies, flat manager keys for additions, and inline `package_names` for naming exceptions. Kaizen resolves known aliases and deduplicates active declarations before installation. Use an inline `tools` table for mise versions. Optional `brew_args` is a native-package-to-flags table. A `post_install` path is repository-relative, such as `features/hooks/emacs/post_install.py`; colocate its assets with the script. There are no per-feature package or mise files. See `docs/feature-format.org` when changing the schema.
 
-Omitted `platforms` means macOS and Linux; restrict a whole recipe with `platforms = ["macos"]` or `["linux"]`. Optional `distributions` restricts Linux distro IDs. The same filter applies to native packages, mise, and hooks. `kaizen sync` generates `~/.config/mise.toml` from applicable `tools` entries. Feature names are unique across category files; there is no inheritance or variant selection. Dotfiles are independent: chezmoi applies source files with general platform exclusions; archive owned files physically to stop managing them.
+Omitted `platforms` means macOS and Linux; optional `distributions` restricts Linux distro IDs. Repeat `--feature NAME` on install/sync/update/status/bump to select recipes for one command; omission selects all active applicable recipes. Unknown, archived, and unsupported names fail. There are no presets, tags, or inheritance.
+
+Kaizen generates `~/.config/kaizen/bootstrap.toml` for isolated mise execution and `~/.config/mise.toml` for interactive tool activation. Linux packages use native bootstrap declarations; real Homebrew runs through mise hooks to preserve custom flags. Optional feature `bootstrap` tables pass native declarations through, reserving `packages` and `hooks` for Kaizen. Mise runs skills and feature hooks after tools, then chezmoi for sync. See `docs/feature-format.org` before changing execution or selection.
+
+With explicit feature selection, `dotfiles` lists the only repository-relative source paths to apply; missing or escaping paths fail before installation. Shared paths deduplicate and chezmoi platform exclusions still apply. Without selection, chezmoi retains full-source application. Narrowing selection does not uninstall packages or remove deployed files.
 
 ## Configuration authority
 
@@ -78,11 +83,11 @@ font_size = 14
 | --- | --- |
 | `kaizen` / `kaizen help` | show commands, documentation URL, and config path |
 | `kaizen docs` | show documentation, config, and installed source paths |
-| `just sync` | install packages → generate mise.toml → mise install → chezmoi apply |
+| `just sync [--feature NAME]... [--dry-run]` | generate selected config → mise bootstrap → integrations → chezmoi |
 | `kaizen self-update` | fast-forward a managed installation; unavailable in development mode |
 | `just bump` | developer-only: mise upgrade --interactive → capture versions to feature catalog `tools` entries |
 | `just capture` | developer-only: chezmoi re-add for known mutable paths (pi settings, mcp config) |
-| `just update` | upgrade native packages, mise tools, and feature integrations |
+| `just update [--feature NAME]... [--dry-run]` | install/upgrade declared packages and tools, then refresh integrations |
 | `just cleanup` | clean system (mole), project artifacts (kondo), and toolchain caches (go, cargo, uv, npm, pnpm, bun) |
 | `just status` | show installation mode, source, OS, config, and tool locations |
 
@@ -111,7 +116,7 @@ jj --config 'signing.behavior="drop"' describe -m "..."  # update description
 - `kaizen.py` is the only orchestrator; do not add new Python files unless adding a `post_install.py` to a feature.
 - Package names must be valid for their manager — verify before adding (e.g., `go-tools` does not exist in Homebrew).
 - Prefer adding features over modifying `kaizen.py`.
-- Put idempotent OS configuration in a feature's `post_install.py`; keep privileged or security-sensitive changes opt-in.
+- Prefer native feature `bootstrap` declarations for supported OS settings; use idempotent `post_install.py` hooks for the rest. Keep privileged or security-sensitive changes opt-in.
 
 ## External skills
 
@@ -124,5 +129,5 @@ Keep compatibility rules in `dotfiles/literal_AGENTS.md` and local review policy
 1. Add a uniquely named section to the appropriate `features/*.toml` catalog.
 2. Declare packages and inline tools there; specify `platforms`, `distributions`, and an explicit hook path only when needed.
 3. The feature is discovered automatically; installation does not choose the running WM or start its service.
-4. Set `archive = true` in its section to archive a feature; omission means active. Keep the section and dependencies in place when moving owned files to `.arhive/<name>/`. Optional `dotfiles` metadata lists repository-relative source paths for AI discovery, not runtime ownership rules.
+4. Set `archive = true` in its section to archive a feature; omission means active. Keep the section and dependencies in place when moving owned files to `.arhive/<name>/`. Optional `dotfiles` lists repository-relative source paths for selective sync and ownership discovery.
 5. Keep implementation-specific profiles in their app directories. Shared selectors, such as `dot_config/skhd/skhdrc` with one `.load`, choose a profile explicitly. Resolve selector references before archiving a selected profile; restoring files does not switch the selection.

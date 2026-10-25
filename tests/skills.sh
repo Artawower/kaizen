@@ -161,18 +161,15 @@ class SkillsTests(unittest.TestCase):
                 features = kaizen.discover_features("ubuntu")
             self.assertEqual([item.name for item in features], ["active", "linux"])
 
-    def test_update_runs_skills_after_mise_and_before_hooks(self):
-        events = []
-        self.instance._adapter = Mock()
-        self.instance._adapter.update.side_effect = lambda: events.append("native")
+    def test_update_delegates_skills_to_mise_bootstrap_task(self):
         self.instance._os = "macos"
-        self.instance._install_skills = lambda features, **kwargs: events.append(("skills", kwargs))
-        self.instance._run_post_install = lambda item, action: events.append(("hook", action))
-        with patch.object(kaizen, "discover_features", return_value=[feature()]), patch.object(
-            kaizen.shutil, "which", return_value="/fake/mise"
-        ), patch.object(kaizen.subprocess, "run", side_effect=lambda command, **kwargs: events.append(command)):
-            self.instance.update()
-        self.assertEqual(events, ["native", ["mise", "upgrade"], ("skills", {"update": True}), ("hook", "update")])
+        self.instance._selected = ["ai"]
+        item = feature()
+        item.data["post_install"] = "features/hooks/terminal/post_install.py"
+        config = self.instance._bootstrap_config([item], {}, "update", dotfiles=False)
+        commands = config["tasks"]["bootstrap"]["run"]
+        self.assertIn("_skills --feature ai --refresh", commands[0])
+        self.assertIn("post_install.py macos update", commands[1])
 
 
 unittest.main()

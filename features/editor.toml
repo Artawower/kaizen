@@ -1,5 +1,6 @@
 [emacs]
 description = "Emacs editor"
+dotfiles = ["dotfiles/dot_emacs.d"]
 taps = ["d12frosted/emacs-plus"]
 packages = ["emacs", "imagemagick"]
 package_names = {emacs = {brew = "emacs-plus@32"}}
@@ -12,12 +13,14 @@ post_install = "features/hooks/emacs/post_install.py"
 
 [helix]
 description = "Official Helix editor"
+dotfiles = ["dotfiles/dot_config/helix", "dotfiles/dot_config/scripts/executable_helix-theme-switcher"]
 packages = ["git", "marksman", "helix"]
 package_names = {helix = {apt = "hx"}}
 dnf = ["nvim"]
 
 [helix-steel]
 description = "Helix Steel editor built from the plugin-enabled fork"
+dotfiles = ["dotfiles/dot_config/helix", "dotfiles/dot_config/scripts/executable_helix-theme-switcher"]
 packages = ["git", "marksman"]
 tools = {rust = "latest", "cargo:schemat" = "latest"}
 post_install = "features/hooks/helix-steel/post_install.py"
@@ -30,10 +33,12 @@ archive = true
 
 [neovim]
 description = "Neovim editor"
+dotfiles = ["dotfiles/dot_config/nvim"]
 packages = ["neovim"]
 
 [vscodium]
 description = "VSCodium text editor"
+dotfiles = ["dotfiles/dot_config/private_VSCodium", "dotfiles/private_Library/private_Application Support/private_VSCodium", "dotfiles/dot_var/app/com.vscodium.codium"]
 cask = ["vscodium"]
 flatpak = ["com.vscodium.codium"]
 post_install = "features/hooks/vscodium/post_install.py"

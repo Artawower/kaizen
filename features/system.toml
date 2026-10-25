@@ -5,6 +5,7 @@ cask = ["aldente"]
 
 [core]
 description = "Core CLI utilities"
+dotfiles = ["dotfiles/dot_config/Justfile", "dotfiles/dot_config/scripts/executable_devcache"]
 packages = ["ripgrep", "fd", "fzf", "jq", "tree", "htop", "ncdu", "sqlite", "pandoc", "wget", "dash", "kondo"]
 package_names = {fd = {dnf = "fd-find", apt = "fd-find"}}
 brew = ["just", "mise", "mole", "dtach", "scc"]
@@ -19,12 +20,14 @@ brew = ["macpow"]
 
 [fonts]
 description = "Fonts and Nerd Fonts"
+dotfiles = ["dotfiles/dot_config/fonts"]
 cask = ["font-jetbrains-mono-nerd-font", "font-fira-code-nerd-font", "font-caskaydia-cove-nerd-font", "font-liga-comic-mono", "font-monaspace-nerd-font"]
 dnf = ["jetbrains-mono-fonts", "fira-code-fonts"]
 apt = ["fonts-jetbrains-mono", "fonts-firacode"]
 
 [keyboard]
 description = "Keyboard layout tooling"
+dotfiles = ["dotfiles/dot_config/private_karabiner", "dotfiles/dot_config/xremap", "dotfiles/dot_config/scripts/executable_setup-quasiqwerty", "dotfiles/dot_config/scripts/layouts.toml", "dotfiles/dot_config/scripts/layout-presets.py"]
 cask = ["karabiner-elements", "input-source-pro"]
 apt = ["xremap"]
 post_install = "features/hooks/keyboard/post_install.py"

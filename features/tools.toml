@@ -1,5 +1,6 @@
 [ai]
 description = "AI coding agents and tooling"
+dotfiles = ["dotfiles/dot_pi", "dotfiles/dot_omp", "dotfiles/dot_agents", "dotfiles/literal_AGENTS.md", "dotfiles/dot_config/eca", "dotfiles/dot_config/opencode", "dotfiles/dot_config/github-copilot", "dotfiles/dot_config/gh-copilot"]
 skills = [
   "dietrichgebert/ponytail@ponytail",
   "mattpocock/skills@retro",
@@ -34,14 +35,22 @@ dotfiles = ["dotfiles/dot_config/hunk"]
 archive = true
 
 [terminal]
-description = "Terminal, TUI tools, and shell"
+description = "CLI terminal utilities and Nushell"
+dotfiles = ["dotfiles/dot_config/nushell", "dotfiles/private_Library/private_Application Support/nushell", "dotfiles/dot_config/starship.toml", "dotfiles/dot_config/yazi", "dotfiles/dot_config/herdr", "dotfiles/dot_config/atuin"]
 taps = ["muxy-app/tap"]
 packages = ["herdr", "yazi", "starship", "zoxide", "eza", "fastfetch", "direnv", "nushell"]
-brew = ["ghostty"]
+tools = {carapace = "latest"}
+post_install = "features/hooks/terminal/post_install.py"
+
+[ghostty]
+description = "Ghostty graphical terminal"
+dotfiles = ["dotfiles/dot_config/ghostty"]
 cask = ["ghostty"]
 flatpak = ["com.mitchellh.ghostty"]
-tools = {carapace = "latest", "npm:typescript-language-server" = "latest", "npm:vscode-langservers-extracted" = "4.10.0", "npm:yaml-language-server" = "latest", "npm:@github/copilot-language-server" = "1.554.0", "cargo:kdlfmt" = "latest", "cargo:codebook-lsp" = "latest", "npm:lua-fmt" = "2.6.0", "cargo:runner-run" = "latest"}
-post_install = "features/hooks/terminal/post_install.py"
+
+[language-tools]
+description = "Shared language servers and formatters"
+tools = {"npm:typescript-language-server" = "latest", "npm:vscode-langservers-extracted" = "4.10.0", "npm:yaml-language-server" = "latest", "npm:@github/copilot-language-server" = "1.554.0", "cargo:kdlfmt" = "latest", "cargo:codebook-lsp" = "latest", "npm:lua-fmt" = "2.6.0", "cargo:runner-run" = "latest"}
 
 [tuios]
 description = "TUIOS terminal multiplexer"
@@ -69,6 +78,7 @@ archive = true
 
 [vcs]
 description = "Version control tooling"
+dotfiles = ["dotfiles/dot_config/git", "dotfiles/dot_config/jj", "dotfiles/dot_config/jjui", "dotfiles/dot_config/gitu", "dotfiles/dot_config/tuicr", "dotfiles/dot_config/dot_gitignore", "dotfiles/dot_config/scripts/executable_jj-bisect", "dotfiles/dot_config/scripts/executable_jj-bisect.py"]
 packages = ["git", "gh", "jj", "git-delta", "gnupg", "pinentry"]
 package_names = {gnupg = {dnf = "gnupg2", apt = "gnupg2"}, pinentry = {brew = "pinentry-mac", apt = "pinentry-gnome3"}}
 tools = {"cargo:gitu" = "latest", "github:idursun/jjui" = "latest", "npm:git-trim" = "0.3.1", "github:agavra/tuicr" = "latest"}

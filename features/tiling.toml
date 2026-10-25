@@ -8,6 +8,7 @@ cask = ["nikitabobko/tap/aerospace"]
 
 [glazewm]
 description = "GlazeWM tiling WM"
+dotfiles = ["dotfiles/dot_glzr"]
 platforms = ["macos"]
 taps = ["glzr-io/tap"]
 cask = ["glzr-io/tap/glazewm", "glzr-io/tap/zebar"]
@@ -29,12 +30,14 @@ brew = ["lgug2z/tap/komorebi-for-mac", "koekeishiya/formulae/skhd", "FelixKratz/
 
 [mangowm]
 description = "MangoWM scrolling Wayland compositor for Fedora"
+dotfiles = ["dotfiles/dot_config/mango"]
 platforms = ["linux"]
 distributions = ["fedora", "fedora-asahi-remix"]
 post_install = "features/hooks/mangowm/post_install.py"
 
 [niri]
 description = "Niri scrolling Wayland compositor for Linux"
+dotfiles = ["dotfiles/dot_config/niri"]
 platforms = ["linux"]
 dnf = ["niri"]
 
@@ -47,12 +50,13 @@ brew = ["acsandmann/tap/rift"]
 
 [wayland]
 description = "Shared Wayland desktop utilities"
+dotfiles = ["dotfiles/dot_config/noctalia", "dotfiles/dot_local/share/noctalia", "dotfiles/dot_config/cava", "dotfiles/dot_config/autostart", "dotfiles/dot_config/systemd"]
 platforms = ["linux"]
 dnf = ["brightnessctl", "cliphist", "grim", "playerctl", "slurp", "wf-recorder", "wireplumber", "wl-clipboard", "xdg-desktop-portal-wlr", "ydotool"]
 
 [yabai]
 description = "yabai tiling WM for macOS"
-dotfiles = ["dotfiles/dot_config/yabai"]
+dotfiles = ["dotfiles/dot_config/yabai", "dotfiles/dot_config/skhd", "dotfiles/dot_config/borders"]
 platforms = ["macos"]
 taps = ["koekeishiya/formulae", "FelixKratz/formulae"]
 brew = ["koekeishiya/formulae/yabai", "koekeishiya/formulae/skhd", "FelixKratz/formulae/borders"]

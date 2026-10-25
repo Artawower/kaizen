@@ -13,6 +13,7 @@ post_install = "features/hooks/language-learning/post_install.py"
 
 [media]
 description = "Media players: VLC, Spotube"
+dotfiles = ["dotfiles/dot_local/bin/executable_audacity", "dotfiles/dot_local/bin/symlink_audacity4", "dotfiles/dot_local/share/applications/audacity.desktop.tmpl", "dotfiles/dot_local/share/applications/symlink_audacity4.desktop"]
 taps = ["krtirtho/apps"]
 cask = [
   "vlc",
@@ -55,4 +56,16 @@ cask = [
   "pearcleaner",
   "vicinae"
 ]
+dotfiles = ["dotfiles/dot_config/vicinae", "dotfiles/dot_local/share/vicinae", "dotfiles/dot_config/launchagents"]
 post_install = "features/hooks/utilities/post_install.py"
+
+[utilities.bootstrap.macos.defaults."com.apple.dock"]
+autohide = true
+tilesize = 32
+largesize = 48
+magnification = true
+show-recents = false
+workspaces-auto-swoosh = false
+
+[utilities.bootstrap.macos.defaults."com.apple.screensaver"]
+askForPasswordDelay = 30

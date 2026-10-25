@@ -17,11 +17,15 @@ CATALOG_SOURCE = Path(__file__).resolve().parents[2] / "editor.toml"
 def emacs_formula() -> str:
     with CATALOG_SOURCE.open("rb") as file:
         feature = tomllib.load(file)["emacs"]
-    formulas = [
-        package
-        for package in feature.get("brew", [])
-        if package == "emacs-plus" or package.startswith("emacs-plus@")
+    packages = [
+        feature.get("package_names", {}).get(package, {}).get("brew", package)
+        for package in feature.get("packages", [])
     ]
+    formulas = list(dict.fromkeys(
+        package
+        for package in [*packages, *feature.get("brew", [])]
+        if package.rsplit("/", 1)[-1].split("@", 1)[0] == "emacs-plus"
+    ))
     if len(formulas) != 1:
         raise RuntimeError("macOS packages must declare exactly one Emacs Plus formula")
     return formulas[0]

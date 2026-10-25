@@ -1,16 +1,18 @@
 #!/usr/bin/env python3
+import argparse
 import json
 import os
 import platform
 import re
+import shlex
 import shutil
 import subprocess
 import sys
 import tomllib
-from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
+from tempfile import TemporaryDirectory
 from typing import TextIO, cast
 
 KAIZEN_DIR = Path(__file__).parent
@@ -21,6 +23,7 @@ USER_DEPENDENCIES_FILE = CONFIG_FILE.with_name("dependencies.toml")
 CONFIG_EXAMPLE_FILE = KAIZEN_DIR / "config.example.toml"
 USER_DATA_FILE = DOTFILES_DIR / ".chezmoidata" / "99-user.toml"
 MISE_CONFIG = Path.home() / ".config" / "mise.toml"
+BOOTSTRAP_CONFIG = CONFIG_FILE.with_name("bootstrap.toml")
 
 _CAPTURE_PATHS = [
     Path.home() / ".pi" / "agent" / "settings.json",
@@ -205,93 +208,33 @@ def _install_homebrew() -> str:
     raise DependencyInstallError("Homebrew")
 
 
-class PackageManager(ABC):
-    @abstractmethod
-    def install(self, packages: dict[str, object]) -> None:
-        pass
-
-    @abstractmethod
-    def update(self) -> None:
-        pass
-
-    def _run(self, cmd: list[str], env: dict[str, str] | None = None) -> None:
-        if not shutil.which(cmd[0]):
-            raise ExecutableNotFoundError(cmd[0])
-        print(f"  $ {' '.join(cmd)}")
-        subprocess.run(cmd, env=env or os.environ, check=True)
+def _require_homebrew(required_by: str) -> str:
+    if executable := _find_homebrew():
+        return _activate_homebrew(executable)
+    if _approve_install("Homebrew", required_by, _HOMEBREW_INSTALL_URL):
+        return _activate_homebrew(_install_homebrew())
+    raise DependencyNotFoundError("Homebrew", required_by, "https://brew.sh")
 
 
-class Brew(PackageManager):
-    def install(self, packages: dict[str, object]) -> None:
-        section = _table(packages.get("macos"))
-        taps = _string_list(section.get("taps"))
-        formulae = _string_list(section.get("brew"))
-        casks = _string_list(section.get("cask"))
-        if not taps and not formulae and not casks:
-            return
-        brew = self._require("sync")
-        for tap in taps:
-            self._run([brew, "tap", tap])
-        brew_args = _table(section.get("brew_args"))
-        for package in formulae:
-            self._run(
-                [
-                    brew,
-                    "install",
-                    "--yes",
-                    package,
-                    *_string_list(brew_args.get(package)),
-                ]
-            )
-        if casks:
-            self._run([brew, "install", "--yes", "--cask", *casks])
-
-    def update(self) -> None:
-        brew = self._require("update")
-        self._run([brew, "update"])
-        self._run([brew, "upgrade", "--yes"])
-
-    @staticmethod
-    def _require(required_by: str) -> str:
-        if executable := _find_homebrew():
-            return _activate_homebrew(executable)
-        if _approve_install("Homebrew", required_by, _HOMEBREW_INSTALL_URL):
-            return _activate_homebrew(_install_homebrew())
-        raise DependencyNotFoundError("Homebrew", required_by, "https://brew.sh")
-
-
-class Dnf(PackageManager):
-    def install(self, packages: dict[str, object]) -> None:
-        section = _table(packages.get("linux"))
-        for pkg in _string_list(section.get("dnf")):
-            self._run(["sudo", "dnf", "install", "-y", pkg])
-        for app in _string_list(section.get("flatpak")):
-            self._run(["sudo", "flatpak", "install", "--system", "-y", "flathub", app])
-
-    def update(self) -> None:
-        self._run(["sudo", "dnf", "upgrade", "-y"])
-
-
-class Apt(PackageManager):
-    def install(self, packages: dict[str, object]) -> None:
-        section = _table(packages.get("linux"))
-        for pkg in _string_list(section.get("apt")):
-            self._run(["sudo", "apt", "install", "-y", pkg])
-        for app in _string_list(section.get("flatpak")):
-            self._run(["sudo", "flatpak", "install", "--system", "-y", "flathub", app])
-
-    def update(self) -> None:
-        self._run(["sudo", "apt", "update"])
-        self._run(["sudo", "apt", "upgrade", "-y"])
-
-
-_ADAPTERS: dict[str, PackageManager] = {
-    "macos": Brew(),
-    "fedora": Dnf(),
-    "rhel": Dnf(),
-    "ubuntu": Apt(),
-    "debian": Apt(),
-}
+def _run_mise(config: Path, arguments: list[str]) -> None:
+    with TemporaryDirectory(prefix="kaizen-mise-") as directory:
+        environment = {
+            **os.environ,
+            "MISE_GLOBAL_CONFIG_FILE": str(config),
+            "MISE_GLOBAL_CONFIG_ROOT": str(KAIZEN_DIR),
+            "MISE_SYSTEM_CONFIG_FILE": str(Path(directory) / "system.toml"),
+            "MISE_CONFIG_DIR": directory,
+            "MISE_SYSTEM_CONFIG_DIR": directory,
+            "MISE_OVERRIDE_CONFIG_FILENAMES": "kaizen-no-project.toml",
+            "MISE_OVERRIDE_TOOL_VERSIONS_FILENAMES": "kaizen-no-tool-versions",
+            "MISE_CEILING_PATHS": os.pathsep.join(map(str, (config.parent, KAIZEN_DIR, Path.home()))),
+            "MISE_ENV": "",
+            "MISE_AUTO_ENV": "false",
+        }
+        subprocess.run(
+            ["mise", "--jobs=1", *arguments], cwd=config.parent,
+            env=environment, check=True,
+        )
 
 
 def detect_os() -> str:
@@ -304,10 +247,6 @@ def detect_os() -> str:
     except FileNotFoundError:
         return "linux"
     return "linux"
-
-
-def adapter_for(os_name: str) -> PackageManager:
-    return _ADAPTERS.get(os_name, Dnf())
 
 
 def load_toml(path: Path) -> dict[str, object]:
@@ -395,8 +334,9 @@ def _validate_string_map(table: dict[str, object], label: str) -> None:
 
 
 def load_user_dependencies(
-    path: Path = USER_DEPENDENCIES_FILE,
+    path: Path | None = None,
 ) -> dict[str, object]:
+    path = USER_DEPENDENCIES_FILE if path is None else path
     if not path.exists():
         return {}
     dependencies = read_toml(path)
@@ -571,7 +511,7 @@ class Feature:
         )
         _validate_keys(
             self.data,
-            {*list_keys, "archive", "description", "tools", "brew_args", "package_names", "post_install"},
+            {*list_keys, "archive", "description", "tools", "brew_args", "package_names", "post_install", "bootstrap"},
             label,
         )
         for key in list_keys:
@@ -591,6 +531,11 @@ class Feature:
             overrides = _dependency_table(package_names, name, self.manifest)
             _validate_keys(overrides, {"brew", "dnf", "apt"}, f"{label}: package_names.{name}")
             _validate_string_map(overrides, f"{label}: package_names.{name}")
+        _dependency_table(self.data, "bootstrap", self.manifest)
+        for source in _string_list(self.data.get("dotfiles")):
+            path = Path(source)
+            if path.is_absolute() or ".." in path.parts or len(path.parts) < 2 or path.parts[0] != "dotfiles" or "\n" in source:
+                raise ValueError(f"{label}: dotfiles paths must be inside dotfiles/")
         hook = self.data.get("post_install")
         if hook is not None:
             if not isinstance(hook, str) or not hook:
@@ -610,7 +555,9 @@ class Feature:
         )
 
 
-def discover_features(os_name: str) -> list[Feature]:
+def discover_features(
+    os_name: str, selected: list[str] | None = None,
+) -> list[Feature]:
     result = []
     names: set[str] = set()
     for manifest in sorted(FEATURES_DIR.glob("*.toml")):
@@ -621,11 +568,21 @@ def discover_features(os_name: str) -> list[Feature]:
                 raise ValueError(f"duplicate feature name: {name}")
             names.add(name)
             feature = Feature(manifest, name, data)
-            if feature.active_on(os_name):
+            active = feature.active_on(os_name)
+            if active and (selected is None or name in selected):
                 hook = feature.post_install
                 if hook is not None and not hook.is_file():
                     raise FileNotFoundError(f"{feature.label}: hook not found: {hook}")
                 result.append(feature)
+    if selected is not None:
+        unknown = set(selected) - names
+        if unknown:
+            raise ValueError(f"unknown features: {', '.join(sorted(unknown))}")
+        inactive = set(selected) - {feature.name for feature in result}
+        if inactive:
+            raise ValueError(
+                f"archived or unsupported features for {os_name}: {', '.join(sorted(inactive))}"
+            )
     return result
 
 
@@ -706,6 +663,18 @@ def _resolve_packages(
     return result
 
 
+def _merge_bootstrap(
+    target: dict[str, object], source: dict[str, object], label: str,
+) -> None:
+    for key, value in source.items():
+        if key not in target:
+            target[key] = merge_config({}, value) if isinstance(value, dict) else value
+        elif isinstance(target[key], dict) and isinstance(value, dict):
+            _merge_bootstrap(_table(target[key]), value, f"{label}.{key}")
+        elif target[key] != value:
+            raise ValueError(f"conflicting bootstrap declaration: {label}.{key}")
+
+
 def _install_mode() -> InstallMode:
     mode = os.environ.get("KAIZEN_INSTALL_MODE", InstallMode.DEVELOPMENT.value)
     try:
@@ -760,37 +729,190 @@ def self_update() -> None:
 
 
 class Kaizen:
-    def __init__(self, user_data: dict[str, object]) -> None:
+    def __init__(
+        self, user_data: dict[str, object], selected: list[str] | None = None,
+        dry_run: bool = False,
+    ) -> None:
         self._user_data = user_data
         self._os = detect_os()
-        self._adapter = adapter_for(self._os)
+        self._selected = selected
+        self._dry_run = dry_run
+
+    def _features(self) -> list[Feature]:
+        return discover_features(self._os, self._selected)
 
     def install(self) -> None:
-        features = discover_features(self._os)
-        user_dependencies = load_user_dependencies()
-        self._install_dependencies(features, user_dependencies)
+        self._execute("sync", dotfiles=False)
 
     def sync(self) -> None:
-        if not shutil.which("chezmoi"):
-            raise DependencyNotFoundError("chezmoi", "sync", "https://www.chezmoi.io/install/")
-        features = discover_features(self._os)
-        user_dependencies = load_user_dependencies()
-        self._write_user_data()
-        self._install_dependencies(features, user_dependencies)
-        print("[dotfiles]")
-        _ = subprocess.run(
-            ["chezmoi", "apply", "--source", str(DOTFILES_DIR)],
-            check=True,
-        )
+        self._execute("sync", dotfiles=True)
 
     def update(self) -> None:
-        features = discover_features(self._os)
-        self._adapter.update()
-        if shutil.which("mise"):
-            _ = subprocess.run(["mise", "upgrade"], check=True)
-        self._install_skills(features, update=True)
+        self._execute("update", dotfiles=False)
+
+    def _selected_dotfiles(self, features: list[Feature]) -> list[str]:
+        sources = list(dict.fromkeys(
+            source for feature in features
+            for source in _string_list(feature.data.get("dotfiles"))
+        ))
+        for source in sources:
+            path = KAIZEN_DIR / source
+            if not path.resolve().is_relative_to(DOTFILES_DIR.resolve()):
+                raise ValueError(f"dotfile path escapes source directory: {source}")
+            if not path.exists():
+                raise FileNotFoundError(f"dotfile source not found: {source}")
+        return [str(KAIZEN_DIR / source) for source in sources]
+
+    @staticmethod
+    def _integration_command(name: str, features: list[Feature]) -> list[str]:
+        command = [sys.executable, str(KAIZEN_DIR / "kaizen.py"), name]
         for feature in features:
-            self._run_post_install(feature, "update")
+            command.extend(["--feature", feature.name])
+        return command
+
+    def _dotfiles_command(self, features: list[Feature]) -> list[str]:
+        if self._selected is None:
+            return ["chezmoi", "apply", "--source", str(DOTFILES_DIR)]
+        if not self._selected_dotfiles(features):
+            return []
+        return self._integration_command("_dotfiles", features)
+
+    def _apply_dotfiles(self) -> None:
+        sources = self._selected_dotfiles(self._features())
+        if not sources:
+            return
+        base = ["chezmoi", "--source", str(DOTFILES_DIR)]
+        resolved = subprocess.run(
+            [*base, "target-path", *sources], capture_output=True, text=True, check=True,
+        )
+        targets = resolved.stdout.splitlines()
+        if not targets:
+            return
+        managed = subprocess.run(
+            [*base, "managed", "--path-style", "absolute", "--nul-path-separator", *targets],
+            capture_output=True, text=True, check=True,
+        )
+        entries = set(managed.stdout.split("\0"))
+        paths = [target for target in targets if target in entries]
+        if paths:
+            subprocess.run(
+                [*base, "apply", "--parent-dirs", "--", *paths],
+                check=True,
+            )
+
+    def _bootstrap_config(
+        self, features: list[Feature], dependencies: dict[str, object],
+        action: str, *, dotfiles: bool,
+    ) -> dict[str, object]:
+        packages = _resolve_packages(features, dependencies)
+        bootstrap: dict[str, object] = {}
+        tools: dict[str, str] = {}
+        for feature in features:
+            declaration = _table(feature.data.get("bootstrap"))
+            if {"packages", "hooks"} & declaration.keys():
+                raise ValueError(f"{feature.label}: bootstrap packages and hooks are generated by Kaizen")
+            _merge_bootstrap(bootstrap, declaration, feature.label)
+            tools.update(feature.tools)
+        tools.update(_string_map(dependencies.get("tools")))
+        commands: list[str] = []
+        if self._os == "macos":
+            section = _table(packages["macos"])
+            brew = _find_homebrew() or "brew"
+            taps = _string_list(section.get("taps"))
+            formulae = _string_list(section.get("brew"))
+            casks = _string_list(section.get("cask"))
+            commands.extend(shlex.join([brew, "tap", tap]) for tap in taps)
+            if action == "update" and (formulae or casks):
+                commands.append(shlex.join([brew, "update"]))
+            for package in formulae:
+                flags = _string_list(_table(section.get("brew_args")).get(package))
+                commands.append(shlex.join([brew, "install", "--yes", package, *flags]))
+                if action == "update":
+                    commands.append(shlex.join([brew, "upgrade", "--yes", package, *flags]))
+            if casks:
+                commands.append(shlex.join([brew, "install", "--yes", "--cask", *casks]))
+                if action == "update":
+                    commands.append(shlex.join([brew, "upgrade", "--yes", "--cask", *casks]))
+        else:
+            section = _table(packages["linux"])
+            manager = {"ubuntu": "apt", "debian": "apt", "fedora": "dnf", "rhel": "dnf", "fedora-asahi-remix": "dnf"}.get(self._os)
+            if manager is None and any(section.get(key) for key in ("apt", "dnf")):
+                raise ValueError(f"unsupported native package manager for {self._os}")
+            native = {
+                f"{manager}:{package}": "latest"
+                for package in _string_list(section.get(manager or ""))
+            }
+            native.update({
+                f"flatpak:{package}": "latest"
+                for package in _string_list(section.get("flatpak"))
+            })
+            if native:
+                bootstrap["packages"] = native
+        if commands:
+            bootstrap["hooks"] = {"pre-packages": commands}
+        tasks: list[str] = []
+        skills = list(dict.fromkeys(skill for feature in features for skill in feature.skills))
+        if len({skill.rsplit("@", 1)[1] for skill in skills}) != len(skills):
+            raise ValueError("skills inventory contains different sources for the same skill name")
+        if skills:
+            command = self._integration_command("_skills", features)
+            if action == "update":
+                command.append("--refresh")
+            tasks.append(shlex.join(command))
+        for feature in features:
+            if feature.post_install is not None:
+                tasks.append(shlex.join([
+                    sys.executable, str(feature.post_install), self._os, action,
+                ]))
+        if dotfiles and (command := self._dotfiles_command(features)):
+            tasks.append(shlex.join(command))
+        config: dict[str, object] = {"tools": tools, "bootstrap": bootstrap}
+        if tasks:
+            config["tasks"] = {"bootstrap": {"run": tasks, "dir": str(KAIZEN_DIR), "raw": True}}
+        return config
+
+    def _execute(self, action: str, *, dotfiles: bool) -> None:
+        features = self._features()
+        dependencies = load_user_dependencies()
+        config = self._bootstrap_config(features, dependencies, action, dotfiles=dotfiles)
+        if not shutil.which("mise"):
+            raise DependencyNotFoundError("mise", action, "https://mise.jdx.dev/")
+        if dotfiles and self._dotfiles_command(features) and not shutil.which("chezmoi"):
+            raise DependencyNotFoundError("chezmoi", "sync", "https://www.chezmoi.io/install/")
+        capability = subprocess.run(
+            ["mise", "--no-config", "bootstrap", "--help"], capture_output=True, text=True, check=False,
+        )
+        if capability.returncode != 0 or "--upgrade" not in capability.stdout:
+            raise DependencyNotFoundError("mise bootstrap with --upgrade", action, "https://mise.jdx.dev/getting-started.html")
+        arguments = ["bootstrap"]
+        if action == "update":
+            arguments.extend(["--update", "--upgrade"])
+        if self._dry_run:
+            with TemporaryDirectory(prefix="kaizen-plan-") as directory:
+                path = Path(directory) / "bootstrap.toml"
+                write_toml(config, path)
+                _run_mise(path, [*arguments, "--dry-run"])
+            return
+        if self._os == "macos" and _table(config["bootstrap"]).get("hooks"):
+            _require_homebrew(action)
+            config = self._bootstrap_config(features, dependencies, action, dotfiles=dotfiles)
+        managers = {key.split(":", 1)[0] for key in _table(_table(config["bootstrap"]).get("packages"))}
+        for manager in sorted(managers):
+            if not shutil.which(manager):
+                raise ExecutableNotFoundError(manager)
+        if any(key.startswith("flatpak:") for key in _table(_table(config["bootstrap"]).get("packages"))):
+            remotes = subprocess.run(
+                ["flatpak", "remotes", "--system", "--columns=name"],
+                capture_output=True, text=True, check=True,
+            )
+            if "flathub" not in remotes.stdout.splitlines():
+                raise ValueError("Flatpak requires a system-wide flathub remote; configure it before syncing")
+        BOOTSTRAP_CONFIG.parent.mkdir(parents=True, exist_ok=True)
+        write_toml(config, BOOTSTRAP_CONFIG)
+        self._generate_mise_config(features, dependencies)
+        if dotfiles:
+            self._write_user_data()
+        _run_mise(BOOTSTRAP_CONFIG, arguments)
 
     def cleanup(self) -> None:
         steps: list[tuple[str, list[str]]] = []
@@ -828,10 +950,11 @@ class Kaizen:
 
     def bump(self) -> None:
         _require_install_mode("bump", InstallMode.DEVELOPMENT)
-        features = discover_features(self._os)
+        features = self._features()
         user_dependencies = load_user_dependencies()
         user_tools = set(_string_map(user_dependencies.get("tools")))
-        _ = subprocess.run(["mise", "upgrade", "--bump", "--interactive"], check=False)
+        self._generate_mise_config(features, user_dependencies)
+        _run_mise(MISE_CONFIG, ["upgrade", "--bump", "--interactive"])
         self._capture_mise_versions(features, user_tools)
         self.capture()
 
@@ -846,7 +969,7 @@ class Kaizen:
                 print(f"  captured {path}")
 
     def status(self) -> None:
-        features = discover_features(self._os)
+        features = self._features()
         _ = load_user_dependencies()
         mode = _install_mode()
         dependencies_exist = USER_DEPENDENCIES_FILE.exists()
@@ -883,24 +1006,6 @@ class Kaizen:
         if USER_DATA_FILE.is_symlink():
             USER_DATA_FILE.unlink()
         write_toml(self._user_data, USER_DATA_FILE)
-
-    def _install_dependencies(
-        self, features: list[Feature], user_dependencies: dict[str, object]
-    ) -> None:
-        packages = _resolve_packages(features, user_dependencies)
-        print(f"OS: {self._os}\n\n[packages]")
-        self._adapter.install(packages)
-        print()
-        self._generate_mise_config(features, user_dependencies)
-        if MISE_CONFIG.exists() and not shutil.which("mise"):
-            raise DependencyNotFoundError("mise", "install", "https://mise.jdx.dev/")
-        if shutil.which("mise"):
-            print("[mise]")
-            _ = subprocess.run(["mise", "install", "--jobs=1"], check=True)
-            print()
-        self._install_skills(features)
-        for feature in features:
-            self._run_post_install(feature, "sync")
 
     def _install_skills(self, features: list[Feature], *, update: bool = False) -> None:
         packages = list(dict.fromkeys(skill for feature in features for skill in feature.skills))
@@ -945,16 +1050,6 @@ class Kaizen:
             )
         print()
 
-    def _run_post_install(self, feature: Feature, action: str) -> None:
-        hook = feature.post_install
-        if hook is None:
-            return
-        print(f"[{feature.label} post-install]")
-        _ = subprocess.run(
-            [sys.executable, str(hook), self._os, action], check=True
-        )
-        print()
-
     def _generate_mise_config(
         self, features: list[Feature], user_dependencies: dict[str, object]
     ) -> None:
@@ -966,6 +1061,7 @@ class Kaizen:
             MISE_CONFIG.unlink(missing_ok=True)
             return
         print("[mise config]")
+        MISE_CONFIG.parent.mkdir(parents=True, exist_ok=True)
         _write_mise_toml(tools, MISE_CONFIG)
         print(f"  written {MISE_CONFIG}")
         print()
@@ -1003,11 +1099,13 @@ _COMMANDS = {
 
 
 def _print_help() -> None:
-    print(f"{_paint('Usage:', _ANSI_BOLD)} kaizen <command>\n")
+    print(f"{_paint('Usage:', _ANSI_BOLD)} kaizen <command> [--feature NAME]... [--dry-run]\n")
     print(_paint("Commands:", _ANSI_BOLD))
     for name, description in _COMMANDS.items():
         command = _paint(f"{name:<12}", _ANSI_CYAN)
         print(f"  {command} {description}")
+    print("\nRepeat --feature to select recipes; omission selects all active recipes.")
+    print("--dry-run previews install, sync, or update; hooks and tasks are not executed.")
     print(f"\n{_paint('Documentation:', _ANSI_BOLD)}")
     print(f"  {_paint(_DOCUMENTATION_URL, _ANSI_CYAN, _ANSI_UNDERLINE)}")
     print(f"\n{_paint('Configuration:', _ANSI_BOLD)}")
@@ -1019,18 +1117,32 @@ def _print_docs() -> None:
     _print_field("Documentation", _DOCUMENTATION_URL, _ANSI_CYAN, _ANSI_UNDERLINE)
     _print_field("Configuration", CONFIG_FILE)
     _print_field("Dependencies", USER_DEPENDENCIES_FILE)
+    _print_field("Mise plan", BOOTSTRAP_CONFIG)
     _print_field("Installed source", KAIZEN_DIR)
 
 
-if __name__ == "__main__":
-    cmd = sys.argv[1] if len(sys.argv) > 1 else "help"
+def main() -> None:
+    parser = argparse.ArgumentParser(add_help=False)
+    parser.add_argument("command", nargs="?", default="help")
+    parser.add_argument("--feature", action="append", dest="features")
+    parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--refresh", action="store_true", help=argparse.SUPPRESS)
+    parser.add_argument("-h", "--help", action="store_true")
+    options = parser.parse_args()
+    cmd = "help" if options.help else options.command
+    if options.features and cmd not in {"install", "sync", "update", "status", "bump", "_skills", "_dotfiles"}:
+        parser.error(f"--feature is not supported by {cmd}")
+    if options.dry_run and cmd not in {"install", "sync", "update"}:
+        parser.error(f"--dry-run is not supported by {cmd}")
+    if options.refresh and cmd != "_skills":
+        parser.error("--refresh is internal to skill installation")
     if cmd in {"help", "-h", "--help"}:
         _print_help()
         sys.exit()
     if cmd == "docs":
         _print_docs()
         sys.exit()
-    if cmd not in _COMMANDS:
+    if cmd not in _COMMANDS and cmd not in {"_skills", "_dotfiles"}:
         _print_error(f"unknown command: {cmd}. available: {', '.join(_COMMANDS)}")
         sys.exit(1)
     try:
@@ -1043,7 +1155,13 @@ if __name__ == "__main__":
             normalized_overrides, warnings = normalize_config(overrides)
             for warning in warnings:
                 _print_warning(warning)
-            getattr(Kaizen(normalized_overrides), cmd)()
+            instance = Kaizen(normalized_overrides, options.features, options.dry_run)
+            if cmd == "_skills":
+                instance._install_skills(instance._features(), update=options.refresh)
+            elif cmd == "_dotfiles":
+                instance._apply_dotfiles()
+            else:
+                getattr(instance, cmd)()
     except subprocess.CalledProcessError as error:
         command = " ".join(str(part) for part in error.cmd)
         _print_error(f"{command} failed with exit code {error.returncode}")
@@ -1057,3 +1175,7 @@ if __name__ == "__main__":
     ) as error:
         _print_error(str(error))
         sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()
