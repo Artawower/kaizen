@@ -115,7 +115,6 @@ completion = { provider = "carapace", required = true, source = "https://github.
 
 [ui]
 font_size = 14
-popup_focus = "Clicks on popups and dialogs must reach them without focusing windows behind them."
 workspaces = [
   "SOC",
   "TRM",
