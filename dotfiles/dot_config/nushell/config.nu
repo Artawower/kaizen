@@ -84,3 +84,5 @@ let tty = (^tty | complete)
 if $tty.exit_code == 0 {
     $env.GPG_TTY = ($tty.stdout | str trim)
 }
+
+source ~/.zoxide.nu
