@@ -5,3 +5,6 @@ font_size = 16
 
 [extra]
 brew_casks = ["arc", "zed"]
+
+[emacs]
+binding-scheme = "hel"

@@ -1723,6 +1723,7 @@ The format is:
   :hook ((html-mode . auto-rename-tag-mode)
          (ng2-html-mode . auto-rename-tag-mode)
          (vue-ts-mode . auto-rename-tag-mode)
+         (tsx-ts-mod . auto-rename-tag-mode)
          (web-mode . auto-rename-tag-mode))
   :defer t)
 #+END_SRC
@@ -1958,6 +1959,8 @@ Allow to transform PASCAL_CASE -> camelCase -> snake_case
               ("z z" . recenter)
               ("-" . dired-up-directory)
               ("h" . dired-up-directory)
+              ("j" . dired-next-line)
+              ("k" . dired-previous-line)
               ("\\c" . dired-create-empty-file))
   :config
   (setq dired-dwim-target t)
