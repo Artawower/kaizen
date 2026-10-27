@@ -99,18 +99,23 @@
   (when (fboundp 'my/toggle-flymake-posframe)
     (my/toggle-flymake-posframe)))
 
+(defun kaizen/hel-enable-normal-state ()
+  "Activate Hel Normal state in the current buffer."
+  (unless (bound-and-true-p hel-local-mode)
+    (hel-local-mode 1))
+  (unless (eq hel-state 'normal)
+    (hel-switch-state 'normal)))
+
 (defun kaizen/hel-initialize-startup-buffers ()
   "Start Hel in Normal state in the scratch and messages buffers."
   (dolist (name '("*scratch*" "*Messages*"))
     (when-let ((buffer (get-buffer name)))
       (with-current-buffer buffer
-        (unless (bound-and-true-p hel-local-mode)
-          (hel-local-mode 1))
-        (hel-switch-state 'normal)))))
+        (kaizen/hel-enable-normal-state)))))
 
 (defun kaizen/hel-ediff-keybindings ()
   "Set Ediff control-buffer navigation keys."
-  (when (boundp 'ediff-mode-map)
+  (when (keymapp (bound-and-true-p ediff-mode-map))
     (dolist (key '("j" "n" "SPC"))
       (keymap-set ediff-mode-map key #'ediff-next-difference))
     (dolist (key '("k" "e" "p" "S-SPC" "<backspace>" "<delete>"))
@@ -127,14 +132,14 @@
   :custom
   (hel-normal-state-cursor-type 'box)
   (hel-insert-state-cursor-type 'bar)
+  (hel-motion-state-cursor-type 'box)
   (hel-emacs-state-cursor-type 'hollow)
   (hel-want-minibuffer nil)
   :config
   (dolist (mode '(special-mode elpaca-info-mode
                                flymake-diagnostics-buffer-mode flycheck-error-list-mode
                                magit-mode magit-status-mode magit-log-mode magit-diff-mode
-                               magit-process-mode majutsu-mode majutsu-log-mode
-                               majutsu-status-mode compilation-mode debug-mode
+                               magit-process-mode compilation-mode debug-mode
                                debugger-mode grep-mode ediff-mode ediff-meta-mode))
     (hel-set-initial-state mode 'emacs))
 
@@ -143,10 +148,13 @@
                             messages-buffer-mode org-agenda-mode))
     (hel-set-initial-state mode 'normal))
 
-  (dolist (mode '(dired-mode helpful-mode help-mode))
+  (dolist (mode '(dired-mode helpful-mode help-mode
+                             majutsu-mode majutsu-log-mode majutsu-status-mode))
     (hel-set-initial-state mode 'motion))
 
   (hel-mode 1)
+  ;; *Messages* can be initialized again after the initial startup.
+  (add-hook 'messages-buffer-mode-hook #'kaizen/hel-enable-normal-state)
   (add-hook 'emacs-startup-hook #'kaizen/hel-initialize-startup-buffers)
   (when after-init-time
     (kaizen/hel-initialize-startup-buffers))
@@ -196,7 +204,7 @@
   (hel-keymap-global-set :state 'motion
     "SPC" kaizen/hel-leader-map)
 
-  (hel-keymap-global-set :state 'emacs
+  (hel-keymap-set global-map :state 'emacs
     "SPC" kaizen/hel-leader-map
     "C-o" #'better-jumper-jump-backward
     "C-S-o" #'better-jumper-jump-forward
@@ -205,9 +213,9 @@
 
   (hel-keymap-global-set :state 'insert
     "TAB" #'indent-for-tab-command
-    "C-w" #'my/delete-backward-word-binding
-    "M-DEL" #'my/delete-backward-word-binding
-    "M-<backspace>" #'my/delete-backward-word-binding)
+    "C-w" my/delete-backward-word-binding
+    "M-DEL" my/delete-backward-word-binding
+    "M-<backspace>" my/delete-backward-word-binding)
 
   (keymap-global-set "s-c" #'hel-copy)
   (add-hook 'hel-insert-state-enter-hook #'kaizen/hel-enter-insert)
@@ -284,6 +292,13 @@
     (keymap-set dired-mode-map "k" #'dired-previous-line)
     (keymap-set dired-mode-map "l" #'dired-find-file))
 
+  (with-eval-after-load 'majutsu-mode
+    (hel-keymap-set majutsu-mode-map :state 'motion
+      "j" #'next-line
+      "k" #'previous-line
+      "a" #'majutsu-abandon
+      "A" #'majutsu-absorb))
+
   (with-eval-after-load 'helpful
     (keymap-set helpful-mode-map "SPC" kaizen/hel-leader-map))
 
@@ -336,3 +351,4 @@
 
 (provide 'kaizen-bindings-hel)
 ;;; bindings/hel.el ends here
+
