@@ -1,3 +1,8 @@
+{{- $tools := (fromToml (include "../features/development.toml")).frontend.tools -}}
+{{- $vue := index $tools "npm:@vue/language-server" -}}
+{{- $vueModules := printf "%s/.local/share/mise/installs/npm-vue-language-server/%s/node_modules" .chezmoi.homeDir $vue -}}
+{{- $vuePackage := printf "%s/@vue/language-server" $vueModules -}}
+{{- range glob (printf "%s/.mise/@vue+language-server@%s*/node_modules/@vue/language-server" $vueModules $vue) }}{{ $vuePackage = . }}{{ end -}}
 [language-server.ty]
 command = "ty"
 args = ["server"]
@@ -14,7 +19,6 @@ args = ["serve"]
 command = "typescript-language-server"
 args = ["--stdio"]
 config.hostInfo = "Emacs"
-config.tsserver.fallbackPath = "{{ .chezmoi.homeDir }}/.local/share/mise/installs/npm-typescript/6.0.3/node_modules/typescript/lib/tsserver.js"
 
 [language-server.angular]
 command = "angular-language-server"
@@ -22,12 +26,12 @@ args = ["--stdio"]
 
 [language-server.vtsls.config.vtsls.tsserver]
 globalPlugins = [
-  { name = "@vue/typescript-plugin", location = "/Users/darkawower/projects/pet/orgnote/orgnote-client/node_modules/@vue/typescript-plugin", languages = ["vue"], enableForWorkspaceTypeScriptVersions = true, configNamespace = "typescript" }
+  { name = "@vue/typescript-plugin", location = "{{ $vuePackage }}", languages = ["vue"], enableForWorkspaceTypeScriptVersions = true, configNamespace = "typescript" }
 ]
 
 [language-server.vue-language-server]
 command = "vue-language-server"
-args = ["--stdio"]
+args = ["--stdio", "--tsdk={{ .chezmoi.homeDir }}/.local/share/mise/installs/npm-typescript-typescript6/{{ index $tools "npm:@typescript/typescript6" }}/node_modules/@typescript/typescript6/lib"]
 
 [[language]]
 name = "vue"
@@ -35,7 +39,7 @@ roots = ["package.json"]
 language-id = "vue"
 file-types = ["vue"]
 language-servers = [
-  { name = "vue-language-server", except-features = ["goto-definition", "goto-implementation", "goto-type-definition", "goto-declaration", "goto-reference"] },
+  { name = "vue-language-server", support-workspace = ["package.json"], except-features = ["goto-definition", "goto-implementation", "goto-type-definition", "goto-declaration", "goto-reference"] },
   { name = "vtsls", support-workspace = ["package.json"] }
 ]
   

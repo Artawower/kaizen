@@ -50,7 +50,7 @@ flatpak = ["com.mitchellh.ghostty"]
 
 [language-tools]
 description = "Shared language servers and formatters"
-tools = {"npm:typescript-language-server" = "latest", "npm:vscode-langservers-extracted" = "4.10.0", "npm:yaml-language-server" = "latest", "npm:@github/copilot-language-server" = "1.554.0", "cargo:kdlfmt" = "latest", "cargo:codebook-lsp" = "latest", "npm:lua-fmt" = "2.6.0", "cargo:runner-run" = "latest"}
+tools = {"npm:typescript-language-server" = "latest", "npm:vscode-langservers-extracted" = "4.10.0", "npm:yaml-language-server" = "latest", "github:github/copilot-language-server-release" = "1.554.0", "cargo:kdlfmt" = "latest", "cargo:codebook-lsp" = "latest", "npm:lua-fmt" = "2.6.0", "cargo:runner-run" = "latest"}
 
 [tuios]
 description = "TUIOS terminal multiplexer"

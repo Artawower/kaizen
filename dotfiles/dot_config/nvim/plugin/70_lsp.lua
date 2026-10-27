@@ -71,52 +71,71 @@ local function configure_servers()
     },
   })
 
-  vim.lsp.config("ts_ls", {
-    init_options = {
-      tsserver = {
-        fallbackPath = vim.fn.expand(
-          "~/.local/share/mise/installs/npm-typescript/6.0.3/node_modules/typescript/lib/tsserver.js"
-        ),
-      },
-    },
-  })
-
   -- Vue
-  local function get_vue_language_server_path()
-    local executable = vim.fn.exepath("vue-language-server")
+  local package_paths = {}
 
-    if executable == "" then
-      return nil
+  local function get_executable_path(name)
+    local executable = vim.fn.exepath(name)
+
+    if executable ~= "" and not executable:find("/mise/shims/", 1, true) then
+      return executable
     end
 
-    local realpath = vim.uv.fs_realpath(executable) or executable
+    local result = vim.system({ "mise", "which", name }, { text = true }):wait()
 
-    return vim.fs.dirname(vim.fs.dirname(realpath))
+    return result.code == 0 and vim.trim(result.stdout) or nil
   end
 
-  local vue_language_server_path = get_vue_language_server_path()
+  local function get_package_path(executable_name, ...)
+    if package_paths[executable_name] == nil then
+      local executable = get_executable_path(executable_name)
+      local node_modules = executable and vim.fs.dirname(vim.fs.dirname(executable))
 
-  if vue_language_server_path then
-    vim.lsp.config("ts_ls", {
-      filetypes = {
-        "javascript",
-        "javascriptreact",
-        "typescript",
-        "typescriptreact",
-        "vue",
-      },
-      init_options = {
-        plugins = {
-          {
-            name = "@vue/typescript-plugin",
-            location = vue_language_server_path,
-            languages = { "vue" },
-            configNamespace = "typescript",
-          },
+      package_paths[executable_name] = node_modules and vim.uv.fs_realpath(vim.fs.joinpath(node_modules, ...)) or false
+    end
+
+    return package_paths[executable_name] or nil
+  end
+
+  vim.lsp.config("vue_ls", {
+    cmd = function(dispatchers)
+      local cmd = { "vue-language-server", "--stdio" }
+      local typescript_lib_path = get_package_path("tsc6", "@typescript", "typescript6", "lib")
+
+      if typescript_lib_path then
+        table.insert(cmd, "--tsdk=" .. typescript_lib_path)
+      end
+
+      return vim.lsp.rpc.start(cmd, dispatchers)
+    end,
+  })
+
+  vim.lsp.config("ts_ls", {
+    filetypes = {
+      "javascript",
+      "javascriptreact",
+      "typescript",
+      "typescriptreact",
+      "vue",
+    },
+    before_init = function(params)
+      local vue_language_server_path = get_package_path("vue-language-server", "@vue", "language-server")
+
+      if not vue_language_server_path then
+        return
+      end
+
+      params.initializationOptions = params.initializationOptions or {}
+      params.initializationOptions.plugins = {
+        {
+          name = "@vue/typescript-plugin",
+          location = vue_language_server_path,
+          languages = { "vue" },
+          configNamespace = "typescript",
         },
-      },
-    })
-  end
+      }
+    end,
+  })
 
   -- YAML
   vim.lsp.config("yamlls", {
