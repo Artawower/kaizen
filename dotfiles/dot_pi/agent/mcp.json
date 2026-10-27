@@ -36,12 +36,6 @@
       "exposure": "codemode",
       "description": "Optional structured thought tracking, not an external knowledge source."
     },
-    "context-mode": {
-      "command": "context-mode",
-      "enabled": false,
-      "exposure": "codemode",
-      "description": "Optional indexed output processing; requires compatible native SQLite dependencies."
-    },
     "deepcontext": {
       "command": "npx",
       "args": ["-y", "@wildcard-ai/deepcontext@latest"],

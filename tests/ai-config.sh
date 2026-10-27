@@ -69,9 +69,8 @@ for name in ['sequential-thinking', 'deepcontext', 'qmd']:
     assert mcp[name]['enabled'] is False
     assert eca['mcpServers'][name]['disabled'] is True
     assert opencode['mcp'][name]['enabled'] is False
-assert mcp['context-mode']['enabled'] is False
-assert opencode['mcp']['context-mode']['enabled'] is False
-assert 'context-mode' not in opencode['plugin']
+for servers in [mcp, eca['mcpServers'], opencode['mcp'], opencode['plugin']]:
+    assert 'context-mode' not in servers
 assert mcp['serena']['enabled'] is False
 assert 'serena-agent' in mcp['serena']['args']
 assert not eca['mcpServers']['serena'].get('disabled', False)
@@ -119,19 +118,11 @@ assert 'Never change a lock-file hash to legitimize a local patch' in agent_guid
 assert 'chezmoi source-path' in agent_guidance
 assert 'nix-darwin' not in agent_guidance
 assert 'immutable external dependencies' in (root / 'AGENTS.md').read_text()
-for name in ['consensus-review', 'jj-review', 'pr-review']:
+for name in ['code-review', 'consensus-review', 'pr-review']:
     assert '../../references/code-reviewer.md' in (skills / name / 'SKILL.md').read_text(), name
     assert not (skills / name / 'references/code-reviewer.md').exists(), name
 assert not (skills / 'code-review/references/code-reviewer.md').exists()
 assert 'when requested' in (skills / 'consensus-review/SKILL.md').read_text()
-context = (skills / 'context-mode/SKILL.md').read_text()
-assert 'Optional indexed analysis' in context
-assert 'continue with native tools' in context
-assert 'MANDATORY RULE' not in context
-for name in ['link-implement', 'link-msg', 'link-review']:
-    content = (skills / name / 'SKILL.md').read_text()
-    assert 'pi-servitors' in content
-    assert 'link_prompt' not in content
 for client, directory in [('eca', 'commands'), ('opencode', 'command')]:
     command = (root / f'dotfiles/dot_config/{client}/{directory}/one-shot.md').read_text()
     assert 'jj diff' in command

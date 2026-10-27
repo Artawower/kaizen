@@ -1,68 +1,52 @@
 ---
 name: jj
-description: Use Jujutsu (jj) for version control instead of git. Always check current revision before making changes — if the task semantically differs from the current revision's description, create a new revision first.
+description: Jujutsu (jj) revision workflow. Use before creating, describing, squashing, splitting, rebasing or pushing jj revisions, and when translating Git instructions to jj.
 ---
 
-# Jujutsu (jj) Version Control
+# Jujutsu
 
-This project uses `jj` (Jujutsu) for version control. Always use `jj` commands — never `git commit`, `git add`, or `git branch`.
+The working copy is the revision `@`. Every jj command snapshots it, so there is no staging area and no separate commit step. Address revisions by change ID: it survives rewrites, while the commit ID changes.
 
-## Before making any code changes
+## Non-interactive use
 
-Run:
+Pass `-m "<message>"` to `describe`, `new`, `commit`, `squash` and `split`, and pass filesets to `split`, `squash` and `restore`. Without them jj opens an editor or a diff TUI and the agent hangs. For `jj squash` into a described parent, `-u` keeps the destination message.
 
-```bash
-jj log --no-graph -r @ --template 'change_id.short() ++ " | " ++ if(description, description, "(empty)")'
-```
+Resolve conflicts by editing the conflict markers in the files, then confirm with `jj st`.
 
-This gives you the current working-copy revision and its description.
+After any rewrite (`squash`, `split`, `absorb`, `abandon`, `rebase`, `restore`), confirm the graph with `jj log`. `jj undo` reverts the last operation.
 
-### Decision rule
+## Revision scope
 
-Compare the current revision description with the task you are about to implement:
-
-- **Same semantic scope** (e.g. both about fixing the same bug, same feature): continue working in the current revision — no action needed.
-- **Different semantic scope** (different feature, unrelated fix, new task): create a new revision before touching any files:
+Before the first file change, read the current revision:
 
 ```bash
-jj new -m "<short description of what you're about to do>"
+jj log --no-graph -r @ -T 'change_id.short() ++ " | " ++ if(description, description.first_line(), "(empty)") ++ " | diff:" ++ if(self.empty(), "no", "yes") ++ "\n"'
 ```
 
-This ensures each revision stays focused on a single logical change.
+| Description | Diff | Action |
+| --- | --- | --- |
+| empty | no | Work here; describe it after the first change. |
+| empty | yes | Describe the existing work, or `jj new -m` for a different task. |
+| set | any | Same task: continue. Different task: `jj new -m "<description>"` first. |
 
-## Core workflow
+One revision holds one logical change. When the scope match is unclear, start a new revision; `jj squash` merges it back cheaply. Before finishing, make sure the description states what actually changed.
 
-### Check status
-```bash
-jj status
-```
+Read [references/descriptions.md](references/descriptions.md) when writing or refining a description.
 
-### Describe current revision
-```bash
-jj describe -m "<message>"
-```
+## Rewriting history
 
-Use after completing a logical unit of work. Follow the project's commit message convention if present.
+| Goal | Command |
+| --- | --- |
+| Fold `@` into its parent | `jj squash -m "<message>"` |
+| Move some files elsewhere | `jj squash --from <rev> --into <rev> <paths>` |
+| Send hunks to the revisions that last touched those lines | `jj absorb` |
+| Split one revision into several | read [references/split.md](references/split.md) |
+| Drop a revision | `jj abandon <rev>` |
+| Move a revision and its descendants | `jj rebase -s <rev> -o <destination>` |
+| Restore files from another revision | `jj restore --from <rev> <paths>` |
 
-### Create new revision from current
-```bash
-jj new -m "<message>"
-```
+## Bookmarks and push
 
-### View history
-```bash
-jj log
-```
+Bookmarks stay in place when new revisions are added. Before pushing, point the bookmark at the intended revision with `jj bookmark set <name> -r <rev>`, which creates or moves it.
 
-### Undo last operation
-```bash
-jj undo
-```
-
-## Hard rules
-
-- Check `jj log -r @` **before** editing any file
-- If the revision description is empty `(empty)` — describe it before or after your changes
-- Never use `git commit` or `git add` — jj tracks changes automatically, no staging needed
-- One revision = one logical change; do not mix unrelated modifications in a single revision
-- If unsure whether the scope matches — create a new revision; it's cheap to squash later with `jj squash`
+Push only when the user asks: `jj git push -b <name>`. Untracked bookmarks start tracking the remote automatically.

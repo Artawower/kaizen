@@ -26,3 +26,6 @@
 .agents/skills/consensus-review/references/code-reviewer.md
 .agents/skills/code-review/references/code-reviewer.md
 .agents/skill-lock.json
+.pi/agent/prompts/deep-test.md
+.pi/agent/prompts/yt-search.md
+.pi/agent/prompts/yt.md
