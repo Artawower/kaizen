@@ -1243,6 +1243,14 @@ Move to husky
            :ref "f55ab4316d9e6798356fc2ea1840956b24a2fe12")
   :demand t
   :config
+  (defun kkp--pre-delete-frame (&optional frame &rest _)
+    (let* ((frame (or frame (selected-frame)))
+           (terminal (and (frame-live-p frame)
+                          (frame-terminal frame))))
+      (when (and terminal
+                 (kkp--active-p terminal)
+                 (null (cdr (frames-on-display-list terminal))))
+        (kkp--terminal-teardown terminal))))
   (global-kkp-mode 1))
 #+END_SRC
 

@@ -34,6 +34,7 @@ with tempfile.TemporaryDirectory(prefix='kaizen-terminal-input-') as folder:
 (when-let* ((directory (getenv "KAIZEN_KKP_DIRECTORY")))
   (add-to-list 'load-path directory))
 (require 'kkp)
+(eval (kaizen-test-form "dotfiles/dot_emacs.d/README.org" "(defun kkp--pre-delete-frame"))
 (require 'corfu)
 (require 'helixel)
 (kaizen-test-corfu-bindings)
@@ -193,7 +194,17 @@ with tempfile.TemporaryDirectory(prefix='kaizen-terminal-input-') as folder:
             assert current['minibuffer'] and current['text'] == '', current
             current = send(b'\x1b[27u')
             assert not current['minibuffer'] and current['text'] == 'env' and current['active'] == 5, current
-        print('passed: repeated Corfu dismissal, modal exit, arrows, M-x and SGR mouse input', flush=True)
+        evaluate('(with-selected-frame (kaizen-input-frame) (delete-frame corfu--frame t))')
+        evaluate('(kaizen-input-start)')
+        current = state()
+        assert current['active'] == 5 and current['popup'] and current['completion'], current
+        current = send(b'\x1b[27u')
+        assert current['active'] == 5 and not current['completion'] and current['mode'] == 'insert', current
+        current = send(b'\x1b[27u')
+        assert current['mode'] == 'normal' and current['text'] == 'env', current
+        current = send(b'\x1b[<35;9;12M', split=True)
+        assert current['active'] == 5 and current['text'] == 'env', current
+        print('passed: dead Corfu frame recreation, repeated dismissal, modal exit, arrows, M-x and SGR mouse input', flush=True)
     finally:
         if daemon.poll() is None:
             try:
