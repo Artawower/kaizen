@@ -1,5 +1,5 @@
 $env.EDITOR = "emacsclient -nw"
-$env.VISUAL = "emacsclient -c"
+$env.VISUAL = "emacsclient -nw"
 $env.JJ_EDITOR = "emacsclient -nw"
 $env.LSP_USE_PLISTS = "true"
 $env.DOTNET_CLI_TELEMETRY_OPTOUT = "1"
