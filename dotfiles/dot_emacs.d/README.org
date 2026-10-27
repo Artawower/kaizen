@@ -3843,7 +3843,10 @@ Clone this repo for js debug git@github.com:microsoft/vscode-js-debug.git
 (use-package package-lint :defer t)
 #+END_SRC
 
-
+** Nushell
+#+BEGIN_SRC emacs-lisp :results silent
+(use-package nushell-ts-mode :defer t)
+#+END_SRC
 ** Typescript
 *** COMMENT Pretty ts error
 #+BEGIN_SRC emacs-lisp :results silent
