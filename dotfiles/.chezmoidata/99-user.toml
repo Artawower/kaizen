@@ -7,4 +7,4 @@ font_size = 16
 brew_casks = ["arc", "zed"]
 
 [emacs]
-binding-scheme = "hel"
+binding-scheme = "helixel"
