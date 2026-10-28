@@ -110,7 +110,7 @@ local function configure_servers()
     end,
   })
 
-  vim.lsp.config("ts_ls", {
+  vim.lsp.config("vtsls", {
     filetypes = {
       "javascript",
       "javascriptreact",
@@ -118,22 +118,27 @@ local function configure_servers()
       "typescriptreact",
       "vue",
     },
-    before_init = function(params)
+    settings = {},
+    before_init = function(_, config)
       local vue_language_server_path = get_package_path("vue-language-server", "@vue", "language-server")
 
       if not vue_language_server_path then
         return
       end
 
-      params.initializationOptions = params.initializationOptions or {}
-      params.initializationOptions.plugins = {
-        {
-          name = "@vue/typescript-plugin",
-          location = vue_language_server_path,
-          languages = { "vue" },
-          configNamespace = "typescript",
+      config.settings.vtsls = vim.tbl_deep_extend("force", config.settings.vtsls or {}, {
+        tsserver = {
+          globalPlugins = {
+            {
+              name = "@vue/typescript-plugin",
+              location = vue_language_server_path,
+              languages = { "vue" },
+              configNamespace = "typescript",
+              enableForWorkspaceTypeScriptVersions = true,
+            },
+          },
         },
-      }
+      })
     end,
   })
 
@@ -189,7 +194,7 @@ end
 local servers = {
   "ty",
   "ruff",
-  "ts_ls",
+  "vtsls",
   "angularls",
   "vue_ls",
   "eslint",
