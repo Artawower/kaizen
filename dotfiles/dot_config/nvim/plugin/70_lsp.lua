@@ -87,14 +87,22 @@ local function configure_servers()
   end
 
   local function get_package_path(executable_name, ...)
-    if package_paths[executable_name] == nil then
+    local key = table.concat({ executable_name, ... }, "/")
+
+    if package_paths[key] == nil then
       local executable = get_executable_path(executable_name)
       local node_modules = executable and vim.fs.dirname(vim.fs.dirname(executable))
 
-      package_paths[executable_name] = node_modules and vim.uv.fs_realpath(vim.fs.joinpath(node_modules, ...)) or false
+      package_paths[key] = node_modules and vim.uv.fs_realpath(vim.fs.joinpath(node_modules, ...)) or false
     end
 
-    return package_paths[executable_name] or nil
+    return package_paths[key] or nil
+  end
+
+  local function get_typescript6_server_path()
+    local typescript6_path = get_package_path("tsc6", "@typescript", "typescript6")
+
+    return typescript6_path and vim.uv.fs_realpath(vim.fs.joinpath(vim.fs.dirname(typescript6_path), "old", "lib", "tsserver.js"))
   end
 
   vim.lsp.config("vue_ls", {
@@ -110,14 +118,22 @@ local function configure_servers()
     end,
   })
 
+  vim.lsp.config("ts_ls", {
+    before_init = function(params)
+      local tsserver_path = get_typescript6_server_path()
+
+      if not tsserver_path then
+        return
+      end
+
+      params.initializationOptions = vim.tbl_deep_extend("force", params.initializationOptions or {}, {
+        tsserver = { fallbackPath = tsserver_path },
+      })
+    end,
+  })
+
   vim.lsp.config("vtsls", {
-    filetypes = {
-      "javascript",
-      "javascriptreact",
-      "typescript",
-      "typescriptreact",
-      "vue",
-    },
+    filetypes = { "vue" },
     settings = {},
     before_init = function(_, config)
       local vue_language_server_path = get_package_path("vue-language-server", "@vue", "language-server")
@@ -194,6 +210,7 @@ end
 local servers = {
   "ty",
   "ruff",
+  "ts_ls",
   "vtsls",
   "angularls",
   "vue_ls",
