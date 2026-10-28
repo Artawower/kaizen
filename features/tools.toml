@@ -55,7 +55,7 @@ tools = {"npm:typescript-language-server" = "latest", "npm:vscode-langservers-ex
 [tuios]
 description = "TUIOS terminal multiplexer"
 dotfiles = ["dotfiles/dot_config/tuios", "dotfiles/private_Library/private_Application Support/private_tuios"]
-tools = {"github:Gaurav-Gosain/tuios" = "0.10.1"}
+tools = {"github:Gaurav-Gosain/tuios" = "latest"}
 
 [wezterm]
 description = "WezTerm terminal configuration experiment"
