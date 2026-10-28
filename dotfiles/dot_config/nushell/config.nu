@@ -3,7 +3,7 @@ use scripts/project.nu *
 $env.config = ($env.config | merge {
     edit_mode: vi
     buffer_editor: ["emacsclient", "-nw"]
-    history: {file_format: sqlite}
+    history: {file_format: sqlite, isolation: true}
     completions: {algorithm: fuzzy, sort: smart, case_sensitive: false}
     render_right_prompt_on_last_line: true
 })
