@@ -3862,7 +3862,10 @@ Clone this repo for js debug git@github.com:microsoft/vscode-js-debug.git
 
 ** Nushell
 #+BEGIN_SRC emacs-lisp :results silent
-(use-package nushell-ts-mode :defer t)
+(use-package nushell-ts-mode 
+  :defer t
+  :mode
+  ("\\.nu\\'" . nushell-ts-mode))
 #+END_SRC
 ** Typescript
 *** COMMENT Pretty ts error
