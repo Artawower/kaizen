@@ -5,6 +5,7 @@ $env.LSP_USE_PLISTS = "true"
 $env.DOTNET_CLI_TELEMETRY_OPTOUT = "1"
 $env.DOTNET_ROLL_FORWARD = "Major"
 $env.config.table.mode = "none"
+$env.config.ls.use_ls_colors = false # Check why ls shows so bright for light theme
 
 if (sys host | get name) == "Darwin" {
     $env.DOTNET_ROOT = "/usr/local/share/dotnet"
