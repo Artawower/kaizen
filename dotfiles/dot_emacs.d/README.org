@@ -1261,9 +1261,24 @@ Move to husky
 
 *** Terminal cursor
 #+BEGIN_SRC emacs-lisp
+(defun my/xterm-set-cursor-type (terminal type)
+  (let ((type-int (or (plist-get xterm--cursor-type-to-int type) 1))
+        (old (terminal-parameter terminal 'xterm--cursor-type)))
+    (unless (eql type-int old)
+      (let ((set-string (format "\e[%d q" type-int))
+            (set-strings (terminal-parameter terminal 'tty-mode-set-strings)))
+        (when old
+          (setq set-strings (delete (format "\e[%d q" old) set-strings)))
+        (set-terminal-parameter terminal 'tty-mode-set-strings (cons set-string set-strings))
+        (unless old
+          (push "\e[0 q" (terminal-parameter terminal 'tty-mode-reset-strings)))
+        (send-string-to-terminal set-string terminal)
+        (set-terminal-parameter terminal 'xterm--cursor-type type-int)))))
+
 (with-eval-after-load 'term/xterm
   (when (boundp 'xterm-update-cursor)
     (setq xterm-update-cursor 'type)
+    (advice-add 'xterm--set-cursor-type :override #'my/xterm-set-cursor-type)
     (add-hook 'post-command-hook #'xterm--post-command-hook)))
 #+END_SRC
 
