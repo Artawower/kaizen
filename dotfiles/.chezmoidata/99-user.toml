@@ -3,6 +3,12 @@ layout = "colemak-regular"
 [ui]
 font_size = 16
 
+[ui.wallpaper]
+directory = "/Users/darkawower/Pictures/wallpappers"
+directory_light = "/Users/darkawower/Pictures/wallpappers/light"
+directory_dark = "/Users/darkawower/Pictures/wallpappers/light"
+
+
 [extra]
 brew_casks = ["arc", "zed"]
 

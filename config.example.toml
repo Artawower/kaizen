@@ -134,7 +134,7 @@ auto_switch = true
 emacs_clients = "Follow system light/dark appearance in graphical, terminal, and daemon sessions without requiring a graphical frame."
 
 [ui.wallpaper]
-directory = "~/Pictures/Wallpapers"
-directory_light = "~/Pictures/Wallpapers/Light"
-directory_dark = "~/Pictures/Wallpapers/Dark"
+directory = "~/Pictures/wallpappers"
+directory_light = "~/Pictures/wallpappers"
+directory_dark = "~/Pictures/wallpappers"
 
