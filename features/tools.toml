@@ -1,13 +1,7 @@
 [ai]
 description = "AI coding agents and tooling"
 dotfiles = ["dotfiles/dot_pi", "dotfiles/dot_omp", "dotfiles/dot_agents", "dotfiles/literal_AGENTS.md", "dotfiles/dot_config/eca", "dotfiles/dot_config/opencode", "dotfiles/dot_config/github-copilot", "dotfiles/dot_config/gh-copilot"]
-skills = [
-  "dietrichgebert/ponytail@ponytail",
-  "mattpocock/skills@retro",
-  "mattpocock/skills@grill-me",
-  "mattpocock/skills@grill-with-docs",
-  "microsoft/playwright-cli@playwright-cli",
-]
+skills = ["dietrichgebert/ponytail@ponytail", "mattpocock/skills@retro", "mattpocock/skills@grill-me", "mattpocock/skills@grill-with-docs", "microsoft/playwright-cli@playwright-cli"]
 packages = ["podman"]
 cask = ["claude-code"]
 tools = {"go:github.com/MichaelKinsy/PiG/cmd/pig" = "latest", "npm:@earendil-works/pi-coding-agent" = "latest", "npm:@playwright/cli" = "0.1.22", "npm:skills" = "latest"}
@@ -50,7 +44,7 @@ flatpak = ["com.mitchellh.ghostty"]
 
 [language-tools]
 description = "Shared language servers and formatters"
-tools = {"npm:typescript-language-server" = "latest", "npm:vscode-langservers-extracted" = "4.10.0", "npm:yaml-language-server" = "latest", "github:github/copilot-language-server-release" = "1.554.0", "cargo:kdlfmt" = "latest", "cargo:codebook-lsp" = "latest", "npm:lua-fmt" = "2.6.0", "cargo:runner-run" = "latest"}
+tools = {"npm:typescript-language-server" = "latest", "npm:vscode-langservers-extracted" = "4.10.0", "npm:yaml-language-server" = "latest", "github:github/copilot-language-server-release" = "1.562.0", "cargo:kdlfmt" = "latest", "cargo:codebook-lsp" = "latest", "npm:lua-fmt" = "2.6.0", "cargo:runner-run" = "latest"}
 
 [tuios]
 description = "TUIOS terminal multiplexer"
