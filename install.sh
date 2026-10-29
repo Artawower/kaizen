@@ -119,7 +119,9 @@ mkdir -p "$BIN_DIR"
 cat >"$BIN_DIR/kaizen" <<EOF
 #!/bin/sh
 export KAIZEN_INSTALL_MODE="$INSTALL_MODE"
-exec "$PYTHON" "$INSTALL_DIR/kaizen.py" "\$@"
+python="$PYTHON"
+[ -x "\$python" ] || python=python3
+exec "\$python" "$INSTALL_DIR/kaizen.py" "\$@"
 EOF
 chmod +x "$BIN_DIR/kaizen"
 
