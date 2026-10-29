@@ -14,11 +14,13 @@ def main [
 
 
   let hate = $hateList
-  | get hate
+  | where { |row| ($row.solved? | default false) != true }
+  | sort-by count --reverse
+  | each { |row| $"[($row.type)]\(($row.count)\) ($row.hate)" }
   | append $NEW_KEY
 
 
-  let reason = $hate | fzf | str replace -r '^\s*\d+\s+' '' | str trim
+  let reason = $hate | fzf | str replace -r '^\[[^\]]*\]\s*\d+\s+' '' | str trim
 
 
   if ($reason != $NEW_KEY) {
