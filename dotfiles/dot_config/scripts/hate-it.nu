@@ -20,7 +20,7 @@ def main [
   | append $NEW_KEY
 
 
-  let reason = $hate | fzf | str replace -r '^\[[^\]]*\]\s*\d+\s+' '' | str trim
+  let reason = $hate | str join (char nl) | fzf | str replace -r '^\[[^\]]*\]\(\d+\)\s*' '' | str trim
 
 
   if ($reason != $NEW_KEY) {
