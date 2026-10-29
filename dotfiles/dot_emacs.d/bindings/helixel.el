@@ -511,7 +511,15 @@
 (with-eval-after-load 'lsp-proxy
   (helixel-define-key 'normal (kbd "SPC l a") #'lsp-proxy-execute-code-action))
 
+(defun kaizen/helixel-corfu-escape ()
+  "Close the Corfu popup and leave Insert state."
+  (interactive)
+  (corfu-quit)
+  (when (eq helixel--current-state 'insert)
+    (call-interactively #'helixel-insert-exit)))
+
 (with-eval-after-load 'corfu
+  (keymap-set corfu-map "<escape>" #'kaizen/helixel-corfu-escape)
   (add-hook 'helixel-normal-state-hook
             (lambda ()
               (when (fboundp 'corfu-quit)
