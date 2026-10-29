@@ -3349,7 +3349,14 @@ Function for search in buffer depends or visual or normal line
     python-ts-mode
     go-ts-mode
     vue-ts-mode
-    org-mode)
+    org-mode
+    emacs-lisp-mode
+    nushell-ts-mode
+    markdown-mode
+    markdown-ts-mode
+    toml-ts-mode
+    yaml-ts-mode
+    lua-ts-mode)
    . lsp-proxy-mode)
 
   :custom
@@ -5056,6 +5063,7 @@ Ob raindrop (dynamic block)
 #+BEGIN_SRC emacs-lisp
 (use-package jinx
   :demand t
+  :hook (org-mode . jinx-mode)
   :custom
   (jinx-languages "en_US ru_RU")
   (jinx-camel-modes '(prog-mode org-mode))
@@ -5072,8 +5080,7 @@ Ob raindrop (dynamic block)
       (alist-get 'prog-mode jinx-include-faces)
     '(font-lock-function-name-face
       font-lock-variable-name-face)
-    :test #'eq)
-  (global-jinx-mode 1))
+    :test #'eq))
  #+END_SRC
 
 * Emacs for everything

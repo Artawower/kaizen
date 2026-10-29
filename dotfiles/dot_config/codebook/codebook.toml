@@ -1,1 +1,21 @@
 dictionaries = ["en_us", "ru"]
+
+[[overrides]]
+paths = ["**/*.org"]
+extra_ignore_patterns = [
+  '(?is)^[ \t]*#\+begin_(src|example|export)\b.*?^[ \t]*#\+end_(src|example|export)\b',
+  '(?s)^[ \t]*:[A-Za-z_-]+:[ \t]*$.*?^[ \t]*:END:',
+  '^[ \t]*#\+.*$',
+  '^[ \t]*#( .*)?$',
+  '\[\[[^\]\n]+\]',
+  '(^|[ \t(])[~=][^ \t\n~=][^\n~=]*[~=]',
+  '[ \t]:[\w@#%]+(:[\w@#%]+)*:[ \t]*$',
+]
+
+[[overrides]]
+paths = ["**/*.el"]
+extra_words = [
+  "alist", "boundp", "cdr", "concat", "defalias", "defconst", "defcustom", "defface",
+  "defgroup", "defmacro", "defun", "defvar", "elisp", "fboundp", "funcall", "listp",
+  "memq", "nconc", "plist", "progn", "setf", "setq", "stringp", "symbolp", "unless",
+]

@@ -50,7 +50,8 @@ language-id = "vue"
 file-types = ["vue"]
 language-servers = [
   { name = "vue-language-server", support-workspace = ["package.json"], except-features = ["goto-definition", "goto-implementation", "goto-type-definition", "goto-declaration", "goto-reference"] },
-  { name = "vtsls", support-workspace = ["package.json"] }
+  { name = "vtsls", support-workspace = ["package.json"] },
+  { name = "codebook", only-features = ["diagnostics", "code-action"] }
 ]
   
 [language-server.vscode-html-language-server]
@@ -138,7 +139,10 @@ name = "go"
 language-id = "go"
 file-types = ["go"]
 roots = ["go.work", "go.mod"]
-language-servers = ["gopls"]
+language-servers = [
+  "gopls",
+  { name = "codebook", only-features = ["diagnostics", "code-action"] }
+]
 
 [[language]]
 name = "rust"
@@ -146,5 +150,62 @@ language-id = "rust"
 file-types = ["rs"]
 roots = ["Cargo.toml", "Cargo.lock"]
 language-servers = [
-  { name = "rust-analyzer", library-directories = ["~/.cargo/registry/src", "~/.rustup/toolchains"] }
+  { name = "rust-analyzer", library-directories = ["~/.cargo/registry/src", "~/.rustup/toolchains"] },
+  { name = "codebook", only-features = ["diagnostics", "code-action"] }
+]
+
+[[language]]
+name = "org"
+language-id = "org"
+file-types = ["org"]
+language-servers = [
+  { name = "codebook", only-features = ["diagnostics", "code-action"] }
+]
+
+[[language]]
+name = "emacs-lisp"
+language-id = "emacs-lisp"
+file-types = ["el"]
+language-servers = [
+  { name = "codebook", only-features = ["diagnostics", "code-action"] }
+]
+
+[[language]]
+name = "nu"
+language-id = "nu"
+file-types = ["nu"]
+language-servers = [
+  { name = "codebook", only-features = ["diagnostics", "code-action"] }
+]
+
+[[language]]
+name = "markdown"
+language-id = "markdown"
+file-types = ["md", "markdown"]
+language-servers = [
+  "marksman",
+  { name = "codebook", only-features = ["diagnostics", "code-action"] }
+]
+
+[[language]]
+name = "toml"
+file-types = ["toml", { glob = "pdm.lock" }, { glob = "poetry.lock" }, { glob = "Cargo.lock" }, { glob = "uv.lock" }]
+language-servers = [
+  { name = "codebook", only-features = ["diagnostics", "code-action"] }
+]
+
+[[language]]
+name = "yaml"
+file-types = ["yml", "yaml"]
+language-servers = [
+  "yaml-language-server",
+  { name = "codebook", only-features = ["diagnostics", "code-action"] }
+]
+
+[[language]]
+name = "lua"
+file-types = ["lua", "rockspec"]
+language-servers = [
+  "lua-language-server",
+  { name = "codebook", only-features = ["diagnostics", "code-action"] }
 ]
