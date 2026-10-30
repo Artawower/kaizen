@@ -5063,7 +5063,7 @@ Ob raindrop (dynamic block)
 #+BEGIN_SRC emacs-lisp
 (use-package jinx
   :demand t
-  :hook (org-mode . jinx-mode)
+  :hook ((org-mode vue-ts-mode) . jinx-mode)
   :custom
   (jinx-languages "en_US ru_RU")
   (jinx-camel-modes '(prog-mode org-mode))
