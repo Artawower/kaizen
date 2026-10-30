@@ -291,6 +291,60 @@
           (should (eq (char-syntax ?.) ?_))
           (should-not completion-in-region-mode))))))
 
+(ert-deftest vue-lsp-corfu-completes-path-segment-after-slash ()
+  (skip-unless (and (require 'corfu nil t)
+                    (require 'cape nil t)
+                    (require 'lsp-proxy nil t)
+                    (require 'vue-ts-mode nil t)
+                    (treesit-ready-p 'vue t)))
+  (eval (kaizen-test-form "dotfiles/dot_emacs.d/README.org"
+                          "(defun my/lsp-proxy-completion-with-dabbrev"))
+  (kaizen-test-corfu-bindings)
+  (with-temp-buffer
+    (vue-ts-mode)
+    (buffer-enable-undo)
+    (insert "import X from \"@/com\";\n")
+    (goto-char (point-min))
+    (search-forward "@/")
+    (let* ((segment-start (point))
+           (edit-start (eglot--pos-to-lsp-position))
+           (edit-end (progn (forward-char 3)
+                            (eglot--pos-to-lsp-position)))
+           (original-syntax (syntax-table)))
+      (setq-local buffer-file-name "/tmp/kaizen-completion.vue"
+                  lsp-proxy-mode t
+                  lsp-proxy--buffer-opened t
+                  lsp-proxy--has-any-servers t
+                  completion-in-region-mode-predicate (lambda () t))
+      (lsp-proxy--completion-setup)
+      (cl-letf (((symbol-function 'lsp-proxy--ensure-connection) #'ignore)
+                ((symbol-function 'lsp-proxy--send-did-change) #'ignore)
+                ((symbol-function 'lsp-proxy--async-resolve) #'ignore)
+                ((symbol-function 'jsonrpc-request)
+                 (lambda (_connection method params &rest _args)
+                   (should (eq method 'textDocument/completion))
+                   (let ((context (plist-get params :context)))
+                     (list (list :language_server_name "vue-language-server"
+                                 :start (+ segment-start 3)
+                                 :end (+ (plist-get context :boundsStart) 10)
+                                 :item (list :label "components"
+                                             :textEdit (list :newText "components"
+                                                             :range (list :start edit-start
+                                                                          :end edit-end)))))))))
+        (let* ((result (my/lsp-proxy-completion-with-dabbrev
+                        #'lsp-proxy-completion-at-point))
+               (completion-extra-properties (nthcdr 3 result)))
+          (corfu--setup (car result) (cadr result) (nth 2 result) nil)
+          (setq corfu--candidates
+                (all-completions "com" (nth 2 result))
+                corfu--base ""
+                corfu--index 0)
+          (call-interactively (lookup-key corfu-map (kbd "RET")))))
+      (should (equal (buffer-string) "import X from \"@/components\";\n"))
+      (should (eq (syntax-table) original-syntax))
+      (should (eq (char-syntax ?/) ?_))
+      (should-not completion-in-region-mode))))
+
 (ert-deftest html-lsp-bounds-do-not-change-other-modes-or-dabbrev-syntax ()
   (skip-unless (require 'cape nil t))
   (eval (kaizen-test-form "dotfiles/dot_emacs.d/README.org"

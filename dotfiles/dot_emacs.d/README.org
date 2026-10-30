@@ -3377,9 +3377,10 @@ Function for search in buffer depends or visual or normal line
   :config
   (require 'cape)
   (defun my/lsp-proxy-completion-with-dabbrev (capf)
-    (if-let* ((result (if (derived-mode-p 'html-mode 'html-ts-mode)
+    (if-let* ((result (if (derived-mode-p 'html-mode 'html-ts-mode 'vue-ts-mode)
                           (with-syntax-table (copy-syntax-table)
                             (modify-syntax-entry ?. ".")
+                            (modify-syntax-entry ?/ ".")
                             (funcall capf))
                         (funcall capf))))
         (append result '(:exclusive no))
