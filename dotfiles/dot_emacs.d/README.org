@@ -1888,8 +1888,7 @@ The format is:
 (use-package combobulate
   :after treesit
   :ensure (:host github :repo "mickeynp/combobulate")
-  :bind (("s-q" . combobulate-mark-node-dwim)
-         ("s-<down>" . combobulate-navigate-logical-next)
+  :bind (("s-<down>" . combobulate-navigate-logical-next)
          ("s-<up>" . combobulate-navigate-logical-previous)
          ("s-N" . combobulate-navigate-next)
          ("s-P" . combobulate-navigate-previous)
@@ -1897,6 +1896,13 @@ The format is:
          ("C-M-t" . nil))
   :custom
   (combobulate-key-prefix "C-c c o"))
+#+END_SRC
+
+*** Avy treesitter selection
+#+BEGIN_SRC emacs-lisp
+(use-package treesit-mark
+  :ensure (:host github :repo "artawower/treesit-mark.el")
+  :bind (("s-q" . treesit-mark-node)))
 #+END_SRC
 
 *** Treesitter folding

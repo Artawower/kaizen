@@ -545,3 +545,17 @@
     (let ((minor-mode-map-alist
            (cons (cons t (kaizen-test-meow-insert-map)) minor-mode-map-alist)))
       (kaizen-test-ghostel-word-keys))))
+
+(ert-deftest helixel-mark-node-binding-targets-treesit-mark ()
+  (should (equal (kaizen-test-form "dotfiles/dot_emacs.d/bindings/helixel.el"
+                                   "(helixel-define-key 'normal (kbd \"m n\")")
+                 '(helixel-define-key 'normal (kbd "m n") #'treesit-mark-node))))
+
+(ert-deftest helixel-treesit-mark-select-activates-helixel-selection ()
+  (eval (kaizen-test-form "dotfiles/dot_emacs.d/bindings/helixel.el"
+                          "(defun kaizen/helixel-treesit-mark-select"))
+  (let (selection)
+    (cl-letf (((symbol-function 'helixel-ts--activate-selection)
+               (lambda (&rest args) (setq selection args))))
+      (kaizen/helixel-treesit-mark-select 3 9))
+    (should (equal selection '(3 9 "function" around)))))

@@ -312,6 +312,13 @@
 (dolist (state '(normal visual))
   (helixel-define-key state "+" #'er/expand-region))
 
+(defun kaizen/helixel-treesit-mark-select (beg end)
+  "Select BEG to END as a Helixel treesit selection."
+  (helixel-ts--activate-selection beg end "function" 'around))
+
+(setq treesit-mark-select-function #'kaizen/helixel-treesit-mark-select)
+(helixel-define-key 'normal (kbd "m n") #'treesit-mark-node)
+
 (with-eval-after-load 'avy
   (helixel-define-key 'normal "f" #'kaizen/helixel-avy-select-word)
   (helixel-define-key 'normal (kbd "\\ f") #'avy-goto-char-timer))
