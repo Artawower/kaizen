@@ -509,7 +509,12 @@
   (helixel-define-key 'normal (kbd "SPC l d") #'flymake-show-buffer-diagnostics))
 
 (with-eval-after-load 'lsp-proxy
-  (helixel-define-key 'normal (kbd "SPC l a") #'lsp-proxy-execute-code-action))
+  (add-hook 'lsp-proxy-mode-hook #'helixel--refresh-overriding-maps)
+  (helixel-define-key 'normal (kbd "g i") #'lsp-proxy-find-implementations 'lsp-proxy-mode)
+  (helixel-define-key 'normal (kbd "\\ i") #'lsp-proxy-inlay-hints-mode 'lsp-proxy-mode)
+  (helixel-define-key 'normal (kbd "SPC l a") #'lsp-proxy-execute-code-action 'lsp-proxy-mode)
+  (helixel-define-key 'normal (kbd "SPC l r") #'lsp-proxy-rename 'lsp-proxy-mode)
+  (helixel-define-key 'normal (kbd "SPC l f") #'lsp-proxy-format-buffer 'lsp-proxy-mode))
 
 (defun kaizen/helixel-corfu-escape ()
   "Close the Corfu popup and leave Insert state."
