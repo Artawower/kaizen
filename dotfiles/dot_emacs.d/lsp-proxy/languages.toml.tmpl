@@ -50,7 +50,8 @@ language-id = "vue"
 file-types = ["vue"]
 language-servers = [
   { name = "vue-language-server", support-workspace = ["package.json"], except-features = ["goto-definition", "goto-implementation", "goto-type-definition", "goto-declaration", "goto-reference"] },
-  { name = "vtsls", support-workspace = ["package.json"] }
+  { name = "vtsls", support-workspace = ["package.json"] },
+  { name = "tailwindcss-ls", support-workspace = ["package.json"] }
 ]
   
 [language-server.vscode-html-language-server]
@@ -97,6 +98,7 @@ file-types = ["jsx"]
 roots = ["package.json", "jsconfig.json", "tsconfig.json"]
 language-servers = [
   { name = "typescript-language-server", support-workspace = ["package.json"] },
+  { name = "tailwindcss-ls", support-workspace = ["package.json"] },
   { name = "codebook", only-features = ["diagnostics", "code-action"] }
 ]
 
@@ -118,6 +120,7 @@ file-types = ["tsx"]
 roots = ["package.json", "tsconfig.json"]
 language-servers = [
   { name = "typescript-language-server", support-workspace = ["package.json"] },
+  { name = "tailwindcss-ls", support-workspace = ["package.json"] },
   { name = "codebook", only-features = ["diagnostics", "code-action"] }
 ]
 
