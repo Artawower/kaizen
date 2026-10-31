@@ -77,6 +77,9 @@ On macOS the TUIOS layer is `Caps+Cmd` (`Cmd+Alt+Shift`); on Linux it is `Ctrl+A
 | Close pane | `Caps+Cmd+d` or `prefix x` |
 | Zoom / restore pane | `Caps+Cmd+f` or `prefix f` |
 | Toggle sidebar | `prefix b` |
+| Jump to the oldest agent waiting for you | `prefix o` |
+| Jump to the newest unseen finished turn | `prefix Shift+o` |
+| Open the agents view | `prefix i` |
 | Reload config | `prefix Shift+r` |
 | Detach without stopping panes | `prefix q` |
 | Equalize splits | `prefix Shift+e` |

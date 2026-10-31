@@ -84,6 +84,7 @@ with tempfile.TemporaryDirectory() as directory:
     assert data["startup"]["start_in_terminal_mode"]
     assert data["workspaces"]["new_window_when_empty"]
     assert data["notifications"]["agent"]["notify"]
+    assert "files" not in data["appearance"]["sidebar"]["sections"].split(",")
     shared.write_text(rendered)
 
     linux_wrapper = source / "dot_config/tuios/private_config.toml"
@@ -153,6 +154,7 @@ with tempfile.TemporaryDirectory() as directory:
         assert normalize(f"{layer}+{latin}") in keys
         assert normalize(f"{layer}+{cyrillic}") in keys
     assert normalize("b") in effective("prefix_toggle_sidebar", True)
+    assert {normalize("O"), normalize("Ж")} <= effective("prefix_next_finished", True)
     for index in range(1, 10):
         assert normalize(f"{layer}+{index}") in effective(f"switch_workspace_{index}")
         assert normalize(str(index)) in effective(f"switch_workspace_{index}", True)
