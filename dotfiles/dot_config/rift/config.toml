@@ -229,7 +229,7 @@ app_rules = [
 
 [modifier_combinations]
 nav = "Alt + Shift"
-move = "Meta + Alt + Shift"
+move = "Ctrl + Alt + Shift"
 resize = "Ctrl + Meta + Alt + Shift"
 
 [keys]
@@ -242,10 +242,10 @@ resize = "Ctrl + Meta + Alt + Shift"
 # Closest equivalent to AeroSpace accordion.
 
 # Toggle float / tiled.
-"Meta + Alt + Shift + C" = "toggle_window_floating"
+"Ctrl + Alt + Shift + C" = "toggle_window_floating"
 
 # Toggle stack around current selection.
-"Meta + Alt + Shift + V" = "toggle_stack"
+"Ctrl + Alt + Shift + V" = "toggle_stack"
 
 # Fast workspace layout selection.
 # Primary layer: Alt+Shift, consistent with workspace/navigation bindings.
@@ -262,7 +262,7 @@ resize = "Ctrl + Meta + Alt + Shift"
 "Alt + Shift + F" = "toggle_fullscreen"
 # Rift does not expose a distinct macOS-native-fullscreen command in the current
 # keybinding reference. Keeping this as Rift's within-gaps fullscreen.
-"Meta + Alt + Shift + F" = "toggle_fullscreen_within_gaps"
+"Ctrl + Alt + Shift + F" = "toggle_fullscreen_within_gaps"
 
 # -----------------------------------------------------------------------------
 #   focus left/right; if no neighbor -> previous/next workspace.
@@ -276,10 +276,10 @@ resize = "Ctrl + Meta + Alt + Shift"
 # -----------------------------------------------------------------------------
 # Move windows
 # -----------------------------------------------------------------------------
-"Meta + Alt + Shift + H" = { move_node = "left" }
-"Meta + Alt + Shift + J" = { move_node = "down" }
-"Meta + Alt + Shift + K" = { move_node = "up" }
-"Meta + Alt + Shift + L" = { move_node = "right" }
+"Ctrl + Alt + Shift + H" = { move_node = "left" }
+"Ctrl + Alt + Shift + J" = { move_node = "down" }
+"Ctrl + Alt + Shift + K" = { move_node = "up" }
+"Ctrl + Alt + Shift + L" = { move_node = "right" }
 
 # -----------------------------------------------------------------------------
 # Resize
@@ -323,36 +323,36 @@ resize = "Ctrl + Meta + Alt + Shift"
 # -----------------------------------------------------------------------------
 # Move window to workspace + follow
 # -----------------------------------------------------------------------------
-"Meta + Alt + Shift + 1" = { move_window_to_workspace = { workspace = 0, follow = true } }
-"Meta + Alt + Shift + 2" = { move_window_to_workspace = { workspace = 1, follow = true } }
-"Meta + Alt + Shift + 3" = { move_window_to_workspace = { workspace = 2, follow = true } }
-"Meta + Alt + Shift + 4" = { move_window_to_workspace = { workspace = 3, follow = true } }
-"Meta + Alt + Shift + 5" = { move_window_to_workspace = { workspace = 4, follow = true } }
-"Meta + Alt + Shift + 6" = { move_window_to_workspace = { workspace = 5, follow = true } }
-"Meta + Alt + Shift + 7" = { move_window_to_workspace = { workspace = 6, follow = true } }
-"Meta + Alt + Shift + 8" = { move_window_to_workspace = { workspace = 7, follow = true } }
-"Meta + Alt + Shift + 9" = { move_window_to_workspace = { workspace = 8, follow = true } }
-"Meta + Alt + Shift + 0" = { move_window_to_workspace = { workspace = 9, follow = true } }
-"Meta + Alt + Shift + Minus" = { move_window_to_workspace = { workspace = 10, follow = true } }
-"Meta + Alt + Shift + Equal" = { move_window_to_workspace = { workspace = 11, follow = true } }
+"Ctrl + Alt + Shift + 1" = { move_window_to_workspace = { workspace = 0, follow = true } }
+"Ctrl + Alt + Shift + 2" = { move_window_to_workspace = { workspace = 1, follow = true } }
+"Ctrl + Alt + Shift + 3" = { move_window_to_workspace = { workspace = 2, follow = true } }
+"Ctrl + Alt + Shift + 4" = { move_window_to_workspace = { workspace = 3, follow = true } }
+"Ctrl + Alt + Shift + 5" = { move_window_to_workspace = { workspace = 4, follow = true } }
+"Ctrl + Alt + Shift + 6" = { move_window_to_workspace = { workspace = 5, follow = true } }
+"Ctrl + Alt + Shift + 7" = { move_window_to_workspace = { workspace = 6, follow = true } }
+"Ctrl + Alt + Shift + 8" = { move_window_to_workspace = { workspace = 7, follow = true } }
+"Ctrl + Alt + Shift + 9" = { move_window_to_workspace = { workspace = 8, follow = true } }
+"Ctrl + Alt + Shift + 0" = { move_window_to_workspace = { workspace = 9, follow = true } }
+"Ctrl + Alt + Shift + Minus" = { move_window_to_workspace = { workspace = 10, follow = true } }
+"Ctrl + Alt + Shift + Equal" = { move_window_to_workspace = { workspace = 11, follow = true } }
 
-"Meta + Alt + Shift + S" = { move_window_to_workspace = { workspace = 0, follow = true } }
-"Meta + Alt + Shift + T" = { move_window_to_workspace = { workspace = 1, follow = true } }
-"Meta + Alt + Shift + W" = { move_window_to_workspace = { workspace = 2, follow = true } }
-"Meta + Alt + Shift + D" = { move_window_to_workspace = { workspace = 3, follow = true } }
-"Meta + Alt + Shift + I" = { move_window_to_workspace = { workspace = 4, follow = true } }
-"Meta + Alt + Shift + E" = { move_window_to_workspace = { workspace = 5, follow = true } }
-"Meta + Alt + Shift + X" = { move_window_to_workspace = { workspace = 6, follow = true } }
-"Meta + Alt + Shift + U" = { move_window_to_workspace = { workspace = 7, follow = true } }
-"Meta + Alt + Shift + A" = { move_window_to_workspace = { workspace = 8, follow = true } }
-"Meta + Alt + Shift + P" = { move_window_to_workspace = { workspace = 9, follow = true } }
+"Ctrl + Alt + Shift + S" = { move_window_to_workspace = { workspace = 0, follow = true } }
+"Ctrl + Alt + Shift + T" = { move_window_to_workspace = { workspace = 1, follow = true } }
+"Ctrl + Alt + Shift + W" = { move_window_to_workspace = { workspace = 2, follow = true } }
+"Ctrl + Alt + Shift + D" = { move_window_to_workspace = { workspace = 3, follow = true } }
+"Ctrl + Alt + Shift + I" = { move_window_to_workspace = { workspace = 4, follow = true } }
+"Ctrl + Alt + Shift + E" = { move_window_to_workspace = { workspace = 5, follow = true } }
+"Ctrl + Alt + Shift + X" = { move_window_to_workspace = { workspace = 6, follow = true } }
+"Ctrl + Alt + Shift + U" = { move_window_to_workspace = { workspace = 7, follow = true } }
+"Ctrl + Alt + Shift + A" = { move_window_to_workspace = { workspace = 8, follow = true } }
+"Ctrl + Alt + Shift + P" = { move_window_to_workspace = { workspace = 9, follow = true } }
 
 
 # -----------------------------------------------------------------------------
 # Launchers
 # -----------------------------------------------------------------------------
 "Alt + Shift + Enter" = { exec = ["sh", "-c", "open -na Ghostty.app"] }
-"Meta + Alt + Shift + Enter" = { exec = ["sh", "-c", "open -na Ghostty.app"] }
+"Ctrl + Alt + Shift + Enter" = { exec = ["sh", "-c", "open -na Ghostty.app"] }
 
 "Meta + Alt + F" = { exec = ["sh", "-c", "open -a Firefox.app"] }
 "Meta + Alt + W" = { exec = ["sh", "-c", "open -na Firefox.app"] }
@@ -366,7 +366,7 @@ resize = "Ctrl + Meta + Alt + Shift"
 # Close / join
 # -----------------------------------------------------------------------------
 "Alt + Shift + Q" = "close_window"
-"Meta + Alt + Shift + Q" = "close_window"
+"Ctrl + Alt + Shift + Q" = "close_window"
 
 "Meta + Ctrl + Left" = { join_window = "left" }
 "Meta + Ctrl + Down" = { join_window = "down" }
@@ -376,8 +376,8 @@ resize = "Ctrl + Meta + Alt + Shift"
 # -----------------------------------------------------------------------------
 # Wallpaper helpers
 # -----------------------------------------------------------------------------
-"Ctrl + Alt + Shift + I" = { exec = ["sh", "-c", "nohup /opt/homebrew/bin/wallboy next >> /tmp/wallboy.log 2>&1 &"] }
-"Ctrl + Alt + Shift + D" = { exec = ["/opt/homebrew/bin/wallboy", "save"] }
+"Ctrl + Alt + Shift + N" = { exec = ["sh", "-c", "nohup /opt/homebrew/bin/wallboy next >> /tmp/wallboy.log 2>&1 &"] }
+"Ctrl + Alt + Shift + B" = { exec = ["/opt/homebrew/bin/wallboy", "save"] }
 "Ctrl + Alt + Shift + O" = { exec = ["/opt/homebrew/bin/wallboy", "open"] }
 
 # -----------------------------------------------------------------------------

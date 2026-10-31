@@ -131,12 +131,30 @@ with tempfile.TemporaryDirectory() as directory:
     for old, action in mapping.items():
         for key in legacy["keys"][old]:
             prefixed = key.startswith("prefix+")
+            if not prefixed and "super+shift" not in key:
+                continue
             target = action
             if not prefixed and old in ("close_pane", "zoom"):
                 target = {"close_pane": "close_window", "zoom": "toggle_zoom"}[old]
             assert normalize(key) in effective(target, prefixed), (old, key, target)
+    layer = "super+alt+shift" if sys.platform == "darwin" else "ctrl+alt+shift"
+    for direction, latin, cyrillic in (("left", "h", "р"), ("down", "j", "н"),
+                                       ("up", "k", "т"), ("right", "l", "г")):
+        keys = effective(f"terminal_focus_{direction}")
+        assert normalize(f"{layer}+{latin}") in keys
+        assert normalize(f"{layer}+{cyrillic}") in keys
+        assert normalize(f"opt+{latin}") not in keys
+    assert normalize("super+b") not in effective("prefix_toggle_sidebar")
+    for action, latin, cyrillic in (("prefix_session_switcher", "w", "ц"), ("new_workspace", "t", "а"),
+                                    ("rename_workspace", "r", "ы"), ("close_workspace", "x", "ч"),
+                                    ("close_window", "d", "п"), ("toggle_zoom", "f", "у"),
+                                    ("terminal_next_window", "n", "о"), ("terminal_prev_window", "p", "к")):
+        keys = effective(action)
+        assert normalize(f"{layer}+{latin}") in keys
+        assert normalize(f"{layer}+{cyrillic}") in keys
+    assert normalize("b") in effective("prefix_toggle_sidebar", True)
     for index in range(1, 10):
-        assert normalize(f"super+{index}") in effective(f"switch_workspace_{index}")
+        assert normalize(f"{layer}+{index}") in effective(f"switch_workspace_{index}")
         assert normalize(str(index)) in effective(f"switch_workspace_{index}", True)
         assert normalize(f"ctrl+{index}") in effective(f"switch_session_{index}")
 
