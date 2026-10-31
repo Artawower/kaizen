@@ -4,7 +4,7 @@ dotfiles = ["dotfiles/dot_emacs.d"]
 taps = ["d12frosted/emacs-plus"]
 packages = ["emacs", "imagemagick"]
 package_names = {emacs = {brew = "emacs-plus@32"}}
-brew = ["tree-sitter"]
+brew = ["tree-sitter", "pngpaste"]
 brew_args = {"emacs-plus@32" = ["--with-xwidgets", "--with-dbus", "--build-from-source"]}
 dnf = ["enchant2-devel", "pkg-config", "isync", "msmtp", "ca-certificates", "libtree-sitter-devel", "wl-clipboard"]
 apt = ["libenchant-2-dev", "pkg-config", "isync", "msmtp", "ca-certificates", "wl-clipboard"]

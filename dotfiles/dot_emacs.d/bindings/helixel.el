@@ -143,6 +143,7 @@
 (defvar-keymap kaizen/helixel-org-link-map
   "s" #'org-store-link
   "l" #'org-insert-link
+  "i" #'my/org-paste-clipboard-image
   "t" #'org-toggle-link-display
   "d" #'org-toggle-link-display)
 
@@ -555,6 +556,7 @@
   (helixel-define-key 'normal (kbd "\\ o") #'org-mode)
   (helixel-define-key 'normal (kbd "\\ a") #'org-agenda)
   (helixel-define-key 'normal (kbd "SPC m l l") #'org-insert-link)
+  (helixel-define-key 'normal (kbd "SPC m l i") #'my/org-paste-clipboard-image)
   (helixel-define-key 'normal (kbd "SPC m l t") #'org-toggle-link-display)
   (helixel-define-key 'normal (kbd "SPC m l d") #'org-toggle-link-display)
   (helixel-define-key 'normal (kbd "SPC m l s") #'org-store-link))

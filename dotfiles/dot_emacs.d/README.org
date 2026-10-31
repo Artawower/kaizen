@@ -4506,6 +4506,22 @@ Automatically creates parent directories if needed."
   (kbd "<tab>") #'my/org-indent-dwim)
 
 #+END_SRC
+** Paste clipboard image in terminal frames
+#+BEGIN_SRC emacs-lisp
+(defun my/org-paste-clipboard-image ()
+  "Attach the clipboard image through `pngpaste' and insert its link."
+  (interactive)
+  (unless (executable-find "pngpaste")
+    (user-error "pngpaste is not installed"))
+  (let ((image (with-temp-buffer
+                 (set-buffer-multibyte nil)
+                 (let ((coding-system-for-read 'no-conversion))
+                   (unless (zerop (call-process "pngpaste" nil '(t nil) nil "-"))
+                     (user-error "No image in the clipboard")))
+                 (buffer-string))))
+    (org--image-yank-media-handler 'image/png image)
+    (org-link-preview-region t t (line-beginning-position) (line-end-position))))
+#+END_SRC
 ** Org core package
 #+BEGIN_SRC emacs-lisp
 (use-package org
@@ -4520,6 +4536,7 @@ Automatically creates parent directories if needed."
         ("C-c l s" . org-store-link)
         ("M-l l" . org-insert-link)
         ("C-c l l" . org-insert-link)
+        ("C-c l i" . my/org-paste-clipboard-image)
         ("C-c d t" . org-time-stamp-inactive)
         ("M-l t" . org-toggle-link-display)
         ("C-c l d" . org-toggle-link-display)
@@ -4595,6 +4612,7 @@ Automatically creates parent directories if needed."
   (org-hide-emphasis-markers t)
   (org-use-property-inheritance t)
   :config
+  (require 'org-attach)
   (require 'ob-clojure)
   (dolist (entry '(("C" . c-ts)
                    ("c" . c-ts)
@@ -4882,6 +4900,19 @@ Automatically creates parent directories if needed."
 #+END_SRC
 
 
+** Images in terminal frames
+#+BEGIN_SRC emacs-lisp
+(use-package kitty-graphics
+  :ensure (:host github :repo "cashmeredev/kitty-graphics.el")
+  :demand t
+  :config
+  (defun my/kitty-graphics-query-cell-size (&rest _)
+    (when (frame-parameter nil 'tty)
+      (kitty-graphics--query-cell-size)))
+  (advice-add 'kitty-graphics--compute-cell-dims :before
+              #'my/kitty-graphics-query-cell-size)
+  (kitty-graphics-setup))
+#+END_SRC
 ** Modern org
 #+BEGIN_SRC emacs-lisp :results silent
 (use-package org-modern
