@@ -59,22 +59,24 @@ herdr panes become TUIOS windows. All keys below are logical characters in
 any Latin layout. Command bindings also have the Russian aliases from
 `config.example.toml`.
 
+On macOS the TUIOS layer is `Caps+Cmd` (`Cmd+Alt+Shift`); on Linux it is `Ctrl+Alt+Shift`.
+
 | Action | Keys |
 | ------ | ---- |
-| Focus pane left / down / up / right | `Alt+h/j/k/l` |
+| Focus pane left / down / up / right | `Caps+Cmd+h/j/k/l` |
 | Previous / next tab (TUIOS workspace) | `Cmd+Shift+h/l` |
-| Select tab by index | `Cmd+1..9` or `prefix 1..9` |
+| Select tab by index | `Caps+Cmd+1..9` or `prefix 1..9` |
 | Previous / next session | `Cmd+Shift+k/j` |
 | Select session by index | `Ctrl+1..9` |
-| Pick session | `Alt+w`, `Cmd+p`, or `prefix w` |
+| Pick session | `Caps+Cmd+w` or `prefix w` |
 | New session | `Cmd+Shift+w` or `prefix Shift+n` |
 | Rename / close session | `Cmd+Shift+r/d` |
-| New tab | `Alt+Shift+t`, `Cmd+t`, or `prefix c` |
-| Rename / close tab | `Cmd+r/x` |
+| New tab | `Caps+Cmd+t` or `prefix c` |
+| Rename / close tab | `Caps+Cmd+r/x` |
 | Split right / below | `prefix v` / `prefix -` |
-| Close pane | `Alt+q` or `prefix x` |
-| Zoom / restore pane | `Alt+f` or `prefix f` |
-| Toggle sidebar | `Cmd+b` or `prefix b` |
+| Close pane | `Caps+Cmd+d` or `prefix x` |
+| Zoom / restore pane | `Caps+Cmd+f` or `prefix f` |
+| Toggle sidebar | `prefix b` |
 | Reload config | `prefix Shift+r` |
 | Detach without stopping panes | `prefix q` |
 | Equalize splits | `prefix Shift+e` |
