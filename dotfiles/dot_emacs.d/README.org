@@ -3407,6 +3407,20 @@ Function for search in buffer depends or visual or normal line
       (cape-dabbrev)))
   (advice-add 'lsp-proxy-completion-at-point :around
               #'my/lsp-proxy-completion-with-dabbrev)
+  (defun my/lsp-proxy-keep-text-after-point (args)
+    (pcase-let* ((`(,proxy-item . ,rest) args)
+                 (item (plist-get proxy-item :item))
+                 (text-edit (plist-get item :textEdit))
+                 (range (plist-get text-edit :range)))
+      (if (not range)
+          args
+        (let* ((end (eglot--pos-to-lsp-position (plist-get proxy-item :start)))
+               (range (plist-put (copy-sequence range) :end end))
+               (text-edit (plist-put (copy-sequence text-edit) :range range))
+               (item (plist-put (copy-sequence item) :textEdit text-edit)))
+          (cons (plist-put (copy-sequence proxy-item) :item item) rest)))))
+  (advice-add 'lsp-proxy--company-post-completion-item :filter-args
+              #'my/lsp-proxy-keep-text-after-point)
   (add-to-list 'project-vc-extra-root-markers ".venv")
   (add-to-list 'project-vc-extra-root-markers ".node_modules"))
 #+END_SRC

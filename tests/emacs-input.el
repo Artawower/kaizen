@@ -574,3 +574,33 @@
           (my/load-secrets-env)
           (should (equal (getenv "KAIZEN_TEST_HEADER") "Bearer a=b")))
       (delete-file my/secrets-env-file))))
+
+(defun kaizen-test-lsp-completion-item (new-text format)
+  (let* ((item (list :label "item"
+                     :insertTextFormat format
+                     :textEdit (list :newText new-text
+                                     :range (list :start (eglot--pos-to-lsp-position
+                                                          (save-excursion (skip-chars-backward "a-z") (point)))
+                                                  :end (eglot--pos-to-lsp-position
+                                                        (save-excursion (skip-chars-forward "a-zA-Z") (point)))))))
+         (candidate (propertize "item" 'resolved-item (list :item item))))
+    (lsp-proxy--company-post-completion-item
+     (list :item item :start (point) :end (point))
+     candidate
+     (point))))
+
+(ert-deftest lsp-completion-keeps-text-after-point ()
+  (skip-unless (require 'lsp-proxy nil t))
+  (eval (kaizen-test-form "dotfiles/dot_emacs.d/README.org"
+                          "(defun my/lsp-proxy-keep-text-after-point"))
+  (advice-add 'lsp-proxy--company-post-completion-item :filter-args
+              #'my/lsp-proxy-keep-text-after-point)
+  (unwind-protect
+      (with-temp-buffer
+        (insert "Array.franotherText")
+        (goto-char 9)
+        (kaizen-test-lsp-completion-item "from" 1)
+        (should (equal (buffer-string) "Array.fromanotherText"))
+        (should (= (point) 11)))
+    (advice-remove 'lsp-proxy--company-post-completion-item
+                   #'my/lsp-proxy-keep-text-after-point)))
