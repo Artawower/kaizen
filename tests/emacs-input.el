@@ -604,3 +604,15 @@
         (should (= (point) 11)))
     (advice-remove 'lsp-proxy--company-post-completion-item
                    #'my/lsp-proxy-keep-text-after-point)))
+
+(ert-deftest lsp-completion-expands-snippet-with-tempel ()
+  (skip-unless (and (require 'lsp-proxy nil t) (require 'eglot-tempel nil t)))
+  (eglot-tempel-mode 1)
+  (unwind-protect
+      (with-temp-buffer
+        (insert "Math.ma")
+        (kaizen-test-lsp-completion-item "max($1)$0" 2)
+        (should (equal (buffer-string) "Math.max()"))
+        (should (= (point) 10))
+        (tempel-done))
+    (eglot-tempel-mode -1)))

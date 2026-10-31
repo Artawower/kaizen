@@ -3340,6 +3340,11 @@ Function for search in buffer depends or visual or normal line
 
 ** Lsp-proxy (rust implementation)
 #+BEGIN_SRC emacs-lisp :results silent
+(use-package eglot-tempel
+  :demand t
+  :config
+  (eglot-tempel-mode 1))
+
 (use-package lsp-proxy
   :ensure (:type git
            :host github
@@ -3407,6 +3412,9 @@ Function for search in buffer depends or visual or normal line
       (cape-dabbrev)))
   (advice-add 'lsp-proxy-completion-at-point :around
               #'my/lsp-proxy-completion-with-dabbrev)
+  ;; Temporary: lsp-proxy always applies the `replace' range of an
+  ;; InsertReplaceEdit (src/handlers/request.rs), deleting text after point.
+  ;; Remove once lsp-proxy can use the `insert' range.
   (defun my/lsp-proxy-keep-text-after-point (args)
     (pcase-let* ((`(,proxy-item . ,rest) args)
                  (item (plist-get proxy-item :item))
