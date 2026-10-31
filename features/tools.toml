@@ -1,6 +1,6 @@
 [ai]
 description = "AI coding agents and tooling"
-dotfiles = ["dotfiles/dot_pi", "dotfiles/dot_omp", "dotfiles/dot_agents", "dotfiles/literal_AGENTS.md", "dotfiles/dot_config/eca", "dotfiles/dot_config/opencode", "dotfiles/dot_config/github-copilot", "dotfiles/dot_config/gh-copilot"]
+dotfiles = ["dotfiles/dot_claude/private_settings.json", "dotfiles/dot_pi", "dotfiles/dot_omp", "dotfiles/dot_agents", "dotfiles/literal_AGENTS.md", "dotfiles/dot_config/eca", "dotfiles/dot_config/opencode", "dotfiles/dot_config/github-copilot", "dotfiles/dot_config/gh-copilot"]
 skills = ["dietrichgebert/ponytail@ponytail", "mattpocock/skills@retro", "mattpocock/skills@grill-me", "mattpocock/skills@grill-with-docs", "microsoft/playwright-cli@playwright-cli"]
 packages = ["podman"]
 brew = ["terminal-notifier"]

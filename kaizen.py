@@ -28,6 +28,7 @@ BOOTSTRAP_CONFIG = CONFIG_FILE.with_name("bootstrap.toml")
 _CAPTURE_PATHS = [
     Path.home() / ".pi" / "agent" / "settings.json",
     Path.home() / ".pi" / "agent" / "mcp.json",
+    Path.home() / ".claude" / "settings.json",
 ]
 _USER_MACOS_DEPENDENCY_LISTS = ("taps", "brew", "cask")
 _USER_LINUX_DEPENDENCY_LISTS = ("dnf", "apt", "flatpak")
