@@ -60,3 +60,11 @@ $env.PATH = ($platform_paths | append $extra_paths | append $env.PATH | uniq)
 mkdir $nu.cache-dir
 ^carapace _carapace nushell | save --force $"($nu.cache-dir)/carapace.nu"
 
+let secrets_file = ($env.HOME | path join ".config/kaizen/secrets.env")
+if ($secrets_file | path exists) {
+    open --raw $secrets_file
+    | lines
+    | parse --regex '^(?<name>[A-Za-z_][A-Za-z0-9_]*)=(?<value>.*)$'
+    | reduce --fold {} {|secret, secrets| $secrets | upsert $secret.name $secret.value }
+    | load-env
+}

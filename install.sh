@@ -112,6 +112,10 @@ fi
 mkdir -p "$HOME/.config/chezmoi"
 cat >"$HOME/.config/chezmoi/chezmoi.toml" <<EOF
 sourceDir = "$INSTALL_DIR/dotfiles"
+encryption = "age"
+
+[age]
+identity = "$HOME/.config/chezmoi/key.txt"
 EOF
 say "configured chezmoi source → $INSTALL_DIR/dotfiles"
 

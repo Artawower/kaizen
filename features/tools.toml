@@ -31,7 +31,7 @@ archive = true
 
 [terminal]
 description = "CLI terminal utilities and Nushell"
-dotfiles = ["dotfiles/dot_config/nushell", "dotfiles/private_Library/private_Application Support/nushell", "dotfiles/dot_config/starship.toml", "dotfiles/dot_config/yazi", "dotfiles/dot_config/herdr", "dotfiles/dot_config/atuin"]
+dotfiles = ["dotfiles/dot_config/nushell", "dotfiles/dot_config/kaizen/encrypted_private_secrets.env.age", "dotfiles/private_Library/private_Application Support/nushell", "dotfiles/dot_config/starship.toml", "dotfiles/dot_config/yazi", "dotfiles/dot_config/herdr", "dotfiles/dot_config/atuin"]
 taps = ["muxy-app/tap"]
 packages = ["herdr", "yazi", "starship", "zoxide", "eza", "fastfetch", "direnv", "nushell"]
 tools = {carapace = "latest"}

@@ -559,3 +559,18 @@
                (lambda (&rest args) (setq selection args))))
       (kaizen/helixel-treesit-mark-select 3 9))
     (should (equal selection '(3 9 "function" around)))))
+
+(defvar my/secrets-env-file)
+
+(ert-deftest secrets-env-exports-variables-and-ignores-other-lines ()
+  (eval (kaizen-test-form "dotfiles/dot_emacs.d/README.org"
+                          "(defun my/load-secrets-env"))
+  (let* ((my/secrets-env-file (make-temp-file "kaizen-secrets"))
+         (process-environment (copy-sequence process-environment)))
+    (unwind-protect
+        (progn
+          (with-temp-file my/secrets-env-file
+            (insert "KAIZEN_TEST_HEADER=Bearer a=b\nnot a variable\n"))
+          (my/load-secrets-env)
+          (should (equal (getenv "KAIZEN_TEST_HEADER") "Bearer a=b")))
+      (delete-file my/secrets-env-file))))

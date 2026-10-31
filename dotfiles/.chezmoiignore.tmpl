@@ -14,6 +14,9 @@
 .omp/agent/*.lock
 .agents/.skill-lock.json
 skills-lock.json
+{{- if not (stat (joinPath .chezmoi.homeDir ".config/chezmoi/key.txt")) }}
+.config/kaizen/secrets.env
+{{- end }}
 {{- if eq .chezmoi.os "darwin" }}
 .config/VSCodium/
 .var/

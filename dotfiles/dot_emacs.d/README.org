@@ -432,6 +432,18 @@ but it does not copy $SHELL into `shell-file-name'."
 
         envvars))))
 
+(defconst my/secrets-env-file
+  (expand-file-name "~/.config/kaizen/secrets.env"))
+
+(defun my/load-secrets-env ()
+  "Export the variables stored in `my/secrets-env-file'."
+  (when (file-readable-p my/secrets-env-file)
+    (with-temp-buffer
+      (insert-file-contents my/secrets-env-file)
+      (dolist (line (split-string (buffer-string) "\n" t))
+        (when (string-match "\\`\\([A-Za-z_][A-Za-z0-9_]*\\)=\\(.*\\)\\'" line)
+          (setenv (match-string 1 line) (match-string 2 line)))))))
+
 ;; Set it early once.
 (my/apply-posix-shell-settings)
 
@@ -439,6 +451,7 @@ but it does not copy $SHELL into `shell-file-name'."
                (daemonp))
            (file-exists-p my/env-file))
   (my/load-envvars-file my/env-file t))
+(my/load-secrets-env)
 
 ;; Set it again after env import, because env import may include SHELL.
 (my/apply-posix-shell-settings)
@@ -447,6 +460,7 @@ but it does not copy $SHELL into `shell-file-name'."
   "Reload envvars from `my/env-file'."
   (interactive)
   (my/load-envvars-file my/env-file t)
+  (my/load-secrets-env)
   (my/apply-posix-shell-settings)
   (message "Reloaded envvars from %s; shell-file-name=%s"
            my/env-file
