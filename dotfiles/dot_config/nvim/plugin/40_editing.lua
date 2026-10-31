@@ -437,3 +437,6 @@ vim.lsp.config("*", {
     },
   }),
 })
+
+vim.pack.add({ "https://github.com/yelog/lazydb.nvim.git" })
+require("lazydb").setup({ executable = "lazydb" })

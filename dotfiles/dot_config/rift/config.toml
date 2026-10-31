@@ -117,6 +117,7 @@ app_rules = [
   { app_name = "preview", floating = true },
   { app_name = "orbstack", workspace = "12", floating = true },
   { app_name = "bloom", floating = true },
+  { app_id = "io.github.keycastr", manage = true, floating = true },
 
   # Xcode was on yabai space 8 ("study").
   { app_name = "xcode", workspace = "STU" },
