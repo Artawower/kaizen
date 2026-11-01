@@ -551,7 +551,19 @@
 (with-eval-after-load 'pretty-ts-errors
   (helixel-define-key 'normal (kbd "\\ e") #'pretty-ts-errors-show-error-at-point))
 
+(defun kaizen/helixel-open-line-without-org-indent (fn &rest args)
+  "Call FN with ARGS, skipping indentation in Org text outside source blocks."
+  (if (and (derived-mode-p 'org-mode) (not (org-in-src-block-p)))
+      (let ((indent-line-function #'ignore))
+        (apply fn args))
+    (apply fn args)))
+
 (with-eval-after-load 'org
+  (dolist (command '(helixel-insert-newline
+                     helixel-insert-prevline
+                     helixel-mc--prepos-newline-after
+                     helixel-mc--prepos-newline-before))
+    (advice-add command :around #'kaizen/helixel-open-line-without-org-indent))
   (keymap-set mode-specific-map "m l" kaizen/helixel-org-link-map)
   (helixel-define-key 'normal (kbd "\\ o") #'org-mode)
   (helixel-define-key 'normal (kbd "\\ a") #'org-agenda)
