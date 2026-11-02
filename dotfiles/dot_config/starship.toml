@@ -21,9 +21,9 @@ vicmd_symbol = "[N](bold yellow) [❯](bold purple)"
 [directory]
 truncation_length = 1
 truncate_to_repo = false
-repo_root_style = "bold cyan"
+repo_root_style = "bold purple"
 format = "[$read_only]($read_only_style)[$path]($style) "
-style = "bold cyan"
+style = "bold purple"
 home_symbol = "~/"
 
 [git_branch]
