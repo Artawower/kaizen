@@ -16,8 +16,13 @@
     "git:github.com/Artawower/pi-servitors",
     {
       "source": "npm:pi-lens",
-      "extensions": ["+index.ts"],
-      "skills": ["+skills/ast-grep/SKILL.md", "+skills/lsp-navigation/SKILL.md"]
+      "extensions": [
+        "+index.ts"
+      ],
+      "skills": [
+        "+skills/ast-grep/SKILL.md",
+        "+skills/lsp-navigation/SKILL.md"
+      ]
     },
     "npm:pi-secret-guard",
     "npm:pi-notify",
@@ -48,7 +53,9 @@
     "default": "light"
   },
   "servitors": {
-    "extensions": ["npm:@tian.zuo/pi-antigravity"]
+    "extensions": [
+      "npm:@tian.zuo/pi-antigravity"
+    ]
   },
-  "lastChangelogVersion": "1.0.2"
+  "lastChangelogVersion": "1.4.0"
 }

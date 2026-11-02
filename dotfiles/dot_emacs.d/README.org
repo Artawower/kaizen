@@ -1698,6 +1698,11 @@ The format is:
   (undo-fu-allow-undo-in-region t)
   :bind (("C-r" . undo-fu-only-redo)))
 #+END_SRC
+*** Undo history tree
+#+BEGIN_SRC emacs-lisp
+(use-package vundo
+  :defer t)
+#+END_SRC
 *** Undo sessions (history saving)
 #+BEGIN_SRC emacs-lisp
 (use-package undo-fu-session

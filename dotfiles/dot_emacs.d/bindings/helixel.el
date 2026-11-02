@@ -342,6 +342,7 @@
 
 (autoload 'consult-buffer "consult" nil t)
 (autoload 'consult-project-buffer "consult" nil t)
+(helixel-define-key 'normal (kbd "SPC u") #'vundo)
 (helixel-define-key 'normal (kbd "SPC b a") #'consult-buffer)
 (helixel-define-key 'normal (kbd "SPC b b") #'consult-project-buffer)
 
