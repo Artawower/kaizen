@@ -593,19 +593,64 @@ map("n", { "<leader>eC", "<leader>лС" }, copy_all_diagnostics, {
 
 local lint_group = vim.api.nvim_create_augroup("KaizenLint", { clear = true })
 
+local stylelint_configs = {
+  ".stylelintrc",
+  ".stylelintrc.json",
+  ".stylelintrc.yaml",
+  ".stylelintrc.yml",
+  ".stylelintrc.js",
+  ".stylelintrc.cjs",
+  ".stylelintrc.mjs",
+  ".stylelintrc.ts",
+  ".stylelintrc.cts",
+  ".stylelintrc.mts",
+  "stylelint.config.js",
+  "stylelint.config.cjs",
+  "stylelint.config.mjs",
+  "stylelint.config.ts",
+  "stylelint.config.cts",
+  "stylelint.config.mts",
+}
+
+local function has_stylelint_config()
+  local directory = vim.fs.dirname(vim.api.nvim_buf_get_name(0))
+
+  if #vim.fs.find(stylelint_configs, { path = directory, upward = true }) > 0 then
+    return true
+  end
+
+  local manifests = vim.fs.find("package.json", { path = directory, upward = true, limit = math.huge })
+
+  for _, manifest in ipairs(manifests) do
+    local ok, data = pcall(vim.json.decode, table.concat(vim.fn.readfile(manifest), "\n"))
+
+    if ok and type(data) == "table" and data.stylelint then
+      return true
+    end
+  end
+
+  return false
+end
+
+local function try_lint()
+  require("lint").try_lint(nil, {
+    filter = function(linter)
+      return linter.name ~= "stylelint" or has_stylelint_config()
+    end,
+  })
+end
+
 vim.api.nvim_create_autocmd("FileType", {
   pattern = { "go", "css", "scss", "vue", "sh" },
   group = lint_group,
   callback = function(args)
     require("lz.n").trigger_load("nvim-lint")
-    require("lint").try_lint()
+    try_lint()
     vim.api.nvim_clear_autocmds({ group = lint_group, buffer = args.buf })
     vim.api.nvim_create_autocmd({ "BufWritePost", "InsertLeave" }, {
       group = lint_group,
       buffer = args.buf,
-      callback = function()
-        require("lint").try_lint()
-      end,
+      callback = try_lint,
     })
   end,
 })
