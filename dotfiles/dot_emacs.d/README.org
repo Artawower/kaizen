@@ -911,6 +911,13 @@ Fix neomacs issue
   (dired-mode . hide-mode-line-mode))
 #+END_SRC
 
+** COMMENT Powerline
+#+BEGIN_SRC emacs-lisp :results silent
+(use-package powerline
+  :ensure t
+  :config
+  (powerline-default-theme))
+#+END_SRC
 
 ** Icons
 #+BEGIN_SRC emacs-lisp
