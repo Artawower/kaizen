@@ -1694,6 +1694,8 @@ The format is:
 #+BEGIN_SRC emacs-lisp
 (use-package undo-fu
   :defer t
+  :custom
+  (undo-fu-allow-undo-in-region t)
   :bind (("C-r" . undo-fu-only-redo)))
 #+END_SRC
 *** Undo sessions (history saving)

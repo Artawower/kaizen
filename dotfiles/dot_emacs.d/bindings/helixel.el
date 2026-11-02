@@ -330,7 +330,7 @@
   (helixel-define-key 'normal (kbd "SPC b m") #'bm-toggle)
   (helixel-define-key 'normal (kbd "SPC b l") #'bm-show))
 
-(with-eval-after-load 'undo-fu
+(with-eval-after-load 'helixel
   (helixel-define-key 'normal "u" #'undo-fu-only-undo)
   (helixel-define-key 'normal "U" #'undo-fu-only-redo))
 
