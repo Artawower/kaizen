@@ -1894,7 +1894,7 @@ The format is:
   (add-to-list 'treesit-extra-load-path
                (expand-file-name "tree-sitter/" user-emacs-directory))
   
-  (setq treesit-font-lock-level 4))
+  (setq treesit-font-lock-level 3))
 
 
 #+END_SRC
