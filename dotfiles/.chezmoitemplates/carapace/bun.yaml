@@ -1,0 +1,17 @@
+name: bun
+commands:
+  - name: run
+    flags:
+      --silent: Don't print the script command
+      -F, --filter=: Run a script in all workspace packages matching the pattern
+      -b, --bun: Force a script or package to use Bun's runtime instead of Node.js
+      --workspaces: Run a script in all workspace packages
+      --parallel: Run multiple scripts concurrently
+      --sequential: Run multiple scripts sequentially
+      --watch: Automatically restart the process on file change
+      --hot: Enable auto reload in the Bun runtime
+      --no-clear-screen: Disable clearing the terminal screen on reload
+      --smol: Use less memory, but run garbage collection more often
+      --if-present: Exit without an error if the entrypoint does not exist
+      --env-file=: Load environment variables from the specified file
+      --cwd=: Absolute path to resolve files and entry points from
