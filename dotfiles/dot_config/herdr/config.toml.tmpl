@@ -8,7 +8,7 @@ onboarding = false
 default_shell = "nu"
 
 [theme]
-name = "catppuccin"
+name = "terminal"
 
 [ui.toast]
 delivery = "system"
@@ -68,24 +68,6 @@ type = "popup"
 width = "80%"
 height = "80%"
 command = 'cd "$HERDR_ACTIVE_PANE_CWD"; dtach -A "${TMPDIR:-/tmp}/herdr-popup.dtach" -e "^B" -z nu'
-
-[[keys.command]]
-key = "prefix+alt+5"
-type = "plugin_action"
-command = "herdr-tmux-layout.tiled"
-
-[[keys.command]]
-key = "prefix+="
-type = "plugin_action"
-command = "herdr-tmux-layout.balance"
-[[keys.command]]
-key = "prefix+shift+e"
-type = "plugin_action"
-command = "herdr-tmux-layout.balance"
-[[keys.command]]
-key = "prefix+shift+л"
-type = "plugin_action"
-command = "herdr-tmux-layout.balance"
 
 [experimental]
 kitty_graphics = true
