@@ -1,0 +1,77 @@
+{{- $layer := "ctrl+alt+shift" -}}
+{{- if eq .chezmoi.os "darwin" -}}
+{{- $layer = "super+alt+shift" -}}
+{{- end -}}
+onboarding = false
+
+[terminal]
+default_shell = "nu"
+
+[theme]
+name = "catppuccin"
+
+[ui.toast]
+delivery = "system"
+
+[ui]
+show_agent_labels_on_pane_borders = true
+
+[keys]
+prefix = ["ctrl+b","ctrl+и"]
+reload_config = ["prefix+shift+r","prefix+shift+ы"]
+detach = ["prefix+q","prefix+й"]
+settings = ["prefix+comma","prefix+б"]
+workspace_picker = ["{{ $layer }}+w","{{ $layer }}+ц","prefix+w","prefix+ц"]
+new_workspace = ["super+shift+w","super+shift+ц","prefix+shift+n","prefix+shift+о"]
+rename_workspace = ["super+shift+r","super+shift+ы"]
+close_workspace = ["super+shift+d","super+shift+п","prefix+shift+x","prefix+shift+ч"]
+previous_workspace = ["super+shift+k","super+shift+т"]
+next_workspace = ["super+shift+j","super+shift+н"]
+switch_workspace = ["ctrl+1..9"]
+new_tab = ["{{ $layer }}+t","{{ $layer }}+а","prefix+c","prefix+с"]
+rename_tab = ["{{ $layer }}+r","{{ $layer }}+ы"]
+close_tab = ["{{ $layer }}+x","{{ $layer }}+ч"]
+previous_tab = ["super+shift+h","super+shift+р"]
+next_tab = ["super+shift+l","super+shift+г"]
+switch_tab = ["{{ $layer }}+1..9","prefix+1..9"]
+focus_pane_left = ["{{ $layer }}+h","{{ $layer }}+р"]
+focus_pane_down = ["{{ $layer }}+j","{{ $layer }}+н"]
+focus_pane_up = ["{{ $layer }}+k","{{ $layer }}+т"]
+focus_pane_right = ["{{ $layer }}+l","{{ $layer }}+г"]
+cycle_pane_next = ["alt+tab","{{ $layer }}+n","{{ $layer }}+о","prefix+n","prefix+о","prefix+tab"]
+cycle_pane_previous = ["alt+shift+tab","{{ $layer }}+p","{{ $layer }}+к","prefix+p","prefix+к","prefix+shift+tab"]
+split_vertical = ["prefix+v","prefix+м","prefix+|","prefix+\\"]
+split_horizontal = ["prefix+minus"]
+close_pane = ["{{ $layer }}+d","{{ $layer }}+п","prefix+x","prefix+ч"]
+zoom = ["{{ $layer }}+f","{{ $layer }}+у","prefix+f","prefix+у"]
+resize_mode = ["prefix+r","prefix+ы"]
+resize_pane_left = ["prefix+alt+h","prefix+alt+р"]
+resize_pane_down = ["prefix+alt+j","prefix+alt+н"]
+resize_pane_up = ["prefix+alt+k","prefix+alt+т"]
+resize_pane_right = ["prefix+alt+l","prefix+alt+г"]
+edit_scrollback = ["prefix+s","prefix+в"]
+copy_mode = ["prefix+[","prefix+х"]
+open_notification_target = ["prefix+o","prefix+ж"]
+toggle_sidebar = ["prefix+b","prefix+и"]
+open_worktree = ["alt+p","alt+к","prefix+shift+o","prefix+shift+ж"]
+
+[[keys.command]]
+key = "prefix+alt+5"
+type = "plugin_action"
+command = "herdr-tmux-layout.tiled"
+
+[[keys.command]]
+key = "prefix+="
+type = "plugin_action"
+command = "herdr-tmux-layout.balance"
+[[keys.command]]
+key = "prefix+shift+e"
+type = "plugin_action"
+command = "herdr-tmux-layout.balance"
+[[keys.command]]
+key = "prefix+shift+л"
+type = "plugin_action"
+command = "herdr-tmux-layout.balance"
+
+[experimental]
+kitty_graphics = true
