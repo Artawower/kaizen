@@ -1815,6 +1815,7 @@ The format is:
 
   :config
   (setq tempel-auto-reload nil)
+  (setq tempel-mark nil)
   (setq tempel-path
         (directory-files my/templates-dir t "\\`[^.].*\\'")))
 #+END_SRC
