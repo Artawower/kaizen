@@ -21,6 +21,7 @@ prefix = ["ctrl+b","ctrl+и"]
 reload_config = ["prefix+shift+r","prefix+shift+ы"]
 detach = ["prefix+q","prefix+й"]
 settings = ["prefix+comma","prefix+б"]
+goto = ["prefix+/"]
 workspace_picker = ["{{ $layer }}+w","{{ $layer }}+ц","prefix+w","prefix+ц"]
 new_workspace = ["super+shift+w","super+shift+ц","prefix+shift+n","prefix+shift+о"]
 rename_workspace = ["super+shift+r","super+shift+ы"]
@@ -54,6 +55,19 @@ copy_mode = ["prefix+[","prefix+х"]
 open_notification_target = ["prefix+o","prefix+ж"]
 toggle_sidebar = ["prefix+b","prefix+и"]
 open_worktree = ["alt+p","alt+к","prefix+shift+o","prefix+shift+ж"]
+
+[[keys.command]]
+key = "prefix+g"
+type = "popup"
+width = "80%"
+height = "80%"
+command = 'cd "$HERDR_ACTIVE_PANE_CWD"; dtach -A "${TMPDIR:-/tmp}/herdr-popup.dtach" -e "^B" -z nu'
+[[keys.command]]
+key = "prefix+е"
+type = "popup"
+width = "80%"
+height = "80%"
+command = 'cd "$HERDR_ACTIVE_PANE_CWD"; dtach -A "${TMPDIR:-/tmp}/herdr-popup.dtach" -e "^B" -z nu'
 
 [[keys.command]]
 key = "prefix+alt+5"
