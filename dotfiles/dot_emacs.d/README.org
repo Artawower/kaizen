@@ -2040,11 +2040,12 @@ Allow to transform PASCAL_CASE -> camelCase -> snake_case
   :defer t
   :config
   (setq hydra-hint-display-type 'posframe)
-  (setq hydra-posframe-show-params '(:poshandler posframe-poshandler-frame-center
-                                                 :internal-border-width 2
-                                                 :internal-border-color "#61AFEF"
-                                                 :left-fringe 16
-                                                 :right-fringe 16)))
+  (setq hydra-posframe-show-params
+      `(:poshandler posframe-poshandler-frame-center
+        :internal-border-width ,(if (display-graphic-p) 2 0)
+        :internal-border-color "#61AFEF"
+        :left-fringe ,(if (display-graphic-p) 16 0)
+        :right-fringe ,(if (display-graphic-p) 16 0))))
 #+END_SRC
 ** Reveal in osx finder
 #+BEGIN_SRC emacs-lisp
