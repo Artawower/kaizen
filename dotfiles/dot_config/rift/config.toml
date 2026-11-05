@@ -61,8 +61,8 @@ prevent_wrapping = false
 reapply_app_rules_on_title_change = true
 
 workspace_names = [
-  "SOC", "TRM", "WEB", "DEB", "DEV", "ENT",
-  "THR", "STU", "AI", "PRD", "11", "12",
+  "SOC", "TRM", "WEB", "DEV", "MED", "PLN",
+  "EDU", "AI", "REC", "NET", "11", "12",
 ]
 
 # Keep all workspaces close to the AeroSpace tiling behavior.
@@ -118,33 +118,8 @@ app_rules = [
   { app_name = "orbstack", workspace = "12", floating = true },
   { app_name = "bloom", floating = true },
   { app_id = "io.github.keycastr", manage = true, floating = true },
-
-  # Xcode was on yabai space 8 ("study").
-  { app_name = "xcode", workspace = "STU" },
-
-  # Safari/Helium belonged to the browser-oriented yabai spaces.
-  { app_id = "com.apple.Safari", workspace = "WEB" },
-  { app_name = "safari", workspace = "WEB" },
-  { app_name = "helium", workspace = "WEB" },
-
-  # Study / notes apps present in yabai but missing from Rift.
-  { app_name = "orgnote", workspace = "STU" },
-  { app_name = "anki", title_regex = "^(Edit Current|Add|Browse)", manage = true, floating = true },
-  { app_name = "anki", workspace = "STU", floating = false },
-
-  # AI/tools workspace additions from yabai.
-  { app_name = "audacity", workspace = "AI" },
-
   # Main work apps are tiled by default so workspace layout changes are visible.
-# Floating is reserved mostly for utility/transient windows.
-
-# ---------------------------------------------------------------------------
-  # Development -> DEV
-  # ---------------------------------------------------------------------------
-  { app_id = "org.gnu.Emacs", workspace = "DEV", floating = false },
-  { app_id = "io.emacs", workspace = "DEV", floating = false },
-  { app_name = "emacs", workspace = "DEV", floating = false },
-  { app_name = "neomacs", workspace = "DEV", floating = false },
+  # Floating is reserved mostly for utility/transient windows.
 
   # ---------------------------------------------------------------------------
   # Terminals -> TRM
@@ -160,70 +135,107 @@ app_rules = [
   { app_id = "com.brave.Browser", workspace = "WEB" },
   { app_id = "org.mozilla.firefox", workspace = "WEB" },
   { app_id = "org.mozilla.com.zen.browser", workspace = "WEB", floating = false },
-
-  # Arc -> DEB and floating. Combined to avoid same-specificity rule conflicts.
-  { app_id = "company.thebrowser.Browser", workspace = "DEB", floating = false },
-
-  # ---------------------------------------------------------------------------
-  # Debug/testing -> DEB
-  # ---------------------------------------------------------------------------
-  { app_id = "com.google.Chrome", workspace = "DEB" },
+  { app_id = "com.apple.Safari", workspace = "WEB" },
+  { app_name = "safari", workspace = "WEB" },
+  { app_name = "helium", workspace = "WEB" },
 
   # ---------------------------------------------------------------------------
-  # Social -> SOC
+  # Social and mail -> SOC
   # ---------------------------------------------------------------------------
   { app_id = "ru.keepcoder.Telegram", workspace = "SOC" },
   { app_id = "com.tdesktop.Telegram", workspace = "SOC" },
+  { app_id = "net.whatsapp.WhatsApp", workspace = "SOC" },
   { app_name = "ferdi", workspace = "SOC" },
   { app_id = "com.skype.skype", workspace = "SOC" },
   { app_id = "com.tinyspeck.slackmacgap", workspace = "SOC" },
   { app_id = "com.mattermost.desktop", workspace = "SOC" },
+  { app_id = "Mattermost.Desktop", workspace = "SOC" },
   { app_id = "com.discord.discord", workspace = "SOC" },
   { app_id = "com.hnc.Discord", workspace = "SOC" },
+  { app_name = "whalebird", workspace = "SOC" },
+  { app_name = "session", workspace = "SOC", floating = true },
+  { app_id = "org.mozilla.betterbird", workspace = "SOC" },
+  { app_id = "ch.protonmail.desktop", workspace = "SOC" },
+  { app_id = "io.canarymail.mac", workspace = "SOC" },
+  { app_id = "com.readdle.smartemail-Mac", workspace = "SOC", floating = false },
 
   # ---------------------------------------------------------------------------
-  # Entertainment -> ENT
+  # Development tools -> DEV
   # ---------------------------------------------------------------------------
-  { app_id = "oss.krtirtho.spotube", workspace = "ENT", floating = false },
+  { app_id = "org.gnu.Emacs", workspace = "DEV", floating = false },
+  { app_id = "io.emacs", workspace = "DEV", floating = false },
+  { app_name = "emacs", workspace = "DEV", floating = false },
+  { app_name = "neomacs", workspace = "DEV", floating = false },
+  { app_id = "com.vscodium", workspace = "DEV" },
+  { app_id = "dev.zed.Zed", workspace = "DEV" },
+  { app_id = "io.lapce", workspace = "DEV" },
+  { app_name = "xcode", workspace = "DEV" },
+  { app_id = "io.hoppscotch.desktop", workspace = "DEV" },
+  { app_id = "com.dbx.app", workspace = "DEV" },
+  { app_id = "net.sourceforge.sqlitebrowser", workspace = "DEV" },
+  { app_name = "mongodb compass", workspace = "DEV" },
+  { app_id = "company.thebrowser.Browser", workspace = "DEV", floating = false },
+  { app_id = "com.google.Chrome", workspace = "DEV" },
+  { app_id = "org.chromium.Chromium", workspace = "DEV" },
 
   # ---------------------------------------------------------------------------
-  # Temporary -> THR
-  # ---------------------------------------------------------------------------
-  { app_name = "whalebird", workspace = "THR" },
-  { app_name = "iphone mirroring", workspace = "THR", floating = true },
-  { app_name = "session", workspace = "THR", floating = true },
-  # TickTick dialogs/modals: let macOS/TickTick position them itself
-  { app_name = "ticktick", ax_role = "AXDialog", manage = false },
-  { app_name = "ticktick", ax_subrole = "AXSystemDialog", manage = false },
-
-  # Keep TickTick windows floating on their current workspace
-  { app_name = "ticktick", floating = true },
-  { app_id = "com.apple.iBooksX", workspace = "THR" },
-  { app_name = "books", workspace = "THR" },
-
-  # Handy -> 12
-  { app_name = "Handy", workspace = "12", floating = true },
-
-  # ---------------------------------------------------------------------------
-  # Study -> STU
-  # ---------------------------------------------------------------------------
-  { app_id = "md.obsidian", workspace = "STU" },
-  { app_id = "com.readdle.smartemail-Mac", workspace = "STU", floating = false },
-  { app_name = "marta", workspace = "STU", floating = false },
-
-  # ---------------------------------------------------------------------------
-  # AI/tools -> AI
+  # AI -> AI
   # ---------------------------------------------------------------------------
   { app_id = "com.openai.chat", workspace = "AI" },
   { app_name = "chatgpt", workspace = "AI" },
-  { app_name = "mongodb compass", workspace = "AI" },
+  { app_id = "com.electron.ollama", workspace = "AI" },
 
   # ---------------------------------------------------------------------------
-  # Production/load -> PRD / 11 / 12
+  # Study and reading -> EDU
   # ---------------------------------------------------------------------------
-  { app_name = "webtorrent", workspace = "PRD" },
+  { app_name = "orgnote", workspace = "EDU" },
+  { app_name = "anki", title_regex = "^(Edit Current|Add|Browse)", manage = true, floating = true },
+  { app_name = "anki", workspace = "EDU", floating = false },
+  { app_id = "md.obsidian", workspace = "EDU" },
+  { app_id = "com.bilingify.readest", workspace = "EDU" },
+  { app_id = "com.apple.iBooksX", workspace = "EDU" },
+  { app_name = "books", workspace = "EDU" },
+  { app_name = "marta", floating = false },
+
+  # ---------------------------------------------------------------------------
+  # Music and video -> MED
+  # ---------------------------------------------------------------------------
+  { app_id = "org.spotube.spotube", workspace = "MED", floating = false },
+  { app_id = "oss.krtirtho.spotube", workspace = "MED", floating = false },
+  { app_id = "org.videolan.vlc", workspace = "MED" },
+  { app_id = "com.nuclearplayer", workspace = "MED" },
+  { app_name = "webtorrent", workspace = "MED" },
+
+  # ---------------------------------------------------------------------------
+  # Planning -> PLN
+  # ---------------------------------------------------------------------------
+  # TickTick dialogs/modals: let macOS/TickTick position them itself
+  { app_name = "ticktick", ax_role = "AXDialog", manage = false },
+  { app_name = "ticktick", ax_subrole = "AXSystemDialog", manage = false },
+  { app_name = "ticktick", workspace = "PLN", floating = false },
+  { app_name = "excalidraw", workspace = "PLN" },
+
+  # ---------------------------------------------------------------------------
+  # Recording and editing -> REC
+  # ---------------------------------------------------------------------------
+  { app_id = "org.audacityteam.audacity4", workspace = "REC" },
+  { app_name = "audacity", workspace = "REC" },
+  { app_id = "com.obsproject.obs-studio", workspace = "REC" },
+  { app_id = "org.kde.Kdenlive", workspace = "REC" },
+  { app_id = "com.Youlean.standalone.Youlean-Loudness-Meter-2", workspace = "REC" },
+
+  # ---------------------------------------------------------------------------
+  # Remote access -> NET
+  # ---------------------------------------------------------------------------
+  { app_id = "com.philandro.anydesk", workspace = "NET" },
+  { app_id = "com.carriez.rustdesk", workspace = "NET" },
+  { app_name = "iphone mirroring", workspace = "NET", floating = true },
+
+  # ---------------------------------------------------------------------------
+  # Overflow -> 11 / 12
+  # ---------------------------------------------------------------------------
   { title_substring = "playwright test", workspace = "11" },
-  { app_id = "org.chromium.Chromium", workspace = "PRD" },
+  { app_name = "Handy", workspace = "12", floating = true },
   { app_id = "com.yourcompany.AmneziaVPN", workspace = "12" },
   { app_id = "com.google.android.studio", workspace = "12" },
 ]
@@ -257,7 +269,7 @@ resize = "Ctrl + Meta + Alt + Shift"
 
 # Traditional split helpers.
 "Alt + Shift + B" = { set_workspace_layout = { mode = "traditional" } }
-"Alt + Shift + M" = "toggle_orientation"
+"Alt + Shift + O" = "toggle_orientation"
 
 # Fullscreen.
 "Alt + Shift + F" = "toggle_fullscreen"
@@ -308,17 +320,17 @@ resize = "Ctrl + Meta + Alt + Shift"
 "Alt + Shift + Minus" = { switch_to_workspace = 10 }
 "Alt + Shift + Equal" = { switch_to_workspace = 11 }
 
-# Named aliases from the AeroSpace config.
-"Alt + Shift + S" = { switch_to_workspace = 0 }
+# Named workspace aliases: the first letter of each workspace name.
 "Alt + Shift + T" = { switch_to_workspace = 1 }
 "Alt + Shift + W" = { switch_to_workspace = 2 }
+"Alt + Shift + S" = { switch_to_workspace = 0 }
 "Alt + Shift + D" = { switch_to_workspace = 3 }
-"Alt + Shift + I" = { switch_to_workspace = 4 }
-"Alt + Shift + E" = { switch_to_workspace = 5 }
-"Alt + Shift + X" = { switch_to_workspace = 6 }
-"Alt + Shift + U" = { switch_to_workspace = 7 }
-"Alt + Shift + A" = { switch_to_workspace = 8 }
-"Alt + Shift + P" = { switch_to_workspace = 9 }
+"Alt + Shift + A" = { switch_to_workspace = 7 }
+"Alt + Shift + E" = { switch_to_workspace = 6 }
+"Alt + Shift + M" = { switch_to_workspace = 4 }
+"Alt + Shift + P" = { switch_to_workspace = 5 }
+"Alt + Shift + R" = { switch_to_workspace = 8 }
+"Alt + Shift + N" = { switch_to_workspace = 9 }
 
 
 # -----------------------------------------------------------------------------
@@ -337,16 +349,14 @@ resize = "Ctrl + Meta + Alt + Shift"
 "Ctrl + Alt + Shift + Minus" = { move_window_to_workspace = { workspace = 10, follow = true } }
 "Ctrl + Alt + Shift + Equal" = { move_window_to_workspace = { workspace = 11, follow = true } }
 
-"Ctrl + Alt + Shift + S" = { move_window_to_workspace = { workspace = 0, follow = true } }
 "Ctrl + Alt + Shift + T" = { move_window_to_workspace = { workspace = 1, follow = true } }
 "Ctrl + Alt + Shift + W" = { move_window_to_workspace = { workspace = 2, follow = true } }
+"Ctrl + Alt + Shift + S" = { move_window_to_workspace = { workspace = 0, follow = true } }
 "Ctrl + Alt + Shift + D" = { move_window_to_workspace = { workspace = 3, follow = true } }
-"Ctrl + Alt + Shift + I" = { move_window_to_workspace = { workspace = 4, follow = true } }
-"Ctrl + Alt + Shift + E" = { move_window_to_workspace = { workspace = 5, follow = true } }
-"Ctrl + Alt + Shift + X" = { move_window_to_workspace = { workspace = 6, follow = true } }
-"Ctrl + Alt + Shift + U" = { move_window_to_workspace = { workspace = 7, follow = true } }
-"Ctrl + Alt + Shift + A" = { move_window_to_workspace = { workspace = 8, follow = true } }
-"Ctrl + Alt + Shift + P" = { move_window_to_workspace = { workspace = 9, follow = true } }
+"Ctrl + Alt + Shift + A" = { move_window_to_workspace = { workspace = 7, follow = true } }
+"Ctrl + Alt + Shift + E" = { move_window_to_workspace = { workspace = 6, follow = true } }
+"Ctrl + Alt + Shift + P" = { move_window_to_workspace = { workspace = 5, follow = true } }
+"Ctrl + Alt + Shift + R" = { move_window_to_workspace = { workspace = 8, follow = true } }
 
 
 # -----------------------------------------------------------------------------
@@ -388,7 +398,7 @@ resize = "Ctrl + Meta + Alt + Shift"
 "Alt + Shift + G" = "toggle_stack"
 
 # Reload config explicitly (hot_reload is also enabled).
-"Ctrl + Alt + Shift + R" = "reload_config"
+"Ctrl + Meta + Alt + Shift + R" = "reload_config"
 
 # Rift Mission Control.
 "Ctrl + Alt + Shift + M" = "show_mission_control_current"

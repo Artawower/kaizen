@@ -73,14 +73,12 @@ ralt + rshift + lshift - 0x1B : /opt/homebrew/bin/yabai -m window --space 11 && 
 ralt + rshift + lshift - 0x18 : /opt/homebrew/bin/yabai -m window --space 12 && /opt/homebrew/bin/yabai -m space --focus 12
 
 
+ralt + rshift + lshift - t : /opt/homebrew/bin/yabai -m window --space trm && /opt/homebrew/bin/yabai -m space --focus trm
+ralt + rshift + lshift - w : /opt/homebrew/bin/yabai -m window --space web && /opt/homebrew/bin/yabai -m space --focus web
+ralt + rshift + lshift - s : /opt/homebrew/bin/yabai -m window --space soc && /opt/homebrew/bin/yabai -m space --focus soc
 ralt + rshift + lshift - d : /opt/homebrew/bin/yabai -m window --space dev && /opt/homebrew/bin/yabai -m space --focus dev
-ralt + rshift + lshift - w : /opt/homebrew/bin/yabai -m window --space www && /opt/homebrew/bin/yabai -m space --focus www
-ralt + rshift + lshift - s : /opt/homebrew/bin/yabai -m window --space social && /opt/homebrew/bin/yabai -m space --focus social
-ralt + rshift + lshift - i : /opt/homebrew/bin/yabai -m window --space thrash && /opt/homebrew/bin/yabai -m space --focus thrash
-ralt + rshift + lshift - t : /opt/homebrew/bin/yabai -m window --space term && /opt/homebrew/bin/yabai -m space --focus term
-ralt + rshift + lshift - t : /opt/homebrew/bin/yabai -m window --space term && /opt/homebrew/bin/yabai -m space --focus term
-ralt + rshift + lshift - e : /opt/homebrew/bin/yabai -m window --space entertainment && /opt/homebrew/bin/yabai -m space --focus entertainment
-ralt + rshift + lshift - o : /opt/homebrew/bin/yabai -m window --space other && /opt/homebrew/bin/yabai -m space --focus other
+ralt + rshift + lshift - a : /opt/homebrew/bin/yabai -m window --space ai && /opt/homebrew/bin/yabai -m space --focus ai
+ralt + rshift + lshift - e : /opt/homebrew/bin/yabai -m window --space edu && /opt/homebrew/bin/yabai -m space --focus edu
 
 
 # Resize windows
@@ -194,13 +192,14 @@ ralt + rshift - 0 : /opt/homebrew/bin/yabai -m space --focus 10
 ralt + rshift - 0x1B : /opt/homebrew/bin/yabai -m space --focus 11
 ralt + rshift - 0x18 : /opt/homebrew/bin/yabai -m space --focus 12
 
-ralt + rshift - s : /opt/homebrew/bin/yabai -m space --focus social
-ralt + rshift - w : /opt/homebrew/bin/yabai -m space --focus www
+ralt + rshift - t : /opt/homebrew/bin/yabai -m space --focus trm
+ralt + rshift - w : /opt/homebrew/bin/yabai -m space --focus web
+ralt + rshift - s : /opt/homebrew/bin/yabai -m space --focus soc
 ralt + rshift - d : /opt/homebrew/bin/yabai -m space --focus dev
-ralt + rshift - i : /opt/homebrew/bin/yabai -m space --focus thrash
-ralt + rshift - t : /opt/homebrew/bin/yabai -m space --focus term
-ralt + rshift - e : /opt/homebrew/bin/yabai -m space --focus entertainment
-ralt + rshift - o : /opt/homebrew/bin/yabai -m space --focus other
+ralt + rshift - e : /opt/homebrew/bin/yabai -m space --focus edu
+ralt + rshift - m : /opt/homebrew/bin/yabai -m space --focus med
+ralt + rshift - p : /opt/homebrew/bin/yabai -m space --focus pln
+ralt + rshift - n : /opt/homebrew/bin/yabai -m space --focus net
 
 
 ralt + rshift + lshift - return : open -na Ghostty.app

@@ -73,17 +73,21 @@ output "eDP-1" {
 workspace "soc" {
     open-on-output "eDP-1"
 }
+workspace "trm" {
+    open-on-output "eDP-1"
+}
 workspace "web" {
     open-on-output "eDP-1"
 }
 workspace "dev" {
     open-on-output "HDMI-A-1"
 }
-workspace "deb"
-workspace "oth"
-workspace "term" {
-    open-on-output "eDP-1"
-}
+workspace "med"
+workspace "pln"
+workspace "edu"
+workspace "ai"
+workspace "rec"
+workspace "net"
 // Settings that influence how windows are positioned and sized.
 // Find more information on the wiki:
 // https://yalter.github.io/niri/Configuration:-Layout
@@ -181,7 +185,7 @@ window-rule {
 }
 window-rule {
     match app-id="^brave-browser"
-    open-on-workspace "oth"
+    open-on-workspace "web"
 }
 window-rule {
     match app-id="^zen-browser$"
@@ -403,31 +407,40 @@ binds {
         focus-workspace "soc"
     }
     Mod5+Shift+2 {
-        focus-workspace "web"
+        focus-workspace "trm"
     }
     Mod5+Shift+3 {
-        focus-workspace "term"
+        focus-workspace "web"
     }
     Mod5+Shift+4 {
         focus-workspace "dev"
     }
     Mod5+Shift+5 {
-        focus-workspace "oth"
+        focus-workspace "med"
     }
     Mod5+Shift+6 {
-        focus-workspace "deb"
+        focus-workspace "pln"
     }
-    Mod5+Shift+O {
-        focus-workspace "oth"
+    Mod5+Shift+7 {
+        focus-workspace "edu"
+    }
+    Mod5+Shift+8 {
+        focus-workspace "ai"
+    }
+    Mod5+Shift+9 {
+        focus-workspace "rec"
+    }
+    Mod5+Shift+0 {
+        focus-workspace "net"
+    }
+    Mod5+Shift+T {
+        focus-workspace "trm"
+    }
+    Mod5+Shift+W {
+        focus-workspace "web"
     }
     Mod5+Shift+S {
         focus-workspace "soc"
-    }
-    Mod5+Shift+P {
-        focus-workspace "deb"
-    }
-    Mod5+Shift+T {
-        focus-workspace "term"
     }
     Mod5+Shift+D {
         spawn-sh "niri msg action focus-workspace dev && niri msg action focus-column-last"
@@ -435,59 +448,107 @@ binds {
     Mod5+Shift+Ctrl+D {
         spawn-sh "niri msg action focus-workspace dev && niri msg action focus-column-first"
     }
-    Mod5+Shift+W {
-        focus-workspace "web"
+    Mod5+Shift+A {
+        focus-workspace "ai"
+    }
+    Mod5+Shift+E {
+        focus-workspace "edu"
+    }
+    Mod5+Shift+M {
+        focus-workspace "med"
+    }
+    Mod5+Shift+P {
+        focus-workspace "pln"
+    }
+    Mod5+Shift+N {
+        focus-workspace "net"
     }
     Mod5+Shift+Super+1 {
         move-window-to-workspace "soc"
     }
     Mod5+Shift+Super+2 {
-        move-window-to-workspace "web"
+        move-window-to-workspace "trm"
     }
     Mod5+Shift+Super+3 {
-        move-window-to-workspace "term"
+        move-window-to-workspace "web"
     }
     Mod5+Shift+Super+4 {
         move-window-to-workspace "dev"
     }
     Mod5+Shift+Super+5 {
-        move-window-to-workspace "oth"
+        move-window-to-workspace "med"
     }
     Mod5+Shift+Super+6 {
-        move-window-to-workspace "deb"
+        move-window-to-workspace "pln"
     }
-    Mod5+Shift+Super+O {
-        move-window-to-workspace "oth"
+    Mod5+Shift+Super+7 {
+        move-window-to-workspace "edu"
     }
-    Mod5+Shift+Super+S {
-        move-window-to-workspace "soc"
+    Mod5+Shift+Super+8 {
+        move-window-to-workspace "ai"
+    }
+    Mod5+Shift+Super+9 {
+        move-window-to-workspace "rec"
+    }
+    Mod5+Shift+Super+0 {
+        move-window-to-workspace "net"
+    }
+    Mod5+Shift+Super+T {
+        move-window-to-workspace "trm"
     }
     Mod5+Shift+Super+W {
         move-window-to-workspace "web"
     }
+    Mod5+Shift+Super+S {
+        move-window-to-workspace "soc"
+    }
     Mod5+Shift+Super+D {
         move-window-to-workspace "dev"
     }
-    Mod5+Shift+Super+T {
-        move-window-to-workspace "term"
+    Mod5+Shift+Super+A {
+        move-window-to-workspace "ai"
+    }
+    Mod5+Shift+Super+E {
+        move-window-to-workspace "edu"
+    }
+    Mod5+Shift+Super+M {
+        move-window-to-workspace "med"
     }
     Mod5+Shift+Super+P {
-        move-window-to-workspace "deb"
+        move-window-to-workspace "pln"
+    }
+    Mod5+Shift+Super+N {
+        move-window-to-workspace "net"
     }
     Mod5+Shift+Ctrl+1 {
         move-column-to-workspace "soc"
     }
     Mod5+Shift+Ctrl+2 {
-        move-column-to-workspace "dev"
+        move-column-to-workspace "trm"
     }
     Mod5+Shift+Ctrl+3 {
         move-column-to-workspace "web"
     }
     Mod5+Shift+Ctrl+4 {
-        move-column-to-workspace "deb"
+        move-column-to-workspace "dev"
     }
     Mod5+Shift+Ctrl+5 {
-        move-column-to-workspace "oth"
+        move-column-to-workspace "med"
+    }
+    Mod5+Shift+Ctrl+6 {
+        move-column-to-workspace "pln"
+    }
+    Mod5+Shift+Ctrl+7 {
+        move-column-to-workspace "edu"
+    }
+    Mod5+Shift+Ctrl+8 {
+        move-column-to-workspace "ai"
+    }
+    Mod5+Shift+Ctrl+9 {
+        move-column-to-workspace "rec"
+    }
+    Mod5+Shift+Ctrl+0 {
+        move-column-to-workspace "net"
     }
     Mod5+Shift+BracketLeft {
         consume-or-expel-window-left

@@ -44,34 +44,34 @@ window_effects:
 
 workspaces:
   - name: "1"
-    display_name: "social"
+    display_name: "SOC"
     keep_alive: true
   - name: "2"
-    display_name: "term"
+    display_name: "TRM"
     keep_alive: true
   - name: "3"
-    display_name: "dev"
+    display_name: "WEB"
     keep_alive: true
   - name: "4"
-    display_name: "other"
+    display_name: "DEV"
     keep_alive: true
   - name: "5"
-    display_name: "www"
+    display_name: "MED"
     keep_alive: true
   - name: "6"
-    display_name: "entertainment"
+    display_name: "PLN"
     keep_alive: true
   - name: "7"
-    display_name: "thrash"
+    display_name: "EDU"
     keep_alive: true
   - name: "8"
-    display_name: "study"
+    display_name: "AI"
     keep_alive: true
   - name: "9"
-    display_name: "ai"
+    display_name: "REC"
     keep_alive: true
   - name: "10"
-    display_name: "load"
+    display_name: "NET"
     keep_alive: true
 
 window_rules:
@@ -121,6 +121,24 @@ window_rules:
     match:
       - window_process: { regex: "^OrbStack$" }
 
+  - commands: ["move --workspace 2"]
+    match:
+      - window_process: { regex: "^Ghostty$" }
+  - commands: ["move --workspace 3"]
+    match:
+      - window_process: { regex: "^Firefox$" }
+  - commands: ["move --workspace 3"]
+    match:
+      - window_process: { regex: "^Brave Browser$" }
+  - commands: ["move --workspace 3"]
+    match:
+      - window_process: { regex: "^Safari$" }
+  - commands: ["move --workspace 3"]
+    match:
+      - window_process: { regex: "^Zen$" }
+  - commands: ["move --workspace 3"]
+    match:
+      - window_process: { regex: "^Helium$" }
   - commands: ["move --workspace 1"]
     match:
       - window_process: { regex: "^Telegram$" }
@@ -133,39 +151,48 @@ window_rules:
   - commands: ["move --workspace 1"]
     match:
       - window_process: { regex: "^Slack$" }
-  - commands: ["move --workspace 2"]
+  - commands: ["move --workspace 1"]
     match:
-      - window_process: { regex: "^Ghostty$" }
-  - commands: ["move --workspace 3"]
+      - window_process: { regex: "^WhatsApp$" }
+  - commands: ["move --workspace 4"]
     match:
       - window_process: { regex: "^Emacs$" }
-  - commands: ["move --workspace 3"]
+  - commands: ["move --workspace 4"]
     match:
       - window_process: { regex: "^Xcode$" }
-  - commands: ["move --workspace 5"]
-    match:
-      - window_process: { regex: "^Firefox$" }
-  - commands: ["move --workspace 5"]
+  - commands: ["move --workspace 4"]
     match:
       - window_process: { regex: "^Arc$" }
-  - commands: ["move --workspace 5"]
+  - commands: ["move --workspace 4"]
     match:
-      - window_process: { regex: "^Brave Browser$" }
-  - commands: ["move --workspace 5"]
-    match:
-      - window_process: { regex: "^Safari$" }
-  - commands: ["move --workspace 6"]
-    match:
-      - window_process: { regex: "^Spotify$" }
+      - window_process: { regex: "^Chromium$" }
   - commands: ["move --workspace 8"]
     match:
-      - window_process: { regex: "^Obsidian$" }
-  - commands: ["move --workspace 9"]
-    match:
       - window_process: { regex: "^ChatGPT$" }
-  - commands: ["move --workspace 10"]
+  - commands: ["move --workspace 7"]
+    match:
+      - window_process: { regex: "^Obsidian$" }
+  - commands: ["move --workspace 7"]
+    match:
+      - window_process: { regex: "^Anki$" }
+  - commands: ["move --workspace 5"]
+    match:
+      - window_process: { regex: "^Spotify$" }
+  - commands: ["move --workspace 5"]
+    match:
+      - window_process: { regex: "^Spotube$" }
+  - commands: ["move --workspace 5"]
     match:
       - window_process: { regex: "^WebTorrent$" }
+  - commands: ["move --workspace 6"]
+    match:
+      - window_process: { regex: "^TickTick$" }
+  - commands: ["move --workspace 9"]
+    match:
+      - window_process: { regex: "^Audacity$" }
+  - commands: ["move --workspace 9"]
+    match:
+      - window_process: { regex: "^OBS$" }
 
 keybindings:
   # ── FOCUS (skhd: ralt+rshift - {i,h,n,e}) ───────────────────
@@ -253,26 +280,24 @@ keybindings:
   - commands: ["focus --workspace 10"]
     bindings: ["ralt+rshift+0"]
 
-  # ── WORKSPACE FOCUS — letter (skhd: ralt+rshift-{a,s,w,d,u,t,r,l,o}) ──
-  # Each: skhd-key (Colemak-char) → physical QWERTY → GlazeWM key
-  - commands: ["focus --workspace 9"]
-    bindings: ["ralt+rshift+a"] # skhd: a  (a=a, same)
-  - commands: ["focus --workspace 1"]
-    bindings: ["ralt+rshift+d"] # skhd: s  (Colemak s = phys d)
-  - commands: ["focus --workspace 5"]
-    bindings: ["ralt+rshift+w"] # skhd: w  (w=w, same)
-  - commands: ["focus --workspace 3"]
-    bindings: ["ralt+rshift+g"] # skhd: d  (Colemak d = phys g)
-  - commands: ["focus --workspace 7"]
-    bindings: ["ralt+rshift+i"] # skhd: u  (Colemak u = phys i)
+  # ── WORKSPACE FOCUS — letter: first letter of the workspace name ──
+  # Colemak character → physical QWERTY key. EDU and NET collide with focus up/down.
   - commands: ["focus --workspace 2"]
-    bindings: ["ralt+rshift+f"] # skhd: t  (Colemak t = phys f)
-  - commands: ["focus --workspace 6"]
-    bindings: ["ralt+rshift+s"] # skhd: r  (Colemak r = phys s)
-  - commands: ["focus --workspace 8"]
-    bindings: ["ralt+rshift+u"] # skhd: l  (Colemak l = phys u)
+    bindings: ["ralt+rshift+f"] # TRM: Colemak t = phys f
+  - commands: ["focus --workspace 3"]
+    bindings: ["ralt+rshift+w"] # WEB: same
+  - commands: ["focus --workspace 1"]
+    bindings: ["ralt+rshift+d"] # SOC: Colemak s = phys d
   - commands: ["focus --workspace 4"]
-    bindings: ["ralt+rshift+oem_semicolon"] # skhd: o  (Colemak o = phys ;)
+    bindings: ["ralt+rshift+g"] # DEV: Colemak d = phys g
+  - commands: ["focus --workspace 8"]
+    bindings: ["ralt+rshift+a"] # AI: same
+  - commands: ["focus --workspace 5"]
+    bindings: ["ralt+rshift+m"] # MED: same
+  - commands: ["focus --workspace 6"]
+    bindings: ["ralt+rshift+r"] # PLN: Colemak p = phys r
+  - commands: ["focus --workspace 9"]
+    bindings: ["ralt+rshift+s"] # REC: Colemak r = phys s
 
   # ── WORKSPACE FOCUS — prev/next (skhd: lctrl+ralt+rshift-left/right) ──
   - commands: ["focus --prev-active-workspace"]
@@ -302,25 +327,23 @@ keybindings:
   - commands: ["move --workspace 10", "focus --workspace 10"]
     bindings: ["lcmd+ralt+rshift+0"]
 
-  # ── MOVE WINDOW to workspace — letter (skhd: lcmd+ralt+rshift-{d,w,s,u,t,r,a,o,l}) ──
-  - commands: ["move --workspace 3", "focus --workspace 3"]
-    bindings: ["lcmd+ralt+rshift+g"] # skhd: d  (Colemak d = phys g)
-  - commands: ["move --workspace 5", "focus --workspace 5"]
-    bindings: ["lcmd+ralt+rshift+w"] # skhd: w  (same)
-  - commands: ["move --workspace 1", "focus --workspace 1"]
-    bindings: ["lcmd+ralt+rshift+d"] # skhd: s  (Colemak s = phys d)
-  - commands: ["move --workspace 7", "focus --workspace 7"]
-    bindings: ["lcmd+ralt+rshift+i"] # skhd: u  (Colemak u = phys i)
+  # ── MOVE WINDOW to workspace — letter: first letter of the workspace name ──
   - commands: ["move --workspace 2", "focus --workspace 2"]
-    bindings: ["lcmd+ralt+rshift+f"] # skhd: t  (Colemak t = phys f)
-  - commands: ["move --workspace 6", "focus --workspace 6"]
-    bindings: ["lcmd+ralt+rshift+s"] # skhd: r  (Colemak r = phys s)
-  - commands: ["move --workspace 9", "focus --workspace 9"]
-    bindings: ["lcmd+ralt+rshift+a"] # skhd: a  (same)
+    bindings: ["lcmd+ralt+rshift+f"] # TRM: Colemak t = phys f
+  - commands: ["move --workspace 3", "focus --workspace 3"]
+    bindings: ["lcmd+ralt+rshift+w"] # WEB: same
+  - commands: ["move --workspace 1", "focus --workspace 1"]
+    bindings: ["lcmd+ralt+rshift+d"] # SOC: Colemak s = phys d
   - commands: ["move --workspace 4", "focus --workspace 4"]
-    bindings: ["lcmd+ralt+rshift+oem_semicolon"] # skhd: o (Colemak o = phys ;)
+    bindings: ["lcmd+ralt+rshift+g"] # DEV: Colemak d = phys g
   - commands: ["move --workspace 8", "focus --workspace 8"]
-    bindings: ["lcmd+ralt+rshift+u"] # skhd: l  (Colemak l = phys u)
+    bindings: ["lcmd+ralt+rshift+a"] # AI: same
+  - commands: ["move --workspace 5", "focus --workspace 5"]
+    bindings: ["lcmd+ralt+rshift+m"] # MED: same
+  - commands: ["move --workspace 6", "focus --workspace 6"]
+    bindings: ["lcmd+ralt+rshift+r"] # PLN: Colemak p = phys r
+  - commands: ["move --workspace 9", "focus --workspace 9"]
+    bindings: ["lcmd+ralt+rshift+s"] # REC: Colemak r = phys s
 
   # ── MOVE WINDOW — prev/next: GlazeWM has no relative move, use lcmd+ralt+rshift+{1..9}
 

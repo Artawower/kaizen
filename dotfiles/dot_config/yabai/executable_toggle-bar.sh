@@ -19,12 +19,12 @@ if [ "$is_hidden" == "\"off\"" ]; then
     yabai -m config left_padding 8
     yabai -m config right_padding 8
     yabai -m config window_gap 8
-    # yabai -m rule --apply app="^spotube$" manage=off grid=100:100:3:5:60:80 space=6
-    yabai -m rule --apply app="^spotube$" manage=off grid=100:100:5:7:84:84 space=6
-    yabai -m rule --apply app="^iPhone Mirroring$" manage=off grid=100:100:72:20:10:10 space=7
-    YABAI -m rule --apply app="^Session$" manage=off grid=100:100:68:28:0:40 space=7
-    yabai -m rule --apply app="^Session$" manage=off grid=100:100:66:28:30:40 space=7
-    yabai -m rule --apply app="^TickTick$" manage=off grid=100:100:3:5:56:80 space=7
+    # yabai -m rule --apply app="^spotube$" manage=off grid=100:100:3:5:60:80 space=med
+    yabai -m rule --apply app="^spotube$" manage=off grid=100:100:5:7:84:84 space=med
+    yabai -m rule --apply app="^iPhone Mirroring$" manage=off grid=100:100:72:20:10:10 space=net
+    YABAI -m rule --apply app="^Session$" manage=off grid=100:100:68:28:0:40 space=soc
+    yabai -m rule --apply app="^Session$" manage=off grid=100:100:66:28:30:40 space=soc
+    yabai -m rule --apply app="^TickTick$" manage=off grid=100:100:3:5:56:80 space=pln
 
     yabai -m space 1 --gap rel:32
     yabai -m space 1 --padding abs:32:32:32:32

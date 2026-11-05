@@ -120,11 +120,14 @@ workspaces = [
   "TRM",
   "WEB",
   "DEV",
-  "ENT",
-  "THR",
-  "STU",
+  "MED",
+  "PLN",
+  "EDU",
   "AI",
-  "PRD",
+  "REC",
+  "NET",
+  "11",
+  "12",
 ]
 
 [ui.theme]
