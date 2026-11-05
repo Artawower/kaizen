@@ -1,4 +1,5 @@
-theme = "catppuccin-mocha"
+theme_dark = "catppuccin-mocha"
+theme_light = "catppuccin-latte"
 # diff_view = "side-by-side"   # or "unified"
 diff_view = "unified"
 ignore_whitespace = false    # ignore all whitespace in local VCS diffs
