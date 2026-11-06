@@ -1604,10 +1604,21 @@ Bookmark for navigation inside file
 *** Delete backward word
 #+BEGIN_SRC emacs-lisp
 (defun my/delete-backward-word (arg)
-  "Delete ARG preceding words without changing the kill ring or clipboard."
+  "Delete ARG preceding words without changing the kill ring or clipboard.
+Each step deletes the blanks before point and then one run of word or
+symbol characters, or one run of other characters, within the line.
+At the beginning of a line it deletes the preceding newline."
   (interactive "*p")
   (let ((end (point)))
-    (backward-word arg)
+    (dotimes (_ arg)
+      (if (bolp)
+          (unless (bobp) (backward-char))
+        (let ((limit (line-beginning-position)))
+          (skip-chars-backward " \t" limit)
+          (unless (bolp)
+            (if (memq (syntax-class (syntax-after (1- (point)))) '(2 3))
+                (skip-syntax-backward "w_" limit)
+              (skip-syntax-backward "^w_ " limit))))))
     (delete-region (point) end)))
 
 (defconst my/delete-backward-word-binding
