@@ -756,17 +756,17 @@ Modeline inactive color
   (add-hook 'after-make-frame-functions #'my/server-auto-dark))
 #+END_SRC
 
-Fix neomacs issue
+Apply themes only when the system appearance changes, so a theme loaded by hand stays.
 #+BEGIN_SRC emacs-lisp :results silent
 (defun my/auto-dark-check-system-change-only ()
-  (let ((appearance (auto-dark--current-system-mode)))
-    (unless (eq appearance auto-dark--last-dark-mode-state)
-      (auto-dark--set-theme appearance))))
+  (when (auto-dark--initialized-p)
+    (let ((appearance (auto-dark--current-system-mode)))
+      (unless (eq appearance auto-dark--last-dark-mode-state)
+        (auto-dark--set-theme appearance)))))
 
-(when (eq window-system 'neo)
-  (advice-add 'auto-dark--check-and-set-dark-mode
-              :override
-              #'my/auto-dark-check-system-change-only))
+(advice-add 'auto-dark--check-and-set-dark-mode
+            :override
+            #'my/auto-dark-check-system-change-only)
 #+END_SRC
 
 
