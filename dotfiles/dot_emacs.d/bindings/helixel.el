@@ -6,7 +6,7 @@
 (require 'kaizen nil t)
 
 (use-package helixel
-  :ensure (:host github :repo "jixiuf/helixel-mode" :files (:defaults "**") :wait t)
+  :ensure (:host github :repo "artawower/helixel-mode" :files (:defaults "**") :wait t)
   :demand t
   :config
   (defun kaizen/enable-helixel-normal-state-in-buffer (&optional buffer)
