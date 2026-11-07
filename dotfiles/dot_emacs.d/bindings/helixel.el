@@ -276,7 +276,11 @@
 
 (with-eval-after-load 'dired
   (helixel-define-key 'motion "-" #'dired-up-directory 'dired-mode)
-  (helixel-define-key 'motion "h" #'dired-up-directory 'dired-mode))
+  (helixel-define-key 'motion "h" #'dired-up-directory 'dired-mode)
+  (helixel-define-key 'motion (kbd "g g") #'helixel-go-beginning-buffer 'dired-mode)
+  (helixel-define-key 'motion (kbd "g e") #'helixel-go-end-buffer 'dired-mode)
+  (helixel-define-key 'motion "G" #'kaizen/helixel-G 'dired-mode)
+  (helixel-define-key 'motion (kbd "g r") #'revert-buffer 'dired-mode))
 
 (with-eval-after-load 'org-agenda
   (helixel-define-key 'normal (kbd "<escape>") #'org-agenda-quit 'org-agenda-mode)
