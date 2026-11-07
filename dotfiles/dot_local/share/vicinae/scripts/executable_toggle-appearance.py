@@ -15,7 +15,9 @@ to toggle Vicinae's look.
   present, reuses the noctalia sync hook so the niri/desktop setup stays in sync.
 """
 
+import os
 import platform
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -98,6 +100,14 @@ def toggle() -> str:
         raise RuntimeError(f"unsupported system: {system}")
     target = "light" if current == "dark" else "dark"
     apply(target)
+    wallboy = shutil.which(
+        "wallboy",
+        path=os.pathsep.join(
+            [os.environ.get("PATH", ""), "/opt/homebrew/bin", "/usr/local/bin"]
+        ),
+    )
+    if wallboy:
+        run([wallboy, "next", "--theme", target, "--quiet"])
     return target
 
 
