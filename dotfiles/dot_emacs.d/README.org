@@ -712,7 +712,7 @@ Modeline inactive color
   "Use direct colors for clients that advertise truecolor support."
   (let* ((environment (process-get (nth 2 arguments) 'env))
          (colorterm (and environment (getenv-internal "COLORTERM" environment))))
-    (if (and (member (nth 1 arguments) '("xterm-256color" "tmux-256color"))
+    (if (and (member (nth 1 arguments) '("xterm-256color" "tmux-256color" "xterm-kitty"))
              (stringp colorterm)
              (member (downcase colorterm) '("truecolor" "24bit"))
              (or (file-readable-p "~/.terminfo/x/xterm-kaizen-direct")
@@ -4964,6 +4964,36 @@ Automatically creates parent directories if needed."
   (advice-add 'kitty-graphics--compute-cell-dims :before
               #'my/kitty-graphics-query-cell-size)
   (kitty-graphics-setup))
+#+END_SRC
+
+** Video playback
+#+BEGIN_SRC emacs-lisp
+(defun my/play-video (file)
+  "Play FILE with mpv, in a tuios popup when the frame runs inside tuios."
+  (interactive
+   (list (if (derived-mode-p 'dired-mode)
+             (dired-get-file-for-visit)
+           (read-file-name "Video: "))))
+  (let ((file (expand-file-name file))
+        (session (getenv "TUIOS_SESSION" (selected-frame))))
+    (if (and session (not (display-graphic-p)) (executable-find "tuios"))
+        (start-process "tuios-mpv" nil "tuios" "popup" "-s" session
+                       "--width" "90%" "--height" "90%" "--"
+                       "mpv" "--vo=kitty" "--vo-kitty-use-shm=no"
+                       "--really-quiet" file)
+      (start-process "mpv" nil "mpv" "--force-window=yes" file))))
+
+(defun my/dired-find-file-or-play-video ()
+  "Play the video at point with `my/play-video', or visit the file."
+  (interactive)
+  (let ((file (dired-get-file-for-visit)))
+    (if (member (downcase (or (file-name-extension file) ""))
+                '("mp4" "mkv" "webm" "mov" "m4v" "avi"))
+        (my/play-video file)
+      (dired-find-file))))
+
+(with-eval-after-load 'dired
+  (define-key dired-mode-map (kbd "RET") #'my/dired-find-file-or-play-video))
 #+END_SRC
 ** Modern org
 #+BEGIN_SRC emacs-lisp :results silent
