@@ -311,8 +311,7 @@
 
 ;;; Package integrations
 
-(with-eval-after-load 'reviewer
-  (helixel-define-key 'normal (kbd "SPC r r") #'reviewer-transient))
+(helixel-define-key 'normal (kbd "SPC r r") #'reviewer-transient)
 
 (dolist (state '(normal visual))
   (helixel-define-key state "+" #'er/expand-region))
