@@ -4186,6 +4186,14 @@ Requires Emacs 30+
       (setq grip-github-user (car credential)
             grip-github-password (cadr credential)))))
 #+END_SRC
+
+*** Pretty markdown rendering
+#+BEGIN_SRC emacs-lisp :results silent
+(use-package markdown-ts-appear
+  :ensure (:host github :repo "Thysrael/markdown-ts-appear")
+  :hook (markdown-ts-mode . markdown-ts-appear-mode))
+#+END_SRC
+
 *** Xwidget preview
 #+BEGIN_SRC emacs-lisp
 (use-package markdown-xwidget
