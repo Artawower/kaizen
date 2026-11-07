@@ -1,4 +1,4 @@
-use scripts/project.nu * 
+use scripts/project.nu *
 
 $env.config = ($env.config | merge {
     edit_mode: vi
@@ -21,6 +21,7 @@ $env.config.completions.external.completer = {|place|
 
 source ~/.atuin/init.nu
 source ~/.config/nushell/aliases.nu
+source ~/.config/nushell/shorthands.nu
 source ~/.config/nushell/task-runner.nu
 alias vl = jjui
 alias pp = kaizen-zoxide-pick
