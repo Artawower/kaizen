@@ -12,4 +12,9 @@ relative_line_numbers = false # show rendered-row distances in the diff gutter
 [[comment_types]]
 id = "issue"
 color = "red"
-definition = "must fix before merge"
+definition = "Must fix before merge"
+
+[[comment_types]]
+id = "question"
+color = "blue"
+definition = "Don't change, just explain or discuss"
