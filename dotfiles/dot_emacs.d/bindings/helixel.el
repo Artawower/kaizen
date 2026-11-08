@@ -110,14 +110,29 @@
   (call-interactively #'avy-goto-word-1)
   (helixel-mark-inner-word 1))
 
+(defun kaizen/helixel-region-matches-active-search-p ()
+  "Return non-nil when the region is exactly a match of the active search."
+  (let ((search (bound-and-true-p helixel--active-search)))
+    (and search
+         (eq (helixel--last-motion-category search) 'search)
+         (let ((pattern (helixel--last-motion-pattern search)))
+           (save-excursion
+             (goto-char (region-beginning))
+             (and (looking-at (if (helixel--last-motion-regexp search)
+                                  pattern
+                                (regexp-quote pattern)))
+                  (= (match-end 0) (region-end))))))))
+
 (defun kaizen/helixel-search-or-next ()
-  "Repeat active search, otherwise search selection or word at point."
+  "Repeat active search, otherwise search selection or word at point.
+A selection that is not a match of the active search starts a new search."
   (interactive)
   (cond
+   ((and (use-region-p)
+         (not (kaizen/helixel-region-matches-active-search-p)))
+    (helixel-search--from-region 'forward))
    ((bound-and-true-p helixel--active-search)
     (call-interactively #'helixel-search-repeat-next))
-   ((use-region-p)
-    (helixel-search--from-region 'forward))
    (t
     (call-interactively #'helixel-search-at-point-next))))
 
