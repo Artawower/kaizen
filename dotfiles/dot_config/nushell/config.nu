@@ -1,4 +1,7 @@
 use scripts/project.nu *
+use scripts/sr.nu *
+use scripts/video_recording.nu *
+
 
 $env.config = ($env.config | merge {
     edit_mode: vi

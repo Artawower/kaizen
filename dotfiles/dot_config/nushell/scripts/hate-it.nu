@@ -1,7 +1,7 @@
 const NEW_KEY = "new"
 const FILE_PATH = "~/tmp/hate.json"
 
-def main [
+export def main [
   --list
 ] {
   let hateList = open ($FILE_PATH | path expand)

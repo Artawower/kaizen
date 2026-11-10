@@ -1,4 +1,4 @@
-def toggle_recording [] {
+export def main [] {
     let state_file = ($env.TMPDIR | path join "rift-recording-state")
     let recording = ($state_file | path exists)
 
@@ -18,4 +18,3 @@ def toggle_recording [] {
     }
 }
 
-toggle_recording

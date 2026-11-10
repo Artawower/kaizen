@@ -162,8 +162,7 @@ def show-help [] {
     print $'Database: (db-path)'
 }
 
-# One main works with both `nu sr_v3.nu ...` and `run sr_v3.nu ...`.
-def main [
+export def main [
     action?: string         # add | list | due | review | done | remove | help
     value?: any             # Command for add, ID for done/remove
     grade?: string          # Grade for done
