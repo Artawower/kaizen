@@ -31,7 +31,7 @@ for os_name in ("darwin", "linux"):
         "--file", str(source / ".chezmoiignore.tmpl"),
     ], text=True)
     patterns = set(rendered.splitlines())
-    common = (".pi/", ".omp/", ".agents/", ".emacs.d/", ".config/ghostty/", ".config/helix/", ".config/nvim/")
+    common = (".pi/", ".omp/", ".agents/", ".emacs.d/", ".config/ghostty/", ".config/helix/", ".config/nvim/", ".config/cava/")
     assert not set(common) & patterns, (os_name, set(common) & patterns)
     for path in ("Library/", ".config/skhd/", ".config/aerospace/", ".config/karabiner/", ".config/rift/"):
         assert (path in patterns) == (os_name == "linux"), (os_name, path)
@@ -48,6 +48,7 @@ ignored = (
 )
 kept = (
     ".config/nvim/init.lua", ".omp/agent/config.yml", ".agents/skills/example/package-lock.json",
+    ".config/cava/config",
 )
 for name in (*ignored, *kept):
     path = destination / name

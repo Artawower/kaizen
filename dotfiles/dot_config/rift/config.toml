@@ -124,7 +124,7 @@ app_rules = [
   # ---------------------------------------------------------------------------
   # Terminals -> TRM
   # ---------------------------------------------------------------------------
-  { app_id = "net.kovidgoyal.kitty", workspace = "TRM" },
+  { app_id = "net.kovidgoyal.kitty", workspace = "TRM", manage = false },
   { app_id = "com.github.wez.wezterm", workspace = "TRM", floating = false },
   { app_id = "com.wez.wezterm", workspace = "TRM", floating = false },
   { app_id = "com.mitchellh.ghostty", workspace = "TRM", floating = false },

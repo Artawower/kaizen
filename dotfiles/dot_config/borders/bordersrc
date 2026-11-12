@@ -7,6 +7,7 @@ options=(
 	active_color=0xff8b5cf6
   order=below
 	inactive_color=0xff2e2a3a
+  blacklist=kitty
 )
 
 borders "${options[@]}"
