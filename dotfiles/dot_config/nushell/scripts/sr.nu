@@ -140,7 +140,7 @@ def run-item [command: string] {
         $'($command); nu'
     } else { $command }
     # Leave the terminal attached, so editors and other TUIs stay interactive.
-    ^nu -c $script
+    ^nu --config $nu.config-path --env-config $nu.env-path -c $script
     $env.LAST_EXIT_CODE == 0
 }
 
@@ -183,17 +183,20 @@ export def "sr list" [] { show-items (load-items | sort-by due) }
 # Show today's and overdue items
 export def "sr due" [] { show-items (due-items) }
 
-# Pick an item, run its command, and grade it
+# Pick an item, run its command, and grade it; an ID reviews it ahead of time
 export def "sr review" [
-    --all(-a)     # Include items not yet due
-    --manual(-m)  # Grade without running the command
+    id?: int@item-ids  # Item ID, due or not
+    --all(-a)          # Include items not yet due
+    --manual(-m)       # Grade without running the command
 ] {
-    let items = if $all { load-items | sort-by due } else { due-items }
-    if ($items | is-empty) {
-        print 'Nothing due. Use --all to include future items.'
-        return
+    let item = if $id != null { find-item $id } else {
+        let items = if $all { load-items | sort-by due } else { due-items }
+        if ($items | is-empty) {
+            print 'Nothing due. Use --all to include future items.'
+            return
+        }
+        pick-item $items
     }
-    let item = (pick-item $items)
     if $item == null { return }
     print $'Reviewing #($item.id): ($item.title)'
     print $'Command: ($item.command)'
