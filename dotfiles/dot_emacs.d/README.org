@@ -4971,6 +4971,8 @@ Automatically creates parent directories if needed."
       (kitty-graphics--query-cell-size)))
   (advice-add 'kitty-graphics--compute-cell-dims :before
               #'my/kitty-graphics-query-cell-size)
+  (advice-add 'kitty-graphics--org-display-advice :override
+              #'kitty-graphics--org-link-preview-region-advice)
   (kitty-graphics-setup))
 #+END_SRC
 
