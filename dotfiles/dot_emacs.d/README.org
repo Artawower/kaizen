@@ -5025,12 +5025,13 @@ Automatically creates parent directories if needed."
   (org-modern-block-name nil)
   (org-modern-table nil)
 
-  (org-modern-priority
-   '((?A . "󰈸")
-     (?B . "")
-     (?C . "󱈸")
-     (?D . "")
-     (?E . ""))))
+  ;; (org-modern-priority
+  ;;  '((?A . "󰈸")
+  ;;    (?B . "")
+  ;;    (?C . "󱈸")
+  ;;    (?D . "")
+  ;;    (?E . "")))
+)
 #+END_SRC
 
 
