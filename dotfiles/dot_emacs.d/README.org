@@ -5034,6 +5034,30 @@ Automatically creates parent directories if needed."
 )
 #+END_SRC
 
+** Emacs presentation mode
+#+BEGIN_SRC emacs-lisp :results silent
+(use-package dslide
+  :ensure t
+  :after org
+  :custom
+  (dslide-header nil)
+  :config
+  ;; Remove all default bindings
+  (setcdr dslide-mode-map nil)
+
+  :bind
+  (:map org-mode-map
+        ("<f8>" . dslide-deck-start))
+  (:map dslide-mode-map
+        ("<f9>" . dslide-deck-forward)
+        ("<f7>" . dslide-deck-backward)
+        ("<f10>" . dslide-deck-stop)))
+#+END_SRC
+
+** Writeroom
+#+BEGIN_SRC emacs-lisp :results silent
+(use-package writeroom-mode :defer t)
+#+END_SRC
 
 ** Custom org creation function
 #+BEGIN_SRC emacs-lisp :results silent
