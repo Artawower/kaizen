@@ -2032,7 +2032,12 @@ Allow to transform PASCAL_CASE -> camelCase -> snake_case
               ("k" . dired-previous-line)
               ("\\c" . dired-create-empty-file))
   :config
-  (setq dired-dwim-target t)
+  (setq dired-dwim-target t
+        dired-listing-switches
+        (if (and (eq system-type 'darwin)
+                 (not (executable-find "gls")))
+            "-alhtU"
+          "-alht --time=birth"))
   ;; Use GNU ls if available (install via: brew install coreutils)
   (when (executable-find "gls")
     (setq insert-directory-program "gls" dired-use-ls-dired t))

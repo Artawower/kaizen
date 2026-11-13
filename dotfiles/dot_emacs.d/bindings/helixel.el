@@ -105,10 +105,13 @@
   "t" #'load-theme)
 
 (defun kaizen/helixel-avy-select-word ()
-  "Jump to word with avy, then select it."
+  "Jump with avy and select the word or single non-word character."
   (interactive)
   (call-interactively #'avy-goto-word-1)
-  (helixel-mark-inner-word 1))
+  (unless (eobp)
+    (if (looking-at "[[:alnum:]]")
+        (helixel-mark-inner-word 1)
+      (helixel--activate-textobj-range (cons (point) (1+ (point)))))))
 
 (defun kaizen/helixel-region-matches-active-search-p ()
   "Return non-nil when the region is exactly a match of the active search."
