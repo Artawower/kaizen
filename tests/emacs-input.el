@@ -422,6 +422,42 @@
     (should (eq helixel--current-state 'insert))
     (should (eq (key-binding [escape]) #'helixel-insert-exit))))
 
+(ert-deftest helixel-avy-selects-only-the-target-punctuation ()
+  (skip-unless (require 'helixel nil t))
+  (eval (kaizen-test-form "dotfiles/dot_emacs.d/bindings/helixel.el"
+                          "(defun kaizen/helixel-avy-select-word"))
+  (dolist (mode '(fundamental-mode emacs-lisp-mode org-mode))
+    (dolist (punctuation (string-to-list "()[]{}.,:;!?+-=*/_<>\"'`"))
+      (with-temp-buffer
+        (funcall mode)
+        (setq-local transient-mark-mode t)
+        (insert "word" punctuation punctuation "next")
+        (goto-char (point-min))
+        (helixel-normal-state 1)
+        (cl-letf (((symbol-function 'avy-goto-word-1)
+                   (lambda () (interactive) (goto-char 5))))
+          (call-interactively #'kaizen/helixel-avy-select-word))
+        (ert-info ((format "%s, target %c" mode punctuation))
+          (should (use-region-p))
+          (should (= (region-beginning) 5))
+          (should (= (region-end) 6)))))))
+
+(ert-deftest helixel-avy-still-selects-whole-words ()
+  (skip-unless (require 'helixel nil t))
+  (eval (kaizen-test-form "dotfiles/dot_emacs.d/bindings/helixel.el"
+                          "(defun kaizen/helixel-avy-select-word"))
+  (with-temp-buffer
+    (setq-local transient-mark-mode t)
+    (insert "before (target) after")
+    (goto-char (point-min))
+    (helixel-normal-state 1)
+    (cl-letf (((symbol-function 'avy-goto-word-1)
+               (lambda () (interactive) (goto-char 9))))
+      (call-interactively #'kaizen/helixel-avy-select-word))
+    (should (use-region-p))
+    (should (equal (buffer-substring-no-properties (region-beginning) (region-end))
+                   "target"))))
+
 (defun kaizen-test-helixel-search-bindings ()
   (dolist (name '(kaizen/helixel-search-or-next kaizen/helixel-search-reverse))
     (eval (kaizen-test-form "dotfiles/dot_emacs.d/bindings/helixel.el"
