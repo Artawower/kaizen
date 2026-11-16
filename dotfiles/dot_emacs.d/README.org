@@ -908,7 +908,11 @@ Apply themes only when the system appearance changes, so a theme loaded by hand 
   (org-mode . hide-mode-line-mode)
   (help-mode . hide-mode-line-mode)
   (helpful-mode . hide-mode-line-mode)
-  (dired-mode . hide-mode-line-mode))
+  (dired-mode . hide-mode-line-mode)
+  (messages-buffer-mode . hide-mode-line-mode)
+  :config
+  (with-current-buffer (messages-buffer)
+    (hide-mode-line-mode 1)))
 #+END_SRC
 
 ** COMMENT Powerline
@@ -987,6 +991,20 @@ Disable window divider
       window-divider-default-bottom-width 1
       window-divider-default-right-width 0)
 (window-divider-mode +1)
+#+END_SRC
+
+Thin vertical border in terminal frames
+#+BEGIN_SRC emacs-lisp
+(unless standard-display-table
+  (setq standard-display-table (make-display-table)))
+(set-display-table-slot standard-display-table 'vertical-border (make-glyph-code ?│))
+
+(face-spec-set 'vertical-border
+               '((((type tty))
+                  :inherit shadow
+                  :foreground unspecified
+                  :background unspecified))
+               'face-override-spec)
 #+END_SRC
 
 Disable scrolls
