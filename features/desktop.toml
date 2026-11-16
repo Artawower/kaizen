@@ -23,6 +23,10 @@ dnf = ["vlc", "audacity"]
 apt = ["vlc"]
 tools = {"pipx:yt-dlp" = "latest"}
 
+[media-creation]
+description = "Tools for content creation"
+brew = ["auto-editor"]
+
 [productivity]
 description = "Productivity: notes, tasks, time-tracking"
 cask = ["obsidian", "ticktick", "wakatime", "stretchly", "loom", "macshot"]
