@@ -4,7 +4,7 @@ const CAVA_PANEL = r#'kitty +kitten panel \
   --edge=bottom \
   --layer=bottom \
   --lines=760px \
-  --margin-bottom=64px \
+  --margin-bottom=86px \
   --focus-policy=not-allowed \
   --override background_opacity=0 \
   --override window_padding_width=0 \
@@ -47,7 +47,7 @@ export def main [] {
     let recording = ($state_file | path exists)
 
     if not $recording {
-        rift-cli execute config set-outer-gaps 60 10 60 10
+        rift-cli execute config set-outer-gaps 50 16 80 16
         if $env.LAST_EXIT_CODE != 0 { return }
 
         rift-cli execute load-layout ~/.config/rift/layouts/recording.ron

@@ -75,3 +75,6 @@ dotfiles = ["dotfiles/dot_config/git", "dotfiles/dot_config/jj", "dotfiles/dot_c
 packages = ["git", "gh", "jj", "git-delta", "gnupg", "pinentry"]
 package_names = {gnupg = {dnf = "gnupg2", apt = "gnupg2"}, pinentry = {brew = "pinentry-mac", apt = "pinentry-gnome3"}}
 tools = {"cargo:gitu" = "latest", "github:idursun/jjui" = "latest", "npm:git-trim" = "0.3.1", "github:agavra/tuicr" = "latest"}
+
+[code-analying]
+brew = ["tokei"]

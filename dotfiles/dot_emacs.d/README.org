@@ -3858,8 +3858,18 @@ By default ~compile-goto-error~ open new window. It's redundant.
   (cognitive-complexity-mode 1))
 #+END_SRC
 ** Debugger DAPE
-Clone this repo for js debug git@github.com:microsoft/vscode-js-debug.git
+The js-debug adapter is installed by mise from the emacs feature in kaizen.
 #+BEGIN_SRC emacs-lisp
+(defconst my/js-debug-server
+  (expand-file-name
+   "~/.local/share/mise/installs/github-microsoft-vscode-js-debug/latest/src/dapDebugServer.js"))
+
+(defun my/dape-use-mise-js-debug ()
+  (dolist (config dape-configs)
+    (when (string-prefix-p "js-debug" (symbol-name (car config)))
+      (setf (plist-get (cdr config) 'command-args)
+            (list my/js-debug-server :autoport)))))
+
 (use-package dape
   :demand t
   :ensure (dape :type git :host github :repo "svaante/dape")
@@ -3878,7 +3888,8 @@ Clone this repo for js debug git@github.com:microsoft/vscode-js-debug.git
          ("C-c d x" . dape-breakpoint-remove-all))
   :config
   (setq dape-buffer-window-arrangment 'right)
-  (setq dape-inline-variables t))
+  (setq dape-inline-variables t)
+  (my/dape-use-mise-js-debug))
 #+END_SRC
 
 
