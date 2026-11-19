@@ -531,6 +531,14 @@ but it does not copy $SHELL into `shell-file-name'."
         (select-window new-window)))
 #+END_SRC
 * UI
+** Pretty message
+#+BEGIN_SRC emacs-lisp :results silent
+(use-package pretty-message
+  :ensure (:host github :repo "artawower/pretty-message.el")
+  :defer 2
+  :config
+  (pretty-message-mode 1))
+#+END_SRC
 ** Faces
 *** Color getters functions
 Modeline background colors
@@ -1005,6 +1013,35 @@ Thin vertical border in terminal frames
                   :foreground unspecified
                   :background unspecified))
                'face-override-spec)
+#+END_SRC
+
+Thin horizontal border in terminal frames
+#+BEGIN_SRC emacs-lisp
+(defface my/tty-horizontal-border
+  '((t :inherit vertical-border
+       :background "unspecified-bg"
+       :inverse-video nil
+       :underline nil
+       :overline nil
+       :weight normal))
+  "Face of the horizontal border between terminal windows.")
+
+(defun my/tty-horizontal-border-format ()
+  "Return a horizontal border line spanning the current window."
+  (propertize (make-string (window-total-width) ?─)
+              'face 'my/tty-horizontal-border))
+
+(defun my/update-tty-horizontal-borders ()
+  "Draw borders below terminal windows that have no visible mode line."
+  (unless (display-graphic-p)
+    (dolist (window (window-list nil 'no-minibuf))
+      (set-window-parameter
+       window 'mode-line-format
+       (unless (or (window-at-side-p window 'bottom)
+                   (buffer-local-value 'mode-line-format (window-buffer window)))
+         '(:eval (my/tty-horizontal-border-format)))))))
+
+(add-hook 'window-configuration-change-hook #'my/update-tty-horizontal-borders)
 #+END_SRC
 
 Disable scrolls
@@ -5092,7 +5129,9 @@ Automatically creates parent directories if needed."
 
 ** Writeroom
 #+BEGIN_SRC emacs-lisp :results silent
-(use-package writeroom-mode :defer t)
+(use-package writeroom-mode
+ :defer 2
+ :hook ((prog-mode text-mode) . writeroom-mode))
 #+END_SRC
 
 ** Custom org creation function
