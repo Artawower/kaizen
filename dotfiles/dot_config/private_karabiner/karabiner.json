@@ -97,7 +97,7 @@
                   },
                   {
                     "type": "frontmost_application_if",
-                    "bundle_identifiers": ["^com\\.mitchellh\\.ghostty$"]
+                    "bundle_identifiers": ["^com\\.mitchellh\\.ghostty$", "^com\\.superlogical\\.rex$"]
                   }
                 ],
                 "to": [

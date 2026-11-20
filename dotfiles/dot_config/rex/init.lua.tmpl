@@ -1,0 +1,250 @@
+{{- $shell := lookPath .terminal.shell -}}
+{{- if not $shell -}}
+{{- fail (printf "Rex requires the configured shell %q on PATH" .terminal.shell) -}}
+{{- end -}}
+rex.action{
+  name = "session_goto",
+  title = "Go to Session by Index",
+  args = { index = "number" },
+  run = function(ctx, args)
+    local session = rex.call("session.list", {}).sessions[args.index]
+    if session then
+      rex.client.queue("session.select", { session_id = session.session_id })
+    end
+  end,
+}
+
+rex.action{
+  name = "focus_keep_zoom",
+  title = "Focus Pane, Keeping Zoom",
+  args = { direction = "string" },
+  run = function(ctx, args)
+    local view = rex.session.view{}
+    local zoomed = false
+    for _, window in ipairs(view.windows) do
+      if window.window_id == view.active_window_id then
+        zoomed = window.zoomed_block_id ~= nil
+      end
+    end
+    if args.direction == "next" then
+      rex.session.focus_next_pane{}
+    elseif args.direction == "previous" then
+      rex.session.focus_previous_pane{}
+    else
+      rex.session.focus_direction{ direction = args.direction }
+    end
+    if zoomed then
+      rex.session.zoom_block{ zoom = true }
+    end
+  end,
+}
+
+rex.action{
+  name = "scratch_toggle",
+  title = "Toggle Scratch Terminal",
+  run = function(ctx, args)
+    local view = rex.session.view{}
+    local window
+    for _, candidate in ipairs(view.windows) do
+      if candidate.window_id == view.active_window_id then
+        window = candidate
+      end
+    end
+    for _, layer in ipairs(window.layers) do
+      if layer.kind ~= "tiled" and layer.blocks[1] and layer.blocks[1].label == "scratch" then
+        local hidden = layer.state == "minimized"
+        rex.session.set_layer_state{ layer_id = layer.layer_id, state = hidden and "normal" or "minimized", focus = hidden }
+        return
+      end
+    end
+    rex.session.new_layer{
+      window_id = window.window_id,
+      bounds = { 0.1, 0.1, 0.8, 0.8 },
+      focus = true,
+      layout = { block = { flavor = "com.superlogical.terminal.shell", label = "scratch", options = { shell = {{ $shell | quote }} } } },
+    }
+  end,
+}
+
+for _, key in ipairs({
+  "cmd+n", "shift+cmd+w", "ctrl+cmd+f", "cmd+w",
+  "shift+cmd+p", "cmd+,", "shift+cmd+,", "shift+cmd+u", "alt+shift+cmd+u", "shift+cmd+.",
+  "shift+cmd+n", "alt+shift+cmd+n", "cmd+k", "cmd+r",
+  "cmd+t", "alt+cmd+w", "ctrl+tab", "shift+cmd+]", "ctrl+shift+tab", "shift+cmd+[", "cmd+'",
+  "cmd+[Digit1]", "cmd+[Digit2]", "cmd+[Digit3]", "cmd+[Digit4]", "cmd+[Digit5]",
+  "cmd+[Digit6]", "cmd+[Digit7]", "cmd+[Digit8]", "cmd+[Digit9]",
+  "ctrl+shift+pageup", "ctrl+shift+pagedown",
+  "shift+cmd+left", "cmd+d", "shift+cmd+right", "shift+cmd+up", "shift+cmd+d", "shift+cmd+down", "cmd+enter",
+  "alt+cmd+left", "alt+cmd+right", "alt+cmd+up", "alt+cmd+down", "cmd+]", "cmd+[", "cmd+;",
+  "alt+shift+cmd+left", "alt+shift+cmd+right", "alt+shift+cmd+up", "alt+shift+cmd+down",
+  "alt+cmd+enter", "alt+cmd+m", "alt+shift+cmd+enter", "shift+cmd+enter",
+  "shift+cmd+g", "cmd+p", "ctrl+cmd+i", "shift+cmd+c",
+  "cmd+backspace", "cmd+left", "cmd+right", "alt+left", "alt+right", "cmd+up", "cmd+down", "cmd+y",
+  "cmd+f", "cmd+g",
+  "shift+cmd+=", "cmd+=", "cmd+-", "cmd+[Digit0]",
+  "cmd+/", "cmd+.", "shift+cmd+s", "alt+cmd+t", "alt+shift+cmd+t",
+}) do
+  rex.unbind(key)
+end
+
+rex.bind("shift+cmd+,", "client.config.reload")
+rex.bind("shift+cmd+=", "client.font.increase")
+rex.bind("shift+cmd+-", "client.font.decrease")
+rex.bind("ctrl+[Digit0]", "client.font.reset")
+
+rex.bind("cmd+alt+shift+h", "focus_keep_zoom", { direction = "left" })
+rex.bind("cmd+alt+shift+[KeyH]", "focus_keep_zoom", { direction = "left" })
+rex.bind("cmd+alt+shift+j", "focus_keep_zoom", { direction = "down" })
+rex.bind("cmd+alt+shift+[KeyY]", "focus_keep_zoom", { direction = "down" })
+rex.bind("cmd+alt+shift+k", "focus_keep_zoom", { direction = "up" })
+rex.bind("cmd+alt+shift+[KeyN]", "focus_keep_zoom", { direction = "up" })
+rex.bind("cmd+alt+shift+l", "focus_keep_zoom", { direction = "right" })
+rex.bind("cmd+alt+shift+[KeyU]", "focus_keep_zoom", { direction = "right" })
+
+rex.bind("ctrl+j", "focus_keep_zoom", { direction = "next" })
+rex.bind("ctrl+[KeyY]", "focus_keep_zoom", { direction = "next" })
+rex.bind("ctrl+k", "focus_keep_zoom", { direction = "previous" })
+rex.bind("ctrl+[KeyN]", "focus_keep_zoom", { direction = "previous" })
+rex.bind("alt+tab", "focus_keep_zoom", { direction = "next" })
+rex.bind("cmd+alt+shift+n", "focus_keep_zoom", { direction = "next" })
+rex.bind("cmd+alt+shift+[KeyJ]", "focus_keep_zoom", { direction = "next" })
+rex.bind("alt+shift+tab", "focus_keep_zoom", { direction = "previous" })
+rex.bind("cmd+alt+shift+p", "focus_keep_zoom", { direction = "previous" })
+rex.bind("cmd+alt+shift+[KeyR]", "focus_keep_zoom", { direction = "previous" })
+
+rex.bind("cmd+alt+shift+d", "pane.close")
+rex.bind("cmd+alt+shift+[KeyG]", "pane.close")
+rex.bind("cmd+alt+shift+f", "pane.zoom")
+rex.bind("cmd+alt+shift+[KeyE]", "pane.zoom")
+rex.bind("f20", "client.close")
+
+rex.bind("cmd+alt+shift+1", "client.tab.goto", { index = 1 })
+rex.bind("cmd+alt+shift+2", "client.tab.goto", { index = 2 })
+rex.bind("cmd+alt+shift+3", "client.tab.goto", { index = 3 })
+rex.bind("cmd+alt+shift+4", "client.tab.goto", { index = 4 })
+rex.bind("cmd+alt+shift+5", "client.tab.goto", { index = 5 })
+rex.bind("cmd+alt+shift+6", "client.tab.goto", { index = 6 })
+rex.bind("cmd+alt+shift+7", "client.tab.goto", { index = 7 })
+rex.bind("cmd+alt+shift+8", "client.tab.goto", { index = 8 })
+rex.bind("cmd+alt+shift+9", "client.tab.goto", { index = 9 })
+rex.bind("cmd+alt+shift+t", "client.tab.new")
+rex.bind("cmd+alt+shift+[KeyF]", "client.tab.new")
+rex.bind("cmd+alt+shift+r", "client.tab.rename")
+rex.bind("cmd+alt+shift+[KeyS]", "client.tab.rename")
+rex.bind("cmd+alt+shift+x", "client.tab.close")
+rex.bind("cmd+alt+shift+[KeyX]", "client.tab.close")
+rex.bind("cmd+shift+h", "client.tab.previous")
+rex.bind("cmd+shift+[KeyH]", "client.tab.previous")
+rex.bind("cmd+shift+l", "client.tab.next")
+rex.bind("cmd+shift+[KeyU]", "client.tab.next")
+
+rex.bind("ctrl+1", "session_goto", { index = 1 })
+rex.bind("ctrl+2", "session_goto", { index = 2 })
+rex.bind("ctrl+3", "session_goto", { index = 3 })
+rex.bind("ctrl+4", "session_goto", { index = 4 })
+rex.bind("ctrl+5", "session_goto", { index = 5 })
+rex.bind("ctrl+6", "session_goto", { index = 6 })
+rex.bind("ctrl+7", "session_goto", { index = 7 })
+rex.bind("ctrl+8", "session_goto", { index = 8 })
+rex.bind("ctrl+9", "session_goto", { index = 9 })
+rex.bind("cmd+alt+shift+w", "session.switch")
+rex.bind("cmd+alt+shift+[KeyW]", "session.switch")
+rex.bind("cmd+shift+w", "session.new")
+rex.bind("cmd+shift+[KeyW]", "session.new")
+rex.bind("cmd+shift+r", "session.rename")
+rex.bind("cmd+shift+[KeyS]", "session.rename")
+rex.bind("cmd+shift+d", "session.close")
+rex.bind("cmd+shift+[KeyG]", "session.close")
+rex.bind("cmd+shift+k", "session.previous")
+rex.bind("cmd+shift+[KeyN]", "session.previous")
+rex.bind("cmd+shift+j", "session.next")
+rex.bind("cmd+shift+[KeyY]", "session.next")
+
+rex.bind("ctrl+shift+p", "client.palette.toggle")
+rex.bind("ctrl+shift+[KeyR]", "client.palette.toggle")
+rex.bind("ctrl+shift+v", "pane.paste")
+rex.bind("ctrl+shift+[KeyV]", "pane.paste")
+
+rex.bind("ctrl+b>ctrl+b", "pane.send_key", { key = "ctrl+b" })
+rex.bind("ctrl+[KeyB]>ctrl+[KeyB]", "pane.send_key", { key = "ctrl+b" })
+
+rex.bind("ctrl+b>v", "pane.split", { direction = "right" })
+rex.bind("ctrl+[KeyB]>[KeyV]", "pane.split", { direction = "right" })
+rex.bind("ctrl+b>\\", "pane.split", { direction = "right" })
+rex.bind("ctrl+b>shift+\\", "pane.split", { direction = "right" })
+rex.bind("ctrl+b>-", "pane.split", { direction = "down" })
+rex.bind("ctrl+b>x", "pane.close")
+rex.bind("ctrl+[KeyB]>[KeyX]", "pane.close")
+rex.bind("ctrl+b>f", "pane.zoom")
+rex.bind("ctrl+[KeyB]>[KeyE]", "pane.zoom")
+rex.bind("ctrl+b>n", "focus_keep_zoom", { direction = "next" })
+rex.bind("ctrl+[KeyB]>[KeyJ]", "focus_keep_zoom", { direction = "next" })
+rex.bind("ctrl+b>tab", "focus_keep_zoom", { direction = "next" })
+rex.bind("ctrl+b>p", "focus_keep_zoom", { direction = "previous" })
+rex.bind("ctrl+[KeyB]>[KeyR]", "focus_keep_zoom", { direction = "previous" })
+rex.bind("ctrl+b>shift+tab", "focus_keep_zoom", { direction = "previous" })
+rex.bind("ctrl+b>=", "pane.balance")
+rex.bind("ctrl+b>shift+e", "pane.balance")
+rex.bind("ctrl+[KeyB]>shift+[KeyK]", "pane.balance")
+rex.bind("ctrl+b>[", "pane.copy_mode.enter")
+rex.bind("ctrl+[KeyB]>[BracketLeft]", "pane.copy_mode.enter")
+rex.bind("ctrl+b>s", "pane.copy_mode.enter")
+rex.bind("ctrl+[KeyB]>[KeyD]", "pane.copy_mode.enter")
+rex.bind("ctrl+b>g", "scratch_toggle")
+rex.bind("ctrl+[KeyB]>[KeyT]", "scratch_toggle")
+rex.bind("ctrl+b>]", "pane.paste")
+rex.bind("ctrl+[KeyB]>[BracketRight]", "pane.paste")
+
+rex.bind("ctrl+b>alt+h", "pane.resize", { direction = "left" })
+rex.bind("ctrl+[KeyB]>alt+[KeyH]", "pane.resize", { direction = "left" })
+rex.bind("ctrl+b>alt+j", "pane.resize", { direction = "down" })
+rex.bind("ctrl+[KeyB]>alt+[KeyY]", "pane.resize", { direction = "down" })
+rex.bind("ctrl+b>alt+k", "pane.resize", { direction = "up" })
+rex.bind("ctrl+[KeyB]>alt+[KeyN]", "pane.resize", { direction = "up" })
+rex.bind("ctrl+b>alt+l", "pane.resize", { direction = "right" })
+rex.bind("ctrl+[KeyB]>alt+[KeyU]", "pane.resize", { direction = "right" })
+rex.bind("ctrl+b>r>h", "pane.resize", { direction = "left" })
+rex.bind("ctrl+[KeyB]>[KeyS]>[KeyH]", "pane.resize", { direction = "left" })
+rex.bind("ctrl+b>r>j", "pane.resize", { direction = "down" })
+rex.bind("ctrl+[KeyB]>[KeyS]>[KeyY]", "pane.resize", { direction = "down" })
+rex.bind("ctrl+b>r>k", "pane.resize", { direction = "up" })
+rex.bind("ctrl+[KeyB]>[KeyS]>[KeyN]", "pane.resize", { direction = "up" })
+rex.bind("ctrl+b>r>l", "pane.resize", { direction = "right" })
+rex.bind("ctrl+[KeyB]>[KeyS]>[KeyU]", "pane.resize", { direction = "right" })
+
+rex.bind("ctrl+b>t>n", "pane.split.auto")
+rex.bind("ctrl+[KeyB]>[KeyF]>[KeyJ]", "pane.split.auto")
+rex.bind("ctrl+b>t>x", "pane.close")
+rex.bind("ctrl+[KeyB]>[KeyF]>[KeyX]", "pane.close")
+rex.bind("ctrl+b>t>r", "pane.rename")
+rex.bind("ctrl+[KeyB]>[KeyF]>[KeyS]", "pane.rename")
+
+rex.bind("ctrl+b>1", "client.tab.goto", { index = 1 })
+rex.bind("ctrl+b>2", "client.tab.goto", { index = 2 })
+rex.bind("ctrl+b>3", "client.tab.goto", { index = 3 })
+rex.bind("ctrl+b>4", "client.tab.goto", { index = 4 })
+rex.bind("ctrl+b>5", "client.tab.goto", { index = 5 })
+rex.bind("ctrl+b>6", "client.tab.goto", { index = 6 })
+rex.bind("ctrl+b>7", "client.tab.goto", { index = 7 })
+rex.bind("ctrl+b>8", "client.tab.goto", { index = 8 })
+rex.bind("ctrl+b>9", "client.tab.goto", { index = 9 })
+rex.bind("ctrl+b>c", "client.tab.new")
+rex.bind("ctrl+[KeyB]>[KeyC]", "client.tab.new")
+rex.bind("ctrl+b>shift+w>r", "client.tab.rename")
+rex.bind("ctrl+[KeyB]>shift+[KeyW]>[KeyS]", "client.tab.rename")
+
+rex.bind("ctrl+b>w", "session.switch")
+rex.bind("ctrl+[KeyB]>[KeyW]", "session.switch")
+rex.bind("ctrl+b>shift+n", "session.new")
+rex.bind("ctrl+[KeyB]>shift+[KeyJ]", "session.new")
+rex.bind("ctrl+b>shift+x", "session.close")
+rex.bind("ctrl+[KeyB]>shift+[KeyX]", "session.close")
+
+rex.bind("ctrl+b>b", "client.sidebar.toggle")
+rex.bind("ctrl+[KeyB]>[KeyB]", "client.sidebar.toggle")
+rex.bind("ctrl+b>shift+p", "client.palette.toggle")
+rex.bind("ctrl+[KeyB]>shift+[KeyR]", "client.palette.toggle")
+rex.bind("ctrl+b>,", "client.settings")
+rex.bind("ctrl+[KeyB]>[Comma]", "client.settings")
+rex.bind("ctrl+b>shift+r", "client.config.reload")
+rex.bind("ctrl+[KeyB]>shift+[KeyS]", "client.config.reload")
