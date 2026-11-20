@@ -906,21 +906,11 @@ Apply themes only when the system appearance changes, so a theme loaded by hand 
 ** Hide modeline mode
 #+BEGIN_SRC emacs-lisp
 (use-package hide-mode-line
-  :hook
-  (conf-mode . hide-mode-line-mode)
-  (fundamental-mode . hide-mode-line-mode)
-  (compilation-mode . hide-mode-line-mode)
-  (magit-mode . hide-mode-line-mode)
-  (prog-mode . hide-mode-line-mode)
-  (text-mode . hide-mode-line-mode)
-  (org-mode . hide-mode-line-mode)
-  (help-mode . hide-mode-line-mode)
-  (helpful-mode . hide-mode-line-mode)
-  (dired-mode . hide-mode-line-mode)
-  (messages-buffer-mode . hide-mode-line-mode)
+  :demand t
+  :custom
+  (hide-mode-line-excluded-modes nil)
   :config
-  (with-current-buffer (messages-buffer)
-    (hide-mode-line-mode 1)))
+  (global-hide-mode-line-mode 1))
 #+END_SRC
 
 ** COMMENT Powerline
