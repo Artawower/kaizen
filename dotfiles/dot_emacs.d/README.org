@@ -3080,7 +3080,9 @@ Function for search in buffer depends or visual or normal line
          ("C-c b a" . consult-buffer)
          ("C-c b b" . consult-project-buffer)
          ("C-c f p" . consult-ripgrep)
-         ("C-c *" . (lambda () (interactive) (consult-ripgrep nil (thing-at-point 'symbol))))
+         ("C-c *" . (lambda ()
+                      (interactive)
+                      (consult-ripgrep nil (thing-at-point 'symbol))))
          ("C-c /" . my/consult-ripgrep-selected-p)
          ("C-c f g" . my/consult-ripgrep-selected-p)
          ("C-c s i" . consult-imenu)
@@ -3096,22 +3098,56 @@ Function for search in buffer depends or visual or normal line
   (xref-show-xrefs-function #'consult-xref)
   (xref-show-definitions-function #'consult-xref)
   (recentf-max-menu-items 3000)
-  (consult-narrow-key "<") ;; (kbd "C-SPC")
+  (consult-narrow-key "<")
+
   :init
   (recentf-mode 1)
-
+  (setq lsp-proxy-enable-imenu nil)
 
   :config
   (consult-customize
    consult-git-grep consult-grep consult-ripgrep
-   consult-bookmark consult-recent-file consult-xref consult--source-bookmark consult--source-file-register
+   consult-bookmark consult-recent-file consult-xref
+   consult--source-bookmark consult--source-file-register
    consult--source-recent-file consult--source-project-recent-file
    :preview-key (list :debounce 0.2 "C-SPC"))
 
   (setq consult-project-root-function
         (lambda ()
           (when-let* ((project (project-current)))
-            (car (project-roots project))))))
+            (car (project-roots project)))))
+
+  ;; Automatically configure Imenu categories from Tree-sitter.
+  (defun my/consult-treesit-setup ()
+  (when (derived-mode-p 'prog-mode)
+    ;; Python doesn't configure treesit-simple-imenu by default.
+    (when (derived-mode-p 'python-ts-mode)
+      (setq-local treesit-simple-imenu-settings
+                  '(("Function" "\\`function_definition\\'" nil nil)
+                    ("Class" "\\`class_definition\\'" nil nil))))
+
+    (when (bound-and-true-p treesit-simple-imenu-settings)
+      (let ((used nil)
+            (types nil))
+        (dolist (entry treesit-simple-imenu-settings)
+          (let* ((name (car entry))
+                 (key (seq-find
+                       (lambda (c) (not (memq c used)))
+                       (string-to-list (downcase name)))))
+            (when key
+              (push key used)
+              (push (list key name 'default) types))))
+
+        (setq-local imenu-create-index-function #'treesit-simple-imenu)
+        (setq-local imenu--index-alist nil)
+        (setq-local consult-imenu--cache nil)
+
+        (setq-local consult-imenu-config
+                    (cons (cons major-mode
+                                (list :types (nreverse types)))
+                          consult-imenu-config))))))
+
+  (add-hook 'after-change-major-mode-hook #'my/consult-treesit-setup))
 #+END_SRC
 
 ** Corfu
