@@ -2046,6 +2046,8 @@ Another all formtter. Based on prettier and black
 #+BEGIN_SRC emacs-lisp
 (use-package apheleia
   :hook (prog-mode . apheleia-global-mode)
+  :custom
+  (apheleia-formatters-respect-indent-level nil)
   :config
   (setf (alist-get 'kdlfmt apheleia-formatters)
         '("kdlfmt" "format" "-"))
@@ -3117,35 +3119,38 @@ Function for search in buffer depends or visual or normal line
           (when-let* ((project (project-current)))
             (car (project-roots project)))))
 
+  (require 'consult-imenu)
+
   ;; Automatically configure Imenu categories from Tree-sitter.
   (defun my/consult-treesit-setup ()
-  (when (derived-mode-p 'prog-mode)
-    ;; Python doesn't configure treesit-simple-imenu by default.
-    (when (derived-mode-p 'python-ts-mode)
-      (setq-local treesit-simple-imenu-settings
-                  '(("Function" "\\`function_definition\\'" nil nil)
-                    ("Class" "\\`class_definition\\'" nil nil))))
+    (when (derived-mode-p 'prog-mode)
+      ;; Python doesn't configure treesit-simple-imenu by default.
+      (when (derived-mode-p 'python-ts-mode)
+        (setq-local treesit-simple-imenu-settings
+                    '(("Function" "\\`function_definition\\'" nil nil)
+                      ("Class" "\\`class_definition\\'" nil nil))))
 
-    (when (bound-and-true-p treesit-simple-imenu-settings)
-      (let ((used nil)
-            (types nil))
-        (dolist (entry treesit-simple-imenu-settings)
-          (let* ((name (car entry))
-                 (key (seq-find
-                       (lambda (c) (not (memq c used)))
-                       (string-to-list (downcase name)))))
-            (when key
-              (push key used)
-              (push (list key name 'default) types))))
+      (when (bound-and-true-p treesit-simple-imenu-settings)
+        (let ((used nil)
+              (types nil))
+          (dolist (entry treesit-simple-imenu-settings)
+            (let* ((name (car entry))
+                   (key (and name
+                             (seq-find
+                              (lambda (c) (not (memq c used)))
+                              (string-to-list (downcase name))))))
+              (when key
+                (push key used)
+                (push (list key name 'default) types))))
 
-        (setq-local imenu-create-index-function #'treesit-simple-imenu)
-        (setq-local imenu--index-alist nil)
-        (setq-local consult-imenu--cache nil)
+          (setq-local imenu-create-index-function #'treesit-simple-imenu)
+          (setq-local imenu--index-alist nil)
+          (setq-local consult-imenu--cache nil)
 
-        (setq-local consult-imenu-config
-                    (cons (cons major-mode
-                                (list :types (nreverse types)))
-                          consult-imenu-config))))))
+          (setq-local consult-imenu-config
+                      (cons (cons major-mode
+                                  (list :types (nreverse types)))
+                            consult-imenu-config))))))
 
   (add-hook 'after-change-major-mode-hook #'my/consult-treesit-setup))
 #+END_SRC
@@ -5153,7 +5158,7 @@ Automatically creates parent directories if needed."
         ("<f10>" . dslide-deck-stop)))
 #+END_SRC
 
-** Writeroom
+** COMMENT Writeroom
 #+BEGIN_SRC emacs-lisp :results silent
 (use-package writeroom-mode
  :defer 2
