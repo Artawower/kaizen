@@ -255,7 +255,7 @@ resize = "Ctrl + Meta + Alt + Shift"
 # Closest equivalent to AeroSpace accordion.
 
 # Toggle float / tiled.
-"Ctrl + Alt + Shift + C" = "toggle_window_floating"
+"Ctrl + Alt + Shift + C" = { exec = ["sh", "-c", "~/.config/rift/scripts/toggle-float.sh"] }
 
 # Toggle stack around current selection.
 "Ctrl + Alt + Shift + V" = "toggle_stack"
@@ -368,7 +368,8 @@ resize = "Ctrl + Meta + Alt + Shift"
 "Meta + Alt + F" = { exec = ["sh", "-c", "open -a Firefox.app"] }
 "Meta + Alt + W" = { exec = ["sh", "-c", "open -na Firefox.app"] }
 "Meta + Alt + T" = { exec = ["sh", "-c", "open -a Telegram.app"] }
-"Meta + Shift + W" = { exec = ["sh", "-c", "open -a Marta.app"] }
+"Meta + Shift + T" = { exec = ["sh", "-c", "open -a Marta.app"] }
+"Meta + Shift + W" = { exec = ["sh", "-c", "open -a skwir.app"] }
 "Meta + Alt + R" = { exec = ["sh", "-c", "open -na kitty.app --args ranger"] }
 "Meta + Alt + V" = { exec = ["sh", "-c", "open -na kitty.app --args nvim"] }
 "Meta + Alt + M" = { exec = ["sh", "-c", "open -na kitty.app --args spt"] }

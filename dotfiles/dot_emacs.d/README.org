@@ -2419,7 +2419,7 @@ Compile mode
   :bind (("C-c o T" . magit-todos-list)))
 #+END_SRC
 
-** Diffstatic
+** COMMENT Diffstatic
 #+BEGIN_SRC emacs-lisp :results silent
 (use-package magit-difftastic
   :ensure (:host github :repo "rschmukler/magit-difftastic")

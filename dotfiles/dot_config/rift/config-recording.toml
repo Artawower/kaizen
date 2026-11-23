@@ -254,7 +254,7 @@ resize = "Ctrl + Meta + Alt + Shift"
 # Closest equivalent to AeroSpace accordion.
 
 # Toggle float / tiled.
-"Meta + Alt + Shift + C" = "toggle_window_floating"
+"Meta + Alt + Shift + C" = { exec = ["sh", "-c", "~/.config/rift/scripts/toggle-float.sh"] }
 
 # Toggle stack around current selection.
 "Meta + Alt + Shift + V" = "toggle_stack"

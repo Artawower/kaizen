@@ -1,4 +1,4 @@
-const RECORDING_FONT_SIZE = 28
+const RECORDING_FONT_SIZE = 26
 const GHOSTTY_CONFIG = "~/.config/ghostty/config"
 const CAVA_PANEL = r#'kitty +kitten panel \
   --edge=bottom \
