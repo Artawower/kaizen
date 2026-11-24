@@ -1,0 +1,5 @@
+[automatization]
+tags = ["cli", "automatization", "email"]
+description = "Automate email routine via CLI"
+brew = ["himalaya"]
+dnf = ["himalaya"]
