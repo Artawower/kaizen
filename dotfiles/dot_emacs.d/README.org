@@ -4358,9 +4358,61 @@ Requires Emacs 30+
 (use-package markdown-mermaid
   :ensure (markdown-mermaid :type git :host github :repo "pasunboneleve/markdown-mermaid")
   :custom
-  (markdown-mermaid-mmdc-path "/Users/darkawower/.volta/bin/mmdc")
+  (markdown-mermaid-mmdc-path "mmdc")
   :bind (:map markdown-mode-map
-              ("C-c m" . markdown-mermaid-preview)))
+              ("C-c m" . markdown-mermaid-preview))
+  :config
+  (defun my/mermaid-browser ()
+    (seq-find #'file-executable-p
+              (append
+               (reverse
+                (file-expand-wildcards
+                 (expand-file-name "~/Library/Caches/ms-playwright/chromium_headless_shell-*/chrome-headless-shell-*/chrome-headless-shell")))
+               '("/Applications/Chromium.app/Contents/MacOS/Chromium"))))
+
+  (defun my/mermaid-face-hex (face &optional attribute)
+    (when-let* ((color (face-attribute face (or attribute :foreground) nil 'default))
+                ((stringp color))
+                (rgb (color-name-to-rgb color)))
+      (apply #'color-rgb-to-hex (append rgb '(2)))))
+
+  (defun my/mermaid-theme-config ()
+    (when-let* ((fg (my/mermaid-face-hex 'default))
+                (bg (my/mermaid-face-hex 'default :background)))
+      (let ((secondary (or (my/mermaid-face-hex 'font-lock-type-face) fg))
+            (lines (or (my/mermaid-face-hex 'font-lock-constant-face) fg)))
+        (json-encode
+         `((theme . "base")
+           (themeVariables . ((primaryColor . ,bg)
+                              (primaryTextColor . ,fg)
+                              (primaryBorderColor . ,secondary)
+                              (lineColor . ,lines)
+                              (secondaryColor . ,bg)
+                              (tertiaryColor . ,bg))))))))
+
+  (defun my/mermaid-compile (mermaid-code)
+    (let* ((input (make-temp-file "mermaid-block-" nil ".mmd" mermaid-code))
+           (output (make-temp-file "mermaid-block-" nil ".png"))
+           (theme (my/mermaid-theme-config))
+           (config (when theme (make-temp-file "mermaid-config-" nil ".json" theme)))
+           (files (delq nil (list input output config)))
+           (browser (my/mermaid-browser))
+           (process-environment
+            (if browser
+                (cons (concat "PUPPETEER_EXECUTABLE_PATH=" browser) process-environment)
+              process-environment)))
+      (with-current-buffer (get-buffer-create "*mermaid-error*")
+        (erase-buffer))
+      (message "Compiling Mermaid block...")
+      (apply #'call-process markdown-mermaid-mmdc-path nil "*mermaid-error*" nil
+             "-i" input "-o" output "-b" "transparent"
+             (when config (list "-c" config)))
+      (if (> (file-attribute-size (file-attributes output)) 0)
+          (list output files)
+        (mapc #'delete-file files)
+        (user-error "Mermaid compilation failed, see *mermaid-error*"))))
+
+  (advice-add 'markdown-mermaid--compile :override #'my/mermaid-compile))
 #+END_SRC
 *** Org babel
 #+BEGIN_SRC emacs-lisp :results silent
