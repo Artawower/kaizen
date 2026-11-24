@@ -294,6 +294,24 @@ class DependenciesTests(unittest.TestCase):
         self.assertEqual(data["sample"]["packages"], ["jq"])
         self.assertEqual(data["archived"]["tools"], {"rust": "1.80"})
 
+    def test_tool_tables_pass_through_generation_and_bump(self):
+        catalog = kaizen.FEATURES_DIR / "tools.toml"
+        write(catalog, '[sample]\ntools = {node = "20", "npm:cli" = {version = "1.0.0", trust_policy_excludes = ["dep"]}}')
+        features = kaizen.discover_features("fedora")
+        self.instance._generate_mise_config(features, {})
+        self.assertEqual(kaizen.read_toml(kaizen.MISE_CONFIG)["tools"]["npm:cli"], {"version": "1.0.0", "trust_policy_excludes": ["dep"]})
+        bootstrap = self.instance._bootstrap_config(features, {}, "sync", dotfiles=False)
+        kaizen.write_toml(bootstrap, kaizen.BOOTSTRAP_CONFIG)
+        self.assertEqual(kaizen.read_toml(kaizen.BOOTSTRAP_CONFIG)["tools"]["npm:cli"]["trust_policy_excludes"], ["dep"])
+        write(kaizen.MISE_CONFIG, '[tools]\nnode = "20"\n"npm:cli" = {version = "1.2.0", trust_policy_excludes = ["dep"]}')
+        self.instance._capture_mise_versions(features, set())
+        self.assertEqual(kaizen.read_toml(catalog)["sample"]["tools"]["npm:cli"], {"version": "1.2.0", "trust_policy_excludes": ["dep"]})
+
+    def test_tool_table_requires_version(self):
+        write(kaizen.FEATURES_DIR / "tools.toml", '[sample]\ntools = {"npm:cli" = {trust_policy_excludes = ["dep"]}}')
+        with self.assertRaisesRegex(TypeError, "tables with a version: npm:cli"):
+            kaizen.discover_features("fedora")
+
     def test_user_overlay_does_not_follow_old_symlink(self):
         original = self.root / "original.toml"
         write(original, 'layout = "saved"')

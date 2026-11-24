@@ -294,6 +294,11 @@ def _string_map(value: object) -> dict[str, str]:
     return {key: item for key, item in table.items() if isinstance(item, str)}
 
 
+def _tool_map(value: object) -> dict[str, object]:
+    table = _table(value)
+    return {key: item for key, item in table.items() if isinstance(item, (str, dict))}
+
+
 def _validate_keys(table: dict[str, object], allowed: set[str], label: str) -> None:
     unknown = sorted(set(table) - allowed)
     if not unknown:
@@ -310,6 +315,20 @@ def _dependency_table(
     if not isinstance(value, dict):
         raise TypeError(f"{path}: {key} must be a table")
     return cast(dict[str, object], value)
+
+
+def _validate_tool_map(table: dict[str, object], label: str) -> None:
+    invalid = sorted(
+        key
+        for key, value in table.items()
+        if not key or not (
+            (isinstance(value, str) and value)
+            or (isinstance(value, dict) and isinstance(value.get("version"), str) and value["version"])
+        )
+    )
+    if not invalid:
+        return
+    raise TypeError(f"{label} values must be non-empty versions or tables with a version: {', '.join(invalid)}")
 
 
 def _validate_string_list(table: dict[str, object], key: str, label: str) -> None:
@@ -416,12 +435,12 @@ def write_toml(data: dict[str, object], dest: Path) -> None:
     _ = dest.write_text("\n".join(lines) + "\n")
 
 
-def _write_mise_toml(tools: dict[str, str], dest: Path) -> None:
+def _write_mise_toml(tools: dict[str, object], dest: Path) -> None:
     lines = ["[tools]"]
-    for name, version in tools.items():
-        if not isinstance(version, str):
-            raise TypeError(f"mise version for {name} must be a string")
-        lines.append(f"{_toml_key(name)} = {_toml_value(version)}")
+    for name, spec in tools.items():
+        if not isinstance(spec, (str, dict)):
+            raise TypeError(f"mise version for {name} must be a string or table")
+        lines.append(f"{_toml_key(name)} = {_toml_value(spec)}")
     _ = dest.write_text("\n".join(lines) + "\n")
 
 
@@ -487,8 +506,8 @@ class Feature:
         }
 
     @property
-    def tools(self) -> dict[str, str]:
-        return _string_map(self.data.get("tools"))
+    def tools(self) -> dict[str, object]:
+        return _tool_map(self.data.get("tools"))
 
     @property
     def skills(self) -> list[str]:
@@ -521,7 +540,7 @@ class Feature:
             if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9-]*/[\w.-]+@[\w.-]+", skill, re.ASCII):
                 raise ValueError(f"{label}: skill must use owner/repo@skill format: {skill}")
         tools = _dependency_table(self.data, "tools", self.manifest)
-        _validate_string_map(tools, f"{label}: tools")
+        _validate_tool_map(tools, f"{label}: tools")
         brew_args = _dependency_table(self.data, "brew_args", self.manifest)
         for package in brew_args:
             _validate_string_list(brew_args, package, f"{label}: brew_args")
@@ -807,7 +826,7 @@ class Kaizen:
     ) -> dict[str, object]:
         packages = _resolve_packages(features, dependencies)
         bootstrap: dict[str, object] = {}
-        tools: dict[str, str] = {}
+        tools: dict[str, object] = {}
         for feature in features:
             declaration = _table(feature.data.get("bootstrap"))
             if {"packages", "hooks"} & declaration.keys():
@@ -1054,7 +1073,7 @@ class Kaizen:
     def _generate_mise_config(
         self, features: list[Feature], user_dependencies: dict[str, object]
     ) -> None:
-        tools: dict[str, str] = {}
+        tools: dict[str, object] = {}
         for feature in features:
             tools.update(feature.tools)
         tools.update(_string_map(user_dependencies.get("tools")))
@@ -1070,7 +1089,7 @@ class Kaizen:
     def _capture_mise_versions(
         self, features: list[Feature], user_tools: set[str]
     ) -> None:
-        live_tools = _string_map(load_toml(MISE_CONFIG).get("tools"))
+        live_tools = _tool_map(load_toml(MISE_CONFIG).get("tools"))
         for feature in features:
             feature_tools = feature.tools
             updated = {

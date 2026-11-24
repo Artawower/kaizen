@@ -39,6 +39,9 @@ dotfiles = ["dotfiles/dot_config/example"]
 packages rather than replacing the shared list. Optional =brew_args= maps native
 Homebrew names to flag lists. =tools= is an inline table of mise tool names and
 versions; there are no separate package or mise manifests for individual features.
+A tool value may instead be a table with a required =version= and other mise tool
+options, such as ={version = "12.0.0", trust_policy_excludes = ["chromium-bidi"]}=;
+Kaizen passes it through unchanged and =bump= keeps its options.
 
 =package_names= maps a dependency name to =brew=, =dnf=, and/or =apt= exceptions.
 An omitted manager uses the dependency name unchanged. In the example, =fd=
