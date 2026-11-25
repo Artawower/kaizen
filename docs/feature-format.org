@@ -20,19 +20,23 @@ there is no user =[features]= enable list and no variant selection.
 Repeat =--feature NAME= on =install=, =sync=, =update=, =status=, or =bump= to select
 recipes explicitly. The selection applies for one command only. Omission selects
 all applicable non-archived recipes. Unknown, archived, and unsupported names fail
-before application; repeated names are deduplicated. There are no presets or tags.
+before application; repeated names are deduplicated. There are no presets.
 
 * Feature section
 
 #+BEGIN_SRC toml
 [example]
 description = "Example CLI tools"
+tags = ["cli", "example"]
 packages = ["jq", "fd"]
 package_names = {fd = {dnf = "fd-find", apt = "fd-find"}}
 brew_args = { jq = ["--HEAD"] }
 tools = { go = "latest" }
 dotfiles = ["dotfiles/dot_config/example"]
 #+END_SRC
+
+=tags= optionally labels a feature with unique lowercase kebab-case strings such
+as ="cli"=. Tags are validated but do not yet affect selection or installation.
 
 =packages= lists shared native dependencies. Native manager keys remain flat:
 =taps=, =brew=, =cask=, =dnf=, =apt=, and =flatpak=. They add manager-specific

@@ -79,7 +79,8 @@ versions live together in each section; only real hooks and their assets need
 separate files. Category files have no inheritance or shared defaults. Every
 feature is active on its supported OS unless its section declares
 =archive = true=. Repeat =--feature NAME= to select a subset for one command;
-there are no presets, tags, or user-maintained feature enable lists.
+there are no presets or user-maintained feature enable lists. Optional
+=tags= label features but do not affect selection yet.
 
 * Configuration source of truth
 

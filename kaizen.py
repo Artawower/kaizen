@@ -510,6 +510,10 @@ class Feature:
         return _tool_map(self.data.get("tools"))
 
     @property
+    def tags(self) -> list[str]:
+        return _string_list(self.data.get("tags"))
+
+    @property
     def skills(self) -> list[str]:
         return _string_list(self.data.get("skills"))
 
@@ -527,7 +531,7 @@ class Feature:
             return False
         list_keys = (
             *_USER_MACOS_DEPENDENCY_LISTS, *_USER_LINUX_DEPENDENCY_LISTS,
-            "platforms", "distributions", "dotfiles", "skills", "packages",
+            "platforms", "distributions", "dotfiles", "skills", "packages", "tags",
         )
         _validate_keys(
             self.data,
@@ -539,6 +543,12 @@ class Feature:
         for skill in self.skills:
             if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9-]*/[\w.-]+@[\w.-]+", skill, re.ASCII):
                 raise ValueError(f"{label}: skill must use owner/repo@skill format: {skill}")
+        tags = self.tags
+        for tag in tags:
+            if not re.fullmatch(r"[a-z0-9][a-z0-9-]*", tag, re.ASCII):
+                raise ValueError(f"{label}: tags must be lowercase kebab-case: {tag}")
+        if len(set(tags)) != len(tags):
+            raise ValueError(f"{label}: tags must be unique")
         tools = _dependency_table(self.data, "tools", self.manifest)
         _validate_tool_map(tools, f"{label}: tools")
         brew_args = _dependency_table(self.data, "brew_args", self.manifest)
