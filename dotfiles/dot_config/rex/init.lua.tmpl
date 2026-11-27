@@ -39,6 +39,8 @@ rex.action{
   end,
 }
 
+local scratch_zoom = {}
+
 rex.action{
   name = "scratch_toggle",
   title = "Toggle Scratch Terminal",
@@ -53,16 +55,35 @@ rex.action{
     for _, layer in ipairs(window.layers) do
       if layer.kind ~= "tiled" and layer.blocks[1] and layer.blocks[1].label == "scratch" then
         local hidden = layer.state == "minimized"
-        rex.session.set_layer_state{ layer_id = layer.layer_id, state = hidden and "normal" or "minimized", focus = hidden }
+        if hidden then
+          scratch_zoom[window.window_id] = window.zoomed_block_id
+        end
+        local _, err = rex.session.set_layer_state{ layer_id = layer.layer_id, state = hidden and "normal" or "minimized", focus = hidden }
+        if err then error(err, 0) end
+        if not hidden and scratch_zoom[window.window_id] then
+          local zoom = scratch_zoom[window.window_id]
+          scratch_zoom[window.window_id] = nil
+          for _, candidate in ipairs(window.layers) do
+            for _, block in ipairs(candidate.blocks) do
+              if block.block_id == zoom then
+                local _, err = rex.session.zoom_block{ block_id = zoom, zoom = true }
+                if err then error(err, 0) end
+                return
+              end
+            end
+          end
+        end
         return
       end
     end
-    rex.session.new_layer{
+    scratch_zoom[window.window_id] = window.zoomed_block_id
+    local _, err = rex.session.new_layer{
       window_id = window.window_id,
       bounds = { 0.1, 0.1, 0.8, 0.8 },
       focus = true,
       layout = { block = { flavor = "com.superlogical.terminal.shell", label = "scratch", options = { shell = {{ $shell | quote }} } } },
     }
+    if err then error(err, 0) end
   end,
 }
 
