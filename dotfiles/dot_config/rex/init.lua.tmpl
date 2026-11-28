@@ -110,24 +110,31 @@ end
 rex.bind("shift+cmd+,", "client.config.reload")
 rex.bind("shift+cmd+=", "client.font.increase")
 rex.bind("shift+cmd+-", "client.font.decrease")
-local function send_super_period(ctx, ev)
-  local _, err = rex.call("block.event", {
-    session_id = ctx.session_id,
-    block_id = ctx.block_id,
-    event = {
-      type = "key",
-      payload = {
-        key = "period", mods = "super", consumed_mods = "", text = ".",
-        unshifted_codepoint = 46, composing = false, action = "press",
+local function send_super_key(key, text)
+  return function(ctx)
+    local _, err = rex.call("block.event", {
+      session_id = ctx.session_id,
+      block_id = ctx.block_id,
+      event = {
+        type = "key",
+        payload = {
+          key = key, mods = "super", consumed_mods = "", text = text,
+          unshifted_codepoint = string.byte(text), composing = false, action = "press",
+        },
       },
-    },
-  })
-  if err then error(err, 0) end
-  return true
+    })
+    if err then error(err, 0) end
+    return true
+  end
 end
 
+local send_super_period = send_super_key("period", ".")
 rex.bind("cmd+.", send_super_period)
 rex.bind("cmd+[Period]", send_super_period)
+
+local send_super_a = send_super_key("key_a", "a")
+rex.bind("cmd+a", send_super_a)
+rex.bind("cmd+[KeyA]", send_super_a)
 
 rex.bind("cmd+alt+shift+h", "focus_keep_zoom", { direction = "left" })
 rex.bind("cmd+alt+shift+[KeyH]", "focus_keep_zoom", { direction = "left" })
